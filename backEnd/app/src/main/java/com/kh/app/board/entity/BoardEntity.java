@@ -1,5 +1,6 @@
 package com.kh.app.board.entity;
 
+import com.kh.app.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,51 +10,53 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-public class BoardEntity {  //extends BaseEntity
+public class BoardEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long Board_id;
+    private Long boardId;
 
     @JoinColumn(name = "WRITER_ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private Long Member_id;       //Type -> MemberEntity
+    private MemberEntity memberId;       //Type -> MemberEntity
 
     @Column(length = 50, nullable = false)
-    private String Board_Category;
+    private String boardCategory;
 
     @Column(length = 100, nullable = false)
-    private String Board_Title;
+    private String boardTitle;
 
     @Column(length = 4000, nullable = false)
-    private String Board_Content;
+    private String boardContent;
 
     @Column(nullable = false)
     @Builder.Default
-    private Long Board_Hits = 0L;
+    private Long boardHits = 0L;
 
     @Column(nullable = false , length = 1)
     @Builder.Default
-    private String Board_Blind_Yn = "N";
+    private String boardBlindYn = "N";
 
-    @Column(length = 100)
-    private String Board_Sub_category;
-
-    @Column(nullable = true)
-    private Long Board_Top_order;
+    @Column(length = 20)
+    private String boardSubCategory;
 
     @Column(nullable = true)
-    private Long Board_Stars;
+    private Long boardTopOrder;
+
+    @Column(nullable = true, precision = 2, scale = 1)  // precision=2(총 자릿수 2자리), scale=1(소수점 이하 1자리)
+    private Double boardStars;
 
 
     public void increaseHit(){
-        this.Board_Hits++;
+        this.boardHits++;
     }
 
     public void update(String title, String content){
-        this.Board_Title = title;
-        this.Board_Content = content;
+        this.boardTitle = title;
+        this.boardContent = content;
     }
+
+
 
 
 }

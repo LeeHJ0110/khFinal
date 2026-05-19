@@ -1,6 +1,8 @@
 package com.kh.app.board.entity;
 
 //import com.kh.app.common.entity.BaseEntity;
+
+import com.kh.app.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,7 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-public class BoardFileEntity  { //extends BaseEntity
+public class BoardFileEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,7 +39,6 @@ public class BoardFileEntity  { //extends BaseEntity
     @Column(name = "BOARD_FILE_ORDER")
     private Integer boardFileOrder;
 
-    // 객체 생성 편의 메서드
     public static BoardFileEntity from(BoardEntity board, MultipartFile file, String changedName, Integer order) {
         return BoardFileEntity.builder()
                 .board(board)
