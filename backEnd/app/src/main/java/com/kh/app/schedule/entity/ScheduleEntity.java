@@ -1,6 +1,7 @@
 package com.kh.app.schedule.entity;
 
 import com.kh.app.common.entity.BaseEntity;
+import com.kh.app.schedule.dto.request.EventReqDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -37,4 +38,13 @@ public class ScheduleEntity extends BaseEntity {
 
     @Column(name = "COLOR", length = 6)
     private String color = "5EC8A7";
+
+    public void update(EventReqDto reqDto) {
+        this.at = reqDto.getAt();
+        this.startDate = reqDto.getStartDate();
+        this.endDate = reqDto.getEndDate();
+        this.title = reqDto.getTitle();
+        this.content = reqDto.getContent();
+        this.color = reqDto.getBackgroundColor();
+    }
 }

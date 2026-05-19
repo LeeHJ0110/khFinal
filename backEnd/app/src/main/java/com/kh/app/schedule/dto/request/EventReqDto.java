@@ -8,19 +8,19 @@ import lombok.Setter;
 @Getter
 @Setter
 public class EventReqDto {
-    private Long id;
     private String title;
     private String content;
+    private String at;
     private String startDate;
     private String endDate;
     private String backgroundColor;
 
     public ScheduleEntity toEntity(MemberEntity entity){
         return ScheduleEntity.builder()
-                .id(id)
                 .member(entity)
                 .title(title)
                 .content(content)
+                .at(at)
                 .startDate(startDate)
                 .endDate(endDate)
                 .color(backgroundColor)
