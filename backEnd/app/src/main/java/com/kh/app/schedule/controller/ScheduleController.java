@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "일정", description = "일정 관련 api")
 @RestController
 @RequestMapping("/api/schedule")
@@ -18,6 +20,7 @@ public class ScheduleController {
     //등록
     @PostMapping
     public ResponseEntity<Object> write(@RequestBody EventReqDto reqDto){
+
         scheduleService.write(reqDto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -25,9 +28,10 @@ public class ScheduleController {
     }
 
     //목록조회
-    @GetMapping
-    public void selectAll(){
-        scheduleService.selectAll()
+    @GetMapping("{memberId}")
+    public ResponseEntity<List<EventReqDto>> selectList(@PathVariable Long memberId){
+        List<EventReqDto> reqDtoList = scheduleService.selectList(memberId);
+        return ResponseEntity.ok(reqDtoList);
     }
 
     //상세조회

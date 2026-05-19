@@ -1,12 +1,16 @@
 package com.kh.app.schedule.service;
 
 import com.kh.app.schedule.dto.request.EventReqDto;
+import com.kh.app.schedule.dto.response.EventResDto;
+import com.kh.app.schedule.entity.ScheduleEntity;
 import com.kh.app.schedule.repository.ScheduleRepository;
 import com.kh.app.schedule.repository.TrainingRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -22,5 +26,11 @@ public class ScheduleService {
 //        MemberEntity memberEntity = memberRepository          멤버 entity 찾기
         scheduleRepository.save(reqDto.toEntity(memberEntity));
         log.info("[일정 작성 완료] writer: {}", memberEntity);
+    }
+
+    public List<EventReqDto> selectList(Long memberId) {
+        return scheduleRepository
+                .selectList(memberId)
+                .map(EventResDto::from);
     }
 }
