@@ -37,7 +37,6 @@ public class BoardFileEntity  { //extends BaseEntity
     @Column(name = "BOARD_FILE_ORDER")
     private Integer boardFileOrder;
 
-    // 객체 생성 편의 메서드
     public static BoardFileEntity from(BoardEntity board, MultipartFile file, String changedName, Integer order) {
         return BoardFileEntity.builder()
                 .board(board)
