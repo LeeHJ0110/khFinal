@@ -20,23 +20,9 @@ public class ScheduleFileEntity extends BaseEntity {
     @JoinColumn(name = "SCHEDULE_ID", nullable = false)
     private ScheduleEntity schedule;
 
-    @Column(name = "AT", nullable = false, length = 4)
-    private String at;
+    @Column(name = "IMAGE_ORIGIN_NAME", nullable = false, length = 4000)
+    private String imageOriginName;
 
-    @Column(name = "START_DATE", nullable = false, length = 8)
-    private String startDate;
-
-    @Column(name = "END_DATE", nullable = false, length = 8)
-    private String endDate;
-
-    @Column(name = "TITLE", nullable = false, length = 1000)
-    private String title;
-
-    @Column(name = "CONTENT", length = 4000)
-    private String content;
-
-    @Column(name = "COLOR", length = 6)
-    private String color = "5EC8A7";
-
-
+    @Column(name = "IMAGE_CHANGED_NAME", nullable = false, length = 4000)
+    private String imageChangedName;
 }
