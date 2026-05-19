@@ -1,5 +1,6 @@
 package com.kh.app.schedule.service;
 
+import com.kh.app.schedule.dto.request.EventReqDto;
 import com.kh.app.schedule.repository.ScheduleRepository;
 import com.kh.app.schedule.repository.TrainingRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,4 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final TrainingRepository trainingRepository;
+    private final MemberRepository memberRepository;
+
+    public void write(EventReqDto reqDto) {
+
+//        MemberEntity memberEntity = memberRepository          멤버 entity 찾기
+        scheduleRepository.save(reqDto.toEntity(memberEntity));
+        log.info("[일정 작성 완료] writer: {}", memberEntity);
+    }
 }
