@@ -14,18 +14,18 @@ public class BoardResDto {
     private String boardCategory;
     private String boardSubCategory;
     private String title;
-    private String writerNickname; // 작성자 닉네임
+    private String writerNickname;
     private Long hits;
     private Double stars;
     private LocalDateTime createdAt;
-    
+
     public static BoardResDto from(BoardEntity entity) {
         return BoardResDto.builder()
                 .boardId(entity.getBoardId())
                 .boardCategory(entity.getBoardCategory())
                 .boardSubCategory(entity.getBoardSubCategory())
                 .title(entity.getBoardTitle())
-                .writerNickname(entity.getMember().getNickname()) // 수정된 Member 객체에서 닉네임 꺼내오기
+                .writerNickname(entity.getMemberId().getNickname())
                 .hits(entity.getBoardHits())
                 .stars(entity.getBoardStars())
                 .createdAt(entity.getCreatedAt())
