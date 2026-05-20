@@ -39,7 +39,7 @@ public class BoardService {
 
     public void write(BoardWriteReqDto reqDto, List<MultipartFile> fileList, String username) {
         MemberEntity memberEntity = memberRepository
-                .findByMemberUsernameAndDelYn(username, DelYn.N)
+                .findByUsernameAndDelYn(username, DelYn.N)
                 .orElseThrow(() -> new EntityNotFoundException("MEMBER NOT FOUND ........"));
 
         boardRepository.save(reqDto.toEntity(memberEntity));

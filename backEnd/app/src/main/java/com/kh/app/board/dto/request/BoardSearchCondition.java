@@ -13,6 +13,6 @@ public class BoardSearchCondition {
     private String content;
     private String boardCategory;
     private String boardSubCategory;
-    private Double boardStars;
+    private Long boardStars;
     private Long boardHits;
 }

@@ -12,7 +12,7 @@ public class BoardWriteReqDto {
 
     private String title;
     private String content;
-    private Double boardStars;
+    private Long boardStars;
     private String boardCategory;
     private String boardSubCategory;
 

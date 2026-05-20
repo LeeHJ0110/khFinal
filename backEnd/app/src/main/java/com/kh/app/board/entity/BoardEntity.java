@@ -45,7 +45,7 @@ public class BoardEntity extends BaseEntity {
     private Long boardTopOrder;
 
     @Column(nullable = true, precision = 2, scale = 1)  // precision=2(총 자릿수 2자리), scale=1(소수점 이하 1자리)
-    private Double boardStars;
+    private Long boardStars;
 
 
     public void increaseHit(){
