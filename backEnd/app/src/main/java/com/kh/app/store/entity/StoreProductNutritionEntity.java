@@ -21,35 +21,42 @@ public class StoreProductNutritionEntity extends BaseEntity {
     @JoinColumn(name = "PRODUCT_ID", nullable = false, unique = true)
     private StoreProductEntity product;
 
+    // 칼로리, 예: 365 kcal
     @Column(name = "NUTRITION_CALORIE")
-    private Double nutritionCalorie;
+    private Long nutritionCalorie;
 
+    // 단백질, 예: 25%
     @Column(name = "NUTRITION_PROTEIN")
-    private Double nutritionProtein;
+    private Long nutritionProtein;
 
+    // 지방, 예: 14%
     @Column(name = "NUTRITION_FAT")
-    private Double nutritionFat;
+    private Long nutritionFat;
 
+    // 식이섬유, 예: 4%
     @Column(name = "NUTRITION_FIBER")
-    private Double nutritionFiber;
+    private Long nutritionFiber;
 
+    // 수분, 예: 7%
     @Column(name = "NUTRITION_MOISTURE")
-    private Double nutritionMoisture;
+    private Long nutritionMoisture;
 
+    // 칼슘, 예: 2%
     @Column(name = "NUTRITION_CALCIUM")
-    private Double nutritionCalcium;
+    private Long nutritionCalcium;
 
+    // 인, 예: 1%
     @Column(name = "NUTRITION_PHOSPHORUS")
-    private Double nutritionPhosphorus;
+    private Long nutritionPhosphorus;
 
     public void update(
-            Double nutritionCalorie,
-            Double nutritionProtein,
-            Double nutritionFat,
-            Double nutritionFiber,
-            Double nutritionMoisture,
-            Double nutritionCalcium,
-            Double nutritionPhosphorus
+            Long nutritionCalorie,
+            Long nutritionProtein,
+            Long nutritionFat,
+            Long nutritionFiber,
+            Long nutritionMoisture,
+            Long nutritionCalcium,
+            Long nutritionPhosphorus
     ) {
         this.nutritionCalorie = nutritionCalorie;
         this.nutritionProtein = nutritionProtein;

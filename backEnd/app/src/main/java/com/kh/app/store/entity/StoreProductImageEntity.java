@@ -23,7 +23,7 @@ public class StoreProductImageEntity extends BaseEntity {
     private StoreProductEntity product;
 
     @Column(name = "SORT_ORDER")
-    private Integer sortOrder;
+    private Long sortOrder;
 
     @Column(name = "IMAGE_REPRESENT_YN", nullable = false, length = 1)
     @Builder.Default
@@ -39,7 +39,7 @@ public class StoreProductImageEntity extends BaseEntity {
             StoreProductEntity product,
             MultipartFile file,
             String changedName,
-            Integer sortOrder,
+            Long sortOrder,
             String imageRepresentYn
     ) {
         return StoreProductImageEntity.builder()
