@@ -2,6 +2,7 @@ package com.kh.app.board.entity;
 
 //import com.kh.app.common.entity.BaseEntity;
 //import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-public class BoardReplyEntity { //extends BaseEntity
+public class BoardReplyEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
