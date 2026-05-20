@@ -5,6 +5,8 @@ import com.kh.app.board.dto.request.BoardWriteReqDto;
 import com.kh.app.board.dto.response.BoardResDto;
 import com.kh.app.board.entity.BoardEntity;
 import com.kh.app.board.repository.BoardRepository;
+import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.member.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

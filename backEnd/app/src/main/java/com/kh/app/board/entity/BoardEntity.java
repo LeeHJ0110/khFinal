@@ -1,6 +1,7 @@
 package com.kh.app.board.entity;
 
 import com.kh.app.common.entity.BaseEntity;
+import com.kh.app.member.entity.MemberEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
