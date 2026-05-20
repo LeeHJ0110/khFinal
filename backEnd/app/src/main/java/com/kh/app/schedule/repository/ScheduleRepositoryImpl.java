@@ -1,5 +1,6 @@
 package com.kh.app.schedule.repository;
 
+import com.kh.app.member.entity.QMemberEntity;
 import com.kh.app.schedule.entity.QScheduleEntity;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;

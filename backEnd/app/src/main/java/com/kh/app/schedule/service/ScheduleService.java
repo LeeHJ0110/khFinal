@@ -1,5 +1,6 @@
 package com.kh.app.schedule.service;
 
+import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.schedule.dto.request.EventReqDto;
 import com.kh.app.schedule.dto.response.EventResDto;
 import com.kh.app.schedule.dto.response.SimpleEventResDto;
@@ -14,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.kh.app.member.entity.QMemberEntity.memberEntity;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -27,8 +30,8 @@ public class ScheduleService {
     public void write(EventReqDto reqDto) {
 
 //        MemberEntity memberEntity = memberRepository          멤버 entity 찾기
-        scheduleRepository.save(reqDto.toEntity(memberEntity));
-        log.info("[일정 작성 완료] writer: {}", memberEntity);
+//        scheduleRepository.save(reqDto.toEntity(memberEntity));
+//        log.info("[일정 작성 완료] writer: {}", memberEntity);
     }
 
     public List<SimpleEventResDto> selectList(Long memberId) {

@@ -1,6 +1,7 @@
 package com.kh.app.schedule.dto.request;
 
 import com.kh.app.board.entity.BoardEntity;
+import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.schedule.entity.ScheduleEntity;
 import lombok.Getter;
 import lombok.Setter;
