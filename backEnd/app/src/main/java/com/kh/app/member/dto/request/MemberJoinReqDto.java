@@ -8,26 +8,26 @@ import lombok.Setter;
 @Setter
 public class MemberJoinReqDto {
 
-    private String memberUsername;
-    private String memberPassword;
-    private String memberNickname;
-    private String memberSocialId;
-    private String memberEmail;
-    private Long memberPhone;
-    private String memberAddress;
-    private String memberAddressDetail;
+    private String username;
+    private String password;
+    private String nickname;
+    private String socialId;
+    private String email;
+    private Long phone;
+    private String address;
+    private String addressDetail;
 
 
     public MemberEntity toEntity(String encodedPassword) {
         return MemberEntity.builder()
-                .memberUsername(memberUsername)
-                .memberPassword(memberPassword)
-                .memberNickname(memberNickname)
-                .memberSocialId(memberSocialId)
-                .memberEmail(memberEmail)
-                .memberPhone(memberPhone)
-                .memberAddress(memberAddress)
-                .memberAddressDetail(memberAddressDetail)
+                .username(username)
+                .password(password)
+                .nickname(nickname)
+                .socialId(socialId)
+                .email(email)
+                .phone(phone)
+                .address(address)
+                .addressDetail(addressDetail)
                 .build();
     }
 

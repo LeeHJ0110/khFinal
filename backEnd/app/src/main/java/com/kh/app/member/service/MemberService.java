@@ -22,18 +22,18 @@ public class MemberService {
 
     @Transactional
     public void join(MemberJoinReqDto dto) {
-        if (memberRepository.existsByMemberUsername(dto.getMemberUsername())) {
+        if (memberRepository.existsByUsername(dto.getUsername())) {
             throw new CustomException(MemberErrorCode.DUPLICATE_USERNAME);
         }
 
-        if (memberRepository.existsByMemberNickname(dto.getMemberNickname())) {
+        if (memberRepository.existsByNickname(dto.getNickname())) {
             throw new CustomException(MemberErrorCode.DUPLICATE_NICKNAME);
         }
 
-        String encodedPassword = passwordEncoder.encode(dto.getMemberPassword());
+        String encodedPassword = passwordEncoder.encode(dto.getPassword());
         MemberEntity entity = dto.toEntity(encodedPassword);
         memberRepository.save(entity);
-        log.info("[회원가입 완료] username : {}", dto.getMemberUsername());
+        log.info("[회원가입 완료] username : {}", dto.getUsername());
     }
 
 }
