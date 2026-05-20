@@ -14,65 +14,65 @@ public class MemberEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long memberId;
+    private Long id;
 
     @Column(length = 100  , unique = true)
-    private String memberUsername;
+    private String username;
 
     @Column(length = 100 )
-    private String memberPassword;
+    private String password;
 
     @Column(length = 100 , nullable = false , unique = true)
-    private String memberNickname;
+    private String nickname;
 
     @Column(length = 100 , nullable = false)
-    private String memberAddress;
+    private String address;
 
     @Column(length = 100 , nullable = false)
-    private String memberAddressDetail;
+    private String addressDetail;
 
     @Column(length = 100 , nullable = false, unique = true)
-    private Long memberPhone;
+    private Long phone;
 
     @Column(length = 100 , nullable = false)
-    private String memberEmail;
+    private String email;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 1 , nullable = false)
     private MemberMarketingAgreeYn memberMarketingAgreeYn;
 
     @Column(length = 100 , unique = true)
-    private String memberSocialId;
+    private String socialId;
 
     @Enumerated(EnumType.STRING)
     @Column(length = 1 , nullable = false)
     @Builder.Default
-    private MemberStatus memberStatus=MemberStatus.A;
+    private MemberStatus status=MemberStatus.A;
 
     @Column(length = 100 )
-    private Long memberLevelExp;
+    private Long levelExp;
 
     @Column(length = 100 )
-    private Long memberPoint;
+    private Long point;
 
     @Column(length = 100 )
-    private Long memberDiaryStreak;
+    private Long diaryStreak;
 
 
     @Enumerated(EnumType.STRING)
     @Column(length = 1 , nullable = false)
     @Builder.Default
-    private MemberRole memberRole = MemberRole.U;
+    private MemberRole role = MemberRole.U;
 
     @Column
     private String profileImageUrl;
 
     public void updatePassword(String encodedPassword){
-        this.memberPassword = encodedPassword;
+        this.password = encodedPassword;
     }
 
     public void updateNickname(String nickname){
-        this.memberNickname = nickname;
+        this.nickname = nickname;
     }
 
     public void updateProfileImageUrl(String profileImageUrl){

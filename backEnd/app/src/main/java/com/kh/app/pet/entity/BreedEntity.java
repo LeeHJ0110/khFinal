@@ -3,6 +3,8 @@ package com.kh.app.pet.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "BREED")
 @Getter
@@ -14,19 +16,19 @@ public class BreedEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "BREED_ID")
-    private Long breedId;
+    private Long id;
 
     // 품종명
     @Column(name = "BREED_NAME", length = 30, nullable = false)
-    private String breedName;
+    private String name;
 
     // 적정 최소 몸무게
     @Column(name = "BREED_AVG_WEIGHT_MIN")
-    private Double breedAvgWeightMin;
+    private BigDecimal weightMin;
 
     // 적정 최대 몸무게
     @Column(name = "BREED_AVG_WEIGHT_MAX")
-    private Double breedAvgWeightMax;
+    private BigDecimal weightMax;
 
     // 종류
     @Enumerated(EnumType.STRING)
