@@ -6,10 +6,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "스토어", description = "스토어 관련 API")
+//리뷰 작성
+//상품별 리뷰 목록 조회
+//리뷰 수정
+//리뷰 삭제
+
+@Tag(name = "스토어리뷰", description = "스토어리뷰 관련 API")
 @RestController
-@RequestMapping("/api/store")
+@RequestMapping("/api/store/review")
 @RequiredArgsConstructor
 @Slf4j
-public class StoreController {
+public class StoreReviewController {
 }
