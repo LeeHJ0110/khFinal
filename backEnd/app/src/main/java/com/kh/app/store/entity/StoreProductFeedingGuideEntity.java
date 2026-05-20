@@ -22,13 +22,13 @@ public class StoreProductFeedingGuideEntity extends BaseEntity {
     private StoreProductEntity product;
 
     @Column(name = "FEEDING_MIN_WEIGHT")
-    private Double feedingMinWeight;
+    private Long feedingMinWeight;
 
     @Column(name = "FEEDING_MAX_WEIGHT")
-    private Double feedingMaxWeight;
+    private Long feedingMaxWeight;
 
     @Column(name = "FEEDING_DAILY_AMOUNT")
-    private Double feedingDailyAmount;
+    private Long feedingDailyAmount;
 
     @Column(name = "FEEDING_UNIT", length = 10)
     private String feedingUnit;
@@ -37,9 +37,9 @@ public class StoreProductFeedingGuideEntity extends BaseEntity {
     private String feedingNote;
 
     public void update(
-            Double feedingMinWeight,
-            Double feedingMaxWeight,
-            Double feedingDailyAmount,
+            Long feedingMinWeight,
+            Long feedingMaxWeight,
+            Long feedingDailyAmount,
             String feedingUnit,
             String feedingNote
     ) {
