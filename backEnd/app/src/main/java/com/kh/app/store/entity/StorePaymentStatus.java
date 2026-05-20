@@ -1,7 +1,10 @@
 package com.kh.app.store.entity;
 
-//결재상태 (확정짓기)
-//1. 준비중, 2.결재완료, 3.취소, 4.실패
+// 결제 상태
+// READY: 결제대기
+// PAID: 결제완료
+// CANCELED: 결제취소
+// FAILED: 결제실패
 public enum StorePaymentStatus {
     READY, PAID, CANCELED, FAILED
 }
