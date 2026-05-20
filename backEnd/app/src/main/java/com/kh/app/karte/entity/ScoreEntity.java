@@ -3,7 +3,6 @@ package com.kh.app.karte.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigInteger;
 
 @Entity
 @Table(name = "SCORE")
@@ -21,5 +20,5 @@ public class ScoreEntity {
     private String category;
 
     @Column(nullable = false)
-    private BigInteger score;
+    private Long score;
 }
