@@ -23,13 +23,13 @@ public class BoardResDto {
 
     public static BoardResDto from(BoardEntity entity) {
         return BoardResDto.builder()
-                .boardId(entity.getBoardId())
-                .boardCategory(entity.getBoardCategory())
-                .boardSubCategory(entity.getBoardSubCategory())
-                .title(entity.getBoardTitle())
+                .boardId(entity.getId())
+                .boardCategory(entity.getCategory())
+                .boardSubCategory(entity.getSubCategory())
+                .title(entity.getTitle())
                 .writerNickname(entity.getWriter().getNickname())
-                .hits(entity.getBoardHits())
-                .stars(entity.getBoardStars())
+                .hits(entity.getHits())
+                .stars(entity.getStars())
                 .createdAt(entity.getCreatedAt())
                 .build();
     }

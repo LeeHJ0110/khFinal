@@ -15,46 +15,46 @@ public class BoardEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long boardId;
+    private Long id;
 
     @JoinColumn(name = "WRITER_ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private MemberEntity writer;
 
     @Column(length = 50, nullable = false)
-    private String boardCategory;
+    private String category;
 
     @Column(length = 100, nullable = false)
-    private String boardTitle;
+    private String title;
 
     @Column(length = 4000, nullable = false)
-    private String boardContent;
+    private String content;
 
     @Column(nullable = false)
     @Builder.Default
-    private Long boardHits = 0L;
+    private Long hits = 0L;
 
     @Column(nullable = false , length = 1)
     @Builder.Default
-    private String boardBlindYn = "N";
+    private String blindYn = "N";
 
     @Column(length = 20)
-    private String boardSubCategory;
+    private String subCategory;
 
     @Column(nullable = true)
-    private Long boardTopOrder;
+    private Long topOrder;
 
     @Column(nullable = true, precision = 2, scale = 1)  // precision=2(총 자릿수 2자리), scale=1(소수점 이하 1자리)
-    private Long boardStars;
+    private Long stars;
 
 
     public void increaseHit(){
-        this.boardHits++;
+        this.hits++;
     }
 
     public void update(String title, String content){
-        this.boardTitle = title;
-        this.boardContent = content;
+        this.title = title;
+        this.content = content;
     }
 
 
