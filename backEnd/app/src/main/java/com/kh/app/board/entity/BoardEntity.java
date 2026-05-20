@@ -19,7 +19,7 @@ public class BoardEntity extends BaseEntity {
 
     @JoinColumn(name = "WRITER_ID", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private MemberEntity memberId;       //Type -> MemberEntity
+    private MemberEntity writer;
 
     @Column(length = 50, nullable = false)
     private String boardCategory;

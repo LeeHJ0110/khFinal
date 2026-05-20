@@ -25,7 +25,7 @@ public class BoardResDto {
                 .boardCategory(entity.getBoardCategory())
                 .boardSubCategory(entity.getBoardSubCategory())
                 .title(entity.getBoardTitle())
-                .writerNickname(entity.getMemberId().getMemberNickname())
+                .writerNickname(entity.getWriter().getMemberNickname())
                 .hits(entity.getBoardHits())
                 .stars(entity.getBoardStars())
                 .createdAt(entity.getCreatedAt())
