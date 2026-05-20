@@ -66,7 +66,15 @@ public class StorePaymentEntity extends BaseEntity {
         this.paymentStatus = StorePaymentStatus.FAILED;
     }
 
-    public void refund() {
-        this.paymentStatus = StorePaymentStatus.REFUNDED;
+    public boolean isPaid() {
+        return this.paymentStatus == StorePaymentStatus.PAID;
+    }
+
+    public boolean isCanceled() {
+        return this.paymentStatus == StorePaymentStatus.CANCELED;
+    }
+
+    public boolean isFailed() {
+        return this.paymentStatus == StorePaymentStatus.FAILED;
     }
 }
