@@ -2,6 +2,7 @@ package com.kh.app.petcare.entity;
 
 import com.kh.app.common.entity.BaseEntity;
 import com.kh.app.common.entity.DelYn;
+import com.kh.app.pet.entity.PetEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
