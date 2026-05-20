@@ -5,6 +5,8 @@ import com.kh.app.member.entity.MemberEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "PET")
 @Builder
@@ -16,34 +18,34 @@ public class PetEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "PET_ID")
-    private Long petId;
+    private Long id;
 
     // 대표동물 여부
     @Enumerated(EnumType.STRING)
     @Column(name = "PET_REPRESENT_YN", length = 1)
-    private PetRepresentYn petRepresentYn;
+    private PetRepresentYn representYn;
 
     // 이름
     @Column(name = "PET_NAME", length = 30, nullable = false)
-    private String petName;
+    private String name;
 
     // 생년월일
     @Column(name = "PET_BIRTH_DATE", length = 8)
-    private String petBirthDate;
+    private String birthDate;
 
     // 성별
     @Enumerated(EnumType.STRING)
     @Column(name = "PET_GENDER", length = 1)
-    private PetGender petGender;
+    private PetGender gender;
 
     // 몸무게
     @Column(name = "PET_WEIGHT")
-    private Double petWeight;
+    private BigDecimal weight;
 
     // 중성화 여부
     @Enumerated(EnumType.STRING)
     @Column(name = "PET_NEUTERED_YN", length = 1)
-    private PetNeuteredYn petNeuteredYn;
+    private PetNeuteredYn neuteredYn;
 
     // 회원
     @ManyToOne(fetch = FetchType.LAZY)

@@ -17,7 +17,7 @@ public class DeliveryAddressEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "DELIVERY_ADDRESS_ID")
-    private Long deliveryAddressId;
+    private Long id;
 
     // 회원
     @ManyToOne(fetch = FetchType.LAZY)
@@ -26,19 +26,19 @@ public class DeliveryAddressEntity extends BaseEntity {
 
     // 배송지명
     @Column(name = "DELIVERY_ADDRESS_NAME", length = 30, nullable = false)
-    private String deliveryAddressName;
+    private String name;
 
     // 받는 사람 이름
     @Column(name = "DELIVERY_ADDRESS_RECEIVER_NAME", length = 30, nullable = false)
-    private String deliveryAddressReceiverName;
+    private String receiverName;
 
     // 받는 사람 전화번호
     @Column(name = "DELIVERY_ADDRESS_RECEIVER_PHONE", length = 11, nullable = false)
-    private String deliveryAddressReceiverPhone;
+    private String receiverPhone;
 
     // 우편번호
     @Column(name = "DELIVERY_ADDRESS_ZIP_CODE", length = 20, nullable = false)
-    private String deliveryAddressZipCode;
+    private String zipCode;
 
     // 주소
     @Column(name = "DELIVERY_ADDRESS", length = 100, nullable = false)
