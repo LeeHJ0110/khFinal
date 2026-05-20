@@ -1,5 +1,6 @@
 package com.kh.app.schedule.entity;
 
+import com.kh.app.pet.entity.PetEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,5 +18,5 @@ public class TrainingPetEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PET_ID", nullable = false)
-    private Long petID;             //TODO Type -> PetEntity
+    private PetEntity petID;
 }

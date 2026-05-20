@@ -1,6 +1,7 @@
 package com.kh.app.schedule.entity;
 
 import com.kh.app.common.entity.BaseEntity;
+import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.schedule.dto.request.EventReqDto;
 import jakarta.persistence.*;
 import lombok.*;

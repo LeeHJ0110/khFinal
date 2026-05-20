@@ -15,13 +15,13 @@ public class KarteEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JoinColumn(name = "REQ_ID", nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Long req;           //TODO Type -> DiagnosisReqEntity
-
-    @JoinColumn(name = "WRITER_ID", nullable = false)
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Long writer;        //TODO Type -> MemberEntity
+//    @JoinColumn(name = "REQ_ID", nullable = false)
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    private Long req;           //TODO Type -> DiagnosisReqEntity
+//
+//    @JoinColumn(name = "WRITER_ID", nullable = false)
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    private Long writer;        //TODO Type -> MemberEntity
 
     @Column(length = 1000, nullable = false)
     private String summary;
