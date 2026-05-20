@@ -17,13 +17,13 @@ public class StoreProductEntity extends BaseEntity {
     @Column(name = "PRODUCT_ID")
     private Long productId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "CATEGORY_ID", nullable = false)
-    private StoreProductCategoryEntity category;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "PRODUCT_CATEGORY", nullable = false, length = 30)
+    private StoreProductCategory productCategory;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "TAG_ID", nullable = false)
-    private StoreProductTagEntity tag;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "PRODUCT_TAG", nullable = false, length = 50)
+    private StoreProductTag productTag;
 
     @Column(name = "PRODUCT_NAME", nullable = false, length = 100)
     private String productName;
@@ -59,8 +59,8 @@ public class StoreProductEntity extends BaseEntity {
     }
 
     public void update(
-            StoreProductCategoryEntity category,
-            StoreProductTagEntity tag,
+            StoreProductCategory productCategory,
+            StoreProductTag productTag,
             String productName,
             String productTargetPetType,
             Long productPrice,
@@ -69,8 +69,8 @@ public class StoreProductEntity extends BaseEntity {
             String productDescription,
             String productSaleYn
     ) {
-        this.category = category;
-        this.tag = tag;
+        this.productCategory = productCategory;
+        this.productTag = productTag;
         this.productName = productName;
         this.productTargetPetType = productTargetPetType;
         this.productPrice = productPrice;
