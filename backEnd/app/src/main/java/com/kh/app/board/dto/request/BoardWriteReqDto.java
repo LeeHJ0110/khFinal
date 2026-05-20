@@ -18,11 +18,11 @@ public class BoardWriteReqDto {
 
     public BoardEntity toEntity (MemberEntity memberEntity){
         return BoardEntity.builder()
-                .boardCategory(boardCategory != null ? boardCategory : "FREE")
-                .boardSubCategory(boardSubCategory != null ? boardSubCategory : null)
-                .boardTitle(title)
-                .boardContent(content)
-                .boardStars(boardStars)
+                .category(boardCategory != null ? boardCategory : "FREE")
+                .subCategory(boardSubCategory != null ? boardSubCategory : null)
+                .title(title)
+                .content(content)
+                .stars(boardStars)
                 .writer(memberEntity)
                 .build();
     }
