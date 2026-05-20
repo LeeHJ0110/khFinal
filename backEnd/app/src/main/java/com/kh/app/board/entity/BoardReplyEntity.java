@@ -3,6 +3,7 @@ package com.kh.app.board.entity;
 //import com.kh.app.common.entity.BaseEntity;
 //import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.common.entity.BaseEntity;
+import com.kh.app.member.entity.MemberEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,7 +26,7 @@ public class BoardReplyEntity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEMBER_ID" , nullable = false)
-    private String member; //MemberEntity
+    private MemberEntity member;
 
     @Column(name = "BOARD_REPLY_CONTENT", length = 100)
     private String content;

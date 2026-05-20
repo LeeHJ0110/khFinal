@@ -5,6 +5,7 @@ import com.kh.app.board.dto.request.BoardWriteReqDto;
 import com.kh.app.board.dto.response.BoardResDto;
 import com.kh.app.board.entity.BoardEntity;
 import com.kh.app.board.repository.BoardRepository;
+import com.kh.app.common.entity.DelYn;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -38,7 +39,7 @@ public class BoardService {
 
     public void write(BoardWriteReqDto reqDto, List<MultipartFile> fileList, String username) {
         MemberEntity memberEntity = memberRepository
-                .findByUsernameAndDelYn(username, "N")
+                .findByMemberUsernameAndDelYn(username, DelYn.N)
                 .orElseThrow(() -> new EntityNotFoundException("MEMBER NOT FOUND ........"));
 
         boardRepository.save(reqDto.toEntity(memberEntity));
