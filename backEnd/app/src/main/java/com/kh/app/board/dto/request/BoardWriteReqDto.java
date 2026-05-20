@@ -23,7 +23,7 @@ public class BoardWriteReqDto {
                 .boardTitle(title)
                 .boardContent(content)
                 .boardStars(boardStars)
-                .memberId(memberEntity)
+                .writer(memberEntity)
                 .build();
     }
 }
