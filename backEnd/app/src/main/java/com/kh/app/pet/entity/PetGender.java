@@ -1,4 +1,5 @@
 package com.kh.app.pet.entity;
 
-public class PetGender {
+public enum PetGender {
+    F,M;
 }
