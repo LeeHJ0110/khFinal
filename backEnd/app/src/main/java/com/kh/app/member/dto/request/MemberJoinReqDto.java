@@ -13,7 +13,7 @@ public class MemberJoinReqDto {
     private String nickname;
     private String socialId;
     private String email;
-    private Long phone;
+    private String phone;
     private String address;
     private String addressDetail;
 

@@ -1,11 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useMemberJoinForm from "../../features/member/hooks/useMemberJoinForm";
 
 export default function MemberJoinPage() {
   const navigate = useNavigate();
-  const { formData, handleChange, handleSubmit, isSuccess } =
-    useMemberJoinForm();
+
+  const {
+    formData,
+    handleChange,
+    handleSubmit,
+    handleCheckUsername,
+    handleCheckNickname,
+    usernameMessage,
+    nicknameMessage,
+    passwordMessage,
+    isSuccess,
+  } = useMemberJoinForm();
 
   useEffect(() => {
     if (isSuccess) {
@@ -16,34 +26,61 @@ export default function MemberJoinPage() {
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="아이디"
-          name="username"
-          onChange={handleChange}
-          value={formData.username}
-        />
-        <input
-          type="text"
-          placeholder="닉네임"
-          name="nickname"
-          onChange={handleChange}
-          value={formData.nickname}
-        />
-        <input
-          type="password"
-          placeholder="비밀번호"
-          name="password"
-          onChange={handleChange}
-          value={formData.password}
-        />
-        <input
-          type="password"
-          placeholder="비밀번호 확인"
-          name="passwordCheck"
-          onChange={handleChange}
-          value={formData.passwordCheck}
-        />
+        {/* 아이디 */}
+        <div>
+          <input
+            type="text"
+            placeholder="아이디"
+            name="username"
+            onChange={handleChange}
+            value={formData.username}
+          />
+
+          <button type="button" onClick={handleCheckUsername}>
+            중복체크
+          </button>
+
+          <div>{usernameMessage}</div>
+        </div>
+
+        {/* 닉네임 */}
+        <div>
+          <input
+            type="text"
+            placeholder="닉네임"
+            name="nickname"
+            onChange={handleChange}
+            value={formData.nickname}
+          />
+
+          <button type="button" onClick={handleCheckNickname}>
+            중복체크
+          </button>
+
+          <div>{nicknameMessage}</div>
+        </div>
+
+        {/* 비밀번호 */}
+        <div>
+          <input
+            type="password"
+            placeholder="비밀번호"
+            name="password"
+            onChange={handleChange}
+            value={formData.password}
+          />
+
+          <input
+            type="password"
+            placeholder="비밀번호 확인"
+            name="passwordCheck"
+            onChange={handleChange}
+            value={formData.passwordCheck}
+          />
+
+          <div>{passwordMessage}</div>
+        </div>
+
         <input
           type="text"
           placeholder="전화번호"
@@ -51,6 +88,7 @@ export default function MemberJoinPage() {
           onChange={handleChange}
           value={formData.phone}
         />
+
         <input
           type="text"
           placeholder="이메일"
@@ -58,6 +96,7 @@ export default function MemberJoinPage() {
           onChange={handleChange}
           value={formData.email}
         />
+
         <input
           type="text"
           placeholder="주소"
@@ -65,6 +104,7 @@ export default function MemberJoinPage() {
           onChange={handleChange}
           value={formData.address}
         />
+
         <input
           type="text"
           placeholder="상세주소"
@@ -72,6 +112,7 @@ export default function MemberJoinPage() {
           onChange={handleChange}
           value={formData.addressDetail}
         />
+
         <input type="submit" value="회원가입" />
       </form>
     </div>
