@@ -1,6 +1,10 @@
 package com.kh.app.petcare.service;
 
+import com.kh.app.common.entity.DelYn;
 import com.kh.app.petcare.dto.request.PetCareReqDto;
+import com.kh.app.petcare.entity.DiagnosisReqEntity;
+import com.kh.app.petcare.entity.ImgCategory;
+import com.kh.app.petcare.entity.ImgUrlEntity;
 import com.kh.app.petcare.repository.DiagnosisReqRepository;
 import com.kh.app.petcare.repository.ImageRepository;
 import com.kh.app.petcare.repository.SelfDiagnosisAnswerRepository;
@@ -24,15 +28,43 @@ public class PetCareService {
     private final SelfDiagnosisAnswerRepository answerRepository;
     private final ImageRepository imageRepository;
 
-    public void requestDiagnosis(PetCareReqDto reqDto, List<MultipartFile> fileList, String username) {
-        // 1. 진단 신청 엔티티 생성
+    @Transactional
+    public void requestDiagnosis(
+            PetCareReqDto reqDto,
+            List<MultipartFile> fileList,
+            String username
+    ) {
 
-        // 2. diagnosisReqRepository.save()
+        // 1. 진단 신청 저장
+        DiagnosisReqEntity diagnosisReq =
+                diagnosisReqRepository.save(
+                        DiagnosisReqEntity.builder()
+                                .diagnosisReqStatus(DelYn.Y)
+                                .build()
+                );
 
-        // 3. 답변 반복문 저장
+        log.info("진단 신청 저장 완료");
 
-        // 4. 이미지 반복문 저장
+        // 2. 이미지 저장
+        if (fileList != null) {
 
+            for (MultipartFile file : fileList) {
 
+                ImgUrlEntity img = ImgUrlEntity.builder()
+                        .imgCategory(ImgCategory.EYE)
+                        .diagnosisReq(diagnosisReq)
+                        .imageOriginName(file.getOriginalFilename())
+                        .imageChangedName(
+                                System.currentTimeMillis()
+                                        + "_" +
+                                        file.getOriginalFilename()
+                        )
+                        .build();
+
+                imageRepository.save(img);
+
+                log.info("이미지 저장 완료 : {}", file.getOriginalFilename());
+            }
+        }
     }
 }

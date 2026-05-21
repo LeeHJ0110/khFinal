@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,26 +27,29 @@ public class PetCareController {
 
     private final PetCareService petCareService;
 
-    @PostMapping("/diagnosis")
+    @PostMapping(
+            value = "/diagnosis",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<Object> requestDiagnosis(
 
-            //프론트가 보낸 JSON 데이터 받기(내용 같은 데이터)
+            // JSON 데이터
             @RequestPart("data")
             PetCareReqDto reqDto,
 
-            //이미지 파일 받기
-            //여러 장 업로드 가능
+            // 파일 리스트
             @RequestPart(value = "fileList", required = false)
             List<MultipartFile> fileList,
 
-            //현재 로그인한 사용자 정보 가져오기
+            // 로그인 사용자
             @AuthenticationPrincipal String username
 
     ) throws IOException {
 
+        log.info("컨트롤러 진입 성공");
+
         petCareService.requestDiagnosis(reqDto, fileList, username);
 
-        //요청 성공 응답
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .build();
