@@ -21,9 +21,9 @@ public class StoreProductEntity extends BaseEntity {
     @Column(name = "PRODUCT_CATEGORY", nullable = false, length = 30)
     private StoreProductCategory productCategory;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "PRODUCT_TAG", nullable = false, length = 50)
-    private StoreProductTag productTag;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "TAG_ID", nullable = false)
+    private StoreProductTagEntity productTag;
 
     @Column(name = "PRODUCT_NAME", nullable = false, length = 100)
     private String productName;
@@ -60,7 +60,7 @@ public class StoreProductEntity extends BaseEntity {
 
     public void update(
             StoreProductCategory productCategory,
-            StoreProductTag productTag,
+            StoreProductTagEntity productTag,
             String productName,
             String productTargetPetType,
             Long productPrice,
