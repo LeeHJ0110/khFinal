@@ -35,12 +35,6 @@ public class StoreProductEntity extends BaseEntity {
     @Column(name = "PRODUCT_PRICE", nullable = false)
     private Long productPrice;
 
-    @Column(name = "PRODUCT_SUMMARY", length = 500)
-    private String productSummary;
-
-    @Column(name = "PRODUCT_DESCRIPTION", length = 2000)
-    private String productDescription;
-
     // Y: 판매중, N: 판매중지
     @Column(name = "PRODUCT_SALE_YN", nullable = false, length = 1)
     @Builder.Default
@@ -60,8 +54,6 @@ public class StoreProductEntity extends BaseEntity {
             String productName,
             String productTargetPetType,
             Long productPrice,
-            String productSummary,
-            String productDescription,
             String productSaleYn
     ) {
         this.productCategory = productCategory;
@@ -69,8 +61,6 @@ public class StoreProductEntity extends BaseEntity {
         this.productName = productName;
         this.productTargetPetType = productTargetPetType;
         this.productPrice = productPrice;
-        this.productSummary = productSummary;
-        this.productDescription = productDescription;
         this.productSaleYn = productSaleYn;
     }
 
