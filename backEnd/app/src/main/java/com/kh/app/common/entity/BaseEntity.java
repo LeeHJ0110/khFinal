@@ -13,7 +13,7 @@ public class BaseEntity {
     private LocalDateTime createdAt;
 
     @Column(name = "UPDATED_AT")
-    private LocalDateTime modifiedAt;
+    private LocalDateTime updatedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "DEL_YN", nullable = false , length = 1)
@@ -22,18 +22,18 @@ public class BaseEntity {
     @PrePersist
     public void onPersist(){
         createdAt = LocalDateTime.now();
-        modifiedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
         delYn = DelYn.N;
     }
 
     @PreUpdate
     public void onUpdate(){
-        modifiedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     public void delete(){
         delYn = DelYn.Y;
-        modifiedAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
 }
