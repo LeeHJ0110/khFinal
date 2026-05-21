@@ -1,5 +1,5 @@
 import "./Header.css";
-import logoImg from "../../../../assets/images/bgrmlogo.png";
+import logoImg from "../../../assets/images/bgrmlogo.png";
 
 import HeaderSearch from "./HeaderSearch";
 import GuestMenu from "./GuestMenu";
@@ -15,8 +15,8 @@ const mainMenus = [
 
 export default function Header({ activeMenu = "스토어" }) {
   /*
-    지금은 예시로 localStorage에서 가져오는 방식입니다.
-    나중에 팀에서 Context, Zustand, Redux 등을 쓰면 그 방식으로 바꾸면 됩니다.
+    지금은 임의로(변수도) localStorage에서 가져오는 방식입니다.
+    나중에 팀에서 Context, Zustand, Redux 등을 쓰면 그 방식으로 바꿔야 해요.
   */
   const loginMember = JSON.parse(localStorage.getItem("loginMember"));
 
