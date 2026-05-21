@@ -22,10 +22,6 @@ public class StoreInsertReqDto {
 
     private Long productPrice;
 
-    private String productSummary;
-
-    private String productDescription;
-
     private String productSaleYn;
 
     private List<StoreFeedingGuideInsertReqDto> feedingGuideList;
@@ -39,8 +35,6 @@ public class StoreInsertReqDto {
                 .productTag(tagEntity)
                 .productTargetPetType(productTargetPetType)
                 .productPrice(productPrice)
-                .productSummary(productSummary)
-                .productDescription(productDescription)
                 .productSaleYn(productSaleYn == null ? "Y" : productSaleYn)
                 .build();
     }

@@ -1,6 +1,7 @@
 package com.kh.app.store.controller;
 
 import com.kh.app.store.dto.request.StoreInsertReqDto;
+import com.kh.app.store.dto.response.StoreProductListResDto;
 import com.kh.app.store.service.StoreProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -8,23 +9,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
-//상품 등록 (기본정보/ 이미지/ 급여기준/ 영양성분)
-//상품 수정
-//상품 목록 조회
-//상품 상세 조회
+//clear
+//관리자 : 상품 등록 (기본정보/ 이미지/ 급여기준/ 영양성분)
 
-//상품 판매중지 / 판매재개
+
+//관리자 : 상품 목록 조회 (근데 사용자는.?)
+//공통 : 상품 상세 조회
+//관리자 : 상품 수정
+//관리자 : 상품 판매중지 / 판매재개
 
 //최근 본 상품 등록/조회
-
 //관심상품 등록
 //관심상품 목록 조회
 //관심상품 삭제
@@ -39,6 +38,8 @@ public class StoreProductController {
 
     private final StoreProductService storeProductService;
 
+
+    //1. 상품등록
     @Operation(summary = "상품 등록", description = "관리자가 상품을 등록하는 기능")
     @PostMapping("/insert")
 //    @ApiResponses({
@@ -57,6 +58,20 @@ public class StoreProductController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .build();
 
+    }
+
+    //2. 상품 목록 조회
+    @Operation(summary = "상품 목록조회", description = "전체 상품목록을 조회 하는 기능")
+    @GetMapping
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "201", description = ""),
+//            @ApiResponse(responseCode = "400", description = ""),
+//            @ApiResponse(responseCode = "401", description = "")
+    //페이징 int pno 넣어야함 (그리고 List-> Page로 바꿔야 함)
+    public ResponseEntity<List<StoreProductListResDto>> getStoreProductList(){
+        List<StoreProductListResDto> storeProductListPage = storeProductService.getStoreProductList();
+
+        return ResponseEntity.ok(storeProductListPage);
     }
 
 }

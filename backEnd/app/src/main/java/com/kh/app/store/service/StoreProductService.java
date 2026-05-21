@@ -1,6 +1,7 @@
 package com.kh.app.store.service;
 
 import com.kh.app.store.dto.request.StoreInsertReqDto;
+import com.kh.app.store.dto.response.StoreProductListResDto;
 import com.kh.app.store.entity.StoreProductEntity;
 import com.kh.app.store.entity.StoreProductTagEntity;
 import com.kh.app.store.repository.StoreProductRepository;
@@ -35,5 +36,9 @@ public class StoreProductService {
         storeProductRepository.save(storeProductEntity);
 
         log.info("[상품 등록 완료] 상품명 : {} , 가격 : {}" , storeProductEntity.getProductName() , storeProductEntity.getProductPrice());
+    }
+
+    public List<StoreProductListResDto> getStoreProductList() {
+        return storeProductRepository.findStoreProductList();
     }
 }
