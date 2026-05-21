@@ -23,6 +23,8 @@ public class JwtFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String authorization = request.getHeader("Authorization");
+        System.out.println("authorization = " + authorization);
+
 
         if( authorization == null || !authorization.startsWith("Bearer ")  ){
             filterChain.doFilter(request, response);
@@ -37,6 +39,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         String username = jwtUtil.getUsername(token);
+        System.out.println("username = " + username);
         String role = jwtUtil.getRole(token);
 
         Authentication authToken = new UsernamePasswordAuthenticationToken(username, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));

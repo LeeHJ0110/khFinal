@@ -45,7 +45,7 @@ public class MemberEntity extends BaseEntity {
     private MemberMarketingAgreeYn memberMarketingAgreeYn =MemberMarketingAgreeYn.Y;
 
     // 카카오 로그인용
-    @Column(length = 255, unique = true)
+    @Column(length = 255, nullable = true, unique = true)
     private String socialId;
 
     @Enumerated(EnumType.STRING)
