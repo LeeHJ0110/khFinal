@@ -7,8 +7,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Table(name = "BOARD_IMAGE")
 @AttributeOverrides({
@@ -27,7 +25,7 @@ public class BoardFileEntity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "BOARD_ID", nullable = false)
-    private BoardEntity boardEntity;
+    private BoardEntity board;
 
     @Column(name = "IMAGE_ORIGIN_NAME", nullable = false, length = 4000)
     private String imageOriginName;
@@ -41,13 +39,13 @@ public class BoardFileEntity extends BaseEntity {
     @Column(name = "BOARD_FILE_ORDER")
     private Integer boardFileOrder;
 
-
-    public static BoardFileEntity from(BoardEntity board, MultipartFile file, String changedName) {
+    public static BoardFileEntity from(BoardEntity board, MultipartFile file, String changedName, Integer order) {
         return BoardFileEntity.builder()
-                .boardEntity(board)
+                .board(board)
                 .imageOriginName(file.getOriginalFilename())
                 .imageChangedName(changedName)
                 .boardFileSize(file.getSize())
+                .boardFileOrder(order)
                 .build();
     }
 }

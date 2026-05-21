@@ -4,15 +4,13 @@ import com.kh.app.schedule.entity.ScheduleEntity;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDate;
-
 @Getter
 @Builder
 public class SimpleEventResDto {
     private Long id;
     private String title;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private String startDate;
+    private String endDate;
     private String backgroundColor;
 
     public static SimpleEventResDto from(ScheduleEntity entity){

@@ -33,15 +33,7 @@ public class MemberService {
         String encodedPassword = passwordEncoder.encode(dto.getPassword());
         MemberEntity entity = dto.toEntity(encodedPassword);
         memberRepository.save(entity);
-
         log.info("[회원가입 완료] username : {}", dto.getUsername());
     }
 
-    public boolean checkUsername(String username) {
-        return !memberRepository.existsByUsername(username);
-    }
-
-    public boolean checkNickname(String nickname) {
-        return !memberRepository.existsByNickname(nickname);
-    }
 }

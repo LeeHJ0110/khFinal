@@ -8,6 +8,6 @@ import java.util.List;
 
 public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long>, ScheduleRepositoryCustom {
 
-    List<ScheduleEntity> findAllByMemberUsername(String username);
+    List<ScheduleEntity> findAllByMemberId(Long memberId);
 
 }

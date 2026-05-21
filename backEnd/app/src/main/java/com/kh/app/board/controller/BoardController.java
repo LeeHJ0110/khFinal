@@ -46,7 +46,6 @@ public class BoardController {
                 .build();
     }
 
-
     @Operation(summary = "카테고리별 게시글 목록 조회")
     @GetMapping("/{category}")
     public ResponseEntity<Page<BoardResDto>> getList(
@@ -56,9 +55,9 @@ public class BoardController {
             ){
         Page<BoardResDto> result = boardService.getList(category, condition, page);
         return ResponseEntity.ok(result);
+
+
     }
-
-
 
 //    @Operation(summary = "게시글 상세조회")
 //    @GetMapping("/{category}/{boardId}")

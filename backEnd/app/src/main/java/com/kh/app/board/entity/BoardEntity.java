@@ -11,7 +11,6 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-@Setter
 public class BoardEntity extends BaseEntity {
 
     @Id

@@ -13,7 +13,7 @@ public class MemberJoinReqDto {
     private String nickname;
     private String socialId;
     private String email;
-    private String phone;
+    private Long phone;
     private String address;
     private String addressDetail;
 
@@ -21,7 +21,7 @@ public class MemberJoinReqDto {
     public MemberEntity toEntity(String encodedPassword) {
         return MemberEntity.builder()
                 .username(username)
-                .password(encodedPassword)
+                .password(password)
                 .nickname(nickname)
                 .socialId(socialId)
                 .email(email)
