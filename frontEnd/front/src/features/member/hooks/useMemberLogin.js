@@ -12,9 +12,11 @@ export default function useMemberLogin() {
       const resp = await loginApi(vo);
       const token = resp.headers.authorization.replace("Bearer ", "");
       dispatch(login(token));
+      return true;
     } catch (err) {
       console.log("err : ", err);
       setError(err.response?.data?.msg || "로그인 실패 ...");
+      return false;
     }
   }
 
