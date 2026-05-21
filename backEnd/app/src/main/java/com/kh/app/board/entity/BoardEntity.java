@@ -28,7 +28,8 @@ public class BoardEntity extends BaseEntity {
     @Column(length = 100, nullable = false)
     private String title;
 
-    @Column(length = 4000, nullable = false)
+    @Lob
+    @Column(name = "CONTENT", nullable = false, columnDefinition = "TEXT") // DB에 TEXT 타입으로 지정
     private String content;
 
     @Column(nullable = false)

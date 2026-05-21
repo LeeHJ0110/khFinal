@@ -36,6 +36,10 @@ public class S3Service {
                         .build() ,
                 RequestBody.fromBytes( file.getBytes() )
         );
+        System.out.println("s3key = " + s3key);
+        System.out.println("file = " + file);
+        System.out.println("folder = " + folder);
+        System.out.println("bucket = " + bucket);
         return s3key;
     }
 
