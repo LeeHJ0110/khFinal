@@ -19,6 +19,7 @@ public class DiagnosisReqEntity extends BaseEntity {
     private Long diagnosisReqId;
 
     //신청상태
+    @Builder.Default
     @Enumerated(EnumType.STRING)
     @Column(name = "DIAGNOSIS_REQ_STATUS", nullable = false, length = 1)
     private DelYn diagnosisReqStatus = DelYn.Y;

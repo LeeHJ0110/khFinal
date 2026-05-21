@@ -19,8 +19,9 @@ public class ImgUrlEntity extends BaseEntity {
     private Long imgUrlId;
 
     // 카테고리 (눈, 피부, 치아 등)
+    @Enumerated(EnumType.STRING)
     @Column(name = "IMG_CATEGORY", nullable = false, length = 100)
-    private String imgCategory;
+    private ImgCategory imgCategory;
 
     // 진단신청 참조
     @ManyToOne(fetch = FetchType.LAZY)
