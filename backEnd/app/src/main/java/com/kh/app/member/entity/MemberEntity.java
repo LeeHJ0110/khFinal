@@ -41,8 +41,8 @@ public class MemberEntity extends BaseEntity {
     private String email;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 1, nullable = false)
-    private MemberMarketingAgreeYn memberMarketingAgreeYn;
+    @Column(length = 1)
+    private MemberMarketingAgreeYn memberMarketingAgreeYn =MemberMarketingAgreeYn.Y;
 
     // 카카오 로그인용
     @Column(length = 255, unique = true)

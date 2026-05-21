@@ -63,15 +63,9 @@ public class SecurityConfig {
                         x -> x.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                // authorize
+                // 모든 요청 허용
                 .authorizeHttpRequests(
-                        x -> x
-                                .requestMatchers("/api/**").permitAll()
-                                .requestMatchers(
-                                        "/swagger-ui/**",
-                                        "/v3/api-docs/**"
-                                ).permitAll()
-                                .anyRequest().authenticated()
+                        x -> x.anyRequest().permitAll()
                 )
 
                 // login filter
