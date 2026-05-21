@@ -1,5 +1,6 @@
 package com.kh.app.schedule.service;
 
+import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.schedule.dto.request.EventReqDto;
 import com.kh.app.schedule.dto.response.EventResDto;
@@ -27,16 +28,19 @@ public class ScheduleService {
     private final MemberRepository memberRepository;
 
     @Transactional
-    public void write(EventReqDto reqDto) {
+    public void write(EventReqDto reqDto, String username) {
 
-//        MemberEntity memberEntity = memberRepository          멤버 entity 찾기
-//        scheduleRepository.save(reqDto.toEntity(memberEntity));
-//        log.info("[일정 작성 완료] writer: {}", memberEntity);
+        MemberEntity memberEntity = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("그런 username 없음"));
+        scheduleRepository.save(reqDto.toEntity(memberEntity));
+        log.info("[일정 작성 완료] writer: {}", memberEntity);
     }
 
-    public List<SimpleEventResDto> selectList(Long memberId) {
+    public List<SimpleEventResDto> selectList(String username) {
+        MemberEntity memberEntity = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("그런 username 없음"));
         return scheduleRepository
-                .findAllByMemberId(memberId)
+                .findAllByMemberUsername(memberEntity.getUsername())
                 .stream()
                 .map(SimpleEventResDto::from)
                 .toList();
