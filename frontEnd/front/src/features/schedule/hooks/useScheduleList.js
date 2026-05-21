@@ -8,7 +8,9 @@ export default function useScheduleList() {
   async function asyncFetchScheduleList() {
     setLoading(true);
     const resp = await fetchBoardList();
-    setList(resp.data.content);
+    console.log(resp);
+
+    setList(resp.data);
     setLoading(false);
   }
 
