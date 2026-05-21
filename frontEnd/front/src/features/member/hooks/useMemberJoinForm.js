@@ -9,7 +9,6 @@ export default function useMemberJoinForm() {
     password: "",
     passwordCheck: "",
     nickname: "",
-    socialId: "",
     email: "",
     phone: "",
     address: "",
