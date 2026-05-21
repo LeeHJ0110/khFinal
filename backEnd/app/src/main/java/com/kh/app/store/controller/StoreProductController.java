@@ -40,7 +40,7 @@ public class StoreProductController {
     private final StoreProductService storeProductService;
 
     @Operation(summary = "상품 등록", description = "관리자가 상품을 등록하는 기능")
-    @PostMapping
+    @PostMapping("/insert")
 //    @ApiResponses({
 //            @ApiResponse(responseCode = "201", description = "게시글 작성 성공"),
 //            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
