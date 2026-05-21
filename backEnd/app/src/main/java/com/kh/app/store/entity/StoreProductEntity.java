@@ -35,10 +35,6 @@ public class StoreProductEntity extends BaseEntity {
     @Column(name = "PRODUCT_PRICE", nullable = false)
     private Long productPrice;
 
-    @Column(name = "PRODUCT_POINT", nullable = false)
-    @Builder.Default
-    private Long productPoint = 0L;
-
     @Column(name = "PRODUCT_SUMMARY", length = 500)
     private String productSummary;
 
@@ -64,7 +60,6 @@ public class StoreProductEntity extends BaseEntity {
             String productName,
             String productTargetPetType,
             Long productPrice,
-            Long productPoint,
             String productSummary,
             String productDescription,
             String productSaleYn
@@ -74,7 +69,6 @@ public class StoreProductEntity extends BaseEntity {
         this.productName = productName;
         this.productTargetPetType = productTargetPetType;
         this.productPrice = productPrice;
-        this.productPoint = productPoint;
         this.productSummary = productSummary;
         this.productDescription = productDescription;
         this.productSaleYn = productSaleYn;

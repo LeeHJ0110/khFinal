@@ -17,8 +17,9 @@ public class StoreProductFeedingGuideEntity extends BaseEntity {
     @Column(name = "FEEDING_GUIDE_ID")
     private Long feedingGuideId;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "PRODUCT_ID", nullable = false, unique = true)
+    //여러개의 (최대 3개) 급여기준이 한개의 상품에 배당
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "PRODUCT_ID", nullable = false)
     private StoreProductEntity product;
 
     @Column(name = "FEEDING_MIN_WEIGHT")

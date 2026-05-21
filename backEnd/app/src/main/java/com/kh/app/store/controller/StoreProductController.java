@@ -1,25 +1,33 @@
 package com.kh.app.store.controller;
 
+import com.kh.app.store.dto.request.StoreInsertReqDto;
 import com.kh.app.store.service.StoreProductService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 
-//상품 목록 조회
-//상품 상세 조회
 //상품 등록 (기본정보/ 이미지/ 급여기준/ 영양성분)
 //상품 수정
+//상품 목록 조회
+//상품 상세 조회
+
 //상품 판매중지 / 판매재개
-//상품 이미지 등록
+
 //최근 본 상품 등록/조회
-//관심상품
+
+//관심상품 등록
+//관심상품 목록 조회
+//관심상품 삭제
 
 
 @Tag(name = "스토어상품", description = "스토어상품 관련 API")
@@ -33,12 +41,21 @@ public class StoreProductController {
 
     @Operation(summary = "상품 등록", description = "관리자가 상품을 등록하는 기능")
     @PostMapping
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "게시글 작성 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-            @ApiResponse(responseCode = "401", description = "인증 정보 없음")
-    })
-    public void m01(){
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "201", description = "게시글 작성 성공"),
+//            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+//            @ApiResponse(responseCode = "401", description = "인증 정보 없음")
+    public ResponseEntity<Void> insert(
+            @RequestPart(name = "data")StoreInsertReqDto reqDto,
+            //대표이미지랑 서
+            @RequestPart(name = "mainImage", required = false) MultipartFile mainImage,
+            @RequestPart(name = "subImages", required = false) List<MultipartFile> subImages
+            //이건 관리자 기능이고, 관리자가 누가했는지 남기지 아니하므로 안받음.
+            ){
+        storeProductService.insert(reqDto, mainImage, subImages);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .build();
 
     }
 
