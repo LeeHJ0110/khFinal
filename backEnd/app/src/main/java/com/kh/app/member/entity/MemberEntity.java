@@ -25,6 +25,7 @@ public class MemberEntity extends BaseEntity {
     @Column(length = 100 , nullable = false , unique = true)
     private String nickname;
 
+
     @Column(length = 100 , nullable = false)
     private String address;
 
@@ -38,7 +39,7 @@ public class MemberEntity extends BaseEntity {
     private String email;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 1 , nullable = false)
+    @Column(length = 1 )
     private MemberMarketingAgreeYn memberMarketingAgreeYn;
 
     @Column(length = 100 , unique = true)
