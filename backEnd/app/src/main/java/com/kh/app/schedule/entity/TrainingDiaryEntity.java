@@ -4,6 +4,8 @@ import com.kh.app.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "TRAINING_DIARY")
 @Builder
@@ -20,8 +22,8 @@ public class TrainingDiaryEntity extends BaseEntity {
     @JoinColumn(name = "TRAINING_PET_ID", nullable = false)
     private TrainingPetEntity trainingId;
 
-    @Column(name = "DATE", nullable = false, length = 8)
-    private String date;
+    @Column(name = "DATE", nullable = false)
+    private LocalDate date;
 
     @Column(name = "CONTENT", nullable = false, length = 4000)
     private String content;
