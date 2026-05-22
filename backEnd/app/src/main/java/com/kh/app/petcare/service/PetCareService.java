@@ -2,6 +2,8 @@ package com.kh.app.petcare.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kh.app.common.entity.DelYn;
+import com.kh.app.pet.entity.PetEntity;
+import com.kh.app.pet.repository.PetRepository;
 import com.kh.app.petcare.dto.request.DiagnosisAnswerDto;
 import com.kh.app.petcare.dto.request.PetCareReqDto;
 import com.kh.app.petcare.entity.DiagnosisReqEntity;
@@ -31,6 +33,7 @@ public class PetCareService {
     private final SelfDiagnosisQuestionRepository questionRepository;
     private final SelfDiagnosisAnswerRepository answerRepository;
     private final ImageRepository imageRepository;
+    private final PetRepository petRepository;
 
     @Transactional
     public void requestDiagnosis(
@@ -41,16 +44,20 @@ public class PetCareService {
             String username
     ) throws IOException {
 
-        // ObjectMapper 생성
+        // JSON 문자열 -> DTO 변환
         ObjectMapper objectMapper = new ObjectMapper();
 
-        // JSON 문자열 -> DTO 변환
         PetCareReqDto reqDto =
                 objectMapper.readValue(data, PetCareReqDto.class);
+
+        // 펫 조회
+        PetEntity pet = petRepository.findById(reqDto.getPetId())
+                .orElseThrow(() -> new IllegalArgumentException("반려동물을 찾을 수 없습니다."));
 
         // 건강진단 신청 저장
         DiagnosisReqEntity diagnosisReq =
                 DiagnosisReqEntity.builder()
+                        .petEntity(pet)
                         .build();
 
         diagnosisReqRepository.save(diagnosisReq);
@@ -61,7 +68,7 @@ public class PetCareService {
             // 질문 조회
             SelfDiagnosisQuestionEntity question =
                     questionRepository.findById(answerDto.getQuestionId())
-                            .orElseThrow();
+                            .orElseThrow(() -> new IllegalArgumentException("질문을 찾을 수 없습니다."));
 
             // 답변 저장
             SelfDiagnosisAnswerEntity answer =
