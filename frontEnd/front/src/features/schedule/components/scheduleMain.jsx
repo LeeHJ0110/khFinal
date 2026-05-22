@@ -6,12 +6,43 @@ import { useEffect } from "react";
 import FullCalendar from "@fullcalendar/react";
 
 export default function ScheduleMain() {
+  // 켈린더 이벤트 호출
   const { list, isLoading, asyncFetchScheduleList } = useScheduleList();
+  // 상세 조회용 모달 오픈 여부
+  const [detailOpen, setDetailOpen] = useState(false);
+  // 선택된 일정의 정보를 담을 객체
+  const [selectedEvent, setSelectedEvent] = useState({
+    title: "",
+    start: "",
+    content: "",
+    end: "",
+    textColor: "",
+    backgroundColor: "",
+  });
+
   useEffect(() => {
     asyncFetchScheduleList();
   }, []);
-
   console.log(list);
+
+  //날짜 숫자만 표시
+  const renderDayCell = (info) => {
+    return (
+      <div className="mini-day-number">
+        {info.dayNumberText.replace("일", "")}
+      </div>
+    );
+  };
+
+  //일정 정보바
+  const renderEventContent = (info) => {
+    if (info.event.extendedProps?.type === "training") {
+      console.log(info);
+
+      return <div className="training-stamp"></div>;
+    }
+    return <></>;
+  };
 
   return (
     <Wrapper>
@@ -31,7 +62,7 @@ export default function ScheduleMain() {
         moreLinkContent={(args) => {
           return `+${args.num}`;
         }}
-        // dayCellContent={renderDayCell} // 날짜 커스텀
+        dayCellContent={renderDayCell} // 날짜 커스텀
         // eventContent={renderEventContent} // 이벤트 커스텀
         // eventClick={onEventClick}
         // contentHeight={280}
