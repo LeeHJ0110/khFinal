@@ -8,10 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -28,22 +25,34 @@ public class PetCareController {
 
     @PostMapping("/diagnosis")
     public ResponseEntity<Object> requestDiagnosis(
+            @RequestParam("petId")
+            Long petId,
 
             //프론트가 보낸 JSON 데이터 받기(내용 같은 데이터)
             @RequestPart("data")
-            PetCareReqDto reqDto,
+            String data,
 
             //이미지 파일 받기
-            //여러 장 업로드 가능
-            @RequestPart(value = "fileList", required = false)
-            List<MultipartFile> fileList,
+            @RequestPart(value = "eyeFiles", required = false)
+            List<MultipartFile> eyeFiles,
+
+            @RequestPart("skinFiles")
+            List<MultipartFile> skinFiles,
+
+            @RequestPart("teethFiles")
+            List<MultipartFile> teethFiles,
 
             //현재 로그인한 사용자 정보 가져오기
             @AuthenticationPrincipal String username
 
     ) throws IOException {
 
-        petCareService.requestDiagnosis(reqDto, fileList, username);
+        petCareService.requestDiagnosis(
+                data,
+                eyeFiles,
+                skinFiles,
+                teethFiles,
+                username);
 
         //요청 성공 응답
         return ResponseEntity
