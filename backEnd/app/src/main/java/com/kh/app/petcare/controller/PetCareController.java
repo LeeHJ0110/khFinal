@@ -25,15 +25,15 @@ public class PetCareController {
 
     @PostMapping("/diagnosis")
     public ResponseEntity<Object> requestDiagnosis(
-            @RequestParam("petId")
-            Long petId,
+//            @RequestParam("petId")
+//            Long petId,
 
             //프론트가 보낸 JSON 데이터 받기(내용 같은 데이터)
             @RequestPart("data")
             String data,
 
             //이미지 파일 받기
-            @RequestPart(value = "eyeFiles", required = false)
+            @RequestPart(value = "eyeFiles")
             List<MultipartFile> eyeFiles,
 
             @RequestPart("skinFiles")
