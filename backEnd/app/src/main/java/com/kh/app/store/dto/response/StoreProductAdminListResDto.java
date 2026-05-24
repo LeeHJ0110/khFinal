@@ -1,38 +1,58 @@
 package com.kh.app.store.dto.response;
 
 import com.kh.app.store.entity.StoreProductCategory;
-import com.kh.app.store.entity.StoreProductEntity;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
-public class StoreProductListResDto {
+public class StoreProductAdminListResDto {
 
+    // 상품 번호
     private Long productId;
+
+    // 목록 썸네일 이미지
+    // 현재는 이미지 저장 로직이 없으므로 null
     private String thumbnailUrl;
+
+    // 상품명
     private String productName;
+
+    // 대상동물 D: 강아지, C: 고양이
     private String productTargetPetType;
+
+    // 카테고리
     private StoreProductCategory productCategory;
+
+    // 태그명
     private String tagName;
+
+    // 판매가
     private Long productPrice;
+
+    // 판매상태 Y: 판매중, N: 판매중지
     private String productSaleYn;
+
+    // 조회수
     private Long productViewCount;
+
+    // 등록일
     private LocalDateTime createdAt;
 
-    // JPQL 조회용 생성자
-    public StoreProductListResDto(
+    public StoreProductAdminListResDto(
             Long productId,
+            String thumbnailUrl,
             String productName,
             StoreProductCategory productCategory,
             String productTargetPetType,
             Long productPrice,
             String productSaleYn,
             Long productViewCount,
-            String tagName
+            String tagName,
+            LocalDateTime createdAt
     ) {
         this.productId = productId;
-        this.thumbnailUrl = null;
+        this.thumbnailUrl = thumbnailUrl;
         this.productName = productName;
         this.productCategory = productCategory;
         this.productTargetPetType = productTargetPetType;
@@ -40,25 +60,6 @@ public class StoreProductListResDto {
         this.productSaleYn = productSaleYn;
         this.productViewCount = productViewCount;
         this.tagName = tagName;
-        this.createdAt = null;
-    }
-
-    // Entity 직접 변환용
-    public static StoreProductListResDto from(StoreProductEntity entity) {
-        StoreProductListResDto dto = new StoreProductListResDto(
-                entity.getProductId(),
-                entity.getProductName(),
-                entity.getProductCategory(),
-                entity.getProductTargetPetType(),
-                entity.getProductPrice(),
-                entity.getProductSaleYn(),
-                entity.getProductViewCount(),
-                entity.getProductTag().getTagName()
-        );
-
-        dto.thumbnailUrl = null;
-        dto.createdAt = entity.getCreatedAt();
-
-        return dto;
+        this.createdAt = createdAt;
     }
 }
