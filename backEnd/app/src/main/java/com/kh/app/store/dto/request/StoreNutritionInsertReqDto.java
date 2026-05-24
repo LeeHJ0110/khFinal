@@ -10,17 +10,11 @@ import lombok.Setter;
 public class StoreNutritionInsertReqDto {
 
     private Long nutritionCalorie;
-
     private Long nutritionProtein;
-
     private Long nutritionFat;
-
     private Long nutritionFiber;
-
     private Long nutritionMoisture;
-
     private Long nutritionCalcium;
-
     private Long nutritionPhosphorus;
 
     public StoreProductNutritionEntity toEntity(StoreProductEntity productEntity) {

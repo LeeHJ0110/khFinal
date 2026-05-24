@@ -53,15 +53,13 @@ public class StoreProductEntity extends BaseEntity {
             StoreProductTagEntity productTag,
             String productName,
             String productTargetPetType,
-            Long productPrice,
-            String productSaleYn
+            Long productPrice
     ) {
         this.productCategory = productCategory;
         this.productTag = productTag;
         this.productName = productName;
         this.productTargetPetType = productTargetPetType;
         this.productPrice = productPrice;
-        this.productSaleYn = productSaleYn;
     }
 
     public void stopSale() {

@@ -10,13 +10,9 @@ import lombok.Setter;
 public class StoreFeedingGuideInsertReqDto {
 
     private Long feedingMinWeight;
-
     private Long feedingMaxWeight;
-
     private Long feedingDailyAmount;
-
     private String feedingUnit;
-
     private String feedingNote;
 
     public StoreProductFeedingGuideEntity toEntity(StoreProductEntity productEntity) {
