@@ -1,14 +1,15 @@
+import { Link } from "react-router-dom";
+
 export default function GuestMenu() {
   return (
     <div className="guest-menu">
-      {/* member/login */}
-      <a href="member/login" className="header-login-btn">
+      <Link to="/member/login" className="header-login-btn">
         로그인
-      </a>
-      {/* member/join */}
-      <a href="member/join" className="header-join-btn">
+      </Link>
+
+      <Link to="/member/join" className="header-join-btn">
         회원가입
-      </a>
+      </Link>
     </div>
   );
 }

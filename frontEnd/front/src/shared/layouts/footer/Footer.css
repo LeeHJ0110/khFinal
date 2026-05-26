@@ -1,0 +1,265 @@
+/*
+  공통 Footer
+
+  - 로그인/비로그인 상태와 관계없이 동일하게 사용
+  - Header, PetStoreNav와 동일하게 1920px 고정 레이아웃 기준 사용
+  - 우측 끝 기준은 Header/Nav의 edge-correction과 맞춤
+*/
+
+.footer {
+  --footer-height: 170px;
+  --footer-edge-correction: 20px;
+
+  width: 100%;
+  min-height: var(--footer-height);
+
+  background-color: var(--color-dark);
+  color: var(--color-bg-light);
+}
+
+.footer-inner {
+  width: var(--layout-width);
+  min-height: var(--footer-height);
+  margin: 0 auto;
+
+  /*
+    오른쪽은 Header/Nav의 margin-right 보정값과 맞춤.
+    그래서 푸터 우측 끝도 상단 Header/Nav 우측 끝선과 동일하게 보입니다.
+  */
+  padding: 28px calc(var(--layout-padding-x) + var(--footer-edge-correction))
+    28px var(--layout-padding-x);
+
+  display: grid;
+  grid-template-columns: 300px 300px 1fr 390px;
+  align-items: center;
+}
+
+/* 브랜드 정보 영역 */
+.footer-brand {
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.footer-brand-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 8px;
+}
+
+.footer-brand-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background-color: var(--color-main);
+  color: #fff;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.footer-brand-title strong {
+  color: #fff;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.footer-brand p {
+  margin: 0 0 26px;
+
+  color: var(--color-bg-light);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.footer-brand small {
+  color: var(--text-desc);
+  font-size: 10px;
+}
+
+/* 서비스 소개 영역 */
+.footer-desc {
+  height: 92px;
+  padding-left: 42px;
+
+  display: flex;
+  align-items: center;
+
+  border-left: 1px solid rgba(236, 253, 246, 0.25);
+}
+
+.footer-desc p {
+  margin: 0;
+
+  color: var(--color-bg-light);
+  font-size: 12px;
+  line-height: 1.7;
+  font-weight: 400;
+}
+
+/* 중앙 바로가기 메뉴 영역 */
+.footer-menu {
+  height: 92px;
+  padding: 0 56px;
+
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: center;
+
+  border-left: 1px solid rgba(236, 253, 246, 0.25);
+  border-right: 1px solid rgba(236, 253, 246, 0.25);
+}
+
+.footer-menu-item {
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  color: var(--color-bg-light);
+
+  font-size: 12px;
+  font-weight: 500;
+
+  transition:
+    color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.footer-menu-item:hover {
+  color: var(--color-mint);
+  transform: translateY(-2px);
+}
+
+.footer-menu-icon {
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--color-mint);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.footer-menu-item em {
+  color: #fff;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* 연락처 영역 */
+.footer-contact {
+  height: 92px;
+  padding-left: 56px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.footer-contact h3 {
+  margin: 0 0 10px;
+
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.footer-contact-list {
+  margin: 0;
+  padding: 0;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 22px;
+
+  list-style: none;
+}
+
+.footer-contact-list li {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 이메일 */
+.footer-contact-email {
+  grid-column: 1 / -1;
+}
+
+.footer-contact-icon {
+  width: 15px;
+  flex-shrink: 0;
+
+  color: var(--color-bg-soft);
+  font-size: 12px;
+  text-align: center;
+}
+
+.footer-contact-list p {
+  min-width: 0;
+  margin: 0;
+
+  color: var(--text-desc);
+  font-size: 11px;
+  font-weight: 400;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 소셜 아이콘 영역 */
+.footer-social {
+  margin-top: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.footer-social a {
+  width: 22px;
+  height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background-color: rgba(236, 253, 246, 0.12);
+  color: var(--color-bg-light);
+
+  font-size: 11px;
+
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.footer-social a:hover {
+  background-color: var(--color-main);
+  color: #fff;
+}
