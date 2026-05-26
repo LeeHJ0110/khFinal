@@ -59,4 +59,24 @@ public class PetCareController {
                 .status(HttpStatus.CREATED)
                 .build();
     }
+//페이징 목록조회
+    @GetMapping("/diagnosis/list")
+    public ResponseEntity<Object> requestDiagnosisList(
+            @RequestParam(defaultValue = "0") int pno
+    ) {
+
+        return ResponseEntity.ok(
+                petCareService.requestDiagnosisList(pno)
+        );
+    }
+
+    //상세보기
+    @GetMapping("/diagnosis/{diagnosisReqId}")
+    public ResponseEntity<Object> getDiagnosisDetail(
+            @PathVariable Long diagnosisReqId
+    ) {
+        return ResponseEntity.ok(
+                petCareService.getDiagnosisDetail(diagnosisReqId)
+        );
+    }
 }

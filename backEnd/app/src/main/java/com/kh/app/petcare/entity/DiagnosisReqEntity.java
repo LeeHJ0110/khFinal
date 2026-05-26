@@ -6,6 +6,9 @@ import com.kh.app.pet.entity.PetEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Collection;
+import java.util.List;
+
 @Entity
 @Table(name = "DIAGNOSIS_REQ")
 @Builder
@@ -29,4 +32,11 @@ public class DiagnosisReqEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "PET_ID", nullable = false)
     private PetEntity petEntity;
+
+    //상세조회에서 신청 1건에 연결된 답변들을 전부 가져오려고 추가
+    @OneToMany(
+            mappedBy = "diagnosisReq",
+            fetch = FetchType.LAZY
+    )
+    private List<SelfDiagnosisAnswerEntity> answerList;
 }
