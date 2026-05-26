@@ -26,7 +26,7 @@ public class PetCreateReqDto {
                 .weight(weight)
                 .neuteredYn(neuteredYn)
                 .representYn(representYn)
-                .memberId(member)
+                .member(member)
                 .breedId(breed)
                 .build();
     }

@@ -40,7 +40,7 @@ public class PetService {
     public List<PetMyPageResDto> getMyPets(String username) {
 
         List<PetEntity> petList = petRepository
-                .findAllByMemberUsernameAndDelYn(username, DelYn.N);
+                .findAllByMember_UsernameAndDelYn(username, DelYn.N);
 
         return petList.stream()
                 .map(PetMyPageResDto::from)
