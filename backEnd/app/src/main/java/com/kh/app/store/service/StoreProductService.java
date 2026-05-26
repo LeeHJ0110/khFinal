@@ -7,6 +7,8 @@ import com.kh.app.store.dto.request.StoreNutritionInsertReqDto;
 import com.kh.app.store.dto.request.StoreUpdateReqDto;
 import com.kh.app.store.dto.response.StoreProductAdminDetailResDto;
 import com.kh.app.store.dto.response.StoreProductAdminListResDto;
+import com.kh.app.store.dto.response.StoreProductDetailResDto;
+import com.kh.app.store.dto.response.StoreProductListResDto;
 import com.kh.app.store.entity.StoreProductEntity;
 import com.kh.app.store.entity.StoreProductFeedingGuideEntity;
 import com.kh.app.store.entity.StoreProductImageEntity;
@@ -74,6 +76,26 @@ public class StoreProductService {
         return storeProductRepository.findAdminProductList(pageable);
     }
 
+    public List<StoreProductListResDto> getProductList() {
+
+        //판매중인것만
+        List<StoreProductEntity> productList = storeProductRepository.findByProductSaleYnOrderByProductIdDesc("Y");
+
+        return productList.stream()
+                .map(product -> {
+                    StoreProductImageEntity mainImage =
+                            storeProductImageRepository
+                                    .findFirstByProduct_ProductIdAndImageRepresentYnOrderBySortOrderAsc(
+                                            product.getProductId(),
+                                            "Y"
+                                    )
+                                    .orElse(null);
+
+                    return StoreProductListResDto.from(product, mainImage);
+                })
+                .toList();
+    }
+
     public StoreProductAdminDetailResDto getAdminProductDetail(Long productId) {
         StoreProductEntity productEntity = storeProductRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
@@ -89,6 +111,37 @@ public class StoreProductService {
                 storeProductImageRepository.findByProduct_ProductIdOrderBySortOrderAsc(productId);
 
         return StoreProductAdminDetailResDto.from(
+                productEntity,
+                nutritionEntity,
+                feedingGuideList,
+                imageList
+        );
+    }
+
+    @Transactional
+    public StoreProductDetailResDto getProductDetail(Long productId) {
+
+        StoreProductEntity productEntity = storeProductRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+
+        if (!productEntity.isOnSale()) {
+            throw new IllegalStateException("판매중지된 상품입니다.");
+        }
+
+        //조회수 증가
+        productEntity.increaseViewCount();
+
+        StoreProductNutritionEntity nutritionEntity =
+                storeProductNutritionRepository.findByProduct_ProductId(productId)
+                        .orElse(null);
+
+        List<StoreProductFeedingGuideEntity> feedingGuideList =
+                storeProductFeedingGuideRepository.findByProduct_ProductIdOrderByFeedingGuideIdAsc(productId);
+
+        List<StoreProductImageEntity> imageList =
+                storeProductImageRepository.findByProduct_ProductIdOrderBySortOrderAsc(productId);
+
+        return StoreProductDetailResDto.from(
                 productEntity,
                 nutritionEntity,
                 feedingGuideList,
@@ -287,4 +340,23 @@ public class StoreProductService {
 
         return "https://" + bucketName + ".s3.ap-northeast-2.amazonaws.com/" + keyPath;
     }
+
+    @Transactional
+    public void stopSelling(Long productId) {
+        StoreProductEntity storeProductEntity = storeProductRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+
+        storeProductEntity.stopSelling();
+    }
+
+    @Transactional
+    public void resumeSelling(Long productId) {
+        StoreProductEntity storeProductEntity = storeProductRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+
+        storeProductEntity.resumeSelling();
+    }
+
+
+
 }
