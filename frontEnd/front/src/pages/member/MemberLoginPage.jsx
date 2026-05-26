@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
-import useFormData from "../../shared/layouts/hooks/useFormData";
+import useFormData from "../../shared/hooks/useFormData";
 import useMemberLogin from "../../features/member/hooks/useMemberLogin";
 
 import "./LoginPage.css";
