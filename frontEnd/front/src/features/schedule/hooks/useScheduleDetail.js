@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { fetchBoardList } from "../api/scheduleApi";
 
-export default function useScheduleList() {
-  const [list, setList] = useState([]);
+export default function useScheduleDetail() {
+  const [data, setData] = useState([]);
   const [isLoading, setLoading] = useState(false);
 
-  async function asyncFetchScheduleList() {
+  async function asyncFetchSchedule() {
     setLoading(true);
     const resp = await fetchBoardList();
 
@@ -30,9 +30,9 @@ export default function useScheduleList() {
       },
     }));
 
-    setList(parsedList);
+    setData(parsedList);
     setLoading(false);
   }
 
-  return { list, isLoading, asyncFetchScheduleList };
+  return { data, isLoading, asyncFetchSchedule };
 }

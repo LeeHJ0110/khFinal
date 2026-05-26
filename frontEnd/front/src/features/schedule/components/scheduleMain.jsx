@@ -2,28 +2,29 @@ import styled from "styled-components";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import useScheduleList from "../hooks/useScheduleList";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
+import ScheduleModal from "./scheduleModal";
 
 export default function ScheduleMain() {
+  const initialState = {
+    title: "",
+    content: "",
+    at: "",
+    startDate: "",
+    endDate: "",
+    backgroundColor: "#5EC8A7",
+  };
   // 켈린더 이벤트 호출
   const { list, isLoading, asyncFetchScheduleList } = useScheduleList();
   // 상세 조회용 모달 오픈 여부
   const [detailOpen, setDetailOpen] = useState(false);
   // 선택된 일정의 정보를 담을 객체
-  const [selectedEvent, setSelectedEvent] = useState({
-    title: "",
-    start: "",
-    content: "",
-    end: "",
-    textColor: "",
-    backgroundColor: "",
-  });
+  const [selectedEvent, setSelectedEvent] = useState(initialState);
 
   useEffect(() => {
     asyncFetchScheduleList();
   }, []);
-  console.log(list);
 
   //날짜 숫자만 표시
   const renderDayCell = (info) => {
@@ -44,6 +45,25 @@ export default function ScheduleMain() {
     return <></>;
   };
 
+  const onEventClick = (info) => {
+    // FullCalendar의 이벤트 객체에서 데이터 추출
+
+    if (info.event) {
+      const { id } = info.event;
+      //api로 데이터 가져오기
+      console.log(id);
+    } else {
+      setSelectedEvent({
+        ...initialState,
+        startDate: info.startStr,
+        endDate: info.endStr,
+      });
+    }
+    console.log(selectedEvent);
+
+    setDetailOpen(true); // 상세 조회 모달 열기
+  };
+
   return (
     <Wrapper>
       <FullCalendar
@@ -51,7 +71,7 @@ export default function ScheduleMain() {
         initialView="dayGridMonth"
         locale="ko"
         height={500}
-        // events={events}
+        events={list}
         // 헤더 최소화
         headerToolbar={{
           left: "prev",
@@ -62,11 +82,18 @@ export default function ScheduleMain() {
         moreLinkContent={(args) => {
           return `+${args.num}`;
         }}
+        selectable={true}
+        select={onEventClick}
         dayCellContent={renderDayCell} // 날짜 커스텀
         // eventContent={renderEventContent} // 이벤트 커스텀
-        // eventClick={onEventClick}
+        eventClick={onEventClick}
         // contentHeight={280}
         // fixedWeekCount={false} // 해당 월의 주차만큼만 표시
+      />
+      <ScheduleModal
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+        data={selectedEvent}
       />
     </Wrapper>
   );

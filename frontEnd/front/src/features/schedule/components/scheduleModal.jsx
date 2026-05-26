@@ -1,6 +1,11 @@
+import { useEffect, useState } from "react";
 import styled from "styled-components";
+import useScheduleWrite from "../hooks/useScheduleWrite";
+import useFormData from "../hooks/useFormData";
 
-export default function ScheduleModal({ open, onClose, schedule }) {
+export default function ScheduleModal({ open, onClose, data }) {
+  const { formData, handleChange } = useFormData(data);
+  const { handleWrite, isSuccess } = useScheduleWrite();
   if (!open) return null;
 
   return (
@@ -12,29 +17,98 @@ export default function ScheduleModal({ open, onClose, schedule }) {
           <CloseButton onClick={onClose}>×</CloseButton>
         </Header>
 
-        <Body>
-          <Label>제목</Label>
+        <Body
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleWrite(formData);
+            if (isSuccess) {
+              navigate(`/`);
+            }
+          }}
+        >
+          <Field>
+            <Label>제목</Label>
 
-          <Box>{schedule?.title}</Box>
+            <Input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+            />
+          </Field>
 
-          <Label>날짜</Label>
+          <Row>
+            <Field>
+              <Label>시작 날짜</Label>
 
-          <Box>{schedule?.start}</Box>
+              <Input
+                type="date"
+                name="startDate"
+                value={formData.startDate}
+                onChange={handleChange}
+              />
+            </Field>
 
-          <Label>내용</Label>
+            <Field>
+              <Label>종료 날짜</Label>
 
-          <Content
-            dangerouslySetInnerHTML={{
-              __html: schedule?.content || "",
-            }}
-          />
+              <Input
+                type="date"
+                name="endDate"
+                value={formData.endDate}
+                onChange={handleChange}
+              />
+            </Field>
+          </Row>
+
+          <Field>
+            <Label>시간</Label>
+
+            <Input
+              type="time"
+              name="at"
+              value={formData.at}
+              onChange={handleChange}
+            />
+          </Field>
+
+          <Field>
+            <Label>색상</Label>
+            <Input
+              type="color"
+              name="backgroundColor"
+              value={formData.backgroundColor}
+              onChange={handleChange}
+            />
+          </Field>
+
+          <Field>
+            <Label>내용</Label>
+
+            <TextArea
+              value={formData.content}
+              name="content"
+              onChange={handleChange}
+            />
+            {/* <label htmlFor="file-input">파일첨부ㅋㅋ</label>
+            <input
+              id="file-input"
+              type="file"
+              name="f"
+              multiple
+              onChange={handleFileChange}
+              style={{ display: "none" }}
+            /> */}
+          </Field>
+
+          <Footer>
+            <CancelButton type="button" onClick={onClose}>
+              취소
+            </CancelButton>
+
+            <SaveButton type="submit">저장</SaveButton>
+          </Footer>
         </Body>
-
-        <Footer>
-          <CancelButton onClick={onClose}>닫기</CancelButton>
-
-          <SaveButton>수정</SaveButton>
-        </Footer>
       </Container>
     </Overlay>
   );
@@ -54,7 +128,7 @@ const Overlay = styled.div`
 `;
 
 const Container = styled.div`
-  width: 480px;
+  width: 520px;
 
   background: white;
 
@@ -100,7 +174,7 @@ const CloseButton = styled.button`
   border: none;
   background: transparent;
 
-  font-size: 26px;
+  font-size: 28px;
 
   cursor: pointer;
 
@@ -113,60 +187,90 @@ const CloseButton = styled.button`
   }
 `;
 
-const Body = styled.div`
+const Body = styled.form`
   display: flex;
   flex-direction: column;
 
-  gap: 10px;
+  gap: 18px;
 `;
 
-const Label = styled.p`
-  margin: 0;
+const Field = styled.div`
+  display: flex;
+  flex-direction: column;
 
+  gap: 8px;
+`;
+
+const Row = styled.div`
+  display: flex;
+
+  gap: 12px;
+
+  > div {
+    flex: 1;
+  }
+`;
+
+const Label = styled.label`
   font-size: 14px;
   font-weight: 600;
 
   color: #666;
 `;
 
-const Box = styled.div`
-  padding: 14px 16px;
+const Input = styled.input`
+  height: 46px;
+
+  border: 1px solid #ddd;
 
   border-radius: 14px;
 
-  background: #f7f7f7;
-
-  font-size: 15px;
-
-  color: #222;
-`;
-
-const Content = styled.div`
-  min-height: 140px;
-
-  max-height: 240px;
-
-  overflow-y: auto;
-
-  padding: 16px;
-
-  border-radius: 14px;
-
-  background: #f7f7f7;
-
-  line-height: 1.6;
+  padding: 0 14px;
 
   font-size: 14px;
 
-  color: #333;
+  outline: none;
 
-  img {
-    max-width: 100%;
+  transition: 0.2s;
 
-    border-radius: 12px;
-
-    margin-top: 10px;
+  &:focus {
+    border-color: #5ec8a7;
   }
+`;
+
+const TextArea = styled.textarea`
+  min-height: 180px;
+
+  border: 1px solid #ddd;
+
+  border-radius: 14px;
+
+  padding: 14px;
+
+  resize: none;
+
+  font-size: 14px;
+
+  line-height: 1.5;
+
+  outline: none;
+
+  transition: 0.2s;
+
+  &:focus {
+    border-color: #5ec8a7;
+  }
+`;
+
+const ColorInput = styled.input`
+  width: 60px;
+  height: 42px;
+
+  border: none;
+
+  background: transparent;
+
+  cursor: pointer;
 `;
 
 const Footer = styled.div`
@@ -175,7 +279,7 @@ const Footer = styled.div`
 
   gap: 10px;
 
-  margin-top: 28px;
+  margin-top: 10px;
 `;
 
 const CancelButton = styled.button`

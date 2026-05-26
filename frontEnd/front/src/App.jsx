@@ -3,7 +3,7 @@ import "./App.css";
 import DefaultLayout from "./app/layouts/DefaultLayout";
 import MemberJoinPage from "./pages/member/MemberJoinPage";
 import MemberLoginPage from "./pages/member/MemberLoginPage";
-import ScheduleMainPage from "./pages/schedule/ScheduleMainPage";
+import ScheduleMainPage from "./pages/schedule/scheduleMainPage";
 
 function App() {
   return (
