@@ -1,34 +1,35 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation, useNavigate } from "react-router-dom";
-import { setError, setLoading, setSuccess } from "../store/boardSlice";
-import { updateBoardApi, writeBoardApi } from "../api/boardApi";
+import { useNavigate, useLocation } from "react-router-dom";
+import { writeBoardApi, updateBoardApi } from "../api/boardApi";
+import {
+  setLoading,
+  setError,
+  setSuccess,
+  resetStatus,
+} from "../store/boardSlice";
 
-function useBoardForm() {
+export default function useBoardForm() {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
 
-  const loading = useSelector((state) => {
-    state.board.loading;
-  });
-  const error = useSelector((state) => {
-    state.board.error;
-  });
-  const success = useSelector((state) => {
-    state.board.success;
-  });
+  const loading = useSelector((state) => state.board.loading);
+  const error = useSelector((state) => state.board.error);
+  const success = useSelector((state) => state.board.success);
 
+  // 수정 모드 상태 관리
   const [isEdit, setIsEdit] = useState(false);
   const [boardId, setBoardId] = useState(null);
 
-  const [boardCategory, setBoardCategoty] = useState("FREE");
+  // 폼 상태 관리
+  const [boardCategory, setBoardCategory] = useState("FREE");
   const [boardSubCategory, setBoardSubCategory] = useState("TALK");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [boardStars, setBoardStars] = useState(5);
 
-  // 수정데이터 감지하는 거
+  // 수정 데이터 감지 및 세팅
   useEffect(() => {
     dispatch(resetStatus());
     if (location.state?.board) {
@@ -37,7 +38,8 @@ function useBoardForm() {
       setIsEdit(true);
       setBoardId(id);
       setTitle(title || "");
-      setBoardCategoty(category || "FREE");
+      setContent(content || "");
+      setBoardCategory(category || "FREE");
       setBoardSubCategory(subCategory || "TALK");
       setBoardStars(stars || 5);
     }
@@ -45,7 +47,7 @@ function useBoardForm() {
 
   const handleCategoryChange = (e) => {
     const newCategory = e.target.value;
-    setBoardCategoty(newCategory);
+    setBoardCategory(newCategory);
     if (newCategory !== "PRODUCT_REVIEW" && newCategory !== "FAC_REVIEW") {
       setBoardStars(5);
     }
@@ -94,23 +96,20 @@ function useBoardForm() {
     );
 
     dispatch(setLoading(true));
-    dispatch(setError);
+    dispatch(setError(null));
 
     try {
       if (isEdit) {
         await updateBoardApi(boardId, formData);
-        alert("게시글이 성공적으로 수정되었습니다.");
+        alert("게시글이 성공적으로 수정되었습니다!");
       } else {
         await writeBoardApi(formData);
-        alert("게시글이 성공적으로 등록되었습니다.");
+        alert("게시글이 성공적으로 등록되었습니다!");
       }
       dispatch(setSuccess(true));
       navigate(-1);
     } catch (err) {
-      console.error(
-        isEdit ? "게시글 수정 실패 : " : "게시글 등록 실패 : ",
-        err,
-      );
+      console.error(isEdit ? "게시글 수정 실패:" : "게시글 등록 실패:", err);
       const errMsg =
         err.response?.data?.message ||
         (isEdit
