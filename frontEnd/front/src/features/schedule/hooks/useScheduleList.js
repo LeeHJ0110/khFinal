@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fetchBoardList } from "../api/scheduleApi";
+import { fetchScheduleList } from "../api/scheduleApi";
 
 export default function useScheduleList() {
   const [list, setList] = useState([]);
@@ -7,7 +7,7 @@ export default function useScheduleList() {
 
   async function asyncFetchScheduleList() {
     setLoading(true);
-    const resp = await fetchBoardList();
+    const resp = await fetchScheduleList();
 
     const parsedList = resp.data.map((item) => ({
       id: item.id,
@@ -23,11 +23,6 @@ export default function useScheduleList() {
       borderColor: `#${item.backgroundColor}`,
 
       allDay: true,
-
-      extendedProps: {
-        content: item.content,
-        at: item.at,
-      },
     }));
 
     setList(parsedList);

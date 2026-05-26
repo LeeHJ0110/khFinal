@@ -31,7 +31,7 @@ public class ScheduleController {
     })
     @PostMapping
     public ResponseEntity<Object> write(
-            @RequestBody EventReqDto reqDto,
+            @RequestPart(name = "data") EventReqDto reqDto,
             @AuthenticationPrincipal String username){
         scheduleService.write(reqDto, username);
         return ResponseEntity

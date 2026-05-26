@@ -1,38 +1,36 @@
 import { useState } from "react";
-import { fetchBoardList } from "../api/scheduleApi";
+import { fetchScheduleDetail } from "../api/scheduleApi";
 
 export default function useScheduleDetail() {
-  const [data, setData] = useState([]);
+  const [detail, setDetail] = useState([]);
   const [isLoading, setLoading] = useState(false);
 
-  async function asyncFetchSchedule() {
+  async function asyncFetchSchedule(faram) {
     setLoading(true);
-    const resp = await fetchBoardList();
+    const resp = await fetchScheduleDetail(faram);
 
-    const parsedList = resp.data.map((item) => ({
-      id: item.id,
+    const parsedDetail = {
+      id: resp.data.id,
 
-      title: item.title,
+      title: resp.data.title,
 
-      start: item.startDate,
+      start: resp.data.startDate,
 
-      end: item.endDate,
+      end: resp.data.endDate,
 
-      backgroundColor: `#${item.backgroundColor}`,
-
-      borderColor: `#${item.backgroundColor}`,
+      backgroundColor: `#${resp.data.backgroundColor}`,
 
       allDay: true,
 
       extendedProps: {
-        content: item.content,
-        at: item.at,
+        content: resp.data.content,
+        at: resp.data.at,
       },
-    }));
+    };
 
-    setData(parsedList);
+    setDetail(parsedDetail);
     setLoading(false);
   }
 
-  return { data, isLoading, asyncFetchSchedule };
+  return { detail, isLoading, asyncFetchSchedule };
 }

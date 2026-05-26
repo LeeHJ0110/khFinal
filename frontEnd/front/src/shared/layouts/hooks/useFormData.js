@@ -11,6 +11,7 @@ export default function useFormData(initialState) {
 
   function resetFormData() {
     setFormData(initialState);
+    console.log(initialState);
   }
 
   return { formData, handleChange, resetFormData };
