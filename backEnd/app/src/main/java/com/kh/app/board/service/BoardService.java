@@ -114,7 +114,7 @@ public class BoardService {
         while (matcher.find()) {
             String src = matcher.group(1);
 
-            // 1. Check if src is Base64 encoded image
+
             if (src != null && src.startsWith("data:image/")) {
                 int commaIndex = src.indexOf(",");
                 if (commaIndex != -1) {
@@ -175,7 +175,34 @@ public class BoardService {
                 }
             }
 
-            
+            if (fileList != null && fileIndex < fileList.size()) {
+                MultipartFile file = fileList.get(fileIndex);
+
+                if (file != null && !file.isEmpty()) {
+                    log.info("[S3 파일 업로드 가동] 파일명 : {}", file.getOriginalFilename());
+
+                    // S3 버킷에 물리 저장 처리
+                    String savedFilename = s3Service.upload(file, "board");
+
+                    String s3KeyPath = savedFilename.startsWith("board/") ? savedFilename : "board/" + savedFilename;
+                    String s3FullUrl = "https://" + bucketName + ".s3.ap-northeast-2.amazonaws.com/" + s3KeyPath;
+
+                    BoardFileEntity boardFile = BoardFileEntity.builder()
+                            .boardEntity(boardEntity)
+                            .imageOriginName(file.getOriginalFilename())
+                            .imageChangedName(savedFilename)
+                            .boardFileSize(file.getSize())
+                            .boardFileOrder(fileIndex)
+                            .build();
+                    boardFileRepository.save(boardFile);
+
+                    String replacement = matcher.group().replace(src, s3FullUrl);
+                    matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+
+                    fileIndex++;
+                    continue;
+                }
+            }
             matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group()));
         }
         matcher.appendTail(sb);
