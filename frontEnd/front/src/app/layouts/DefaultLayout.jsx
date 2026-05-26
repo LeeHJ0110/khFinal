@@ -8,7 +8,6 @@ function DefaultLayout() {
   return (
     <>
       <Header />
-      <Nav />
       <main>
         <Outlet />
       </main>
