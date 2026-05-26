@@ -13,6 +13,7 @@ import MemberJoinTermsPage from "./pages/member/MemberJoinTermsPage";
 import MemberJoinCompletePage from "./pages/member/MemberJoinCompletePage";
 import MemberKakaoJoinPage from "./pages/member/MemberKakaoJoinPage";
 import MemberKakaoCallbackPage from "./pages/member/MemberKakaoCallbackPage";
+import BoardWritePage from "./pages/board/BoardWritePage";
 
 function App() {
   return (
@@ -41,6 +42,9 @@ function App() {
               path="product/admin"
               element={<PetStoreAdminProductListPage />}
             />
+          </Route>
+          <Route path="community">
+            <Route path="write" element={<BoardWritePage />} />
           </Route>
         </Route>
       </Routes>
