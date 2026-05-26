@@ -22,8 +22,9 @@ public class BoardEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private MemberEntity writer;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 50, nullable = false)
-    private String category;
+    private BoardCategory category;
 
     @Column(length = 100, nullable = false)
     private String title;
@@ -40,13 +41,14 @@ public class BoardEntity extends BaseEntity {
     @Builder.Default
     private String blindYn = "N";
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private String subCategory;
+    private BoardSubCategory subCategory;
 
     @Column(nullable = true)
     private Long topOrder;
 
-    @Column(nullable = true, precision = 2, scale = 1)  // precision=2(총 자릿수 2자리), scale=1(소수점 이하 1자리)
+    @Column(nullable = true, precision = 2, scale = 1)
     private Long stars;
 
 
