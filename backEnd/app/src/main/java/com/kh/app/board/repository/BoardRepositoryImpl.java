@@ -72,7 +72,7 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
     }
 
     private BooleanExpression categoryEq(String category) {
-        return StringUtils.hasText(category) ? QBoardEntity.boardEntity.category.eq(category) : null;
+        return StringUtils.hasText(category) ? QBoardEntity.boardEntity.category.stringValue().eq(category) : null;
     }
 
     private BooleanExpression titleContains(String title) {
@@ -84,7 +84,7 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
     }
 
     private BooleanExpression subCategoryEq(String subCategory) {
-        return StringUtils.hasText(subCategory) ? QBoardEntity.boardEntity.subCategory.eq(subCategory) : null;
+        return StringUtils.hasText(subCategory) ? QBoardEntity.boardEntity.subCategory.stringValue().eq(subCategory) : null;
     }
 
     private BooleanExpression starsGoe(Long stars) {

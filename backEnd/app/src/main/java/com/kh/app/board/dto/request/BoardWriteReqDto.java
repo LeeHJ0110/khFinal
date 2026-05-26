@@ -1,7 +1,8 @@
 package com.kh.app.board.dto.request;
 
+import com.kh.app.board.entity.BoardCategory;
+import com.kh.app.board.entity.BoardSubCategory;
 import com.kh.app.board.entity.BoardEntity;
-//import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.entity.MemberEntity;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,9 +18,19 @@ public class BoardWriteReqDto {
     private String boardSubCategory;
 
     public BoardEntity toEntity (MemberEntity memberEntity){
+        // 1. String 값인 boardCategory를 BoardCategory Enum으로 파싱합니다.
+        BoardCategory categoryEnum = (boardCategory != null)
+                ? BoardCategory.valueOf(boardCategory)
+                : BoardCategory.FREE;
+
+        // 2. String 값인 boardSubCategory를 BoardSubCategory Enum으로 파싱합니다.
+        BoardSubCategory subCategoryEnum = (boardSubCategory != null)
+                ? BoardSubCategory.valueOf(boardSubCategory)
+                : null;
+
         return BoardEntity.builder()
-                .category(boardCategory != null ? boardCategory : "FREE")
-                .subCategory(boardSubCategory != null ? boardSubCategory : null)
+                .category(categoryEnum)     // 💡 String이 아닌 Enum 객체 그대로 주입!
+                .subCategory(subCategoryEnum) // 💡 String이 아닌 Enum 객체 그대로 주입!
                 .title(title)
                 .content(content)
                 .stars(boardStars)
