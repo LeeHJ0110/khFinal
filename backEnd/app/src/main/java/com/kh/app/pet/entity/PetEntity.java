@@ -50,7 +50,7 @@ public class PetEntity extends BaseEntity {
     // 회원
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "MEMBER_ID")
-    private MemberEntity memberId;
+    private MemberEntity member;
 
     // 품종
     @ManyToOne(fetch = FetchType.LAZY)
