@@ -61,14 +61,15 @@ public class BoardController {
     @Operation(summary = "게시글 수정", description = "제목, 내용 + 토큰 으로 게시글 수정 ( + 파일)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "게시글 수정 성공"),
-
+            @ApiResponse(responseCode = "401", description = "인증 정보 없음"),
+            @ApiResponse(responseCode = "403", description = "수정 권한 없음")
     })
     @PutMapping("/edit/{boardId}")
     public ResponseEntity<Object> update(
             @PathVariable(name = "boardId") Long boardId,
             @RequestPart(name = "data") BoardWriteReqDto reqDto,
             @RequestPart(name = "fileList", required = false) List<MultipartFile> fileList,
-            
+            @AuthenticationPrincipal String username
     ) throws IOException {
         boardService.update(boardId, reqDto, fileList, username);
         return ResponseEntity.ok().build();
