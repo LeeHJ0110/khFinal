@@ -1,8 +1,10 @@
 package com.kh.app.pet.service;
 
+import com.kh.app.common.entity.DelYn;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.pet.dto.request.PetCreateReqDto;
+import com.kh.app.pet.dto.response.PetMyPageResDto;
 import com.kh.app.pet.entity.BreedEntity;
 import com.kh.app.pet.entity.PetEntity;
 import com.kh.app.pet.repository.BreedRepository;
@@ -10,6 +12,8 @@ import com.kh.app.pet.repository.PetRepository;
 import jakarta.transaction.Transactional;
 import lombok.*;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -31,5 +35,15 @@ public class PetService {
         PetEntity pet = dto.toEntity(member, breed);
 
         return petRepository.save(pet).getId();
+    }
+
+    public List<PetMyPageResDto> getMyPets(String username) {
+
+        List<PetEntity> petList = petRepository
+                .findAllByMemberUsernameAndDelYn(username, DelYn.N);
+
+        return petList.stream()
+                .map(PetMyPageResDto::from)
+                .toList();
     }
 }
