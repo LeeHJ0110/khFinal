@@ -14,18 +14,14 @@ const leftMenus = [
   { label: "배변패드", path: "/store/pad" },
 ];
 
-const rightMenus = [
-  { label: "장바구니", path: "/store/cart", count: 3 },
-  { label: "주문조회", path: "/store/orders" },
-  { label: "관심상품", path: "/store/wish" },
-];
+const rightMenus = [{ label: "상품관리", path: "/store/product/admin" }];
 
-export default function PetStoreNav({ activeMenu = "스토어홈" }) {
+export default function PetStoreAdminNav({ activeMenu = "" }) {
   return (
     <Nav
       leftMenus={leftMenus}
       rightMenus={rightMenus}
-      activeMenu={activeMenu}
+      activeMenu={"상품관리"}
     />
   );
 }

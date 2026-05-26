@@ -1,7 +1,7 @@
 import usePetStoreAdminProductList from "../../features/petStore/hooks/usePetStoreAdminProductList";
 import usePetStoreProductModal from "../../features/petStore/hooks/usePetStoreProductModal";
 import PetStoreProductModal from "../../features/petStore/components/PetStoreProductModal";
-import PetStoreNav from "./PetStoreNav";
+import PetStoreAdminNav from "./PetStoreAdminNav";
 
 export default function PetStoreAdminProductListPage() {
   const {
@@ -28,7 +28,7 @@ export default function PetStoreAdminProductListPage() {
 
   return (
     <>
-      <PetStoreNav />
+      <PetStoreAdminNav />
 
       <div className="pet-store-admin-page">
         <div className="pet-store-admin-header">
