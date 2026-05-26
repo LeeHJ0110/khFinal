@@ -188,9 +188,9 @@ public class PetCareService {
                         diagnosisReq.getDiagnosisReqId()
                 )
 
-//                .petId(
-//                        diagnosisReq.getPetEntity().getPetId()
-//                )
+                .petId(
+                        diagnosisReq.getPetEntity().getId()
+                )
 
                 .diagnosisReqStatus(
                         diagnosisReq.getDiagnosisReqStatus()
