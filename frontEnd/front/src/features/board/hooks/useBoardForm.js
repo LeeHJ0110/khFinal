@@ -29,7 +29,35 @@ function useBoardForm() {
   // 수정데이터 감지하는 거
   useEffect(() => {
     dispatch(resetStatus());
-    if (location.state.board) {
+    if (location.state?.board) {
+      const { id, title, content, category, subCategory, stars } =
+        location.state.board;
+      setIsEdit(true);
+      setBoardId(id);
+      setTitle(title || "");
+      setBoardCategoty(category || "FREE");
+      setBoardSubCategory(subCategory || "TALK");
+      setBoardStars(stars || 5);
     }
-  });
+  }, [location.state, dispatch]);
+
+  const handleCategoryChange = (e) => {
+    const newCategory = e.target.value;
+    setBoardCategoty(newCategory);
+    if (newCategory !== "PRODUCT_REVIEW" && newCategory !== "FAC_REVIEW") {
+      setBoardStars(5);
+    }
+  };
+
+  const handleSubCategoryChange = (e) => {
+    setBoardSubCategory(e.target.value);
+  };
+
+  const handleStarClick = (score) => {
+    setBoardStars(score);
+  };
+
+  const handleEditorChange = (value) => {
+    setContent(value);
+  };
 }
