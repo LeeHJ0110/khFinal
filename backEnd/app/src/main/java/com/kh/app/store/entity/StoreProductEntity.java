@@ -62,11 +62,22 @@ public class StoreProductEntity extends BaseEntity {
         this.productPrice = productPrice;
     }
 
-    public void stopSale() {
+
+    //판매 중지
+    public void stopSelling() {
+        if ("N".equals(this.productSaleYn)) {
+            throw new IllegalStateException("이미 판매중지된 상품입니다.");
+        }
+
         this.productSaleYn = "N";
     }
 
-    public void startSale() {
+    //판매 재개
+    public void resumeSelling() {
+        if ("Y".equals(this.productSaleYn)) {
+            throw new IllegalStateException("이미 판매중인 상품입니다.");
+        }
+
         this.productSaleYn = "Y";
     }
 

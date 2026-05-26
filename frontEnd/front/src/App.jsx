@@ -4,6 +4,7 @@ import DefaultLayout from "./app/layouts/DefaultLayout";
 import MemberJoinPage from "./pages/member/MemberJoinPage";
 import MemberLoginPage from "./pages/member/MemberLoginPage";
 import ScheduleMainPage from "./pages/schedule/ScheduleMainPage";
+import PetStoreAdminProductListPage from "./pages/petStore/PetStoreAdminProductListPage";
 import DiagnosisRequestHomePage from "./pages/petcare/DiagnosisRequestHomePage";
 import DiagnosisRequestPage from "./pages/petcare/DiagnosisRequestPage";
 import DiagnosisManagePage from "./pages/petcare/DiagnosisManagePage";
@@ -26,6 +27,12 @@ function App() {
             {/* vet/admin */}
             <Route path="manage" element={<DiagnosisManagePage />} />
             <Route path="manage/:id" element={<DiagnosisDetailPage />} />
+          </Route>
+          <Route path="store">
+            <Route
+              path="product/admin"
+              element={<PetStoreAdminProductListPage />}
+            />
           </Route>
         </Route>
       </Routes>
