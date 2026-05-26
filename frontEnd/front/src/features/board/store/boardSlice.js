@@ -6,7 +6,7 @@ const initaialState = {
   success: false,
 };
 
-createSlice({
+const boardSlice = createSlice({
   name: "board",
   initialState,
   reducers: {
@@ -33,4 +33,4 @@ createSlice({
 export const { setLoading, setError, setSuccess, resetStatus } =
   boardSlice.actions;
 
-export default boardSlice.reducers;
+export default boardSlice.reducer;
