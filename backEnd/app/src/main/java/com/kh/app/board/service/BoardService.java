@@ -54,55 +54,131 @@ public class BoardService {
                 .findByUsernameAndDelYn(username, DelYn.N)
                 .orElseThrow(() -> new EntityNotFoundException("MEMBER NOT FOUND ........"));
 
-        // @Lob 설정 덕분에 이제 대용량 Base64 본문이 들어와도 튕기지 않고 무사통과합니다!
         BoardEntity boardEntity = reqDto.toEntity(memberEntity);
         boardRepository.save(boardEntity);
 
-        String content = reqDto.getContent();
+        String content = processImagesAndFiles(boardEntity, reqDto.getContent(), fileList);
+        boardEntity.setContent(content);
+        log.info("[S3 업로드 및 치환 성공 완료] boardId : {}", boardEntity.getId());
+    }
 
-        if (content != null && content.contains("<img")) {
-            Pattern pattern = Pattern.compile("<img[^>]*src=[\"']([^\"']*)[\"'][^>]*>");
-            Matcher matcher = pattern.matcher(content);
+    @Transactional
+    public void update(Long boardId, BoardWriteReqDto reqDto, List<MultipartFile> fileList, String username) throws IOException {
+        BoardEntity boardEntity = boardRepository.findById(boardId)
+                .orElseThrow(() -> new EntityNotFoundException("BOARD NOT FOUND ........"));
 
-            StringBuffer sb = new StringBuffer();
-            int fileIndex = 0;
+        // 작성자 본인 검증
+        if (!boardEntity.getWriter().getUsername().equals(username)) {
+            throw new IllegalStateException("NO PERMISSION TO UPDATE BOARD ........");
+        }
 
-            while (matcher.find()) {
-                if (fileList != null && fileIndex < fileList.size()) {
-                    MultipartFile file = fileList.get(fileIndex);
+        // 제목 업데이트
+        boardEntity.setTitle(reqDto.getTitle());
+        
+        // 카테고리 업데이트
+        com.kh.app.board.entity.BoardCategory categoryEnum = (reqDto.getBoardCategory() != null)
+                ? com.kh.app.board.entity.BoardCategory.valueOf(reqDto.getBoardCategory())
+                : com.kh.app.board.entity.BoardCategory.FREE;
+        boardEntity.setCategory(categoryEnum);
 
-                    if (file != null && !file.isEmpty()) {
-                        log.info("[S3 업로드 가동] 파일명 : {}", file.getOriginalFilename());
+        // 서브카테고리 업데이트
+        com.kh.app.board.entity.BoardSubCategory subCategoryEnum = (reqDto.getBoardSubCategory() != null)
+                ? com.kh.app.board.entity.BoardSubCategory.valueOf(reqDto.getBoardSubCategory())
+                : null;
+        boardEntity.setSubCategory(subCategoryEnum);
 
-                        // S3 버킷에 물리 저장 처리
-                        String savedFilename = s3Service.upload(file, "board");
+        // 평점 설정 (후기게시판 전용)
+        if ("PRODUCT_REVIEW".equals(categoryEnum.name()) || "FAC_REVIEW".equals(categoryEnum.name())) {
+            boardEntity.setStars(reqDto.getBoardStars() != null ? reqDto.getBoardStars() : 5L);
+        } else {
+            boardEntity.setStars(5L);
+        }
+
+        // 새 이미지 파싱 및 S3 업로드 적용
+        String updatedContent = processImagesAndFiles(boardEntity, reqDto.getContent(), fileList);
+        boardEntity.setContent(updatedContent);
+        log.info("[S3 업로드 및 수정 완료] boardId : {}", boardEntity.getId());
+    }
+
+    private String processImagesAndFiles(BoardEntity boardEntity, String content, List<MultipartFile> fileList) throws IOException {
+        if (content == null || !content.contains("<img")) {
+            return content;
+        }
+
+        Pattern pattern = Pattern.compile("<img[^>]*src=[\"']([^\"']*)[\"'][^>]*>");
+        Matcher matcher = pattern.matcher(content);
+
+        StringBuffer sb = new StringBuffer();
+        int fileIndex = 0;
+
+        while (matcher.find()) {
+            String src = matcher.group(1);
+
+            // 1. Check if src is Base64 encoded image
+            if (src != null && src.startsWith("data:image/")) {
+                int commaIndex = src.indexOf(",");
+                if (commaIndex != -1) {
+                    String metadata = src.substring(0, commaIndex);
+                    String base64Data = src.substring(commaIndex + 1);
+
+                    String contentType = "image/png";
+                    String ext = ".png";
+
+                    Pattern metaPattern = Pattern.compile("data:(image/[^;]+);base64");
+                    Matcher metaMatcher = metaPattern.matcher(metadata);
+                    if (metaMatcher.find()) {
+                        contentType = metaMatcher.group(1);
+                        if (contentType.equals("image/jpeg") || contentType.equals("image/jpg")) {
+                            ext = ".jpg";
+                        } else if (contentType.equals("image/gif")) {
+                            ext = ".gif";
+                        } else if (contentType.equals("image/webp")) {
+                            ext = ".webp";
+                        } else if (contentType.equals("image/png")) {
+                            ext = ".png";
+                        } else {
+                            int slashIndex = contentType.indexOf("/");
+                            if (slashIndex != -1) {
+                                ext = "." + contentType.substring(slashIndex + 1);
+                            }
+                        }
+                    }
+
+                    try {
+                        byte[] decodedBytes = java.util.Base64.getDecoder().decode(base64Data.trim());
+                        String originalFilename = "embedded_image_" + (fileIndex + 1) + ext;
+                        log.info("[S3 Base64 업로드 가동] 파일명 : {}", originalFilename);
+
+                        MultipartFile multipartFile = new CustomMultipartFile(decodedBytes, "file", originalFilename, contentType);
+                        String savedFilename = s3Service.upload(multipartFile, "board");
 
                         String s3KeyPath = savedFilename.startsWith("board/") ? savedFilename : "board/" + savedFilename;
                         String s3FullUrl = "https://" + bucketName + ".s3.ap-northeast-2.amazonaws.com/" + s3KeyPath;
 
                         BoardFileEntity boardFile = BoardFileEntity.builder()
                                 .boardEntity(boardEntity)
-                                .imageOriginName(file.getOriginalFilename())
+                                .imageOriginName(originalFilename)
                                 .imageChangedName(savedFilename)
-                                .boardFileSize(file.getSize())
+                                .boardFileSize((long) decodedBytes.length)
                                 .boardFileOrder(fileIndex)
                                 .build();
                         boardFileRepository.save(boardFile);
 
-                        String replacement = matcher.group().replace(matcher.group(1), s3FullUrl);
+                        String replacement = matcher.group().replace(src, s3FullUrl);
                         matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
 
                         fileIndex++;
                         continue;
+                    } catch (IllegalArgumentException e) {
+                        log.error("Failed to decode Base64 image", e);
                     }
                 }
-                matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group()));
             }
-            matcher.appendTail(sb);
-            content = sb.toString();
-        }
 
-        boardEntity.setContent(content);
-        log.info("[S3 업로드 및 치환 성공 완료] boardId : {}", boardEntity.getId());
+            
+            matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group()));
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
     }
 }
