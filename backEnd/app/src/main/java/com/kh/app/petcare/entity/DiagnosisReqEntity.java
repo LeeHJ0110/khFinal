@@ -39,4 +39,5 @@ public class DiagnosisReqEntity extends BaseEntity {
             fetch = FetchType.LAZY
     )
     private List<SelfDiagnosisAnswerEntity> answerList;
+
 }

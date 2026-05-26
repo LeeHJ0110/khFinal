@@ -1,12 +1,11 @@
 import React from "react";
-import HeaderAlarm from "./../../shared/layouts/header/HeaderAlarm";
+import styled from "styled-components";
+import PetCareMain from "./../../features/petcare/components/petcarehome/PetCareMain";
 
 function DiagnosisRequestHomePage() {
   return (
     <>
-      <HeaderAlarm />
-      <h1>DiagnosisRequestHomePage</h1>
-      <h1>sdfsdf</h1>
+      <PetCareMain />
     </>
   );
 }
