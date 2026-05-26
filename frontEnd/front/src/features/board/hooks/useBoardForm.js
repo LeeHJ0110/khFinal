@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
+import { setError, setLoading, setSuccess } from "../store/boardSlice";
+import { updateBoardApi, writeBoardApi } from "../api/boardApi";
 
 function useBoardForm() {
   const navigate = useNavigate();
@@ -59,5 +61,65 @@ function useBoardForm() {
 
   const handleEditorChange = (value) => {
     setContent(value);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!title.trim()) {
+      alert("제목을 입력해주세요.");
+      return;
+    }
+
+    if (!content.trim() || content === "<p><br></p>") {
+      alert("내용을 입력해주세요.");
+      return;
+    }
+
+    const boardData = {
+      title,
+      content,
+      boardStars:
+        boardCategory === "PRODUCT_REVIEW" || boardCategory === "FAC_REVIEW"
+          ? boardStars
+          : 5,
+      boardCategory,
+      boardSubCategory: boardCategory === "FREE" ? boardSubCategory : null,
+    };
+
+    const formData = new FormData();
+    formData.append(
+      "data",
+      new Blob([JSON.stringify(boardData)], { type: "application/json" }),
+    );
+
+    dispatch(setLoading(true));
+    dispatch(setError);
+
+    try {
+      if (isEdit) {
+        await updateBoardApi(boardId, formData);
+        alert("게시글이 성공적으로 수정되었습니다.");
+      } else {
+        await writeBoardApi(formData);
+        alert("게시글이 성공적으로 등록되었습니다.");
+      }
+      dispatch(setSuccess(true));
+      navigate(-1);
+    } catch (err) {
+      console.error(
+        isEdit ? "게시글 수정 실패 : " : "게시글 등록 실패 : ",
+        err,
+      );
+      const errMsg =
+        err.response?.data?.message ||
+        (isEdit
+          ? "게시글 수정에 실패했습니다."
+          : "게시글 등록에 실패했습니다.");
+      dispatch(setError(errMsg));
+      alert(errMsg);
+    } finally {
+      dispatch(setLoading(false));
+    }
   };
 }
