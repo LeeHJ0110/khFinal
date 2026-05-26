@@ -10,7 +10,7 @@ export default function ErrorPage({
   const navigate = useNavigate();
 
   const handleGoHome = () => {
-    navigate("/");
+    navigate("/common/home");
   };
 
   const handleRetry = () => {
@@ -54,7 +54,7 @@ export default function ErrorPage({
 const Wrapper = styled.main`
   position: relative;
   width: 100%;
-  min-height: calc(100vh - 300px);
+  min-height: calc(90vh - 80px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -146,7 +146,7 @@ const Title = styled.h1`
   margin: 0;
 
   color: #00a987;
-  font-size: 38px;
+  font-size: 30px;
   font-weight: 800;
   line-height: 1.35;
   letter-spacing: -1.2px;
@@ -160,7 +160,7 @@ const Description = styled.p`
   margin: 0;
 
   color: #444;
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 500;
   line-height: 1.7;
 `;
@@ -169,7 +169,7 @@ const SubDescription = styled.p`
   margin: 4px 0 0;
 
   color: #444;
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 500;
   line-height: 1.7;
 `;

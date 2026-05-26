@@ -26,6 +26,10 @@ import MyPageHomePage from "./pages/mypage/MyPageHomePage";
 import MemberEditPage from "./pages/mypage/MemberEditPage";
 import PetManagePage from "./pages/mypage/PetManagePage";
 
+// common
+import HomePage from "./pages/home/HomePage";
+import ErrorPage from "./pages/error/ErrorPage";
+
 function App() {
   return (
     <>
@@ -70,6 +74,12 @@ function App() {
             <Route path="member-edit" element={<MemberEditPage />} />
 
             <Route path="pet-manage" element={<PetManagePage />} />
+          </Route>
+
+          {/* 공용페이지 (route path 수정해야함)*/}
+          <Route path="common">
+            <Route path="home" element={<HomePage />} />
+            <Route path="error" element={<ErrorPage />} />
           </Route>
         </Route>
       </Routes>
