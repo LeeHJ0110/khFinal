@@ -122,4 +122,25 @@ function useBoardForm() {
       dispatch(setLoading(false));
     }
   };
+
+  return {
+    navigate,
+    isEdit,
+    boardId,
+    boardCategory,
+    boardSubCategory,
+    title,
+    setTitle,
+    content,
+    setContent,
+    boardStars,
+    loading,
+    error,
+    success,
+    handleCategoryChange,
+    handleSubCategoryChange,
+    handleStarClick,
+    handleEditorChange,
+    handleSubmit,
+  };
 }
