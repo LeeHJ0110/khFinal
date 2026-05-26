@@ -10,6 +10,9 @@ public interface MemberRepository extends JpaRepository<MemberEntity, Long>, Mem
 
     boolean existsByUsername(String username);
     boolean existsByNickname(String nickname);
+    boolean existsBySocialId(String socialId);
+
+    Optional<MemberEntity> findBySocialId(String socialId);
 
     Optional<MemberEntity> findByUsername(String username);
     Optional<MemberEntity> findByUsernameAndDelYn(String username, DelYn delYn);

@@ -1,0 +1,154 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+
+.login-page {
+  width: 100vw;
+  height: 100vh;
+  font-family: "Pretendard", sans-serif;
+
+  background-size: cover;
+  background-position: center;
+
+  position: relative;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 60px 70px;
+  box-sizing: border-box;
+
+  color: white;
+}
+
+.login-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.login-hero,
+.login-card {
+  position: relative;
+  z-index: 1;
+}
+
+.login-hero {
+  width: 50%;
+  margin-top: -160px;
+}
+
+.main-logo {
+  width: 130px;
+  margin-bottom: 20px;
+}
+
+.login-hero h2 {
+  font-size: 34px;
+  margin: 0 0 16px;
+  font-weight: 800;
+}
+
+.login-hero h1 {
+  font-size: 52px;
+  margin: 0 0 45px;
+  font-weight: 900;
+  color: #7ee0cf;
+}
+
+.login-hero p {
+  font-size: 18px;
+  line-height: 1.9;
+  font-weight: 500;
+}
+
+.login-card {
+  width: 420px;
+  padding: 35px 45px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(4px);
+  color: #222;
+  text-align: center;
+}
+
+.card-logo {
+  width: 80px;
+  margin-bottom: 8px;
+}
+
+.login-card h2 {
+  margin: 0;
+  font-size: 28px;
+}
+
+.welcome {
+  font-size: 12px;
+  color: #777;
+  margin-bottom: 28px;
+}
+
+.login-card input[type="text"],
+.login-card input[type="password"] {
+  width: 100%;
+  height: 46px;
+  border: none;
+  border-radius: 5px;
+  margin-bottom: 16px;
+  padding: 0 15px;
+  box-sizing: border-box;
+}
+
+.login-options {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #666;
+  margin: 0 0 18px;
+}
+
+.login-options label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.login-btn {
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: 6px;
+  background: #00b486;
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(180, 180, 180, 0.7);
+  margin: 38px 0 24px;
+}
+
+.kakao-btn {
+  width: 100%;
+  height: 42px;
+  border: none;
+  border-radius: 6px;
+  background: #fee500;
+  font-weight: 700;
+  cursor: pointer;
+  margin-bottom: 12px;
+}
+
+.join-btn {
+  width: 100%;
+  height: 42px;
+  border: 1px solid white;
+  border-radius: 6px;
+  background: transparent;
+  color: #333;
+  font-weight: 700;
+  cursor: pointer;
+}

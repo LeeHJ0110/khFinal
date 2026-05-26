@@ -42,7 +42,7 @@ public class MemberEntity extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(length = 1)
-    private MemberMarketingAgreeYn memberMarketingAgreeYn =MemberMarketingAgreeYn.Y;
+    private MemberMarketingAgreeYn memberMarketingAgreeYn =MemberMarketingAgreeYn.N;
 
     // 카카오 로그인용
     @Column(length = 255, unique = true)

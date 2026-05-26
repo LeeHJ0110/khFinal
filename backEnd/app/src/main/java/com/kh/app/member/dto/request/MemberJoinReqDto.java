@@ -1,6 +1,7 @@
 package com.kh.app.member.dto.request;
 
 import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.member.entity.MemberMarketingAgreeYn;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,6 +17,7 @@ public class MemberJoinReqDto {
     private String phone;
     private String address;
     private String addressDetail;
+    private MemberMarketingAgreeYn memberMarketingAgreeYn;
 
 
     public MemberEntity toEntity(String encodedPassword) {
@@ -28,6 +30,7 @@ public class MemberJoinReqDto {
                 .phone(phone)
                 .address(address)
                 .addressDetail(addressDetail)
+                .memberMarketingAgreeYn(memberMarketingAgreeYn)
                 .build();
     }
 

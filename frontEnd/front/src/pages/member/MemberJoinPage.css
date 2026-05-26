@@ -1,0 +1,402 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css");
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Pretendard", sans-serif;
+}
+
+/* 공통 배경 */
+.join-page {
+  width: 100vw;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #00a982 0%, #65d6bc 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* 공통 카드 */
+.join-card {
+  width: 530px;
+  min-height: 650px;
+  background: rgba(245, 255, 252, 0.94);
+  border-radius: 14px;
+  padding: 28px 38px;
+}
+
+/* 2번 정보입력 화면 */
+.join-card.info {
+  width: 470px;
+  min-height: 560px;
+  padding: 22px 32px;
+}
+
+.join-logo {
+  width: 70px;
+  display: block;
+  margin: 0 auto 6px;
+}
+
+.join-card.info .join-logo {
+  width: 56px;
+}
+
+.join-title {
+  margin: 0;
+  text-align: center;
+  font-size: 28px;
+  font-weight: 900;
+  color: #222;
+}
+
+.join-card.info .join-title {
+  font-size: 24px;
+}
+
+.join-subtitle {
+  text-align: center;
+  font-size: 11px;
+  color: #777;
+  margin: 8px 0 34px;
+}
+
+.join-card.info .join-subtitle {
+  margin-bottom: 24px;
+}
+
+/* 단계 표시 */
+.join-step {
+  display: flex;
+  justify-content: space-around;
+  border-bottom: 2px solid #ddd;
+  margin-bottom: 22px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.join-step span {
+  padding-bottom: 12px;
+  color: #aaa;
+}
+
+.join-step .active,
+.join-step .done {
+  color: #00a982;
+  border-bottom: 3px solid #00a982;
+}
+
+/* 1번 약관동의 */
+.terms-all {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  background: white;
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 18px;
+}
+
+.terms-all strong {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.terms-all p {
+  margin: 10px 0 0;
+  color: #666;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.terms-list {
+  background: white;
+  border-radius: 10px;
+  padding: 8px 22px;
+  margin-bottom: 20px;
+}
+
+.term-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 66px;
+  border-bottom: 1px solid #eee;
+}
+
+.term-row:last-child {
+  border-bottom: none;
+}
+
+.check-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: 0.15s;
+}
+
+.check-icon:hover {
+  transform: scale(1.06);
+}
+
+.check-icon.big {
+  width: 40px;
+  height: 40px;
+}
+
+.term-title {
+  flex: 1;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.term-arrow {
+  border: none;
+  background: transparent;
+  font-size: 28px;
+  color: #333;
+  cursor: pointer;
+}
+
+.join-main-btn {
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: 7px;
+  background: #00a982;
+  color: white;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.join-main-btn.disabled {
+  background: #b9d8cf;
+  cursor: not-allowed;
+}
+
+/* 약관 모달 */
+.terms-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.terms-modal {
+  width: 430px;
+  max-height: 520px;
+  background: white;
+  border-radius: 14px;
+  padding: 28px;
+}
+
+.terms-modal h2 {
+  margin: 0 0 20px;
+  font-size: 22px;
+}
+
+.terms-modal pre {
+  white-space: pre-wrap;
+  font-family: inherit;
+  line-height: 1.8;
+  font-size: 13px;
+  color: #555;
+  max-height: 330px;
+  overflow-y: auto;
+}
+
+.terms-modal button {
+  width: 100%;
+  height: 42px;
+  border: none;
+  border-radius: 7px;
+  background: #00a982;
+  color: white;
+  font-weight: 800;
+  margin-top: 20px;
+  cursor: pointer;
+}
+
+/* 2번 정보입력 */
+.join-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 24px;
+  background: white;
+  padding: 20px;
+  border-radius: 9px;
+}
+
+.form-field {
+  min-width: 0;
+}
+
+.form-field.full {
+  grid-column: 1 / 3;
+}
+
+.join-form label {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.join-form input {
+  width: 100%;
+  height: 34px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.with-btn {
+  display: flex;
+  gap: 6px;
+}
+
+.with-btn button {
+  white-space: nowrap;
+  border: 1px solid #00a982;
+  color: white;
+  background: #00a982;
+  border-radius: 5px;
+  padding: 0 9px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.with-btn.address button {
+  background: white;
+  color: #00a982;
+}
+
+.form-message {
+  min-height: 15px;
+  margin: 4px 0 0;
+  font-size: 10px;
+  color: #00a982;
+}
+
+.required-text {
+  grid-column: 1 / 3;
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #00a982;
+}
+
+.prev-link {
+  grid-column: 1 / 3;
+  border: none;
+  background: transparent;
+  text-align: left;
+  color: #555;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.join-form .join-main-btn {
+  grid-column: 1 / 3;
+  margin-top: 4px;
+}
+
+/* 3번 가입완료 */
+.complete-box {
+  background: white;
+  border-radius: 10px;
+  padding: 50px 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.check-circle {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 24px;
+  border-radius: 50%;
+  background: #00a982;
+  color: white;
+  font-size: 44px;
+  font-weight: 900;
+  line-height: 70px;
+}
+
+.complete-box h2 {
+  margin: 0 0 10px;
+  font-size: 24px;
+}
+
+.complete-box p {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+}
+
+.complete-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.complete-buttons button {
+  flex: 1;
+  height: 44px;
+  border-radius: 7px;
+  border: 1px solid #00a982;
+  background: white;
+  color: #00a982;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.complete-buttons button:first-child {
+  background: #00a982;
+  color: white;
+}
+
+.join-card.kakao {
+  width: 470px;
+  min-height: 560px;
+  padding: 22px 32px;
+}
+
+.kakao-join-btn {
+  width: 100%;
+
+  height: 40px;
+
+  border: none;
+
+  border-radius: 6px;
+
+  background: #fee500;
+
+  color: #222;
+
+  font-size: 13px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  margin-bottom: 18px;
+}
+
+.kakao-form {
+  padding-top: 16px;
+}
