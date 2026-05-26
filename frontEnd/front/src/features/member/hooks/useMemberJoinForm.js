@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { join, checkUsername, checkNickname } from "../api/memberApi";
 
-export default function useMemberJoinForm() {
+export default function useMemberJoinForm(marketingAgreeYn = "N") {
   const [isSuccess, setSuccess] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -105,7 +105,12 @@ export default function useMemberJoinForm() {
       return;
     }
 
-    const resp = await join(formData);
+    const requestData = {
+      ...formData,
+      memberMarketingAgreeYn: marketingAgreeYn,
+    };
+
+    const resp = await join(requestData);
 
     if (resp.status === 201) {
       setSuccess(true);

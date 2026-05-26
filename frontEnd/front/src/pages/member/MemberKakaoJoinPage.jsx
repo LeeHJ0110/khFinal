@@ -1,27 +1,28 @@
 import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import useMemberJoinForm from "../../features/member/hooks/useMemberJoinForm";
+import { useLocation, useNavigate } from "react-router-dom";
+
+import useMemberKakaoJoinForm from "../../features/member/hooks/useMemberKakaoJoinForm";
 
 import "./MemberJoinPage.css";
+
 import logo from "../../assets/images/login_logo2.png";
 
-export default function MemberJoinPage() {
-  const navigate = useNavigate();
+export default function MemberKakaoJoinPage() {
   const location = useLocation();
 
+  const socialId = location.state?.socialId;
+
   const marketingAgreeYn = location.state?.marketingAgreeYn || "N";
+  const navigate = useNavigate();
 
   const {
     formData,
     handleChange,
     handleSubmit,
-    handleCheckUsername,
     handleCheckNickname,
-    usernameMessage,
     nicknameMessage,
-    passwordMessage,
     isSuccess,
-  } = useMemberJoinForm(marketingAgreeYn);
+  } = useMemberKakaoJoinForm(socialId, marketingAgreeYn);
 
   useEffect(() => {
     if (isSuccess) {
@@ -31,7 +32,7 @@ export default function MemberJoinPage() {
 
   return (
     <main className="join-page">
-      <section className="join-card info">
+      <section className="join-card kakao">
         <img src={logo} alt="logo" className="join-logo" />
 
         <h1 className="join-title">회원가입</h1>
@@ -40,40 +41,34 @@ export default function MemberJoinPage() {
           반려동물의 건강을 기록하고 더 행복한 일상을 만들어보세요.
         </p>
 
+        {/* STEP */}
+
         <div className="join-step">
           <span className="done">01 약관동의 ✓</span>
+
           <span className="active">02 정보입력</span>
+
           <span>03 가입완료</span>
         </div>
 
-        <form className="join-form" onSubmit={handleSubmit}>
-          <div className="form-field">
-            <label>아이디 *</label>
+        {/* 카카오 버튼 */}
 
-            <div className="with-btn">
-              <input
-                type="text"
-                placeholder="아이디"
-                name="username"
-                onChange={handleChange}
-                value={formData.username}
-              />
+        <button type="button" className="kakao-join-btn">
+          카카오 간편 회원가입
+        </button>
 
-              <button type="button" onClick={handleCheckUsername}>
-                중복확인
-              </button>
-            </div>
+        {/* FORM */}
 
-            <p className="form-message">{usernameMessage}</p>
-          </div>
+        <form className="join-form kakao-form" onSubmit={handleSubmit}>
+          {/* 닉네임 */}
 
-          <div className="form-field">
+          <div className="form-field full">
             <label>닉네임 *</label>
 
             <div className="with-btn">
               <input
                 type="text"
-                placeholder="닉네임"
+                placeholder="닉네임을 입력해주세요"
                 name="nickname"
                 onChange={handleChange}
                 value={formData.nickname}
@@ -87,31 +82,7 @@ export default function MemberJoinPage() {
             <p className="form-message">{nicknameMessage}</p>
           </div>
 
-          <div className="form-field">
-            <label>비밀번호 *</label>
-
-            <input
-              type="password"
-              placeholder="비밀번호"
-              name="password"
-              onChange={handleChange}
-              value={formData.password}
-            />
-          </div>
-
-          <div className="form-field">
-            <label>비밀번호 확인 *</label>
-
-            <input
-              type="password"
-              placeholder="비밀번호 확인"
-              name="passwordCheck"
-              onChange={handleChange}
-              value={formData.passwordCheck}
-            />
-
-            <p className="form-message">{passwordMessage}</p>
-          </div>
+          {/* 전화번호 */}
 
           <div className="form-field">
             <label>전화번호 *</label>
@@ -119,7 +90,7 @@ export default function MemberJoinPage() {
             <div className="with-btn">
               <input
                 type="text"
-                placeholder="전화번호"
+                placeholder="- 없이 숫자만 입력해주세요"
                 name="phone"
                 onChange={handleChange}
                 value={formData.phone}
@@ -129,17 +100,21 @@ export default function MemberJoinPage() {
             </div>
           </div>
 
+          {/* 이메일 */}
+
           <div className="form-field">
             <label>이메일</label>
 
             <input
               type="text"
-              placeholder="이메일"
+              placeholder="example@gmail.com"
               name="email"
               onChange={handleChange}
               value={formData.email}
             />
           </div>
+
+          {/* 주소 */}
 
           <div className="form-field full">
             <label>주소 *</label>
@@ -147,7 +122,7 @@ export default function MemberJoinPage() {
             <div className="with-btn address">
               <input
                 type="text"
-                placeholder="주소"
+                placeholder="주소를 입력해주세요"
                 name="address"
                 onChange={handleChange}
                 value={formData.address}
@@ -157,20 +132,36 @@ export default function MemberJoinPage() {
             </div>
           </div>
 
+          {/* 상세주소 */}
+
           <div className="form-field full">
             <label>상세주소</label>
 
             <input
               type="text"
-              placeholder="상세주소"
+              placeholder="상세주소를 입력해주세요"
               name="addressDetail"
               onChange={handleChange}
               value={formData.addressDetail}
             />
           </div>
 
+          <p className="required-text">* 는 필수입력 항목입니다.</p>
+
+          {/* 이전 */}
+
+          <button
+            type="button"
+            className="prev-link"
+            onClick={() => navigate("/member/login")}
+          >
+            ← 로그인으로 돌아가기
+          </button>
+
+          {/* 가입 */}
+
           <button type="submit" className="join-main-btn">
-            회원가입
+            가입
           </button>
         </form>
       </section>
