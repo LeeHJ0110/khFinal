@@ -1,13 +1,17 @@
 import styled from "styled-components";
 import { NavLink } from "react-router-dom";
+import useMypageMember from "../../../features/mypage/member/hooks/useMypageMember";
 
 export default function MyPageSidebar() {
+  const { member, loading } = useMypageMember();
   return (
     <SideBar>
       <ProfileBox>
         <ProfileImg />
         <CameraBtn>📷</CameraBtn>
-        <ProfileName>냥냥러브</ProfileName>
+        <ProfileName>
+          {loading ? "로딩중..." : member?.nickname || "회원"}
+        </ProfileName>
       </ProfileBox>
 
       <MenuList>

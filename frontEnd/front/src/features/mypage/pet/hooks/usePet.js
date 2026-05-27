@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { createPet, getMyPetList } from "../api/petApi";
+import { createPet, getBreedList, getMyPetList } from "../api/petApi";
 
 export default function usePet() {
   const [petList, setPetList] = useState([]);
+  const [breedList, setBreedList] = useState([]);
   const [selectedPetIndex, setSelectedPetIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -13,8 +14,8 @@ export default function usePet() {
       setError("");
 
       const response = await getMyPetList();
-
       const list = response.data || [];
+
       setPetList(list);
 
       const representIndex = list.findIndex((pet) => pet.representYn === "Y");
@@ -28,6 +29,18 @@ export default function usePet() {
       return [];
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchBreedList() {
+    try {
+      const response = await getBreedList();
+      setBreedList(response.data || []);
+      return response.data || [];
+    } catch (err) {
+      console.error(err);
+      setBreedList([]);
+      return [];
     }
   }
 
@@ -51,37 +64,25 @@ export default function usePet() {
   }
 
   function selectPet(index) {
-    if (index < 0 || index >= petList.length) {
-      return;
-    }
-
+    if (index < 0 || index >= petList.length) return;
     setSelectedPetIndex(index);
   }
 
   function nextPet() {
-    if (petList.length === 0) {
-      return;
-    }
-
+    if (petList.length === 0) return;
     setSelectedPetIndex((prev) => (prev + 1) % petList.length);
-  }
-
-  function prevPet() {
-    if (petList.length === 0) {
-      return;
-    }
-
-    setSelectedPetIndex((prev) => (prev === 0 ? petList.length - 1 : prev - 1));
   }
 
   useEffect(() => {
     fetchMyPetList();
+    fetchBreedList();
   }, []);
 
   const selectedPet = petList[selectedPetIndex] || null;
 
   return {
     petList,
+    breedList,
     selectedPet,
     selectedPetIndex,
     hasPet: petList.length > 0,
@@ -89,9 +90,9 @@ export default function usePet() {
     error,
 
     fetchMyPetList,
+    fetchBreedList,
     handleCreatePet,
     selectPet,
     nextPet,
-    prevPet,
   };
 }

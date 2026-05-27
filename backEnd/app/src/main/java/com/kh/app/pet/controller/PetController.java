@@ -1,6 +1,7 @@
 package com.kh.app.pet.controller;
 
 import com.kh.app.pet.dto.request.PetCreateReqDto;
+import com.kh.app.pet.dto.response.BreedListResDto;
 import com.kh.app.pet.dto.response.PetMyPageResDto;
 import com.kh.app.pet.service.PetService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,11 +12,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "펫" , description = "펫 관련 API")
+@Tag(name = "펫", description = "펫 관련 API")
 @RestController
 @RequestMapping("/api/pet")
 @RequiredArgsConstructor
 public class PetController {
+
     private final PetService petService;
 
     @PostMapping
@@ -23,9 +25,9 @@ public class PetController {
             @RequestBody PetCreateReqDto request,
             Authentication authentication
     ) {
-        String username = authentication.getName();
+        String loginKey = authentication.getName();
 
-        Long petId = petService.create(request, username);
+        Long petId = petService.create(request, loginKey);
 
         return ResponseEntity.ok(petId);
     }
@@ -34,11 +36,21 @@ public class PetController {
     public ResponseEntity<List<PetMyPageResDto>> getMyPets(
             Authentication authentication
     ) {
-        String username = authentication.getName();
+        String loginKey = authentication.getName();
 
-        List<PetMyPageResDto> result = petService.getMyPets(username);
+        List<PetMyPageResDto> result = petService.getMyPets(loginKey);
 
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping("/breed")
+    public ResponseEntity<List<BreedListResDto>> getBreedList(
+            @RequestParam String petType
+    ) {
+
+        List<BreedListResDto> result =
+                petService.getBreedList(petType);
+
+        return ResponseEntity.ok(result);
+    }
 }

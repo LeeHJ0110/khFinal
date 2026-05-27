@@ -39,8 +39,8 @@ public class PetMyPageResDto {
 
                 // 품종명
                 .breedName(
-                        pet.getBreedId() != null
-                                ? pet.getBreedId().getName()
+                        pet.getBreed() != null
+                                ? pet.getBreed().getName()
                                 : null
                 )
 

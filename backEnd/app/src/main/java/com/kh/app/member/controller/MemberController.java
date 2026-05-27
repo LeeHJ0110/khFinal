@@ -3,7 +3,9 @@ package com.kh.app.member.controller;
 import com.kh.app.member.dto.request.MemberJoinReqDto;
 import com.kh.app.member.dto.request.MemberKakaoJoinReqDto;
 import com.kh.app.member.dto.request.MemberKakaoLoginReqDto;
+import com.kh.app.member.dto.request.MemberUpdateReqDto;
 import com.kh.app.member.dto.response.MemberKakaoLoginRespDto;
+import com.kh.app.member.dto.response.MemberMyPageResDto;
 import com.kh.app.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -13,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 
 @Tag(name = "회원", description = "회원 관련 API")
 @RestController
@@ -66,5 +70,28 @@ public class MemberController {
     @GetMapping("/check-nickname")
     public boolean checkNickname(@RequestParam String nickname) {
         return memberService.checkNickname(nickname);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<MemberMyPageResDto> getMyInfo(
+            Authentication authentication
+    ) {
+        String username = authentication.getName();
+
+        MemberMyPageResDto result = memberService.getMyInfo(username);
+
+        return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<Void> updateMyInfo(
+            @RequestBody MemberUpdateReqDto request,
+            Authentication authentication
+    ) {
+        String loginKey = authentication.getName();
+
+        memberService.updateMyInfo(loginKey, request);
+
+        return ResponseEntity.ok().build();
     }
 }
