@@ -1,0 +1,130 @@
+.common-nav {
+  --common-nav-height: 40px;
+  --common-nav-item-width: 126px;
+  --common-nav-edge-correction: 20px;
+
+  width: 100%;
+  height: var(--common-nav-height);
+  background-color: #fff;
+  border-bottom: 1px solid var(--color-bg-soft);
+}
+
+.common-nav-inner {
+  width: var(--layout-width);
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 var(--layout-padding-x);
+
+  display: flex;
+  align-items: center;
+}
+
+.common-nav-left,
+.common-nav-right {
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.common-nav-right {
+  margin-left: auto;
+  margin-right: var(--common-nav-edge-correction);
+}
+
+.common-nav li {
+  position: relative;
+
+  height: 100%;
+  width: var(--common-nav-item-width);
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-left: 1px solid var(--color-bg-light);
+}
+
+.common-nav li:last-child {
+  border-right: 1px solid var(--color-bg-light);
+}
+
+.common-nav a {
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+
+  color: var(--text-main);
+  text-decoration: none;
+
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+
+  transition:
+    color 0.18s ease,
+    background-color 0.18s ease;
+
+  white-space: nowrap;
+}
+
+.common-nav li.active a {
+  color: var(--color-main);
+  font-weight: 800;
+}
+
+.common-nav li.active::after,
+.common-nav li:hover::after {
+  content: "";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 0;
+
+  height: 2px;
+  background-color: var(--color-main);
+}
+
+.common-nav li:hover a {
+  color: var(--color-main);
+  background-color: var(--color-bg-light);
+}
+
+.common-nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.common-nav-icon img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.common-nav-count {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 5px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+  background-color: var(--color-main);
+  color: #fff;
+
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}

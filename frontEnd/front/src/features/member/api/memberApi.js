@@ -19,3 +19,13 @@ export function checkNickname(nickname) {
     params: { nickname },
   });
 }
+
+export function kakaoJoin(data) {
+  return api.post("/member/kakao/join", data);
+}
+
+export function kakaoLogin(code) {
+  return api.post("/member/kakao/login", {
+    code,
+  });
+}

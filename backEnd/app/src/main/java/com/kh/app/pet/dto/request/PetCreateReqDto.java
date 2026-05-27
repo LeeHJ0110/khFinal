@@ -15,7 +15,7 @@ public class PetCreateReqDto {
     private PetGender gender;
     private BigDecimal weight;
     private PetNeuteredYn neuteredYn;
-    private Long breedId;
+    private String breedName;
     private PetRepresentYn representYn;
 
     public PetEntity toEntity(MemberEntity member, BreedEntity breed) {
@@ -26,8 +26,8 @@ public class PetCreateReqDto {
                 .weight(weight)
                 .neuteredYn(neuteredYn)
                 .representYn(representYn)
-                .memberId(member)
-                .breedId(breed)
+                .member(member)
+                .breed(breed)
                 .build();
     }
 }

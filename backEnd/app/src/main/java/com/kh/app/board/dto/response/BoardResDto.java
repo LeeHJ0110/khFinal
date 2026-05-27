@@ -24,8 +24,8 @@ public class BoardResDto {
     public static BoardResDto from(BoardEntity entity) {
         return BoardResDto.builder()
                 .boardId(entity.getId())
-                .boardCategory(entity.getCategory())
-                .boardSubCategory(entity.getSubCategory())
+                .boardCategory(entity.getCategory() != null ? entity.getCategory().toString() : null)
+                .boardSubCategory(entity.getSubCategory() != null ? entity.getSubCategory().toString() : null)
                 .title(entity.getTitle())
                 .writerNickname(entity.getWriter().getNickname())
                 .hits(entity.getHits())

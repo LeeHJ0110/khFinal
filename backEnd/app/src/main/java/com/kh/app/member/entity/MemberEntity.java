@@ -42,7 +42,7 @@ public class MemberEntity extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(length = 1)
-    private MemberMarketingAgreeYn memberMarketingAgreeYn =MemberMarketingAgreeYn.Y;
+    private MemberMarketingAgreeYn memberMarketingAgreeYn =MemberMarketingAgreeYn.N;
 
     // 카카오 로그인용
     @Column(length = 255, unique = true)
@@ -80,6 +80,19 @@ public class MemberEntity extends BaseEntity {
 
     public void updateProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
+    }
+    public void updateMyInfo(
+            String nickname,
+            String email,
+            String phone,
+            String address,
+            String addressDetail
+    ) {
+        this.nickname = nickname;
+        this.email = email;
+        this.phone = phone;
+        this.address = address;
+        this.addressDetail = addressDetail;
     }
 
 }
