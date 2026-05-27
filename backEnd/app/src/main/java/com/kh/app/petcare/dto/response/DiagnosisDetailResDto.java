@@ -17,17 +17,16 @@ public class DiagnosisDetailResDto {
 
     // 진단 신청 번호
     private Long diagnosisReqId;
-
     // 펫 번호
     private Long petId;
-
     // 진행 상태
     private DelYn diagnosisReqStatus;
-
     // 신청일
     private LocalDateTime createdAt;
-
     // 답변 목록
     private List<DiagnosisAnswerDto> answerList;
+
+    // 업로드 이미지 목록
+    private List<ImgUrlResDto> fileList;
 }
 
