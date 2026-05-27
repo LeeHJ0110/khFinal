@@ -24,7 +24,6 @@ import static com.kh.app.member.entity.QMemberEntity.memberEntity;
 @Slf4j
 public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
-    private final TrainingRepository trainingRepository;
     private final MemberRepository memberRepository;
 
     @Transactional

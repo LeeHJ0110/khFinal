@@ -52,7 +52,7 @@ public class ScheduleController {
     @GetMapping("{id}")
     public ResponseEntity<EventResDto> selectOne(
             @PathVariable Long id,
-            @AuthenticationPrincipal String username    //TODO 유저가 맞는지 확인 방어 로직
+            @AuthenticationPrincipal String username
     ){
         EventResDto resDto = scheduleService.selectOne(id);
         return ResponseEntity.ok(resDto);
