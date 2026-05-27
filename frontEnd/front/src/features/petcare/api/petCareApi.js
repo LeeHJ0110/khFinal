@@ -37,3 +37,12 @@ export async function requestDiagnosis(vo, eyeFiles, skinFiles, teethFiles) {
 
   return await api.post(`/petcare/diagnosis`, fd);
 }
+//목록보기
+export async function fetchPetCareList(pno) {
+  return await api.get(`/petcare/diagnosis/list?pno=${pno}`);
+}
+
+//상세보기
+export async function fetchPetCareDetail(id) {
+  return await api.get(`/petcare/diagnosis/${id}`);
+}

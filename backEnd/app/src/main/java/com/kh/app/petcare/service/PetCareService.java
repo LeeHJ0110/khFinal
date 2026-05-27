@@ -8,6 +8,7 @@ import com.kh.app.petcare.dto.request.DiagnosisAnswerDto;
 import com.kh.app.petcare.dto.request.PetCareReqDto;
 import com.kh.app.petcare.dto.response.DiagnosisDetailResDto;
 import com.kh.app.petcare.dto.response.DiagnosisResDto;
+import com.kh.app.petcare.dto.response.ImgUrlResDto;
 import com.kh.app.petcare.dto.response.SelfDiagnosisQuestionResDto;
 import com.kh.app.petcare.entity.DiagnosisReqEntity;
 import com.kh.app.petcare.entity.ImgCategory;
@@ -129,9 +130,9 @@ public class PetCareService {
                 );
     }
 
-    public DiagnosisDetailResDto getDiagnosisDetail(
-            Long diagnosisReqId
-    ) {
+    //상세보기
+    @Transactional(readOnly = true)
+    public DiagnosisDetailResDto getDiagnosisDetail(Long diagnosisReqId) {
 
         DiagnosisReqEntity diagnosisReq =
                 diagnosisReqRepository.findById(diagnosisReqId)
@@ -142,20 +143,17 @@ public class PetCareService {
         List<DiagnosisAnswerDto> answerList =
                 diagnosisReq.getAnswerList().stream()
                         .map(answer -> {
-
-                            DiagnosisAnswerDto dto =
-                                    new DiagnosisAnswerDto();
-
-                            dto.setQuestionId(
-                                    answer.getQuestion().getQuestionId()
-                            );
-
-                            dto.setAnswerValue(
-                                    answer.getAnswerValue()
-                            );
-
+                            DiagnosisAnswerDto dto = new DiagnosisAnswerDto();
+                            dto.setQuestionId(answer.getQuestion().getQuestionId());
+                            dto.setAnswerValue(answer.getAnswerValue());
                             return dto;
                         })
+                        .toList();
+
+        List<ImgUrlResDto> fileList =
+                imageRepository.findByDiagnosisReq(diagnosisReq)
+                        .stream()
+                        .map(ImgUrlResDto::from)
                         .toList();
 
         return DiagnosisDetailResDto.builder()
@@ -164,9 +162,10 @@ public class PetCareService {
                 .diagnosisReqStatus(diagnosisReq.getDiagnosisReqStatus())
                 .createdAt(diagnosisReq.getCreatedAt())
                 .answerList(answerList)
+                .fileList(fileList)
                 .build();
     }
-
+    //펫 타입별 질문 조회
     public List<SelfDiagnosisQuestionResDto> getQuestionList(
             PetType petType
     ) {

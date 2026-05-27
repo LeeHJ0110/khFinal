@@ -3,6 +3,7 @@ package com.kh.app.petcare.entity;
 import com.kh.app.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @Entity
@@ -35,4 +36,7 @@ public class ImgUrlEntity extends BaseEntity {
     // 변경 파일명(S3 저장명 등)
     @Column(name = "IMAGE_CHANGED_NAME", nullable = false, length = 1000)
     private String imageChangedName;
+
+
+
 }
