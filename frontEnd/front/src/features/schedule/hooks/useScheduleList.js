@@ -23,6 +23,10 @@ export default function useScheduleList() {
       borderColor: `#${item.backgroundColor}`,
 
       allDay: true,
+      extendedProps: {
+        content: item.content,
+        at: item.at,
+      },
     }));
 
     setList(parsedList);
