@@ -15,7 +15,7 @@ import { useLocation } from "react-router-dom";
  * activeMenu를 넘기면 label 기준으로 활성화됩니다.
  * activeMenu를 넘기지 않으면 현재 URL(menu.path)을 기준으로 자동 활성화됩니다.
  *
- * 메뉴 객체 예시:
+ * 메뉴 예시:
  * { label: "강아지", path: "/store/dog" }
  * { label: "장바구니", path: "/store/cart", count: 3 }
  *

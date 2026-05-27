@@ -1,7 +1,7 @@
 import Nav from "../../shared/layouts/nav/Nav";
 
 /*
- * PetStoreNav
+ * PetStoreNav(관리자용)
  * 펫스토어 전용 메뉴 데이터를 공용 Nav에 전달하는 컴포넌트입니다.
  */
 const leftMenus = [

@@ -1,4 +1,9 @@
-/* 우리는 페이퍼로지를 쓴다 */
+/* ================================
+   Font
+   - 프로젝트 기본 폰트: Paperlogy
+   - font-weight 100 ~ 900 사용 가능
+================================ */
+
 @font-face {
   font-family: "Paperozi";
   src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-1Thin.woff2")
@@ -71,28 +76,50 @@
   font-display: swap;
 }
 
+/* ================================
+   Global Variables
+   - 색상, 텍스트, 레이아웃 공통 기준
+   - Header / Nav / Footer / Page에서 재사용
+================================ */
+
 :root {
-  /* 색상 가이드 */
+  /* Brand Color */
   --color-main: #00a97b;
+  --color-main-dark: #00966e;
   --color-mint: #5ec8a7;
+  --color-dark: #122d2e;
+  --color-white: #ffffff;
+
+  /* Background Color */
   --color-bg-light: #ecfdf6;
   --color-bg-soft: #d9eddf;
-  --color-dark: #122d2e;
 
-  /* 텍스트 색상 */
+  /* Hover / Active Color */
+  --color-main-soft: rgba(236, 253, 246, 0.72);
+  --color-main-hover: rgba(236, 253, 246, 0.18);
+
+  /* Dark Area Color */
+  --color-dark-line: rgba(236, 253, 246, 0.25);
+  --color-dark-soft: rgba(236, 253, 246, 0.12);
+
+  /* Text Color */
   --text-main: #222222;
   --text-sub: #555555;
   --text-desc: #888888;
   --text-soft: #aaaaaa;
   --text-disabled: #cccccc;
 
-  /* 1920 고정 공통 레이아웃 기준 */
+  /* Layout */
   --layout-width: 1920px;
   --layout-padding-x: 56px;
 
-  /* 공통 헤더 높이 */
+  /* Common Size */
   --header-height: 50px;
 }
+
+/* ================================
+   Reset / Base
+================================ */
 
 * {
   box-sizing: border-box;
@@ -103,14 +130,14 @@ body,
 #root {
   width: 100%;
   min-width: var(--layout-width);
-  margin: 0;
   min-height: 100%;
+  margin: 0;
 }
 
 body {
   font-family: "Paperozi", "Noto Sans KR", sans-serif;
   color: var(--text-main);
-  background-color: #fff;
+  background-color: var(--color-white);
 }
 
 a {

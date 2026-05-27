@@ -1,14 +1,23 @@
+/* ================================
+   Common Nav
+   - Header 아래 공통 서브 네비게이션
+   - 1920px 고정 레이아웃
+   - 좌우 여백은 index.css의 --layout-padding-x 기준
+================================ */
+
 .common-nav {
+  /* Nav Layout */
   --common-nav-height: 40px;
   --common-nav-item-width: 126px;
   --common-nav-edge-correction: 20px;
 
   width: 100%;
   height: var(--common-nav-height);
-  background-color: #fff;
+  background-color: var(--color-white);
   border-bottom: 1px solid var(--color-bg-soft);
 }
 
+/* Nav Inner */
 .common-nav-inner {
   width: var(--layout-width);
   height: 100%;
@@ -19,16 +28,17 @@
   align-items: center;
 }
 
+/* Nav Group */
 .common-nav-left,
 .common-nav-right {
   height: 100%;
+  padding: 0;
+  margin: 0;
 
   display: flex;
   align-items: center;
 
   list-style: none;
-  padding: 0;
-  margin: 0;
 }
 
 .common-nav-right {
@@ -36,11 +46,12 @@
   margin-right: var(--common-nav-edge-correction);
 }
 
+/* Nav Item */
 .common-nav li {
   position: relative;
 
-  height: 100%;
   width: var(--common-nav-item-width);
+  height: 100%;
   flex-shrink: 0;
 
   display: flex;
@@ -64,19 +75,18 @@
   gap: 5px;
 
   color: var(--text-main);
-  text-decoration: none;
 
   font-size: 13px;
   font-weight: 600;
   letter-spacing: -0.2px;
+  white-space: nowrap;
 
   transition:
     color 0.18s ease,
     background-color 0.18s ease;
-
-  white-space: nowrap;
 }
 
+/* Active / Hover */
 .common-nav li.active a {
   color: var(--color-main);
   font-weight: 800;
@@ -99,6 +109,7 @@
   background-color: var(--color-bg-light);
 }
 
+/* Icon */
 .common-nav-icon {
   display: inline-flex;
   align-items: center;
@@ -108,9 +119,11 @@
 .common-nav-icon img {
   width: 16px;
   height: 16px;
+
   object-fit: contain;
 }
 
+/* Count Badge */
 .common-nav-count {
   min-width: 16px;
   height: 16px;
@@ -122,7 +135,7 @@
 
   border-radius: 999px;
   background-color: var(--color-main);
-  color: #fff;
+  color: var(--color-white);
 
   font-size: 10px;
   font-weight: 700;
