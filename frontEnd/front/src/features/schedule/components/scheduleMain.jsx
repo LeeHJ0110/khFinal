@@ -18,18 +18,10 @@ export default function ScheduleMain() {
     hour: "",
     minute: "",
     backgroundColor: "#5EC8A7",
+    isEdit: "false",
   };
   // 켈린더 이벤트 호출
-  const {
-    list,
-    isLoading: isListLoading,
-    asyncFetchScheduleList,
-  } = useScheduleList();
-  const {
-    detail,
-    isLoading: isDetailLoading,
-    asyncFetchSchedule,
-  } = useScheduleDetail();
+  const { list, isLoading, asyncFetchScheduleList } = useScheduleList();
 
   // 상세 조회용 모달 오픈 여부
   const [detailOpen, setDetailOpen] = useState(false);
@@ -64,14 +56,27 @@ export default function ScheduleMain() {
     // FullCalendar의 이벤트 객체에서 데이터 추출
 
     if (info.event) {
-      asyncFetchSchedule(info.event.id);
-      setSelectedEvent(detail);
+      setSelectedEvent({
+        ...initialState,
+        id: info.event.id,
+        title: info.event.title,
+
+        startDate: info.event.startStr,
+        endDate: info.event.endStr,
+
+        backgroundColor: info.event.backgroundColor,
+
+        content: info.event.extendedProps?.content,
+        at: info.event.extendedProps?.at,
+        isEdit: true,
+      });
     } else {
       setSelectedEvent({
         ...initialState,
         id: "",
         startDate: info.startStr,
         endDate: info.endStr,
+        isEdit: false,
       });
     }
 
@@ -80,7 +85,7 @@ export default function ScheduleMain() {
 
   return (
     <Wrapper>
-      {isListLoading ? (
+      {isLoading ? (
         <p>불러오는 중...</p>
       ) : (
         <>
@@ -112,7 +117,6 @@ export default function ScheduleMain() {
             open={detailOpen}
             onClose={() => setDetailOpen(false)}
             data={selectedEvent}
-            isLoading={isDetailLoading}
           />
         </>
       )}

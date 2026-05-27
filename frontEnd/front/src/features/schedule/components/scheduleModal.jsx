@@ -4,11 +4,18 @@ import useScheduleWrite from "../hooks/useScheduleWrite";
 import useFormData from "../../../shared/layouts/hooks/useFormData";
 import useScheduleDetail from "../hooks/useScheduleDetail";
 
-export default function ScheduleModal({ open, onClose, data, isLoading }) {
+export default function ScheduleModal({ open, onClose, data }) {
+  if (!open) return null;
   const { handleWrite, isSuccess } = useScheduleWrite();
   const { formData, handleChange, resetFormData } = useFormData(data);
 
-  if (!open) return null;
+  useEffect(() => {
+    if (isSuccess) {
+      onClose();
+    }
+  }, [isSuccess]);
+
+  //error userEffect로 처리하기
 
   function displayEndDate(endDate) {
     if (!endDate) return "";
@@ -32,113 +39,108 @@ export default function ScheduleModal({ open, onClose, data, isLoading }) {
 
           <CloseButton onClick={onClose}>×</CloseButton>
         </Header>
-        {isLoading ? (
-          <p>불러오는 중...</p>
-        ) : (
-          <Body
-            onSubmit={(e) => {
-              e.preventDefault();
-              const payload = {
-                ...formData,
-                at: `${String(formData.hour).padStart(2, "0")}:${String(
-                  formData.minute,
-                ).padStart(2, "0")}`,
-                backgroundColor: formData.backgroundColor.replace("#", ""),
-              };
-              console.log(payload);
-
+        <Body
+          onSubmit={(e) => {
+            e.preventDefault();
+            const payload = {
+              ...formData,
+              at: `${String(formData.hour).padStart(2, "0")}:${String(
+                formData.minute,
+              ).padStart(2, "0")}`,
+              backgroundColor: formData.backgroundColor.replace("#", ""),
+            };
+            if (data.isEdit) {
+              //   handleEdit(payload);
+              console.log("수정");
+            } else {
               handleWrite(payload);
-              if (isSuccess) {
-                onclose();
-              } else {
-                alert("작성 실패");
-              }
-            }}
-          >
+              console.log("등록");
+            }
+          }}
+        >
+          <Field>
+            <Label>제목</Label>
+
+            <Input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+            />
+          </Field>
+
+          <Row>
             <Field>
-              <Label>제목</Label>
+              <Label>시작 날짜</Label>
 
               <Input
-                type="text"
-                name="title"
-                value={formData.title}
+                type="date"
+                name="startDate"
+                value={formData.startDate}
                 onChange={handleChange}
               />
             </Field>
 
-            <Row>
-              <Field>
-                <Label>시작 날짜</Label>
-
-                <Input
-                  type="date"
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleChange}
-                />
-              </Field>
-
-              <Field>
-                <Label>종료 날짜</Label>
-
-                <Input
-                  type="date"
-                  name="endDate"
-                  value={displayEndDate(formData.endDate)}
-                  //   value={formData.endDate}
-                  onChange={handleChange}
-                />
-              </Field>
-            </Row>
-            {console.log(formData)}
-
-            <Row>
-              <Input
-                type="number"
-                min="0"
-                max="23"
-                placeholder="시간"
-                value={formData.at?.split(":")[0] || ""}
-                onChange={(e) => {
-                  const minute = formData.at?.split(":")[1] || "00";
-
-                  handleChange({
-                    target: {
-                      name: "at",
-                      value: `${String(e.target.value).padStart(2, "0")}:${minute}`,
-                    },
-                  });
-                }}
-              />
-
-              <Input
-                type="number"
-                min="0"
-                max="59"
-                placeholder="분"
-                value={formData.at?.split(":")[1] || ""}
-                onChange={(e) => {
-                  const hour = formData.at?.split(":")[0] || "00";
-
-                  handleChange({
-                    target: {
-                      name: "at",
-                      value: `${hour}:${String(e.target.value).padStart(2, "0")}`,
-                    },
-                  });
-                }}
-              />
-            </Row>
-
             <Field>
-              <Label>내용</Label>
+              <Label>종료 날짜</Label>
 
-              <TextArea
-                value={formData.content}
-                name="content"
+              <Input
+                type="date"
+                name="endDate"
+                value={displayEndDate(formData.endDate)}
                 onChange={handleChange}
               />
-              {/* <label htmlFor="file-input">파일첨부ㅋㅋ</label>
+            </Field>
+          </Row>
+          {console.log(formData)}
+
+          <Row>
+            <Input
+              type="number"
+              min="0"
+              max="23"
+              placeholder="시간"
+              value={formData.at?.split(":")[0] || ""}
+              onChange={(e) => {
+                const minute = formData.at?.split(":")[1] || "00";
+
+                handleChange({
+                  target: {
+                    name: "at",
+                    value: `${String(e.target.value).padStart(2, "0")}:${minute}`,
+                  },
+                });
+              }}
+            />
+
+            <Input
+              type="number"
+              min="0"
+              max="59"
+              placeholder="분"
+              value={formData.at?.split(":")[1] || ""}
+              onChange={(e) => {
+                const hour = formData.at?.split(":")[0] || "00";
+
+                handleChange({
+                  target: {
+                    name: "at",
+                    value: `${hour}:${String(e.target.value).padStart(2, "0")}`,
+                  },
+                });
+              }}
+            />
+          </Row>
+
+          <Field>
+            <Label>내용</Label>
+
+            <TextArea
+              value={formData.content}
+              name="content"
+              onChange={handleChange}
+            />
+            {/* <label htmlFor="file-input">파일첨부ㅋㅋ</label>
             <input
             id="file-input"
             type="file"
@@ -147,26 +149,37 @@ export default function ScheduleModal({ open, onClose, data, isLoading }) {
             onChange={handleFileChange}
             style={{ display: "none" }}
             /> */}
-            </Field>
-            <Field>
-              <Label>색상</Label>
-              <Input
-                type="color"
-                name="backgroundColor"
-                value={formData.backgroundColor}
-                onChange={handleChange}
-              />
-            </Field>
-          </Body>
-        )}
-
-        <Footer>
-          <CancelButton type="button" onClick={onClose}>
-            취소
-          </CancelButton>
-
-          <SaveButton type="submit">저장</SaveButton>
-        </Footer>
+          </Field>
+          <Field>
+            <Label>색상</Label>
+            <Input
+              type="color"
+              name="backgroundColor"
+              value={formData.backgroundColor}
+              onChange={handleChange}
+            />
+          </Field>
+          <Footer>
+            <CancelButton type="button" onClick={onClose}>
+              취소
+            </CancelButton>
+            {data.isEdit ? (
+              <>
+                <DeleteButton
+                  type="button"
+                  onClick={() => {
+                    // handleDelete(data.id);
+                  }}
+                >
+                  삭제
+                </DeleteButton>
+                <SaveButton type="submit">수정</SaveButton>
+              </>
+            ) : (
+              <SaveButton type="submit">저장</SaveButton>
+            )}
+          </Footer>
+        </Body>
       </Container>
     </Overlay>
   );
@@ -383,5 +396,20 @@ const SaveButton = styled.button`
 
   &:hover {
     background: #4eb394;
+  }
+`;
+const DeleteButton = styled.button`
+  border: none;
+  padding: 12px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  background: #ff4d4d;
+  color: white;
+  transition: 0.2s;
+
+  &:hover {
+    background: #e60000;
   }
 `;
