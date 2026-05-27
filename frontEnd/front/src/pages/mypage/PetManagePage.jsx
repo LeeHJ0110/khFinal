@@ -14,6 +14,9 @@ export default function PetManagePage() {
     selectPet,
     nextPet,
     handleCreatePet,
+    fetchBreedList,
+    handleUpdatePet,
+    handleDeletePet,
   } = usePet();
 
   const emptyForm = {
@@ -25,7 +28,7 @@ export default function PetManagePage() {
     weight: "",
     representYn: "N",
   };
-
+  const [isDetailOpen, setDetailOpen] = useState(false);
   const [isCreateMode, setCreateMode] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
 
@@ -35,6 +38,7 @@ export default function PetManagePage() {
     if (!selectedPet || isCreateMode) return;
 
     setFormData({
+      petType: selectedPet.petType || "D",
       name: selectedPet.name || "",
       breedName: selectedPet.breedName || "",
       gender: selectedPet.gender || "",
@@ -43,14 +47,36 @@ export default function PetManagePage() {
       representYn: selectedPet.representYn || "N",
     });
   }, [selectedPet, isCreateMode]);
-
-  function handleChange(evt) {
+  useEffect(() => {
+    if (!loading && !hasPet) {
+      setCreateMode(true);
+      setDetailOpen(true);
+      setFormData(emptyForm);
+    }
+  }, [loading, hasPet]);
+  async function handleChange(evt) {
     const { name, value } = evt.target;
 
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+      ...(name === "petType" ? { breedName: "" } : {}),
     }));
+
+    if (name === "petType") {
+      await fetchBreedList(value);
+    }
+  }
+  function handleSelectPet(index) {
+    selectPet(index);
+    setCreateMode(false);
+    setDetailOpen(true);
+  }
+
+  function handleCreateMode() {
+    setCreateMode(true);
+    setDetailOpen(true);
+    setFormData(emptyForm);
   }
 
   function handleSelectPet(index) {
@@ -62,7 +88,25 @@ export default function PetManagePage() {
     setCreateMode(true);
     setFormData(emptyForm);
   }
+  async function handleDelete() {
+    if (!selectedPet) {
+      return;
+    }
 
+    const result = confirm("정말 삭제하시겠습니까?");
+
+    if (!result) {
+      return;
+    }
+
+    const isSuccess = await handleDeletePet(selectedPet.petId);
+
+    if (isSuccess) {
+      alert("삭제되었습니다.");
+
+      setDetailOpen(false);
+    }
+  }
   async function handleSubmit(evt) {
     evt.preventDefault();
 
@@ -92,7 +136,11 @@ export default function PetManagePage() {
       return;
     }
 
-    alert("수정 기능은 다음 단계에서 연결합니다.");
+    const result = await handleUpdatePet(selectedPet.petId, formData);
+
+    if (result) {
+      alert("수정되었습니다.");
+    }
   }
 
   return (
@@ -126,117 +174,119 @@ export default function PetManagePage() {
 
             {petList.length > 1 && <NextBtn onClick={nextPet}>›</NextBtn>}
           </PetTabs>
+          {isDetailOpen && (
+            <DetailGrid>
+              <PetFormCard onSubmit={handleSubmit}>
+                <SectionTitle>
+                  {isCreateMode ? "반려동물 등록" : "반려동물 수정"}
+                </SectionTitle>
 
-          <DetailGrid>
-            <PetFormCard onSubmit={handleSubmit}>
-              <SectionTitle>
-                {isCreateMode ? "반려동물 등록" : "반려동물 수정"}
-              </SectionTitle>
+                <InfoRow>
+                  <span>이름</span>
+                  <Input
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                  />
+                </InfoRow>
+                <InfoRow>
+                  <span>종류</span>
+                  <Select
+                    name="petType"
+                    value={formData.petType}
+                    onChange={handleChange}
+                  >
+                    <option value="D">강아지</option>
+                    <option value="C">고양이</option>
+                  </Select>
+                </InfoRow>
+                <InfoRow>
+                  <span>품종</span>
+                  <Select
+                    name="breedName"
+                    value={formData.breedName}
+                    onChange={handleChange}
+                  >
+                    <option value="">품종 선택</option>
 
-              <InfoRow>
-                <span>이름</span>
-                <Input
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                />
-              </InfoRow>
-              <InfoRow>
-                <span>종류</span>
+                    {breedList.map((breed) => (
+                      <option key={breed.breedId} value={breed.breedName}>
+                        {breed.breedName}
+                      </option>
+                    ))}
+                  </Select>
+                </InfoRow>
 
-                <Select
-                  name="petType"
-                  value={formData.petType}
-                  onChange={handleChange}
-                >
-                  <option value="D">강아지</option>
-                  <option value="C">고양이</option>
-                </Select>
-              </InfoRow>
-              <InfoRow>
-                <span>품종</span>
-                <Select
-                  name="breedName"
-                  value={formData.breedName}
-                  onChange={handleChange}
-                >
-                  <option value="">품종 선택</option>
+                <InfoRow>
+                  <span>성별</span>
+                  <Select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                  >
+                    <option value="">선택</option>
+                    <option value="M">남아</option>
+                    <option value="F">여아</option>
+                  </Select>
+                </InfoRow>
 
-                  {breedList.map((breed) => (
-                    <option key={breed.breedId} value={breed.breedName}>
-                      {breed.breedName}
-                    </option>
-                  ))}
-                </Select>
-              </InfoRow>
+                <InfoRow>
+                  <span>생년월일</span>
+                  <Input
+                    name="birthDate"
+                    value={formData.birthDate}
+                    onChange={handleChange}
+                    placeholder="2021.03.15"
+                  />
+                </InfoRow>
 
-              <InfoRow>
-                <span>성별</span>
-                <Select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                >
-                  <option value="">선택</option>
-                  <option value="M">남아</option>
-                  <option value="F">여아</option>
-                </Select>
-              </InfoRow>
+                <InfoRow>
+                  <span>몸무게</span>
+                  <Input
+                    name="weight"
+                    value={formData.weight}
+                    onChange={handleChange}
+                    placeholder="4.2"
+                  />
+                </InfoRow>
 
-              <InfoRow>
-                <span>생년월일</span>
-                <Input
-                  name="birthDate"
-                  value={formData.birthDate}
-                  onChange={handleChange}
-                  placeholder="2021.03.15"
-                />
-              </InfoRow>
+                <InfoRow>
+                  <span>대표동물</span>
+                  <Select
+                    name="representYn"
+                    value={formData.representYn}
+                    onChange={handleChange}
+                  >
+                    <option value="Y">대표</option>
+                    <option value="N">일반</option>
+                  </Select>
+                </InfoRow>
 
-              <InfoRow>
-                <span>몸무게</span>
-                <Input
-                  name="weight"
-                  value={formData.weight}
-                  onChange={handleChange}
-                  placeholder="4.2"
-                />
-              </InfoRow>
+                <ButtonRow>
+                  {isCreateMode ? (
+                    <Button type="submit">등록하기</Button>
+                  ) : (
+                    <>
+                      <Button type="submit">수정하기</Button>
+                      <Button type="button" onClick={handleDelete}>
+                        삭제하기
+                      </Button>
+                    </>
+                  )}
+                </ButtonRow>
+              </PetFormCard>
 
-              <InfoRow>
-                <span>대표동물</span>
-                <Select
-                  name="representYn"
-                  value={formData.representYn}
-                  onChange={handleChange}
-                >
-                  <option value="Y">대표</option>
-                  <option value="N">일반</option>
-                </Select>
-              </InfoRow>
+              <InsuranceCard>
+                <SectionTitle>반려동물 보험</SectionTitle>
 
-              <ButtonRow>
-                {isCreateMode ? (
-                  <Button type="submit">등록하기</Button>
+                {insuranceList.length > 0 ? (
+                  <div>보험 정보 영역</div>
                 ) : (
-                  <>
-                    <Button type="submit">수정하기</Button>
-                    <Button type="button">삭제하기</Button>
-                  </>
+                  <EmptyInsurance>가입한 보험이 없습니다</EmptyInsurance>
                 )}
-              </ButtonRow>
-            </PetFormCard>
-
-            <InsuranceCard>
-              <SectionTitle>반려동물 보험</SectionTitle>
-
-              {insuranceList.length > 0 ? (
-                <div>보험 정보 영역</div>
-              ) : (
-                <EmptyInsurance>가입한 보험이 없습니다</EmptyInsurance>
-              )}
-            </InsuranceCard>
-          </DetailGrid>
+              </InsuranceCard>
+            </DetailGrid>
+          )}
         </>
       )}
     </MyPageLayout>

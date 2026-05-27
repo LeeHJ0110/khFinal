@@ -11,6 +11,17 @@ export function getMyPetList() {
 }
 
 // 품종 목록 조회
+
 export function getBreedList(petType) {
-  return api.get("/pet/breed");
+  return api.get("/pet/breed", {
+    params: { petType },
+  });
+}
+
+export function updatePet(petId, data) {
+  return api.put(`/pet/${petId}`, data);
+}
+
+export function deletePet(petId) {
+  return api.delete(`/pet/${petId}`);
 }

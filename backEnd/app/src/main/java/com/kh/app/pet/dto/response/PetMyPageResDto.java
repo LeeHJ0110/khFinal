@@ -31,10 +31,15 @@ public class PetMyPageResDto {
     // 대표동물 여부
     private String representYn;
 
+    private String petType;
+
     public static PetMyPageResDto from(PetEntity pet) {
 
         return PetMyPageResDto.builder()
                 .petId(pet.getId())
+                .petType(
+                        pet.getBreed().getPetType().name()
+                )
                 .name(pet.getName())
 
                 // 품종명

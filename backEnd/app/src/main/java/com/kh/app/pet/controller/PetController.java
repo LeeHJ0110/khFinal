@@ -1,6 +1,7 @@
 package com.kh.app.pet.controller;
 
 import com.kh.app.pet.dto.request.PetCreateReqDto;
+import com.kh.app.pet.dto.request.PetUpdateReqDto;
 import com.kh.app.pet.dto.response.BreedListResDto;
 import com.kh.app.pet.dto.response.PetMyPageResDto;
 import com.kh.app.pet.service.PetService;
@@ -52,5 +53,30 @@ public class PetController {
                 petService.getBreedList(petType);
 
         return ResponseEntity.ok(result);
+    }
+
+    @PutMapping("/{petId}")
+    public ResponseEntity<Void> update(
+            @PathVariable Long petId,
+            @RequestBody PetUpdateReqDto request,
+            Authentication authentication
+    ) {
+        String loginKey = authentication.getName();
+
+        petService.update(petId, request, loginKey);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{petId}")
+    public ResponseEntity<Void> delete(
+            @PathVariable Long petId,
+            Authentication authentication
+    ) {
+        String loginKey = authentication.getName();
+
+        petService.delete(petId, loginKey);
+
+        return ResponseEntity.ok().build();
     }
 }

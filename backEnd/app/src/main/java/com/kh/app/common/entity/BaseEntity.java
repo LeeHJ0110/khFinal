@@ -17,7 +17,7 @@ public class BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "DEL_YN", nullable = false , length = 1)
-    private DelYn delYn;
+    public DelYn delYn;
 
     @PrePersist
     public void onPersist(){
