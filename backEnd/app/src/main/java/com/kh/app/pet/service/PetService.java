@@ -1,7 +1,10 @@
 package com.kh.app.pet.service;
 
+import com.kh.app.common.entity.DelYn;
+import com.kh.app.pet.dto.request.PetUpdateReqDto;
 import com.kh.app.pet.dto.response.BreedListResDto;
 import com.kh.app.pet.entity.BreedEntity;
+import com.kh.app.pet.entity.PetType;
 import com.kh.app.pet.repository.BreedRepository;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.repository.MemberRepository;
@@ -54,7 +57,7 @@ public class PetService {
                         new IllegalStateException("회원 정보가 존재하지 않습니다.")
                 );
 
-        return petRepository.findAllByMember_Id(member.getId())
+        return petRepository.findAllByMember_IdAndDelYn(member.getId(), DelYn.N)
                 .stream()
                 .map(PetMyPageResDto::from)
                 .toList();
@@ -63,9 +66,67 @@ public class PetService {
     @Transactional(readOnly = true)
     public List<BreedListResDto> getBreedList(String petType) {
 
-        return breedRepository.findAllByPetType(petType)
+        PetType type = PetType.valueOf(petType);
+
+        return breedRepository.findAllByPetType(type)
                 .stream()
                 .map(BreedListResDto::from)
                 .toList();
+    }
+    @Transactional
+    public void update(Long petId, PetUpdateReqDto request, String loginKey) {
+
+        MemberEntity member = memberRepository.findByUsername(loginKey)
+                .or(() -> memberRepository.findBySocialId(loginKey))
+                .orElseThrow(() ->
+                        new IllegalStateException("회원 정보가 존재하지 않습니다.")
+                );
+
+        PetEntity pet = petRepository.findById(petId)
+                .orElseThrow(() ->
+                        new IllegalStateException("펫 정보가 존재하지 않습니다.")
+                );
+
+        if (!pet.getMember().getId().equals(member.getId())) {
+            throw new IllegalStateException("본인 펫만 수정 가능합니다.");
+        }
+
+        PetType petType = PetType.valueOf(request.getPetType());
+
+        BreedEntity breed = breedRepository
+                .findByNameAndPetType(request.getBreedName(), petType)
+                .orElseThrow(() ->
+                        new IllegalStateException("품종 정보가 존재하지 않습니다.")
+                );
+
+        pet.update(
+                breed,
+                request.getName(),
+                request.getGender(),
+                request.getBirthDate(),
+                request.getWeight(),
+                request.getRepresentYn()
+        );
+    }
+
+    @Transactional
+    public void delete(Long petId, String loginKey) {
+
+        MemberEntity member = memberRepository.findByUsername(loginKey)
+                .or(() -> memberRepository.findBySocialId(loginKey))
+                .orElseThrow(() ->
+                        new IllegalStateException("회원 정보가 존재하지 않습니다.")
+                );
+
+        PetEntity pet = petRepository.findById(petId)
+                .orElseThrow(() ->
+                        new IllegalStateException("펫 정보가 존재하지 않습니다.")
+                );
+
+        if (!pet.getMember().getId().equals(member.getId())) {
+            throw new IllegalStateException("본인 펫만 삭제 가능합니다.");
+        }
+
+        pet.delete();
     }
 }

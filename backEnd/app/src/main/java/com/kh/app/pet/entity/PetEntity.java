@@ -1,6 +1,7 @@
 package com.kh.app.pet.entity;
 
 import com.kh.app.common.entity.BaseEntity;
+import com.kh.app.common.entity.DelYn;
 import com.kh.app.member.entity.MemberEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -56,5 +57,24 @@ public class PetEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "BREED_ID")
     private BreedEntity breed;
+
+    public void update(
+            BreedEntity breed,
+            String name,
+            PetGender gender,
+            String birthDate,
+            BigDecimal weight,
+            PetRepresentYn representYn
+    ) {
+        this.breed = breed;
+        this.name = name;
+        this.gender = gender;
+        this.birthDate = birthDate;
+        this.weight = weight;
+        this.representYn = representYn;
+    }
+    public void delete() {
+        this.delYn = DelYn.Y;
+    }
 
 }

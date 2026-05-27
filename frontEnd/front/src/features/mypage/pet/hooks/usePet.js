@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
-import { createPet, getBreedList, getMyPetList } from "../api/petApi";
-
+import {
+  createPet,
+  deletePet,
+  getBreedList,
+  getMyPetList,
+  updatePet,
+} from "../api/petApi";
 export default function usePet() {
   const [petList, setPetList] = useState([]);
   const [breedList, setBreedList] = useState([]);
@@ -32,9 +37,9 @@ export default function usePet() {
     }
   }
 
-  async function fetchBreedList() {
+  async function fetchBreedList(petType = "D") {
     try {
-      const response = await getBreedList();
+      const response = await getBreedList(petType);
       setBreedList(response.data || []);
       return response.data || [];
     } catch (err) {
@@ -43,7 +48,6 @@ export default function usePet() {
       return [];
     }
   }
-
   async function handleCreatePet(formData) {
     try {
       setLoading(true);
@@ -73,9 +77,45 @@ export default function usePet() {
     setSelectedPetIndex((prev) => (prev + 1) % petList.length);
   }
 
+  async function handleUpdatePet(petId, formData) {
+    try {
+      setLoading(true);
+
+      await updatePet(petId, formData);
+
+      await fetchMyPetList();
+
+      return true;
+    } catch (err) {
+      console.error(err);
+
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDeletePet(petId) {
+    try {
+      setLoading(true);
+
+      await deletePet(petId);
+
+      await fetchMyPetList();
+
+      return true;
+    } catch (err) {
+      console.error(err);
+
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     fetchMyPetList();
-    fetchBreedList();
+    fetchBreedList("D");
   }, []);
 
   const selectedPet = petList[selectedPetIndex] || null;
@@ -94,5 +134,7 @@ export default function usePet() {
     handleCreatePet,
     selectPet,
     nextPet,
+    handleUpdatePet,
+    handleDeletePet,
   };
 }
