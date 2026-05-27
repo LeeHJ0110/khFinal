@@ -1,44 +1,33 @@
-/*
-  사용자(로그인 된 사람) 공통 Header 버전
-
-  - 1920px 고정 레이아웃 기준
-  - 좌우 여백은 index.css의 --layout-padding-x 사용
-  - 오른쪽 영역은 grid 슬롯 구조로 고정
-  - 로그인 사용자 기준: 검색 / 알림 / 프로필 / 로그아웃
-*/
+/* ================================
+   Header
+   - 1920px 고정 레이아웃
+   - 좌우 여백은 index.css의 --layout-padding-x 기준
+   - 우측 영역은 로그인/비로그인 상태에 따라 grid 구조 변경
+================================ */
 
 .header {
-  /*
-    Header 내부 전용 변수
-
-    이 값들은 Header 컴포넌트 안에서만 사용하는 세부 배치.
-    공통 색상, 공통 레이아웃 값은 index.css의 전역 변수 참고.
-  */
-
-  /* 우측 끝 보정 */
+  /* Header Layout */
   --header-edge-correction: 20px;
 
-  /* 좌측 로고 및 메인 메뉴 칸 기준 */
+  /* Left Area */
   --header-logo-width: 92px;
   --header-logo-area-width: 126px;
   --header-menu-item-width: 126px;
 
-  /* 우측 기능 영역 슬롯 기준 */
+  /* Right Area */
   --header-search-width: 320px;
   --header-alarm-width: 32px;
   --header-user-width: 180px;
   --header-action-width: 104px;
-
-  /* 닉네임 최대 8글자 기준 */
   --header-user-name-width: 112px;
 
   width: 100%;
   height: var(--header-height);
   background-color: var(--color-main);
-  color: #fff;
+  color: var(--color-white);
 }
 
-/* Header 내부 */
+/* Header Inner */
 .header-inner {
   width: var(--layout-width);
   height: 100%;
@@ -49,7 +38,7 @@
   align-items: center;
 }
 
-/* 로고 영역 */
+/* Logo */
 .header-logo {
   width: var(--header-logo-area-width);
   height: 100%;
@@ -60,7 +49,6 @@
   justify-content: flex-start;
 }
 
-/* 로고 이미지 */
 .header-logo img {
   width: var(--header-logo-width);
   height: 38px;
@@ -69,14 +57,11 @@
   object-fit: contain;
   object-position: center;
 
-  /*
-    로고 이미지 자체의 시각적 중심 보정
-    필요 시 이 값만 조정하면 됩니다. ->-> 값 늘리면 밀려날거임
-  */
+  /* 로고 시각 중심 보정: 값이 커질수록 오른쪽 이동 */
   transform: translateX(20px);
 }
 
-/* 메인 메뉴 영역 */
+/* Main Menu */
 .header-menu {
   height: 100%;
   margin-left: 0;
@@ -85,12 +70,6 @@
   align-items: center;
   gap: 0;
 }
-
-/*
-  메인 메뉴 아이템
-  각 메뉴를 126px 칸 단위로 맞춰
-  아래 네비와 수직 리듬이 어긋나지 않도록 구성.
-*/
 
 .header-menu a {
   width: var(--header-menu-item-width);
@@ -102,13 +81,12 @@
   align-items: center;
   justify-content: center;
 
-  color: #fff;
+  border-radius: 4px;
+  color: var(--color-white);
 
   font-size: 14px;
   font-weight: 700;
   letter-spacing: -0.2px;
-
-  border-radius: 4px;
 
   transition:
     background-color 0.18s ease,
@@ -116,30 +94,17 @@
     transform 0.18s ease;
 }
 
-/* 현재 페이지 메뉴 / hover 상태 */
 .header-menu a.active,
 .header-menu a:hover {
-  background-color: rgba(236, 253, 246, 0.72);
+  background-color: var(--color-main-soft);
   color: var(--color-main);
 }
 
-/* 클릭 시 효과 (눌림) */
 .header-menu a:active {
   transform: translateY(1px);
 }
 
-/*
-  우측 기능 영역
-
-  로그인 상태:
-  검색 / 알림 / 프로필 / 로그아웃
-
-  비로그인 상태:
-  검색 / 로그인 / 회원가입
-
-  HeaderSearch, GuestMenu, UserMenu, AdminMenu를 컴포넌트로 분리했기 때문에
-  중간 wrapper가 grid 배치를 방해하지 않도록 display: contents 처리합니다.
-*/
+/* Right Area */
 .header-right {
   height: 100%;
   margin-left: auto;
@@ -150,7 +115,7 @@
   column-gap: 14px;
 }
 
-/* 로그인 상태: 검색 / 알림 / 유저 / 로그아웃 */
+/* 로그인: 검색 / 알림 / 유저 / 로그아웃 */
 .header-right.is-login {
   grid-template-columns:
     var(--header-search-width)
@@ -159,7 +124,7 @@
     var(--header-action-width);
 }
 
-/* 비로그인 상태: 검색 / 로그인 / 회원가입 */
+/* 비로그인: 검색 / 로그인 / 회원가입 */
 .header-right.is-guest {
   grid-template-columns:
     var(--header-search-width)
@@ -167,10 +132,7 @@
     var(--header-action-width);
 }
 
-/*
-  컴포넌트 분리로 생긴 wrapper들을 grid 배치에서 없는 것처럼 처리합니다.
-  이게 없으면 header-right 안에서 간격이 깨질 수 있습니다.
-*/
+/* 분리된 메뉴 컴포넌트가 grid 칸을 깨지 않도록 처리 */
 .header-action-area,
 .guest-menu,
 .user-menu,
@@ -178,36 +140,8 @@
   display: contents;
 }
 
-/* 비로그인 상태 로그인 버튼 */
-.header-login-btn {
-  width: 100%;
-  height: 31px;
-  padding: 0;
-  margin: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 4px;
-
-  color: #fff;
-  font-size: 13px;
-  font-weight: 800;
-  white-space: nowrap;
-
-  text-decoration: none;
-
-  transition:
-    background-color 0.18s ease,
-    opacity 0.18s ease;
-}
-
-.header-login-btn:hover {
-  background-color: rgba(236, 253, 246, 0.18);
-}
-
-/* 비로그인 상태 회원가입 버튼 */
+/* Guest Button */
+.header-login-btn,
 .header-join-btn {
   width: 100%;
   height: 31px;
@@ -220,16 +154,26 @@
 
   border-radius: 4px;
 
-  background-color: #fff;
-  color: var(--color-main);
-
   font-size: 13px;
   font-weight: 800;
   white-space: nowrap;
 
-  text-decoration: none;
+  transition:
+    background-color 0.18s ease,
+    opacity 0.18s ease;
+}
 
-  transition: background-color 0.18s ease;
+.header-login-btn {
+  color: var(--color-white);
+}
+
+.header-login-btn:hover {
+  background-color: var(--color-main-hover);
+}
+
+.header-join-btn {
+  background-color: var(--color-white);
+  color: var(--color-main);
 }
 
 .header-join-btn:hover {

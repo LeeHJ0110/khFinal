@@ -20,6 +20,7 @@ import DiagnosisDetailPage from "./pages/petcare/DiagnosisDetailPage";
 
 // store
 import PetStoreAdminProductListPage from "./pages/petStore/PetStoreAdminProductListPage";
+import PetStoreHomePage from "./pages/petStore/PetStoreHomePage";
 
 // mypage
 import MyPageHomePage from "./pages/mypage/MyPageHomePage";
@@ -66,6 +67,7 @@ function App() {
               path="product/admin"
               element={<PetStoreAdminProductListPage />}
             />
+            <Route path="product/home" element={<PetStoreHomePage />} />
           </Route>
 
           {/* 마이페이지 */}
