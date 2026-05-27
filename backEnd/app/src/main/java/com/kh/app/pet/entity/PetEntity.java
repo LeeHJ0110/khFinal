@@ -55,6 +55,6 @@ public class PetEntity extends BaseEntity {
     // 품종
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "BREED_ID")
-    private BreedEntity breedId;
+    private BreedEntity breed;
 
 }

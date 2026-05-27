@@ -4,7 +4,9 @@ import com.kh.app.common.exception.CustomException;
 import com.kh.app.member.dto.request.MemberJoinReqDto;
 import com.kh.app.member.dto.request.MemberKakaoJoinReqDto;
 import com.kh.app.member.dto.request.MemberKakaoLoginReqDto;
+import com.kh.app.member.dto.request.MemberUpdateReqDto;
 import com.kh.app.member.dto.response.MemberKakaoLoginRespDto;
+import com.kh.app.member.dto.response.MemberMyPageResDto;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.entity.MemberMarketingAgreeYn;
 import com.kh.app.member.entity.MemberRole;
@@ -118,5 +120,32 @@ public class MemberService {
                         .email(kakaoUserInfo.getEmail())
                         .nickname(kakaoUserInfo.getNickname())
                         .build());
+    }
+    public MemberMyPageResDto getMyInfo(String loginKey) {
+
+        MemberEntity member = memberRepository.findByUsername(loginKey)
+                .or(() -> memberRepository.findBySocialId(loginKey))
+                .orElseThrow(() ->
+                        new IllegalStateException("회원 정보가 존재하지 않습니다.")
+                );
+
+        return MemberMyPageResDto.from(member);
+    }
+    @Transactional
+    public void updateMyInfo(String loginKey, MemberUpdateReqDto request) {
+
+        MemberEntity member = memberRepository.findByUsername(loginKey)
+                .or(() -> memberRepository.findBySocialId(loginKey))
+                .orElseThrow(() ->
+                        new IllegalStateException("회원 정보가 존재하지 않습니다.")
+                );
+
+        member.updateMyInfo(
+                request.getNickname(),
+                request.getEmail(),
+                request.getPhone(),
+                request.getAddress(),
+                request.getAddressDetail()
+        );
     }
 }

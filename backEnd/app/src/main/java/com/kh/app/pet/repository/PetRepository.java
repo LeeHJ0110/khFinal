@@ -11,4 +11,5 @@ public interface PetRepository extends JpaRepository<PetEntity, Long> {
             String username,
             DelYn delYn
     );
+    List<PetEntity> findAllByMember_Id(Long memberId);
 }

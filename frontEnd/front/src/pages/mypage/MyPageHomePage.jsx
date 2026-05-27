@@ -1,9 +1,14 @@
+import { useNavigate } from "react-router-dom";
+
 import styled from "styled-components";
 import MyPageLayout from "./components/MyPageLayout";
 import usePet from "../../features/mypage/pet/hooks/usePet";
+import useMypageMember from "../../features/mypage/member/hooks/useMypageMember";
 
 export default function MyPageHomePage() {
-  const { selectedPet, hasPet, loading } = usePet();
+  const navigate = useNavigate();
+  const { member, loading: memberLoading } = useMypageMember();
+  const { selectedPet, hasPet, loading: petLoading } = usePet();
 
   return (
     <MyPageLayout>
@@ -11,31 +16,44 @@ export default function MyPageHomePage() {
         <MemberCard>
           <SectionTitle>회원 정보</SectionTitle>
 
-          <InfoRow>
-            <span>닉네임</span>
-            <strong>냥냥러브</strong>
-          </InfoRow>
+          {memberLoading ? (
+            <LoadingBox>회원정보 로딩중...</LoadingBox>
+          ) : member ? (
+            <>
+              <InfoRow>
+                <span>닉네임</span>
+                <strong>{member.nickname}</strong>
+              </InfoRow>
 
-          <InfoRow>
-            <span>이메일</span>
-            <strong>petrilobe@naver.com</strong>
-          </InfoRow>
+              <InfoRow>
+                <span>이메일</span>
+                <strong>{member.email}</strong>
+              </InfoRow>
 
-          <InfoRow>
-            <span>연락처</span>
-            <strong>010-4890-6219</strong>
-          </InfoRow>
+              <InfoRow>
+                <span>연락처</span>
+                <strong>{member.phone}</strong>
+              </InfoRow>
 
-          <InfoRow>
-            <span>가입일</span>
-            <strong>2024.05.20</strong>
-          </InfoRow>
+              <InfoRow>
+                <span>가입일</span>
+                <strong>{member.createdAt}</strong>
+              </InfoRow>
 
-          <EditButton>회원 정보 수정</EditButton>
+              <EditButton
+                type="button"
+                onClick={() => navigate("/mypage/member-edit")}
+              >
+                회원 정보 수정
+              </EditButton>
+            </>
+          ) : (
+            <EmptyText>회원 정보를 불러올 수 없습니다.</EmptyText>
+          )}
         </MemberCard>
 
         <PetCard>
-          {loading ? (
+          {petLoading ? (
             <LoadingBox>로딩중...</LoadingBox>
           ) : hasPet ? (
             <>
@@ -260,4 +278,9 @@ const IconCircle = styled.div`
   color: #00a982;
   font-size: 28px;
   font-weight: 700;
+`;
+const EmptyText = styled.div`
+  color: #777;
+  font-weight: 700;
+  padding: 40px 0;
 `;

@@ -9,3 +9,8 @@ export function createPet(data) {
 export function getMyPetList() {
   return api.get("/pet/me");
 }
+
+// 품종 목록 조회
+export function getBreedList(petType) {
+  return api.get("/pet/breed");
+}
