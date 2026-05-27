@@ -55,10 +55,7 @@ public class ScheduleService {
 
     @Transactional
     public void delete(Long id) {
-        ScheduleEntity entity = scheduleRepository
-                .findById(id)
-                .orElseThrow(EntityNotFoundException::new);
-        entity.delete();
+        scheduleRepository.deleteById(id);
     }
 
     @Transactional

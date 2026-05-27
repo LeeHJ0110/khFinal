@@ -25,6 +25,10 @@ export async function fetchScheduleDetail(params) {
   return await api.get(`schedule/${params}`);
 }
 
-export async function fetchScheduleEdit(params) {
-  return await api.put(`schedule/${params}`);
+export async function fetchScheduleEdit(params, vo) {
+  return await api.put(`schedule/${params}`, vo);
+}
+
+export async function fetchScheduleDelete(params) {
+  return await api.delete(`schedule/${params}`);
 }

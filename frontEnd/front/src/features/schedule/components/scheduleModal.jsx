@@ -3,17 +3,21 @@ import styled from "styled-components";
 import useScheduleWrite from "../hooks/useScheduleWrite";
 import useFormData from "../../../shared/layouts/hooks/useFormData";
 import useScheduleDetail from "../hooks/useScheduleDetail";
+import useScheduleEdit from "../hooks/useScheduleEdit";
+import useScheduleDelete from "../hooks/useScheduleDelete";
 
 export default function ScheduleModal({ open, onClose, data }) {
   if (!open) return null;
-  const { handleWrite, isSuccess } = useScheduleWrite();
+  const { handleWrite, isSuccess: writeSucc } = useScheduleWrite();
+  const { handleEdit, isSuccess: editSucc } = useScheduleEdit();
+  const { handleDelete, isSuccess: delSucc } = useScheduleDelete();
   const { formData, handleChange, resetFormData } = useFormData(data);
 
   useEffect(() => {
-    if (isSuccess) {
+    if (editSucc || writeSucc || delSucc) {
       onClose();
     }
-  }, [isSuccess]);
+  }, [writeSucc, editSucc, delSucc]);
 
   //error userEffect로 처리하기
 
@@ -50,7 +54,8 @@ export default function ScheduleModal({ open, onClose, data }) {
               backgroundColor: formData.backgroundColor.replace("#", ""),
             };
             if (data.isEdit) {
-              //   handleEdit(payload);
+              handleEdit(payload);
+              console.log(payload);
               console.log("수정");
             } else {
               handleWrite(payload);
@@ -92,8 +97,6 @@ export default function ScheduleModal({ open, onClose, data }) {
               />
             </Field>
           </Row>
-          {console.log(formData)}
-
           <Row>
             <Input
               type="number"
@@ -168,7 +171,8 @@ export default function ScheduleModal({ open, onClose, data }) {
                 <DeleteButton
                   type="button"
                   onClick={() => {
-                    // handleDelete(data.id);
+                    handleDelete(data.id);
+                    console.log("삭제");
                   }}
                 >
                   삭제
