@@ -259,8 +259,6 @@ const SubmitButton = styled.button`
   }
 `;
 
-// ================= 메인 컴포넌트 =================
-
 export default function BoardWritePage() {
   const {
     navigate,
