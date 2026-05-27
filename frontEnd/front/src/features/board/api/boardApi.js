@@ -15,3 +15,14 @@ export async function updateBoardApi(boardId, formData) {
     },
   });
 }
+
+export async function fetchBoardList(category, page = 0, searchCondition = {}) {
+  return await api.get(`/board/${category}`, {
+    params: {
+      page: page,
+      title: searchCondition.title || null,
+      content: searchCondition.content || null,
+      boardSubCategory: searchCondition.boardSubCategory || null,
+    },
+  });
+}
