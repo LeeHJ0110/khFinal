@@ -26,10 +26,13 @@ import MyPageHomePage from "./pages/mypage/MyPageHomePage";
 import MemberEditPage from "./pages/mypage/MemberEditPage";
 import PetManagePage from "./pages/mypage/PetManagePage";
 
+// board
+import BoardWritePage from "./pages/board/BoardWritePage";
+import BoardListPage from "./pages/board/BoardListPage";
+
 // common
 import HomePage from "./pages/home/HomePage";
 import ErrorPage from "./pages/error/ErrorPage";
-import BoardWritePage from "./pages/board/BoardWritePage";
 
 function App() {
   return (
@@ -85,6 +88,7 @@ function App() {
 
           <Route path="community">
             <Route path="write" element={<BoardWritePage />} />
+            <Route path="list" element={<BoardListPage />} />
           </Route>
         </Route>
       </Routes>
