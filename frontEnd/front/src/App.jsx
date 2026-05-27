@@ -29,6 +29,7 @@ import PetManagePage from "./pages/mypage/PetManagePage";
 // common
 import HomePage from "./pages/home/HomePage";
 import ErrorPage from "./pages/error/ErrorPage";
+import BoardWritePage from "./pages/board/BoardWritePage";
 
 function App() {
   return (
@@ -80,6 +81,10 @@ function App() {
           <Route path="common">
             <Route path="home" element={<HomePage />} />
             <Route path="error" element={<ErrorPage />} />
+          </Route>
+
+          <Route path="community">
+            <Route path="write" element={<BoardWritePage />} />
           </Route>
         </Route>
       </Routes>
