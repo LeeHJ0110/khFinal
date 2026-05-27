@@ -6,7 +6,6 @@ import DefaultLayout from "./app/layouts/DefaultLayout";
 // member
 import MemberJoinPage from "./pages/member/MemberJoinPage";
 import MemberLoginPage from "./pages/member/MemberLoginPage";
-import ScheduleMainPage from "./pages/schedule/scheduleMainPage";
 import MemberJoinTermsPage from "./pages/member/MemberJoinTermsPage";
 import MemberJoinCompletePage from "./pages/member/MemberJoinCompletePage";
 import MemberKakaoJoinPage from "./pages/member/MemberKakaoJoinPage";
