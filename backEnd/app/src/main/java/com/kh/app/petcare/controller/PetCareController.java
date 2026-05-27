@@ -1,6 +1,6 @@
 package com.kh.app.petcare.controller;
 
-import com.kh.app.petcare.dto.request.PetCareReqDto;
+import com.kh.app.pet.entity.PetType;
 import com.kh.app.petcare.service.PetCareService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -58,6 +58,15 @@ public class PetCareController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .build();
+    }
+    // 문진 질문 보여주기
+    @GetMapping("/diagnosis/questions")
+    public ResponseEntity<Object> getQuestionList(
+            @RequestParam PetType petType
+    ) {
+        return ResponseEntity.ok(
+                petCareService.getQuestionList(petType)
+        );
     }
 //페이징 목록조회
     @GetMapping("/diagnosis/list")

@@ -1,5 +1,9 @@
 import api from "../../../app/api/axios";
 
+// 질문 목록 조회
+export async function fetchQuestionList(petType) {
+  return await api.get(`/petcare/diagnosis/questions?petType=${petType}`);
+}
 // 건강진단 신청
 export async function requestDiagnosis(vo, eyeFiles, skinFiles, teethFiles) {
   const fd = new FormData();
