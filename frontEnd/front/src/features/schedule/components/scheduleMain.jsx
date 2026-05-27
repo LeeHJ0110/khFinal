@@ -2,28 +2,36 @@ import styled from "styled-components";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import useScheduleList from "../hooks/useScheduleList";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
+import ScheduleModal from "./scheduleModal";
+import useScheduleDetail from "../hooks/useScheduleDetail";
 
 export default function ScheduleMain() {
+  const initialState = {
+    id: "",
+    title: "",
+    content: "",
+    at: "",
+    startDate: "",
+    endDate: "",
+    hour: "",
+    minute: "",
+    backgroundColor: "#5EC8A7",
+    isEdit: "false",
+  };
   // 켈린더 이벤트 호출
   const { list, isLoading, asyncFetchScheduleList } = useScheduleList();
+
   // 상세 조회용 모달 오픈 여부
   const [detailOpen, setDetailOpen] = useState(false);
+
   // 선택된 일정의 정보를 담을 객체
-  const [selectedEvent, setSelectedEvent] = useState({
-    title: "",
-    start: "",
-    content: "",
-    end: "",
-    textColor: "",
-    backgroundColor: "",
-  });
+  const [selectedEvent, setSelectedEvent] = useState(initialState);
 
   useEffect(() => {
     asyncFetchScheduleList();
-  }, []);
-  console.log(list);
+  }, [detailOpen]);
 
   //날짜 숫자만 표시
   const renderDayCell = (info) => {
@@ -44,30 +52,74 @@ export default function ScheduleMain() {
     return <></>;
   };
 
+  const onEventClick = (info) => {
+    // FullCalendar의 이벤트 객체에서 데이터 추출
+
+    if (info.event) {
+      setSelectedEvent({
+        ...initialState,
+        id: info.event.id,
+        title: info.event.title,
+
+        startDate: info.event.startStr,
+        endDate: info.event.endStr,
+
+        backgroundColor: info.event.backgroundColor,
+
+        content: info.event.extendedProps?.content,
+        at: info.event.extendedProps?.at,
+        isEdit: true,
+      });
+    } else {
+      setSelectedEvent({
+        ...initialState,
+        id: "",
+        startDate: info.startStr,
+        endDate: info.endStr,
+        isEdit: false,
+      });
+    }
+
+    setDetailOpen(true); // 상세 조회 모달 열기
+  };
+
   return (
     <Wrapper>
-      <FullCalendar
-        plugins={[dayGridPlugin, interactionPlugin]}
-        initialView="dayGridMonth"
-        locale="ko"
-        height={500}
-        // events={events}
-        // 헤더 최소화
-        headerToolbar={{
-          left: "prev",
-          center: "title",
-          right: "next",
-        }}
-        dayMaxEvents={2} // TODO 큰버전은 5개 까지
-        moreLinkContent={(args) => {
-          return `+${args.num}`;
-        }}
-        dayCellContent={renderDayCell} // 날짜 커스텀
-        // eventContent={renderEventContent} // 이벤트 커스텀
-        // eventClick={onEventClick}
-        // contentHeight={280}
-        // fixedWeekCount={false} // 해당 월의 주차만큼만 표시
-      />
+      {isLoading ? (
+        <p>불러오는 중...</p>
+      ) : (
+        <>
+          <FullCalendar
+            plugins={[dayGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            locale="ko"
+            height={500}
+            events={list}
+            // 헤더 최소화
+            headerToolbar={{
+              left: "prev",
+              center: "title",
+              right: "next",
+            }}
+            dayMaxEvents={2} // TODO 큰버전은 5개 까지
+            moreLinkContent={(args) => {
+              return `+${args.num}`;
+            }}
+            selectable={true}
+            select={onEventClick}
+            dayCellContent={renderDayCell} // 날짜 커스텀
+            // eventContent={renderEventContent} // 이벤트 커스텀
+            eventClick={onEventClick}
+            // contentHeight={280}
+            // fixedWeekCount={false} // 해당 월의 주차만큼만 표시
+          />
+          <ScheduleModal
+            open={detailOpen}
+            onClose={() => setDetailOpen(false)}
+            data={selectedEvent}
+          />
+        </>
+      )}
     </Wrapper>
   );
 }

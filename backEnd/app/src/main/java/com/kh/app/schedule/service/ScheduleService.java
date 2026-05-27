@@ -36,13 +36,13 @@ public class ScheduleService {
         log.info("[일정 작성 완료] writer: {}", memberEntity);
     }
 
-    public List<SimpleEventResDto> selectList(String username) {
+    public List<EventResDto> selectList(String username) {
         MemberEntity memberEntity = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("그런 username 없음"));
         return scheduleRepository
                 .findAllByMemberUsername(memberEntity.getUsername())
                 .stream()
-                .map(SimpleEventResDto::from)
+                .map(EventResDto::from)
                 .toList();
     }
 
@@ -55,10 +55,7 @@ public class ScheduleService {
 
     @Transactional
     public void delete(Long id) {
-        ScheduleEntity entity = scheduleRepository
-                .findById(id)
-                .orElseThrow(EntityNotFoundException::new);
-        entity.delete();
+        scheduleRepository.deleteById(id);
     }
 
     @Transactional

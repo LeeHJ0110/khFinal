@@ -1,7 +1,39 @@
+import { useEffect, useState } from "react";
 import styled from "styled-components";
+import useScheduleWrite from "../hooks/useScheduleWrite";
+import useFormData from "../../../shared/layouts/hooks/useFormData";
+import useScheduleDetail from "../hooks/useScheduleDetail";
+import useScheduleEdit from "../hooks/useScheduleEdit";
+import useScheduleDelete from "../hooks/useScheduleDelete";
 
-export default function ScheduleModal({ open, onClose, schedule }) {
+export default function ScheduleModal({ open, onClose, data }) {
   if (!open) return null;
+  const { handleWrite, isSuccess: writeSucc } = useScheduleWrite();
+  const { handleEdit, isSuccess: editSucc } = useScheduleEdit();
+  const { handleDelete, isSuccess: delSucc } = useScheduleDelete();
+  const { formData, handleChange, resetFormData } = useFormData(data);
+
+  useEffect(() => {
+    if (editSucc || writeSucc || delSucc) {
+      onClose();
+    }
+  }, [writeSucc, editSucc, delSucc]);
+
+  //error userEffect로 처리하기
+
+  function displayEndDate(endDate) {
+    if (!endDate) return "";
+
+    const date = new Date(endDate);
+
+    date.setDate(date.getDate() - 1);
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+  }
 
   return (
     <Overlay onClick={onClose}>
@@ -11,30 +43,147 @@ export default function ScheduleModal({ open, onClose, schedule }) {
 
           <CloseButton onClick={onClose}>×</CloseButton>
         </Header>
+        <Body
+          onSubmit={(e) => {
+            e.preventDefault();
+            const payload = {
+              ...formData,
+              at: `${String(formData.hour).padStart(2, "0")}:${String(
+                formData.minute,
+              ).padStart(2, "0")}`,
+              backgroundColor: formData.backgroundColor.replace("#", ""),
+            };
+            if (data.isEdit) {
+              handleEdit(payload);
+              console.log(payload);
+              console.log("수정");
+            } else {
+              handleWrite(payload);
+              console.log("등록");
+            }
+          }}
+        >
+          <Field>
+            <Label>제목</Label>
 
-        <Body>
-          <Label>제목</Label>
+            <Input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+            />
+          </Field>
 
-          <Box>{schedule?.title}</Box>
+          <Row>
+            <Field>
+              <Label>시작 날짜</Label>
 
-          <Label>날짜</Label>
+              <Input
+                type="date"
+                name="startDate"
+                value={formData.startDate}
+                onChange={handleChange}
+              />
+            </Field>
 
-          <Box>{schedule?.start}</Box>
+            <Field>
+              <Label>종료 날짜</Label>
 
-          <Label>내용</Label>
+              <Input
+                type="date"
+                name="endDate"
+                value={displayEndDate(formData.endDate)}
+                onChange={handleChange}
+              />
+            </Field>
+          </Row>
+          <Row>
+            <Input
+              type="number"
+              min="0"
+              max="23"
+              placeholder="시간"
+              value={formData.at?.split(":")[0] || ""}
+              onChange={(e) => {
+                const minute = formData.at?.split(":")[1] || "00";
 
-          <Content
-            dangerouslySetInnerHTML={{
-              __html: schedule?.content || "",
-            }}
-          />
+                handleChange({
+                  target: {
+                    name: "at",
+                    value: `${String(e.target.value).padStart(2, "0")}:${minute}`,
+                  },
+                });
+              }}
+            />
+
+            <Input
+              type="number"
+              min="0"
+              max="59"
+              placeholder="분"
+              value={formData.at?.split(":")[1] || ""}
+              onChange={(e) => {
+                const hour = formData.at?.split(":")[0] || "00";
+
+                handleChange({
+                  target: {
+                    name: "at",
+                    value: `${hour}:${String(e.target.value).padStart(2, "0")}`,
+                  },
+                });
+              }}
+            />
+          </Row>
+
+          <Field>
+            <Label>내용</Label>
+
+            <TextArea
+              value={formData.content}
+              name="content"
+              onChange={handleChange}
+            />
+            {/* <label htmlFor="file-input">파일첨부ㅋㅋ</label>
+            <input
+            id="file-input"
+            type="file"
+            name="f"
+            multiple
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+            /> */}
+          </Field>
+          <Field>
+            <Label>색상</Label>
+            <Input
+              type="color"
+              name="backgroundColor"
+              value={formData.backgroundColor}
+              onChange={handleChange}
+            />
+          </Field>
+          <Footer>
+            <CancelButton type="button" onClick={onClose}>
+              취소
+            </CancelButton>
+            {data.isEdit ? (
+              <>
+                <DeleteButton
+                  type="button"
+                  onClick={() => {
+                    handleDelete(data.id);
+                    console.log("삭제");
+                  }}
+                >
+                  삭제
+                </DeleteButton>
+                <SaveButton type="submit">수정</SaveButton>
+              </>
+            ) : (
+              <SaveButton type="submit">저장</SaveButton>
+            )}
+          </Footer>
         </Body>
-
-        <Footer>
-          <CancelButton onClick={onClose}>닫기</CancelButton>
-
-          <SaveButton>수정</SaveButton>
-        </Footer>
       </Container>
     </Overlay>
   );
@@ -54,7 +203,7 @@ const Overlay = styled.div`
 `;
 
 const Container = styled.div`
-  width: 480px;
+  width: 520px;
 
   background: white;
 
@@ -100,7 +249,7 @@ const CloseButton = styled.button`
   border: none;
   background: transparent;
 
-  font-size: 26px;
+  font-size: 28px;
 
   cursor: pointer;
 
@@ -113,60 +262,90 @@ const CloseButton = styled.button`
   }
 `;
 
-const Body = styled.div`
+const Body = styled.form`
   display: flex;
   flex-direction: column;
 
-  gap: 10px;
+  gap: 18px;
 `;
 
-const Label = styled.p`
-  margin: 0;
+const Field = styled.div`
+  display: flex;
+  flex-direction: column;
 
+  gap: 8px;
+`;
+
+const Row = styled.div`
+  display: flex;
+
+  gap: 12px;
+
+  > div {
+    flex: 1;
+  }
+`;
+
+const Label = styled.label`
   font-size: 14px;
   font-weight: 600;
 
   color: #666;
 `;
 
-const Box = styled.div`
-  padding: 14px 16px;
+const Input = styled.input`
+  height: 46px;
+
+  border: 1px solid #ddd;
 
   border-radius: 14px;
 
-  background: #f7f7f7;
-
-  font-size: 15px;
-
-  color: #222;
-`;
-
-const Content = styled.div`
-  min-height: 140px;
-
-  max-height: 240px;
-
-  overflow-y: auto;
-
-  padding: 16px;
-
-  border-radius: 14px;
-
-  background: #f7f7f7;
-
-  line-height: 1.6;
+  padding: 0 14px;
 
   font-size: 14px;
 
-  color: #333;
+  outline: none;
 
-  img {
-    max-width: 100%;
+  transition: 0.2s;
 
-    border-radius: 12px;
-
-    margin-top: 10px;
+  &:focus {
+    border-color: #5ec8a7;
   }
+`;
+
+const TextArea = styled.textarea`
+  min-height: 180px;
+
+  border: 1px solid #ddd;
+
+  border-radius: 14px;
+
+  padding: 14px;
+
+  resize: none;
+
+  font-size: 14px;
+
+  line-height: 1.5;
+
+  outline: none;
+
+  transition: 0.2s;
+
+  &:focus {
+    border-color: #5ec8a7;
+  }
+`;
+
+const ColorInput = styled.input`
+  width: 60px;
+  height: 42px;
+
+  border: none;
+
+  background: transparent;
+
+  cursor: pointer;
 `;
 
 const Footer = styled.div`
@@ -175,7 +354,7 @@ const Footer = styled.div`
 
   gap: 10px;
 
-  margin-top: 28px;
+  margin-top: 10px;
 `;
 
 const CancelButton = styled.button`
@@ -221,5 +400,20 @@ const SaveButton = styled.button`
 
   &:hover {
     background: #4eb394;
+  }
+`;
+const DeleteButton = styled.button`
+  border: none;
+  padding: 12px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  background: #ff4d4d;
+  color: white;
+  transition: 0.2s;
+
+  &:hover {
+    background: #e60000;
   }
 `;

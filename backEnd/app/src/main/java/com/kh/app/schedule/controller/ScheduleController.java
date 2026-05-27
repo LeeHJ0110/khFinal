@@ -31,7 +31,7 @@ public class ScheduleController {
     })
     @PostMapping
     public ResponseEntity<Object> write(
-            @RequestBody EventReqDto reqDto,
+            @RequestPart(name = "data") EventReqDto reqDto,
             @AuthenticationPrincipal String username){
         scheduleService.write(reqDto, username);
         return ResponseEntity
@@ -41,10 +41,10 @@ public class ScheduleController {
 
     //목록조회
     @GetMapping
-    public ResponseEntity<List<SimpleEventResDto>> selectList(
+    public ResponseEntity<List<EventResDto>> selectList(
             @AuthenticationPrincipal String username
     ){
-        List<SimpleEventResDto> resDtoList = scheduleService.selectList(username);
+        List<EventResDto> resDtoList = scheduleService.selectList(username);
         return ResponseEntity.ok(resDtoList);
     }
 

@@ -1,6 +1,6 @@
 import api from "../../../app/api/axios";
 
-export async function insertBoard(vo) {
+export async function insertSchedule(vo) {
   const fd = new FormData();
 
   fd.append(
@@ -17,6 +17,18 @@ export async function insertBoard(vo) {
   return await api.post(`/schedule`, fd);
 }
 
-export async function fetchBoardList() {
+export async function fetchScheduleList() {
   return await api.get(`/schedule`);
+}
+
+export async function fetchScheduleDetail(params) {
+  return await api.get(`schedule/${params}`);
+}
+
+export async function fetchScheduleEdit(params, vo) {
+  return await api.put(`schedule/${params}`, vo);
+}
+
+export async function fetchScheduleDelete(params) {
+  return await api.delete(`schedule/${params}`);
 }
