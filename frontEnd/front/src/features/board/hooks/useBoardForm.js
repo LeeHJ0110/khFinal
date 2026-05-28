@@ -24,7 +24,7 @@ export default function useBoardForm() {
 
   // 폼 상태 관리
   const [boardCategory, setBoardCategory] = useState("FREE");
-  const [boardSubCategory, setBoardSubCategory] = useState("TALK");
+  const [boardSubCategory, setBoardSubCategory] = useState("잡담");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [boardStars, setBoardStars] = useState(5);
@@ -40,7 +40,7 @@ export default function useBoardForm() {
       setTitle(title || "");
       setContent(content || "");
       setBoardCategory(category || "FREE");
-      setBoardSubCategory(subCategory || "TALK");
+      setBoardSubCategory(subCategory || "잡담");
       setBoardStars(stars || 5);
     }
   }, [location.state, dispatch]);

@@ -1,5 +1,5 @@
 package com.kh.app.board.entity;
 
 public enum BoardSubCategory {
-    TALK, INFORMATION, JOKE;
+    잡담, 정보, 유머;
 }

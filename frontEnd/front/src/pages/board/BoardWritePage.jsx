@@ -331,9 +331,9 @@ export default function BoardWritePage() {
               value={boardSubCategory}
               onChange={handleSubCategoryChange}
             >
-              <option value="TALK">TALK</option>
-              <option value="INFORMATION">INFORMATION</option>
-              <option value="JOKE">JOKE</option>
+              <option value="잡담">잡담</option>
+              <option value="정보">정보</option>
+              <option value="유머">유머</option>
             </CustomSelect>
           )}
         </SelectorWrapper>
