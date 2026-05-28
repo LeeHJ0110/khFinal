@@ -276,15 +276,14 @@ export default function BoardWritePage() {
     handleSubmit,
   } = useBoardForm();
 
-  // 사용자 로그인 체크 임시 비활성화 및 리마인더 alert 추가
+  // 사용자 로그인 권한 체크 및 리다이렉트
   useEffect(() => {
     const accessToken = localStorage.getItem("accessToken");
     if (!accessToken) {
-      alert(
-        "로그인 기능 만들면 비로그인자는 로그인 페이지로 이동하게 코드 교체",
-      );
+      alert("로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.");
+      navigate("/member/login");
     }
-  }, []);
+  }, [navigate]);
 
   // React Quill 툴바 및 모듈 구성 (시안 디자인에 맞게 최적화)
   const modules = {
