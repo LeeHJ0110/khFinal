@@ -3,6 +3,11 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 
 import useBoardList from "../../features/board/hooks/useBoardList";
+import NewsBoardList from "./components/NewsBoardList";
+import FAQBoardList from "./components/FAQBoardList";
+import ReviewBoardList from "./components/ReviewBoardList";
+import FreeBoardList from "./components/FreeBoardList";
+import BoardRightSidebar from "./components/BoardRightSidebar";
 
 const Container = styled.div`
   width: var(--layout-width);

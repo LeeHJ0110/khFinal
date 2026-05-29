@@ -258,32 +258,57 @@ export default function FreeBoardList({ list, isLoading, onItemClick }) {
           : 0;
 
         return (
-          <div
+          <ListItem
             key={item.boardId}
-            onClick={() => (onItemClick ? onItemClick(item) : alert("아직"))}
+            onClick={() =>
+              onItemClick
+                ? onItemClick(item)
+                : alert("게시글 상세 이동 준비 중!")
+            }
           >
-            <div>
+            <ItemThumbnail>
               {firstImg ? (
                 <img src={firstImg} alt="Thumbnail" />
               ) : (
                 <SvgPawPlaceholder />
               )}
-            </div>
+            </ItemThumbnail>
 
-            <div>
+            <ItemContent>
               {item.boardSubCategory && (
-                <span type={item.boardSubCategory}>
+                <SubCategoryTag type={item.boardSubCategory}>
                   {item.boardSubCategory}
-                </span>
+                </SubCategoryTag>
               )}
 
-              <h2>{item.title}</h2>
+              <ItemTitle>{item.title}</ItemTitle>
 
-              <div>
+              <ItemMeta>
                 <LevelBadge>Lv.{item.writerLevel || 1}</LevelBadge>
-              </div>
-            </div>
-          </div>
+                <WriterName>{item.writerNickname || "익명회원"}</WriterName>
+                <RelativeTime>
+                  {formatRelativeTime(item.createdAt)}
+                </RelativeTime>
+              </ItemMeta>
+            </ItemContent>
+
+            <ItemStats>
+              <StatIconWrapper>
+                <SvgComment />
+                {mockComments}
+              </StatIconWrapper>
+
+              <StatIconWrapper>
+                <SvgEye />
+                {item.hits ? item.hits.toLocaleString() : 0}
+              </StatIconWrapper>
+
+              <StatIconWrapper>
+                <SvgHeart />
+                {mockLikes}
+              </StatIconWrapper>
+            </ItemStats>
+          </ListItem>
         );
       })}
     </BoardListWrapper>
