@@ -69,7 +69,20 @@ public class StoreProductService {
 
     public Page<StoreProductAdminListResDto> getAdminProductList(int page) {
         Pageable pageable = PageRequest.of(page, 10);
-        return storeProductRepository.findAdminProductList(pageable);
+
+        return storeProductRepository.findAdminProductList(pageable)
+                .map(dto -> new StoreProductAdminListResDto(
+                        dto.getProductId(),
+                        makeS3Url(dto.getThumbnailUrl()),
+                        dto.getProductName(),
+                        dto.getProductCategory(),
+                        dto.getProductTargetPetType(),
+                        dto.getProductPrice(),
+                        dto.getProductSaleYn(),
+                        dto.getProductViewCount(),
+                        dto.getTagName(),
+                        dto.getCreatedAt()
+                ));
     }
 
     //검색 및 필터링 목록조회
@@ -380,6 +393,14 @@ public class StoreProductService {
     }
 
     private String makeS3Url(String changedName) {
+        if (changedName == null || changedName.isBlank()) {
+            return null;
+        }
+
+        if (changedName.startsWith("http://") || changedName.startsWith("https://")) {
+            return changedName;
+        }
+
         String keyPath = changedName.startsWith("store/product/")
                 ? changedName
                 : "store/product/" + changedName;

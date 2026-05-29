@@ -30,7 +30,7 @@ export default function PetStoreProductBasicSection({
         <option value="FOOD">사료</option>
         <option value="SNACK">간식</option>
         <option value="SUPPLEMENT">영양제</option>
-        <option value="TOILET">배변/위생</option>
+        <option value="TOILET">배변용품</option>
       </select>
 
       <input

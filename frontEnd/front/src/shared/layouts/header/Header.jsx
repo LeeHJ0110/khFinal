@@ -8,7 +8,7 @@ import UserMenu from "./UserMenu";
 import AdminMenu from "./AdminMenu";
 
 const mainMenus = [
-  { label: "HOME", path: "/" },
+  { label: "HOME", path: "/home" },
   { label: "건강관리", path: "/health" },
   { label: "커뮤니티", path: "/community" },
   { label: "스토어", path: "/store" },
@@ -17,19 +17,11 @@ const mainMenus = [
 export default function Header({ activeMenu = "" }) {
   const location = useLocation();
 
-  /*
-    지금은 임시로 localStorage에서 로그인 정보를 가져오는 방식입니다.
-    나중에 팀에서 Context, Zustand, Redux 등을 쓰면 이 부분만 교체하면 됩니다.
-  */
   const loginMember = JSON.parse(localStorage.getItem("loginMember"));
 
   function isMenuActive(menu) {
     if (activeMenu) {
       return activeMenu === menu.label;
-    }
-
-    if (menu.path === "/") {
-      return location.pathname === "/";
     }
 
     return (
@@ -54,7 +46,7 @@ export default function Header({ activeMenu = "" }) {
     <header className="header">
       <div className="header-inner">
         {/* 로고 영역 */}
-        <Link to="/" className="header-logo">
+        <Link to="/home" className="header-logo">
           <img src={logoImg} alt="PET & FOR 로고" />
         </Link>
 
@@ -71,7 +63,7 @@ export default function Header({ activeMenu = "" }) {
           ))}
         </nav>
 
-        {/* 우측 영역: 검색은 공통, 그 옆은 로그인 상태별로 분리 */}
+        {/* 우측 영역 */}
         <div
           className={
             loginMember ? "header-right is-login" : "header-right is-guest"

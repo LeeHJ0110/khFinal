@@ -54,6 +54,8 @@ function App() {
 
         {/* 기본 레이아웃 */}
         <Route path="/*" element={<DefaultLayout />}>
+          {/* 홈페이지 */}
+          <Route path="home" element={<HomePage />} />
           {/* 헬스케어 */}
           <Route path="healthcare">
             <Route path="schedule" element={<ScheduleMainPage />} />

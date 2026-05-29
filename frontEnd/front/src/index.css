@@ -90,6 +90,13 @@
   --color-dark: #122d2e;
   --color-white: #ffffff;
 
+  /* Brand Gradient */
+  --color-brand-gradient: linear-gradient(
+    180deg,
+    var(--color-main) 0%,
+    var(--color-mint) 100%
+  );
+
   /* Background Color */
   --color-bg-light: #ecfdf6;
   --color-bg-soft: #d9eddf;

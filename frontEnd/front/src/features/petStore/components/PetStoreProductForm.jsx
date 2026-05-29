@@ -7,6 +7,7 @@ import useFormData from "../../../shared/hooks/useFormData";
 
 export default function PetStoreProductForm({
   mode,
+  detailData,
   initialBasicData,
   initialNutrition,
   initialFeedingGuideList,
@@ -18,6 +19,7 @@ export default function PetStoreProductForm({
 
   const [mainImage, setMainImage] = useState(null);
   const [subImages, setSubImages] = useState([]);
+
   const [nutrition, setNutrition] = useState(initialNutrition);
   const [feedingGuideList, setFeedingGuideList] = useState(
     initialFeedingGuideList,
@@ -73,6 +75,7 @@ export default function PetStoreProductForm({
       ...formData,
       tagId: Number(formData.tagId),
       productPrice: Number(formData.productPrice),
+
       feedingGuideList: feedingGuideList.map((guide) => ({
         feedingMinWeight: Number(guide.feedingMinWeight),
         feedingMaxWeight: Number(guide.feedingMaxWeight),
@@ -80,6 +83,7 @@ export default function PetStoreProductForm({
         feedingUnit: guide.feedingUnit,
         feedingNote: guide.feedingNote,
       })),
+
       nutrition: {
         nutritionCalorie: Number(nutrition.nutritionCalorie),
         nutritionProtein: Number(nutrition.nutritionProtein),
@@ -119,7 +123,11 @@ export default function PetStoreProductForm({
       />
 
       <PetStoreProductImageSection
+        mode={mode}
+        detailData={detailData}
+        mainImage={mainImage}
         setMainImage={setMainImage}
+        subImages={subImages}
         setSubImages={setSubImages}
       />
 
