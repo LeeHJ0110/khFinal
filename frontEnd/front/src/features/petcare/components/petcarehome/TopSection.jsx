@@ -1,21 +1,29 @@
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { fetchMyPetList } from "../../api/petCareApi";
 
 function TopSection() {
   const navigate = useNavigate();
 
-  const [petInfo, setPetInfo] = useState({
-    petName: "깨깨",
-    breedName: "비숑 프리제",
-    age: "5살",
-    weight: "7kg",
-  });
+  //펫정보 불러오기
+  const [petInfo, setPetInfo] = useState(null);
 
   useEffect(() => {
-    // TODO : 반려동물 조회 API 연결 예정
-    // const res = await api.get("/pet/my");
-    // setPetInfo(res.data);
+    async function loadPetInfo() {
+      try {
+        const res = await fetchMyPetList();
+
+        const representPet =
+          res.data.find((pet) => pet.representYn === "Y") ?? res.data[0];
+
+        setPetInfo(representPet);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    loadPetInfo();
   }, []);
 
   return (
@@ -40,13 +48,15 @@ function TopSection() {
       <PetArea>
         <PetImage />
 
-        <PetName>{petInfo.petName}</PetName>
+        <PetName>{petInfo?.name}</PetName>
 
-        <PetBreed>{petInfo.breedName}</PetBreed>
+        <PetBreed>
+          {petInfo?.petType} · {petInfo?.breedName}
+        </PetBreed>
 
         <PetInfo>
-          <span>{petInfo.age}</span>
-          <span>{petInfo.weight}</span>
+          <span>{petInfo?.gender}</span>
+          <span>{petInfo?.weight}kg</span>
         </PetInfo>
 
         <ButtonGroup>
