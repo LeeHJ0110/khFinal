@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import "./App.css";
 
 import DefaultLayout from "./app/layouts/DefaultLayout";
@@ -34,6 +34,9 @@ import BoardListPage from "./pages/board/BoardListPage";
 // common
 import HomePage from "./pages/home/HomePage";
 import ErrorPage from "./pages/error/ErrorPage";
+import PetStoreDogHomePage from "./pages/petStore/PetStoreDogHomePage";
+import PetStoreCatHomePage from "./pages/petStore/PetStoreCatHomePage";
+import PetStoreDogFoodProductListPage from "./pages/petStore/PetStoreDogFoodProductListPage";
 
 function App() {
   return (
@@ -66,11 +69,33 @@ function App() {
 
           {/* 스토어 */}
           <Route path="store">
+            {/* 공통 스토어 홈 */}
+            <Route index element={<PetStoreHomePage />} />
+
+            {/* 관리자 상품관리 */}
             <Route
               path="product/admin"
               element={<PetStoreAdminProductListPage />}
             />
-            <Route path="product/home" element={<PetStoreHomePage />} />
+
+            {/* 강아지 스토어 계열 - 임시로 홈 연결 */}
+            <Route path="dog" element={<PetStoreDogHomePage />} />
+            <Route
+              path="dog/food"
+              element={<PetStoreDogFoodProductListPage />}
+            />
+            <Route path="dog/snack" element={<PetStoreDogHomePage />} />
+            <Route path="dog/supplement" element={<PetStoreDogHomePage />} />
+            <Route path="dog/toilet" element={<PetStoreDogHomePage />} />
+
+            {/* 고양이 스토어 계열 -  임시로 홈 연결 */}
+            <Route path="cat" element={<PetStoreCatHomePage />} />
+            <Route path="cat/feed" element={<PetStoreCatHomePage />} />
+            <Route path="cat/snack" element={<PetStoreCatHomePage />} />
+            <Route path="cat/supplement" element={<PetStoreCatHomePage />} />
+            <Route path="cat/toilet" element={<PetStoreCatHomePage />} />
+
+            {/* 사용자 보조 메뉴 */}
           </Route>
 
           {/* 마이페이지 */}

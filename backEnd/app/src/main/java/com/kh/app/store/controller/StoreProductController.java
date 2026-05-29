@@ -6,6 +6,7 @@ import com.kh.app.store.dto.response.StoreProductAdminDetailResDto;
 import com.kh.app.store.dto.response.StoreProductAdminListResDto;
 import com.kh.app.store.dto.response.StoreProductDetailResDto;
 import com.kh.app.store.dto.response.StoreProductListResDto;
+import com.kh.app.store.entity.StoreProductCategory;
 import com.kh.app.store.service.StoreProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,9 +30,11 @@ import java.util.List;
 //관리자 : 상품 판매재개
 //사용자 : 상품 상세 조회
 //사용자 : 상품 목록 조회
+//사용자 : 베스트 상품 4개 목록 조회 (공통홈/ 강아지 홈/ 고양이 홈)
 
 
 //<Not Yet>
+
 //최근 본 상품 등록/조회
 //관심상품 등록
 //관심상품 목록 조회
@@ -84,12 +87,29 @@ public class StoreProductController {
 
     }
 
-    // 3. 사용자 : 상품 목록 조회(페이징X)
-    @Operation(summary = "사용자 상품 목록조회", description = "사용자가 판매중인 전체 상품목록을 조회하는 기능")
+    // 3. 사용자 : 상품 목록 조회(조건 검색 / 페이징X)
+    @Operation(
+            summary = "사용자 상품 목록조회",
+            description = "사용자가 판매중인 상품 목록을 각 필터 조건으로 조회하는 기능"
+    )
     @GetMapping
-    public ResponseEntity<List<StoreProductListResDto>> getProductList() {
-
-        List<StoreProductListResDto> result = storeProductService.getProductList();
+    public ResponseEntity<List<StoreProductListResDto>> getProductList(
+            @RequestParam(name = "targetPetType", required = false) String targetPetType,
+            @RequestParam(name = "category", required = false) StoreProductCategory category,
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "tagId", required = false) Long tagId,
+            @RequestParam(name = "tagName", required = false) String tagName,
+            @RequestParam(name = "sort", defaultValue = "latest") String sort
+    ) {
+        List<StoreProductListResDto> result =
+                storeProductService.getProductList(
+                        targetPetType,
+                        category,
+                        keyword,
+                        tagId,
+                        tagName,
+                        sort
+                );
 
         return ResponseEntity.ok(result);
     }
@@ -150,6 +170,18 @@ public class StoreProductController {
         storeProductService.resumeSelling(productId);
 
         return ResponseEntity.ok().build();
+    }
+
+    //9. 사용자 : 베스트 상품 4개 목록 조회 (공통홈/ 강아지 홈/ 고양이 홈)
+    //파라미터 null은 공통 , D는 강아지, C는 고양이
+    @Operation(summary = "사용자 베스트 상품 조회", description = "판매중인 상품 중 조회수 상위 4개 상품을 조회하는 기능")
+    @GetMapping("/best")
+    public ResponseEntity<List<StoreProductListResDto>> getBestProductList(
+            @RequestParam(name = "targetPetType", required = false) String targetPetType
+    ) {
+        List<StoreProductListResDto> result = storeProductService.getBestProductList(targetPetType);
+
+        return ResponseEntity.ok(result);
     }
 
 
