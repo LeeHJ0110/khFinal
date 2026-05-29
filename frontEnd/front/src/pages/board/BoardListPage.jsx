@@ -8,6 +8,7 @@ import FAQBoardList from "./components/FAQBoardList";
 import ReviewBoardList from "./components/ReviewBoardList";
 import FreeBoardList from "./components/FreeBoardList";
 import BoardRightSidebar from "./components/BoardRightSidebar";
+import BoardSubNavbar from "./components/BoardSubNavbar";
 
 const Container = styled.div`
   width: var(--layout-width);
@@ -569,7 +570,7 @@ export default function BoardListPage() {
   return (
     <Container>
       {/* 상단 서브 내비게이션 바 */}
-      <SubNavbar>
+      {/* <SubNavbar>
         <SubNavInner>
           <SubNavItem
             active={activeTab === "FREE"}
@@ -602,7 +603,8 @@ export default function BoardListPage() {
             뉴스게시판
           </SubNavItem>
         </SubNavInner>
-      </SubNavbar>
+      </SubNavbar> */}
+      <BoardSubNavbar activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* 2단 레이아웃 콘텐츠 */}
       <LayoutWrapper>

@@ -230,22 +230,6 @@ export default function FreeBoardList({ list, isLoading, onItemClick }) {
     );
   }
 
-  if (!list || list.length === 0) {
-    return (
-      <div
-        style={{
-          textAlign: "center",
-          padding: "80px 0",
-          color: "#aaaaaa",
-          fontSize: "14px",
-          borderBottom: "1px solid #f1f3f4",
-        }}
-      >
-        작성된 게시글이 없습니다. 첫 주인공이 되어보세요!
-      </div>
-    );
-  }
-
   return (
     <BoardListWrapper>
       {list.map((item) => {
