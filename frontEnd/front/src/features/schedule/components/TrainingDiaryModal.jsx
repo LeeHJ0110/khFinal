@@ -4,23 +4,26 @@ import useFormData from "../../../shared/hooks/useFormData";
 import { useEffect, useState } from "react";
 import usePet from "../../mypage/pet/hooks/usePet";
 
-export default function TrainingDiaryModal({ detail, formData, status }) {
+export default function TrainingDiaryModal({ open, onClose, data }) {
   const { isLoading, openDetail, closeDetail, insertDiary } = useTraining();
-  const [content, setContent] = useState("");
+  const { formData, handleChange } = useFormData(data);
 
   const { petList, fetchMyPetList } = usePet();
 
   return (
     <Wrapper>
-      {detail && (
-        <ModalOverlay onClick={closeDetail}>
+      {open && (
+        <ModalOverlay onClick={onClose}>
           <ModalBox onClick={(e) => e.stopPropagation()}>
             <Title>훈련일기 작성</Title>
-            <TextArea placeholder="내용 입력" />
-            {/* {isLoading ? <p>로딩중</p> : <>petList</>} */}
+            <TextArea
+              value={formData.content}
+              name="content"
+              onChange={handleChange}
+            />
 
             <ButtonGroup>
-              <CancelButton onClick={closeDetail}>취소</CancelButton>
+              <CancelButton onClick={onClose}>취소</CancelButton>
 
               {/* <SubmitButton onClick={()=>insertDiary()}>저장</SubmitButton> */}
             </ButtonGroup>

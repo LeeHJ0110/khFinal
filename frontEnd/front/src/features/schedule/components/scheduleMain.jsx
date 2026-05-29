@@ -7,20 +7,27 @@ import FullCalendar from "@fullcalendar/react";
 import ScheduleModal from "./scheduleModal";
 import useScheduleDetail from "../hooks/useScheduleDetail";
 import useTrainingList from "../hooks/useTrainingList";
+import TrainingDiaryModal from "./TrainingDiaryModal";
 
-export default function ScheduleMain() {
-  const initialState = {
+export default function ScheduleMain({ onOpenModal, detailOpen }) {
+  const scheduleInit = {
     id: "",
     title: "",
     content: "",
     at: "",
     startDate: "",
     endDate: "",
-    hour: "",
-    minute: "",
     backgroundColor: "#5EC8A7",
-    isEdit: "false",
+    isEdit: false,
   };
+  const trainingInit = {
+    id: "",
+    content: "",
+    at: "",
+    petList: [],
+    isEdit: false,
+  };
+
   // 켈린더 이벤트 호출
   const {
     scheduleList,
@@ -34,10 +41,6 @@ export default function ScheduleMain() {
   } = useTrainingList();
 
   // 상세 조회용 모달 오픈 여부
-  const [detailOpen, setDetailOpen] = useState(false);
-
-  // 선택된 일정의 정보를 담을 객체
-  const [selectedEvent, setSelectedEvent] = useState(initialState);
 
   useEffect(() => {
     asyncFetchScheduleList();
@@ -90,34 +93,44 @@ export default function ScheduleMain() {
   };
 
   const onEventClick = (info) => {
-    // FullCalendar의 이벤트 객체에서 데이터 추출
-
-    if (info.event) {
-      setSelectedEvent({
-        ...initialState,
-        id: info.event.id,
-        title: info.event.title,
-
-        startDate: info.event.startStr,
-        endDate: info.event.endStr,
-
-        backgroundColor: info.event.backgroundColor,
-
-        content: info.event.extendedProps?.content,
-        at: info.event.extendedProps?.at,
-        isEdit: true,
+    if (!info.event) {
+      onOpenModal({
+        type: "schedule",
+        data: {
+          ...scheduleInit,
+          startDate: info.startStr,
+          endDate: info.endStr,
+        },
       });
     } else {
-      setSelectedEvent({
-        ...initialState,
-        id: "",
-        startDate: info.startStr,
-        endDate: info.endStr,
-        isEdit: false,
-      });
-    }
+      if (info.event.extendedProps?.type === "training") {
+        onOpenModal({
+          ...trainingInit,
+          type: "training",
+          data: {
+            id: info.event.id,
+            content: info.event.extendedProps?.content,
+            trainingTime: info.event.extendedProps?.trainingTime,
+          },
+        });
+      } else {
+        console.log(info);
 
-    setDetailOpen(true); // 상세 조회 모달 열기
+        onOpenModal({
+          type: "schedule",
+          data: {
+            ...scheduleInit,
+            id: info.event.id,
+            title: info.event.title,
+            content: info.event.extendedProps?.content,
+            at: info.event.extendedProps?.at,
+            startDate: info.event.startStr,
+            endDate: info.event.endStr,
+            isEdit: true,
+          },
+        });
+      }
+    }
   };
 
   return (
@@ -149,11 +162,6 @@ export default function ScheduleMain() {
             eventClick={onEventClick}
             // contentHeight={280}
             // fixedWeekCount={false} // 해당 월의 주차만큼만 표시
-          />
-          <ScheduleModal
-            open={detailOpen}
-            onClose={() => setDetailOpen(false)}
-            data={selectedEvent}
           />
         </>
       )}

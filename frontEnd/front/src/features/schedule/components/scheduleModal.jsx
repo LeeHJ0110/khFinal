@@ -11,7 +11,7 @@ export default function ScheduleModal({ open, onClose, data }) {
   const { handleWrite, isSuccess: writeSucc } = useScheduleWrite();
   const { handleEdit, isSuccess: editSucc } = useScheduleEdit();
   const { handleDelete, isSuccess: delSucc } = useScheduleDelete();
-  const { formData, handleChange, resetFormData } = useFormData(data);
+  const { formData, handleChange } = useFormData(data);
 
   useEffect(() => {
     if (editSucc || writeSucc || delSucc) {
@@ -48,14 +48,10 @@ export default function ScheduleModal({ open, onClose, data }) {
             e.preventDefault();
             const payload = {
               ...formData,
-              at: `${String(formData.hour).padStart(2, "0")}:${String(
-                formData.minute,
-              ).padStart(2, "0")}`,
               backgroundColor: formData.backgroundColor.replace("#", ""),
             };
             if (data.isEdit) {
               handleEdit(payload);
-              console.log(payload);
               console.log("수정");
             } else {
               handleWrite(payload);

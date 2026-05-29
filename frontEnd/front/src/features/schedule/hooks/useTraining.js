@@ -7,13 +7,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 export default function useTraining() {
-  const [detailOpen, setDetailOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  function closeDetail() {
-    setDetailOpen(false);
-    console.log(detailOpen);
-  }
 
   async function openDetail(iDate) {
     let date = iDate;
@@ -31,22 +25,18 @@ export default function useTraining() {
     if (checker == "등록가능") {
       // setDetailOpen(true);
     }
-    setDetailOpen(true);
     // alert(checker.data);
   }
 
   async function insertDiary(formData) {
     const resp = await fetchTrainingInsert(formData);
     if (resp.status == 201) {
-      closeDetail();
     }
   }
 
   return {
-    detailOpen,
     isLoading,
     openDetail,
-    closeDetail,
     insertDiary,
   };
 }
