@@ -17,6 +17,7 @@ public class TrainReqDto {
     private String content;
     @JsonFormat(pattern = "HH:mm")
     private LocalTime trainingTime;
+    private List<Long> trainingPetList;
 
     public TrainingDiaryEntity toEntity(){
         return TrainingDiaryEntity.builder()

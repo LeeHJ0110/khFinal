@@ -32,9 +32,11 @@ public class TrainingController {
     })
     @PostMapping
     public ResponseEntity<Object> write(
-            @RequestPart(name = "diary") TrainReqDto reqDto,
-            @RequestPart(name = "pet") List<Long> trainingPetList){
-        trainingService.write(reqDto, trainingPetList);
+            @RequestBody TrainReqDto reqDto
+    ){
+        log.info(reqDto.getContent());
+        log.info(reqDto.getTrainingTime().toString());
+        trainingService.write(reqDto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .build();

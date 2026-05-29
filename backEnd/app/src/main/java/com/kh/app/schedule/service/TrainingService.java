@@ -26,13 +26,13 @@ public class TrainingService {
     private final PetRepository petRepository;
 
     @Transactional
-    public void write(TrainReqDto reqDto, List<Long> trainingpetList) {
+    public void write(TrainReqDto reqDto) {
         TrainingDiaryEntity diaryEntity = reqDto.toEntity();
         trainingRepository.save(diaryEntity);
         log.info("[훈련일기 작성]");
-        for(Long id : trainingpetList){
+        for(Long id : reqDto.getTrainingPetList()){
             PetEntity petEntity = petRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("그런 username 없음"));
+                    .orElseThrow(() -> new IllegalArgumentException("pet 검색 실패"));
             trainingPetRepository.save(TrainingPetEntity.from(petEntity, diaryEntity));
             log.info("[펫, 일기]:"+ petEntity.getName() + ", "+ diaryEntity.getId());
         }
