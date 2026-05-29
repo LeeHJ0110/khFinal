@@ -34,6 +34,30 @@ function formatRelativeTime(dateString) {
   });
 }
 
+export default function ReviewBoardList({
+  category,
+  list,
+  isLoading,
+  onItemClick,
+}) {
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          textAlign: "center",
+          padding: "60px 0",
+          color: "#888888",
+          fontSize: "14px",
+        }}
+      >
+        로딩 중입니다... 🐕
+      </div>
+    );
+  }
+
+  return <BoardListWrapper>ReviewBoardList</BoardListWrapper>;
+}
+
 // ==========================================
 // SVGs
 // ==========================================
@@ -197,27 +221,3 @@ const StatIconWrapper = styled.div`
     fill: #adb5bd;
   }
 `;
-
-export default function ReviewBoardList({
-  category,
-  list,
-  isLoading,
-  onItemClick,
-}) {
-  if (isLoading) {
-    return (
-      <div
-        style={{
-          textAlign: "center",
-          padding: "60px 0",
-          color: "#888888",
-          fontSize: "14px",
-        }}
-      >
-        로딩 중입니다... 🐕
-      </div>
-    );
-  }
-
-  return <BoardListWrapper>ReviewBoardList</BoardListWrapper>;
-}

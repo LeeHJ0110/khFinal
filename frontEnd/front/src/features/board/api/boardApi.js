@@ -22,6 +22,7 @@ export async function fetchBoardList(category, page = 0, searchCondition = {}) {
       page: page,
       title: searchCondition.title || null,
       content: searchCondition.content || null,
+      writer: searchCondition.writer || null,
       boardSubCategory: searchCondition.boardSubCategory || null,
     },
   });

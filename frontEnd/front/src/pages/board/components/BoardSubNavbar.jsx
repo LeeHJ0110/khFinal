@@ -1,5 +1,33 @@
 import styled from "styled-components";
 
+export default function BoardSubNavbar({ activeTab, onTabChange }) {
+  const menuItems = [
+    { key: "FREE", label: "자유게시판" },
+    { key: "PRODUCT_REVIEW", label: "상품후기게시판" },
+    { key: "FAC_REVIEW", label: "시설후기게시판" },
+    { key: "FAQ", label: "FAQ게시판" },
+    { key: "NEWS", label: "뉴스게시판" },
+  ];
+
+  return (
+    <SubNavbar>
+      <SubNavInner>
+        {menuItems.map((item) => (
+          <SubNavItem
+            key={item.key}
+            active={activeTab === item.key}
+            onClick={() => {
+              onTabChange(item.key);
+            }}
+          >
+            {item.label}
+          </SubNavItem>
+        ))}
+      </SubNavInner>
+    </SubNavbar>
+  );
+}
+
 const SubNavbar = styled.div`
   width: 100%;
   height: 48px;
@@ -53,31 +81,3 @@ const SubNavItem = styled.button`
     }
   `}
 `;
-
-export default function BoardSubNavbar({ activeTab, onTabChange }) {
-  const menuItems = [
-    { key: "FREE", label: "자유게시판" },
-    { key: "PRODUCT_REVIEW", label: "상품후기게시판" },
-    { key: "FAC_REVIEW", label: "시설후기게시판" },
-    { key: "FAQ", label: "FAQ게시판" },
-    { key: "NEWS", label: "뉴스게시판" },
-  ];
-
-  return (
-    <SubNavbar>
-      <SubNavInner>
-        {menuItems.map((item) => (
-          <SubNavItem
-            key={item.key}
-            active={activeTab === item.key}
-            onClick={() => {
-              onTabChange(item.key);
-            }}
-          >
-            {item.label}
-          </SubNavItem>
-        ))}
-      </SubNavInner>
-    </SubNavbar>
-  );
-}
