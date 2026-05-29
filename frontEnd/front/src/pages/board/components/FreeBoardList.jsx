@@ -30,6 +30,91 @@ function formatRelativeTime(dateString) {
   });
 }
 
+export default function FreeBoardList({ list, isLoading, onItemClick }) {
+  if (isLoading) {
+    return (
+      <div
+        style={{
+          textAlign: "center",
+          padding: "60px 0",
+          color: "#888888",
+          fontSize: "14px",
+        }}
+      >
+        로딩 중입니다... 🐕
+      </div>
+    );
+  }
+
+  return (
+    <BoardListWrapper>
+      {list.map((item) => {
+        const firstImg = extractFirstImg(item.content);
+        const mockComments = item.hits
+          ? Math.max(1, Math.floor(item.hits / 12))
+          : 0;
+        const mockLikes = item.hits
+          ? Math.max(0, Math.floor(item.hits / 18))
+          : 0;
+
+        return (
+          <ListItem
+            key={item.boardId}
+            onClick={() =>
+              onItemClick
+                ? onItemClick(item)
+                : alert("게시글 상세 이동 준비 중!")
+            }
+          >
+            <ItemThumbnail>
+              {firstImg ? (
+                <img src={firstImg} alt="Thumbnail" />
+              ) : (
+                <SvgPawPlaceholder />
+              )}
+            </ItemThumbnail>
+
+            <ItemContent>
+              {item.boardSubCategory && (
+                <SubCategoryTag type={item.boardSubCategory}>
+                  {item.boardSubCategory}
+                </SubCategoryTag>
+              )}
+
+              <ItemTitle>{item.title}</ItemTitle>
+
+              <ItemMeta>
+                <LevelBadge>Lv.{item.writerLevel || 1}</LevelBadge>
+                <WriterName>{item.writerNickname || "익명회원"}</WriterName>
+                <RelativeTime>
+                  {formatRelativeTime(item.createdAt)}
+                </RelativeTime>
+              </ItemMeta>
+            </ItemContent>
+
+            <ItemStats>
+              <StatIconWrapper>
+                <SvgComment />
+                {mockComments}
+              </StatIconWrapper>
+
+              <StatIconWrapper>
+                <SvgEye />
+                {item.hits ? item.hits.toLocaleString() : 0}
+              </StatIconWrapper>
+
+              <StatIconWrapper>
+                <SvgHeart />
+                {mockLikes}
+              </StatIconWrapper>
+            </ItemStats>
+          </ListItem>
+        );
+      })}
+    </BoardListWrapper>
+  );
+}
+
 const BoardListWrapper = styled.div`
   display: flex;
   flex-direction: column;
@@ -213,79 +298,3 @@ const SvgPawPlaceholder = () => (
     <path d="M12 14c-1.66 0-3 1.34-3 3 0 2 2 3.5 3 3.5s3-1.5 3-3.5c0-1.66-1.34-3-3-3zm-4.5-2.5c-.83 0-1.5.67-1.5 1.5s1 2 1.5 2 1.5-1 1.5-2-.67-1.5-1.5-1.5zm9 0c-.83 0-1.5.67-1.5 1.5s.67 2 1.5 2 1.5-1 1.5-2-.67-1.5-1.5-1.5zm-8.2-3.8c-.83 0-1.5.67-1.5 1.5S7.5 11 8.2 11c1 0 1.2-.8 1.2-1.5s-.3-1.8-1.1-1.8zm7.4 0c-.8 0-1.1 1.1-1.1 1.8s.2 1.5 1.2 1.5c.7 0 1.4-.67 1.4-1.5s-.67-1.8-1.5-1.8z" />
   </svg>
 );
-
-export default function FreeBoardList({ list, isLoading, onItemClick }) {
-  if (isLoading) {
-    return (
-      <div
-        style={{
-          textAlign: "center",
-          padding: "60px 0",
-          color: "#888888",
-          fontSize: "14px",
-        }}
-      >
-        로딩 중입니다... 🐕
-      </div>
-    );
-  }
-
-  if (!list || list.length === 0) {
-    return (
-      <div
-        style={{
-          textAlign: "center",
-          padding: "80px 0",
-          color: "#aaaaaa",
-          fontSize: "14px",
-          borderBottom: "1px solid #f1f3f4",
-        }}
-      >
-        작성된 게시글이 없습니다. 첫 주인공이 되어보세요!
-      </div>
-    );
-  }
-
-  return (
-    <BoardListWrapper>
-      {list.map((item) => {
-        const firstImg = extractFirstImg(item.content);
-        const mockComments = item.hits
-          ? Math.max(1, Math.floor(item.hits / 12))
-          : 0;
-        const mockLikes = item.hits
-          ? Math.max(0, Math.floor(item.hits / 18))
-          : 0;
-
-        return (
-          <div
-            key={item.boardId}
-            onClick={() => (onItemClick ? onItemClick(item) : alert("아직"))}
-          >
-            <div>
-              {firstImg ? (
-                <img src={firstImg} alt="Thumbnail" />
-              ) : (
-                <SvgPawPlaceholder />
-              )}
-            </div>
-
-            <div>
-              {item.boardSubCategory && (
-                <span type={item.boardSubCategory}>
-                  {item.boardSubCategory}
-                </span>
-              )}
-
-              <h2>{item.title}</h2>
-
-              <div>
-                <LevelBadge>Lv.{item.writerLevel || 1}</LevelBadge>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </BoardListWrapper>
-  );
-}

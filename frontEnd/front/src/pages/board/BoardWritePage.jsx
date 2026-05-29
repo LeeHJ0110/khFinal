@@ -4,6 +4,140 @@ import "react-quill-new/dist/quill.snow.css";
 import styled from "styled-components";
 import useBoardForm from "../../features/board/hooks/useBoardForm";
 
+export default function BoardWritePage() {
+  const {
+    navigate,
+    isEdit,
+    boardCategory,
+    boardSubCategory,
+    title,
+    setTitle,
+    content,
+    boardStars,
+    handleCategoryChange,
+    handleSubCategoryChange,
+    handleStarClick,
+    handleEditorChange,
+    handleSubmit,
+  } = useBoardForm();
+
+  // 사용자 로그인 권한 체크 및 리다이렉트
+  useEffect(() => {
+    const accessToken = localStorage.getItem("accessToken");
+    if (!accessToken) {
+      alert("로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.");
+      navigate("/member/login");
+    }
+  }, [navigate]);
+
+  // React Quill 툴바 및 모듈 구성 (시안 디자인에 맞게 최적화)
+  const modules = {
+    toolbar: {
+      container: [
+        [{ size: ["small", false, "large", "huge"] }], // 글씨 크기
+        [{ font: [] }], // 기본 글꼴
+        ["bold", "italic", "underline"], // B / I / U
+        ["image"], // 이미지 아이콘
+        [{ align: [] }], // 정렬 아이콘
+      ],
+    },
+  };
+
+  const formats = [
+    "size",
+    "font",
+    "bold",
+    "italic",
+    "underline",
+    "image",
+    "align",
+  ];
+
+  return (
+    <Container>
+      {/* 타이틀 영역 (수정 모드 분기) */}
+      <TitleSection>
+        <MainTitle>{isEdit ? "게시글수정" : "게시글작성"}</MainTitle>
+        <SubTitle>반려동물과의 소중한 추억을 기록하세요!</SubTitle>
+      </TitleSection>
+
+      {/* 입력 폼 */}
+      <FormWrapper onSubmit={handleSubmit}>
+        {/* 게시판 & 말머리 셀렉터 (작성 가능한 게시판만 옵션 제공) */}
+        <SelectorWrapper>
+          <CustomSelect value={boardCategory} onChange={handleCategoryChange}>
+            <option value="FREE">자유게시판</option>
+            <option value="PRODUCT_REVIEW">상품후기게시판</option>
+            <option value="FAC_REVIEW">시설후기게시판</option>
+          </CustomSelect>
+
+          {boardCategory === "FREE" && (
+            <CustomSelect
+              value={boardSubCategory}
+              onChange={handleSubCategoryChange}
+            >
+              <option value="잡담">잡담</option>
+              <option value="정보">정보</option>
+              <option value="유머">유머</option>
+            </CustomSelect>
+          )}
+        </SelectorWrapper>
+
+        {/* 별점 선택기 (상품후기, 시설후기일 때만 동적으로 활성화되는 프리미엄 기능) */}
+        {(boardCategory === "PRODUCT_REVIEW" ||
+          boardCategory === "FAC_REVIEW") && (
+          <StarsRatingContainer>
+            <StarsLabel>리뷰 평점</StarsLabel>
+            <StarsList>
+              {[1, 2, 3, 4, 5].map((score) => (
+                <StarIcon
+                  key={score}
+                  filled={boardStars >= score}
+                  onClick={() => handleStarClick(score)}
+                >
+                  ★
+                </StarIcon>
+              ))}
+            </StarsList>
+          </StarsRatingContainer>
+        )}
+
+        {/* 제목 입력 */}
+        <TitleInputGroup>
+          <TitleLabel>제목</TitleLabel>
+          <TitleField
+            type="text"
+            placeholder="제목을 입력해주세요"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </TitleInputGroup>
+
+        {/* 에디터 (React Quill) */}
+        <EditorContainer>
+          <ReactQuill
+            value={content}
+            onChange={handleEditorChange}
+            modules={modules}
+            formats={formats}
+            placeholder="내용을 작성해주세요. 타인을 비방하거나 불쾌감을 주는 게시글은 무통보 삭제될 수 있습니다. 가장 첫 번째 사진이 썸네일로 지정됩니다."
+          />
+        </EditorContainer>
+
+        {/* 액션 버튼 */}
+        <ActionsWrapper>
+          <CancelButton type="button" onClick={() => navigate(-1)}>
+            취소
+          </CancelButton>
+          <SubmitButton type="submit">
+            {isEdit ? "수정하기" : "등록하기"}
+          </SubmitButton>
+        </ActionsWrapper>
+      </FormWrapper>
+    </Container>
+  );
+}
+
 const Container = styled.div`
   width: var(--layout-width);
   margin: 0 auto;
@@ -258,137 +392,3 @@ const SubmitButton = styled.button`
     transform: scale(0.98);
   }
 `;
-
-export default function BoardWritePage() {
-  const {
-    navigate,
-    isEdit,
-    boardCategory,
-    boardSubCategory,
-    title,
-    setTitle,
-    content,
-    boardStars,
-    handleCategoryChange,
-    handleSubCategoryChange,
-    handleStarClick,
-    handleEditorChange,
-    handleSubmit,
-  } = useBoardForm();
-
-  // 사용자 로그인 권한 체크 및 리다이렉트
-  useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) {
-      alert("로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.");
-      navigate("/member/login");
-    }
-  }, [navigate]);
-
-  // React Quill 툴바 및 모듈 구성 (시안 디자인에 맞게 최적화)
-  const modules = {
-    toolbar: {
-      container: [
-        [{ size: ["small", false, "large", "huge"] }], // 글씨 크기
-        [{ font: [] }], // 기본 글꼴
-        ["bold", "italic", "underline"], // B / I / U
-        ["image"], // 이미지 아이콘
-        [{ align: [] }], // 정렬 아이콘
-      ],
-    },
-  };
-
-  const formats = [
-    "size",
-    "font",
-    "bold",
-    "italic",
-    "underline",
-    "image",
-    "align",
-  ];
-
-  return (
-    <Container>
-      {/* 타이틀 영역 (수정 모드 분기) */}
-      <TitleSection>
-        <MainTitle>{isEdit ? "게시글수정" : "게시글작성"}</MainTitle>
-        <SubTitle>반려동물과의 소중한 추억을 기록하세요!</SubTitle>
-      </TitleSection>
-
-      {/* 입력 폼 */}
-      <FormWrapper onSubmit={handleSubmit}>
-        {/* 게시판 & 말머리 셀렉터 (작성 가능한 게시판만 옵션 제공) */}
-        <SelectorWrapper>
-          <CustomSelect value={boardCategory} onChange={handleCategoryChange}>
-            <option value="FREE">자유게시판</option>
-            <option value="PRODUCT_REVIEW">상품후기게시판</option>
-            <option value="FAC_REVIEW">시설후기게시판</option>
-          </CustomSelect>
-
-          {boardCategory === "FREE" && (
-            <CustomSelect
-              value={boardSubCategory}
-              onChange={handleSubCategoryChange}
-            >
-              <option value="잡담">잡담</option>
-              <option value="정보">정보</option>
-              <option value="유머">유머</option>
-            </CustomSelect>
-          )}
-        </SelectorWrapper>
-
-        {/* 별점 선택기 (상품후기, 시설후기일 때만 동적으로 활성화되는 프리미엄 기능) */}
-        {(boardCategory === "PRODUCT_REVIEW" ||
-          boardCategory === "FAC_REVIEW") && (
-          <StarsRatingContainer>
-            <StarsLabel>리뷰 평점</StarsLabel>
-            <StarsList>
-              {[1, 2, 3, 4, 5].map((score) => (
-                <StarIcon
-                  key={score}
-                  filled={boardStars >= score}
-                  onClick={() => handleStarClick(score)}
-                >
-                  ★
-                </StarIcon>
-              ))}
-            </StarsList>
-          </StarsRatingContainer>
-        )}
-
-        {/* 제목 입력 */}
-        <TitleInputGroup>
-          <TitleLabel>제목</TitleLabel>
-          <TitleField
-            type="text"
-            placeholder="제목을 입력해주세요"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </TitleInputGroup>
-
-        {/* 에디터 (React Quill) */}
-        <EditorContainer>
-          <ReactQuill
-            value={content}
-            onChange={handleEditorChange}
-            modules={modules}
-            formats={formats}
-            placeholder="내용을 작성해주세요. 타인을 비방하거나 불쾌감을 주는 게시글은 무통보 삭제될 수 있습니다. 가장 첫 번째 사진이 썸네일로 지정됩니다."
-          />
-        </EditorContainer>
-
-        {/* 액션 버튼 */}
-        <ActionsWrapper>
-          <CancelButton type="button" onClick={() => navigate(-1)}>
-            취소
-          </CancelButton>
-          <SubmitButton type="submit">
-            {isEdit ? "수정하기" : "등록하기"}
-          </SubmitButton>
-        </ActionsWrapper>
-      </FormWrapper>
-    </Container>
-  );
-}
