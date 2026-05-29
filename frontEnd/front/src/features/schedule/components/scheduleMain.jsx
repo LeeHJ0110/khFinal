@@ -49,7 +49,33 @@ export default function ScheduleMain() {
 
       return <div className="training-stamp"></div>;
     }
-    return <></>;
+    return (
+      <>
+        <div
+          className="mini-event-bar"
+          style={{
+            backgroundColor: info.event.backgroundColor || "#3788d8",
+            height: "8px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "8px",
+              fontWeight: "bolder",
+              lineHeight: "1",
+              whiteSpace: "nowrap", // 줄바꿈 방지
+              pointerEvents: "none", // 클릭 이벤트 방해 방지
+              textOverflow: "ellipsis",
+            }}
+          >
+            {info.event.title}
+          </span>
+        </div>
+      </>
+    );
   };
 
   const onEventClick = (info) => {
@@ -108,7 +134,7 @@ export default function ScheduleMain() {
             selectable={true}
             select={onEventClick}
             dayCellContent={renderDayCell} // 날짜 커스텀
-            // eventContent={renderEventContent} // 이벤트 커스텀
+            eventContent={renderEventContent} // 이벤트 커스텀
             eventClick={onEventClick}
             // contentHeight={280}
             // fixedWeekCount={false} // 해당 월의 주차만큼만 표시
