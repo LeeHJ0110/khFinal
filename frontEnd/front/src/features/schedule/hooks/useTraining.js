@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { checkDate, fetchTrainingInsert } from "../api/trainingAp";
+import {
+  checkDate,
+  fetchTrainingInsert,
+  fetchTrainingList,
+} from "../api/trainingAp";
 import { useNavigate } from "react-router-dom";
 
 export default function useTraining() {
@@ -8,6 +12,7 @@ export default function useTraining() {
 
   function closeDetail() {
     setDetailOpen(false);
+    console.log(detailOpen);
   }
 
   async function openDetail(iDate) {
@@ -37,5 +42,11 @@ export default function useTraining() {
     }
   }
 
-  return { detailOpen, isLoading, openDetail, closeDetail, insertDiary };
+  return {
+    detailOpen,
+    isLoading,
+    openDetail,
+    closeDetail,
+    insertDiary,
+  };
 }

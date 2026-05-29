@@ -2,7 +2,7 @@ import { useState } from "react";
 import { fetchScheduleList } from "../api/scheduleApi";
 
 export default function useScheduleList() {
-  const [list, setList] = useState([]);
+  const [scheduleList, setScheduleList] = useState([]);
   const [isLoading, setLoading] = useState(false);
 
   async function asyncFetchScheduleList() {
@@ -29,9 +29,9 @@ export default function useScheduleList() {
       },
     }));
 
-    setList(parsedList);
+    setScheduleList(parsedList);
     setLoading(false);
   }
 
-  return { list, isLoading, asyncFetchScheduleList };
+  return { scheduleList, isLoading, asyncFetchScheduleList };
 }

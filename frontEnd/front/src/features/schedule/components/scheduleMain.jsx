@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
 import ScheduleModal from "./scheduleModal";
 import useScheduleDetail from "../hooks/useScheduleDetail";
+import useTrainingList from "../hooks/useTrainingList";
 
 export default function ScheduleMain() {
   const initialState = {
@@ -21,7 +22,16 @@ export default function ScheduleMain() {
     isEdit: "false",
   };
   // 켈린더 이벤트 호출
-  const { list, isLoading, asyncFetchScheduleList } = useScheduleList();
+  const {
+    scheduleList,
+    isLoading: sLoading,
+    asyncFetchScheduleList,
+  } = useScheduleList();
+  const {
+    trainingList,
+    isLoading: tLoading,
+    fetchDiaryList,
+  } = useTrainingList();
 
   // 상세 조회용 모달 오픈 여부
   const [detailOpen, setDetailOpen] = useState(false);
@@ -31,7 +41,10 @@ export default function ScheduleMain() {
 
   useEffect(() => {
     asyncFetchScheduleList();
+    fetchDiaryList();
   }, [detailOpen]);
+
+  const mergedEvents = [...scheduleList, ...trainingList];
 
   //날짜 숫자만 표시
   const renderDayCell = (info) => {
@@ -45,9 +58,7 @@ export default function ScheduleMain() {
   //일정 정보바
   const renderEventContent = (info) => {
     if (info.event.extendedProps?.type === "training") {
-      console.log(info);
-
-      return <div className="training-stamp"></div>;
+      return <div className="training-stamp">훈련</div>;
     }
     return (
       <>
@@ -111,7 +122,7 @@ export default function ScheduleMain() {
 
   return (
     <Wrapper>
-      {isLoading ? (
+      {sLoading || tLoading ? (
         <p>불러오는 중...</p>
       ) : (
         <>
@@ -120,7 +131,7 @@ export default function ScheduleMain() {
             initialView="dayGridMonth"
             locale="ko"
             height={500}
-            events={list}
+            events={mergedEvents}
             // 헤더 최소화
             headerToolbar={{
               left: "prev",

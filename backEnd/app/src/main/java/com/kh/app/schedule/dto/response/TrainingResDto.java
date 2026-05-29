@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -19,6 +20,7 @@ public class TrainingResDto {
     @JsonFormat(pattern = "HH:mm")
     private LocalTime trainingTime;
     private List<PetEntity> petList;
+    private LocalDateTime createdAt;
 
     public static TrainingResDto from(TrainingDiaryEntity entity, List<PetEntity> petList){
         return TrainingResDto.builder()
@@ -26,6 +28,7 @@ public class TrainingResDto {
                 .content(entity.getContent())
                 .trainingTime(entity.getTrainingTime())
                 .petList(petList)
+                .createdAt(entity.getCreatedAt())
                 .build();
     }
 }
