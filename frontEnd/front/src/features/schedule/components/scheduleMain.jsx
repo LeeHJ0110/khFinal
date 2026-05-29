@@ -23,7 +23,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen }) {
   const trainingInit = {
     id: "",
     content: "",
-    at: "",
+    trainingTime: "",
     petList: [],
     isEdit: false,
   };

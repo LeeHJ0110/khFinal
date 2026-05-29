@@ -10,23 +10,70 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
 
   const { petList, fetchMyPetList } = usePet();
 
+  console.log(formData);
+
   return (
     <Wrapper>
       {open && (
         <ModalOverlay onClick={onClose}>
           <ModalBox onClick={(e) => e.stopPropagation()}>
             <Title>훈련일기 작성</Title>
-            <TextArea
-              value={formData.content}
-              name="content"
-              onChange={handleChange}
-            />
+            <Body
+              onSubmit={(e) => {
+                e.preventDefault();
+                insertDiary(formData);
+              }}
+            >
+              <Row>
+                <Input
+                  type="number"
+                  min="0"
+                  max="23"
+                  placeholder="시간"
+                  value={formData.trainingTime?.split(":")[0] || ""}
+                  onChange={(e) => {
+                    const minute = formData.trainingTime?.split(":")[1] || "00";
 
-            <ButtonGroup>
-              <CancelButton onClick={onClose}>취소</CancelButton>
+                    handleChange({
+                      target: {
+                        name: "trainingTime",
+                        value: `${String(e.target.value).padStart(2, "0")}:${minute}`,
+                      },
+                    });
+                  }}
+                />
 
-              {/* <SubmitButton onClick={()=>insertDiary()}>저장</SubmitButton> */}
-            </ButtonGroup>
+                <Input
+                  type="number"
+                  min="0"
+                  max="59"
+                  placeholder="분"
+                  value={formData.trainingTime?.split(":")[1] || ""}
+                  onChange={(e) => {
+                    const hour = formData.trainingTime?.split(":")[0] || "00";
+
+                    handleChange({
+                      target: {
+                        name: "trainingTime",
+                        value: `${hour}:${String(e.target.value).padStart(2, "0")}`,
+                      },
+                    });
+                  }}
+                />
+              </Row>
+              <TextArea
+                value={formData.content}
+                name="content"
+                onChange={handleChange}
+              />
+              <div>펫 선택창</div>
+
+              <ButtonGroup>
+                <CancelButton onClick={onClose}>취소</CancelButton>
+
+                <SubmitButton type="submit">저장</SubmitButton>
+              </ButtonGroup>
+            </Body>
           </ModalBox>
         </ModalOverlay>
       )}
@@ -110,4 +157,20 @@ const CancelButton = styled(Button)`
 const SubmitButton = styled(Button)`
   background-color: #5ec8a7;
   color: white;
+`;
+
+const Row = styled.div`
+  display: flex;
+
+  gap: 12px;
+
+  > div {
+    flex: 1;
+  }
+`;
+const Body = styled.form`
+  display: flex;
+  flex-direction: column;
+
+  gap: 18px;
 `;

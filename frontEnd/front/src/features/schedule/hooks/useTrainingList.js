@@ -16,7 +16,7 @@ export default function useTrainingList() {
       extendedProps: {
         type: "training",
         content: item.content,
-        trainingTime: item.TrainingTime,
+        trainingTime: item.trainingTime,
       },
     }));
 
