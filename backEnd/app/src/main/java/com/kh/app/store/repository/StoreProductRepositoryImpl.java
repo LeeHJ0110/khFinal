@@ -8,11 +8,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-
 import java.util.List;
-
 import static com.kh.app.store.entity.QStoreProductEntity.storeProductEntity;
 import static com.kh.app.store.entity.QStoreProductTagEntity.storeProductTagEntity;
+import com.kh.app.store.entity.StoreProductCategory;
+import com.kh.app.store.entity.StoreProductEntity;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 
 @RequiredArgsConstructor
 public class StoreProductRepositoryImpl implements StoreProductRepositoryCustom {
@@ -50,5 +52,84 @@ public class StoreProductRepositoryImpl implements StoreProductRepositoryCustom 
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total == null ? 0 : total);
+    }
+
+    @Override
+    public List<StoreProductEntity> findUserProductList(
+            String targetPetType,
+            StoreProductCategory category,
+            String keyword,
+            Long tagId,
+            String tagName,
+            String sort
+    ) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        // 판매중 상품만
+        builder.and(storeProductEntity.productSaleYn.eq("Y"));
+
+        // 대상동물 조건
+        if (targetPetType != null && !targetPetType.isBlank()) {
+            builder.and(storeProductEntity.productTargetPetType.eq(targetPetType));
+        }
+
+        // 카테고리 조건
+        if (category != null) {
+            builder.and(storeProductEntity.productCategory.eq(category));
+        }
+
+        // 상품명 검색
+        if (keyword != null && !keyword.isBlank()) {
+            builder.and(storeProductEntity.productName.containsIgnoreCase(keyword));
+        }
+
+        // 태그 ID 조건
+        if (tagId != null) {
+            builder.and(storeProductTagEntity.tagId.eq(tagId));
+        }
+
+        // 태그 이름 조건
+        if (tagName != null && !tagName.isBlank()) {
+            builder.and(storeProductTagEntity.tagName.eq(tagName));
+        }
+
+        return queryFactory
+                .selectFrom(storeProductEntity)
+                .join(storeProductEntity.productTag, storeProductTagEntity)
+                .where(builder)
+                .orderBy(getUserProductOrders(sort))
+                .fetch();
+    }
+
+    private OrderSpecifier<?>[] getUserProductOrders(String sort) {
+        if ("popular".equals(sort)) {
+            return new OrderSpecifier<?>[]{
+                    storeProductEntity.productViewCount.desc(),
+                    storeProductEntity.createdAt.desc(),
+                    storeProductEntity.productId.desc()
+            };
+        }
+
+        if ("lowPrice".equals(sort)) {
+            return new OrderSpecifier<?>[]{
+                    storeProductEntity.productPrice.asc(),
+                    storeProductEntity.createdAt.desc(),
+                    storeProductEntity.productId.desc()
+            };
+        }
+
+        if ("highPrice".equals(sort)) {
+            return new OrderSpecifier<?>[]{
+                    storeProductEntity.productPrice.desc(),
+                    storeProductEntity.createdAt.desc(),
+                    storeProductEntity.productId.desc()
+            };
+        }
+
+        // latest 기본값
+        return new OrderSpecifier<?>[]{
+                storeProductEntity.createdAt.desc(),
+                storeProductEntity.productId.desc()
+        };
     }
 }

@@ -1,111 +1,116 @@
 import styled from "styled-components";
+import { useNavigate } from "react-router-dom";
 import PetStoreUserNav from "./PetStoreUserNav";
 import RoundedButton from "../../shared/components/button/RoundedButton";
+import usePetStoreBestProductList from "../../features/petStore/hooks/usePetStoreBestProductList";
 
-const bestProducts = [
+//!! 리뷰 기능 완성되면!!
+// // 1. 이 함수 삭제
+// function getTempReviewInfo(index) { ... }
+
+// // 2. 이 부분 변경
+// {tempReview.rating} ({tempReview.count})
+
+// // 실제 리뷰 데이터로 변경
+// {product.reviewRatingAvg?.toFixed(1) ?? "0.0"} ({product.reviewCount ?? 0})
+
+const shortcutList = [
   {
-    id: 1,
-    rank: "BEST 1",
-    name: "캣챠 5kg 전연령 고양이사료",
-    price: "19,700원",
-    rating: "4.9",
-    reviewCount: "128",
-    imageText: "상품 이미지",
+    id: "dog",
+    title: "강아지 스토어",
+    desc: "사료부터 영양제까지 강아지에게 필요한 모든 것",
+    buttonText: "강아지 스토어 바로가기",
+    imageText: "강아지 카드 이미지 영역",
+    path: "/store/dog",
   },
   {
-    id: 2,
-    rank: "BEST 2",
-    name: "탐사 강아지 고구마말랭이 간식",
-    price: "9,890원",
-    rating: "4.7",
-    reviewCount: "56",
-    imageText: "상품 이미지",
-  },
-  {
-    id: 3,
-    rank: "BEST 3",
-    name: "탐사 고양이 두부모래 7L",
-    price: "26,990원",
-    rating: "4.6",
-    reviewCount: "37",
-    imageText: "상품 이미지",
-  },
-  {
-    id: 4,
-    rank: "BEST 4",
-    name: "탐사 강아지 트릿 영양제",
-    price: "10,370원",
-    rating: "4.5",
-    reviewCount: "21",
-    imageText: "상품 이미지",
+    id: "cat",
+    title: "고양이 스토어",
+    desc: "사료부터 영양제까지 고양이에게 필요한 모든 것",
+    buttonText: "고양이 스토어 바로가기",
+    imageText: "고양이 카드 이미지 영역",
+    path: "/store/cat",
   },
 ];
 
+/*
+  임시 리뷰 표시용 데이터.
+*/
+function getTempReviewInfo(index) {
+  const tempReviewList = [
+    { rating: "4.9", count: 128 },
+    { rating: "4.7", count: 56 },
+    { rating: "4.6", count: 37 },
+    { rating: "4.5", count: 21 },
+  ];
+
+  return tempReviewList[index] ?? { rating: "0.0", count: 0 };
+}
+
 export default function PetStoreHomePage() {
+  const navigate = useNavigate();
+  const { bestProductList, isBestLoading } = usePetStoreBestProductList();
+
   return (
     <>
       <PetStoreUserNav />
 
       <Wrapper>
         <HeroBanner>
-          <h1>스토어 메인 배너 이미지 영역</h1>
+          <HeroTextBox>
+            <HeroTitle>
+              PET CARE
+              <br />
+              PREMIUM STORE
+            </HeroTitle>
+            <HeroDesc>
+              For Better Pet Life
+              <br />
+              우리 아이의 건강한 선택
+            </HeroDesc>
+          </HeroTextBox>
+
+          <HeroImageText>스토어 메인 배너 이미지 영역</HeroImageText>
         </HeroBanner>
 
         <ContentInner>
           <StoreShortcutGrid>
-            <StoreShortcutCard>
-              <StoreShortcutText>
-                <StoreShortcutEyebrow>
-                  건강한 반려 생활의 시작
-                </StoreShortcutEyebrow>
-                <StoreShortcutTitle>강아지 스토어</StoreShortcutTitle>
-                <StoreShortcutDesc>
-                  사료부터 영양제까지 강아지에게 필요한 모든 것
-                </StoreShortcutDesc>
+            {shortcutList.map((shortcut) => (
+              <StoreShortcutCard key={shortcut.id}>
+                <StoreShortcutText>
+                  <StoreShortcutEyebrow>
+                    건강한 반려 생활의 시작
+                  </StoreShortcutEyebrow>
 
-                <RoundedButton
-                  width="164px"
-                  height="28px"
-                  fontSize="12px"
-                  fontWeight="500"
-                  gap="14px"
-                  rightIcon="→"
+                  <StoreShortcutTitle>{shortcut.title}</StoreShortcutTitle>
+                  <StoreShortcutDesc>{shortcut.desc}</StoreShortcutDesc>
+
+                  <RoundedButton
+                    width="154px"
+                    height="28px"
+                    fontSize="12px"
+                    fontWeight="700"
+                    gap="12px"
+                    rightIcon="→"
+                  >
+                    {shortcut.buttonText}
+                  </RoundedButton>
+                </StoreShortcutText>
+
+                <ShortcutPaw>●</ShortcutPaw>
+
+                <ShortcutArrowButton
+                  type="button"
+                  aria-label={`${shortcut.title} 이동`}
                 >
-                  강아지 스토어 바로가기
-                </RoundedButton>
-              </StoreShortcutText>
+                  ›
+                </ShortcutArrowButton>
 
-              <StoreImagePlaceholder>
-                강아지 카드 이미지 영역
-              </StoreImagePlaceholder>
-            </StoreShortcutCard>
-
-            <StoreShortcutCard>
-              <StoreShortcutText>
-                <StoreShortcutEyebrow>
-                  건강한 반려 생활의 시작
-                </StoreShortcutEyebrow>
-                <StoreShortcutTitle>고양이 스토어</StoreShortcutTitle>
-                <StoreShortcutDesc>
-                  사료부터 영양제까지 고양이에게 필요한 모든 것
-                </StoreShortcutDesc>
-
-                <RoundedButton
-                  width="164px"
-                  height="28px"
-                  fontSize="12px"
-                  fontWeight="500"
-                  gap="14px"
-                  rightIcon="→"
-                >
-                  고양이 스토어 바로가기
-                </RoundedButton>
-              </StoreShortcutText>
-
-              <StoreImagePlaceholder>
-                고양이 카드 이미지 영역
-              </StoreImagePlaceholder>
-            </StoreShortcutCard>
+                <ShortcutImageBox>
+                  <VisualPlaceholder>{shortcut.imageText}</VisualPlaceholder>
+                </ShortcutImageBox>
+              </StoreShortcutCard>
+            ))}
           </StoreShortcutGrid>
 
           <SectionTitleArea>
@@ -114,31 +119,63 @@ export default function PetStoreHomePage() {
           </SectionTitleArea>
 
           <BestProductGrid>
-            {bestProducts.map((product) => (
-              <BestProductCard key={product.id}>
-                <BestBadge>{product.rank}</BestBadge>
+            {isBestLoading ? (
+              <BestProductEmpty>
+                베스트 상품을 불러오는 중입니다...
+              </BestProductEmpty>
+            ) : bestProductList.length === 0 ? (
+              <BestProductEmpty>베스트 상품이 없습니다.</BestProductEmpty>
+            ) : (
+              bestProductList.map((product, index) => {
+                const tempReview = getTempReviewInfo(index);
 
-                <ProductImageBox>
-                  <ProductImageText>{product.imageText}</ProductImageText>
-                </ProductImageBox>
+                return (
+                  <BestProductCard key={product.productId}>
+                    <ProductVisualBox>
+                      <BestBadge>BEST {index + 1}</BestBadge>
 
-                <ProductInfo>
-                  <ProductName>{product.name}</ProductName>
-                  <ProductPrice>{product.price}</ProductPrice>
+                      <ProductImageBox>
+                        {product.mainImageUrl ? (
+                          <ProductImage
+                            src={product.mainImageUrl}
+                            alt={product.productName}
+                          />
+                        ) : (
+                          <ProductImageText>상품 이미지</ProductImageText>
+                        )}
+                      </ProductImageBox>
+                    </ProductVisualBox>
 
-                  <ProductMeta>
-                    <ProductRating>
-                      <span>★</span> {product.rating} ({product.reviewCount})
-                    </ProductRating>
+                    <ProductInfo>
+                      <ProductName>{product.productName}</ProductName>
 
-                    <CartButton type="button">🛒</CartButton>
-                  </ProductMeta>
-                </ProductInfo>
-              </BestProductCard>
-            ))}
+                      <ProductPrice>
+                        {product.productPrice?.toLocaleString()}원
+                      </ProductPrice>
+
+                      <ProductBottom>
+                        <ProductReviewInfo>
+                          <ReviewStar>★</ReviewStar>
+                          {tempReview.rating} ({tempReview.count})
+                        </ProductReviewInfo>
+
+                        <CartButton
+                          type="button"
+                          aria-label={`${product.productName} 장바구니 담기`}
+                        >
+                          🛒
+                        </CartButton>
+                      </ProductBottom>
+                    </ProductInfo>
+                  </BestProductCard>
+                );
+              })
+            )}
           </BestProductGrid>
 
           <HealthBanner>
+            <HealthIconCircle>🐾</HealthIconCircle>
+
             <HealthTextBox>
               <HealthTitle>
                 우리 아이 건강관리, <strong>지금 시작해보세요!</strong>
@@ -149,19 +186,21 @@ export default function PetStoreHomePage() {
               </HealthDesc>
             </HealthTextBox>
 
-            <RoundedButton
-              width="194px"
-              height="43px"
-              fontSize="15px"
-              fontWeight="800"
-              rightIcon="→"
-            >
-              건강관리 시작하기
-            </RoundedButton>
+            <HealthButtonWrap>
+              <RoundedButton
+                width="194px"
+                height="43px"
+                fontSize="15px"
+                fontWeight="800"
+                rightIcon=">"
+              >
+                건강관리 시작하기
+              </RoundedButton>
+            </HealthButtonWrap>
 
-            <HealthImagePlaceholder>
-              건강관리 배너 이미지 영역
-            </HealthImagePlaceholder>
+            <HealthImageBox>
+              <VisualPlaceholder>건강관리 배너 이미지 영역</VisualPlaceholder>
+            </HealthImageBox>
           </HealthBanner>
         </ContentInner>
       </Wrapper>
@@ -174,8 +213,8 @@ const Wrapper = styled.main`
   background-color: var(--color-white);
 `;
 
-/* Main Banner */
 const HeroBanner = styled.section`
+  position: relative;
   width: 100%;
   height: 310px;
 
@@ -183,25 +222,55 @@ const HeroBanner = styled.section`
   align-items: center;
   justify-content: center;
 
-  background-color: #eefaf4;
+  overflow: hidden;
+  background: linear-gradient(90deg, #dff2e9 0%, #eefaf4 48%, #dff2e9 100%);
 `;
 
-const ImageSlotText = styled.p`
+const HeroTextBox = styled.div`
+  position: relative;
+  z-index: 2;
+  text-align: center;
+`;
+
+const HeroTitle = styled.h1`
+  margin: 0 0 30px;
+
+  color: #232323;
+  font-size: 50px;
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: -2px;
+`;
+
+const HeroDesc = styled.p`
   margin: 0;
 
-  color: var(--text-desc);
+  color: #4f5756;
   font-size: 16px;
-  font-weight: 700;
+  font-weight: 600;
+  line-height: 1.55;
 `;
 
-/* Content Layout */
+const HeroImageText = styled.div`
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: rgba(0, 0, 0, 0.28);
+  font-size: 18px;
+  font-weight: 800;
+  pointer-events: none;
+`;
+
 const ContentInner = styled.div`
   width: 1300px;
   margin: 0 auto;
-  padding: 16px 0 14px;
+  padding: 14px 0 12px;
 `;
 
-/* Store Shortcut */
 const StoreShortcutGrid = styled.section`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -212,68 +281,99 @@ const StoreShortcutCard = styled.article`
   position: relative;
   overflow: hidden;
 
-  height: 172px;
-  padding: 28px 38px;
+  height: 150px;
+  padding: 24px 34px;
 
   display: flex;
   align-items: center;
-  justify-content: space-between;
 
   border-radius: 16px;
-  background-color: #e9f3ed;
+  background-color: #e8f2ed;
 `;
 
 const StoreShortcutText = styled.div`
   position: relative;
-  z-index: 2;
+  z-index: 3;
 `;
 
 const StoreShortcutEyebrow = styled.p`
-  margin: 0 0 6px;
+  margin: 0 0 5px;
 
   color: var(--color-main);
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.4px;
 `;
 
 const StoreShortcutTitle = styled.h2`
-  margin: 0 0 12px;
+  margin: 0 0 10px;
 
   color: var(--text-main);
-  font-size: 35px;
-  font-weight: 800;
-  letter-spacing: -1.2px;
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -1.4px;
 `;
 
 const StoreShortcutDesc = styled.p`
-  margin: 0 0 19px;
+  margin: 0 0 16px;
 
   color: var(--text-desc);
   font-size: 13px;
-  font-weight: 400;
+  font-weight: 500;
 `;
 
-const StoreImagePlaceholder = styled.div`
-  width: 250px;
-  height: 120px;
-  flex-shrink: 0;
+const ShortcutImageBox = styled.div`
+  position: absolute;
+  right: 95px;
+  bottom: 0;
+
+  width: 190px;
+  height: 135px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const ShortcutPaw = styled.div`
+  position: absolute;
+  right: 230px;
+  bottom: 22px;
+
+  color: var(--color-main);
+  font-size: 54px;
+  line-height: 1;
+  opacity: 0.9;
+`;
+
+const ShortcutArrowButton = styled.button`
+  position: absolute;
+  right: 38px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 58px;
+  height: 58px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 14px;
-  background-color: rgba(255, 255, 255, 0.45);
-  color: var(--text-desc);
+  border: 1.5px solid rgba(30, 42, 40, 0.75);
+  border-radius: 50%;
+  background-color: transparent;
+  color: #222;
 
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 58px;
+  font-weight: 200;
+  line-height: 0.7;
+  cursor: pointer;
 `;
 
-/* Section Title */
 const SectionTitleArea = styled.section`
-  height: 48px;
-  padding: 10px 8px 0;
+  height: 42px;
+  padding: 11px 8px 0;
 
   display: flex;
   align-items: flex-start;
@@ -286,7 +386,7 @@ const SectionTitle = styled.h2`
   color: var(--text-main);
   font-size: 22px;
   font-weight: 900;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.7px;
 `;
 
 const SectionSubTitle = styled.p`
@@ -294,10 +394,9 @@ const SectionSubTitle = styled.p`
 
   color: var(--text-sub);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
 `;
 
-/* Best Product */
 const BestProductGrid = styled.section`
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -307,50 +406,81 @@ const BestProductGrid = styled.section`
 const BestProductCard = styled.article`
   position: relative;
 
-  height: 130px;
-  padding: 20px 22px 16px 58px;
+  height: 126px;
+  padding: 16px 18px;
 
   display: grid;
-  grid-template-columns: 96px 1fr;
+  grid-template-columns: 104px minmax(0, 1fr);
   align-items: center;
-  gap: 14px;
+  gap: 20px;
 
-  border-radius: 12px;
+  border-radius: 16px;
   background-color: var(--color-white);
-  box-shadow: 0 2px 12px rgba(18, 45, 46, 0.18);
+  box-shadow: 0 3px 14px rgba(18, 45, 46, 0.18);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(18, 45, 46, 0.2);
+  }
+`;
+
+const ProductVisualBox = styled.div`
+  position: relative;
+
+  width: 104px;
+  height: 96px;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 `;
 
 const BestBadge = styled.div`
   position: absolute;
-  left: 13px;
-  top: 10px;
+  left: 0;
+  top: 0;
+  z-index: 2;
 
-  min-width: 44px;
-  height: 17px;
-  padding: 0 7px;
+  min-width: 48px;
+  height: 20px;
+  padding: 0 8px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 4px;
+  border-radius: 5px;
   background-color: var(--color-main);
   color: var(--color-white);
 
   font-size: 9px;
   font-weight: 900;
+  letter-spacing: -0.2px;
 `;
 
 const ProductImageBox = styled.div`
-  width: 92px;
-  height: 92px;
+  width: 88px;
+  height: 88px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 8px;
+  overflow: hidden;
+  border-radius: 10px;
   background-color: #f1f6f3;
+`;
+
+const ProductImage = styled.img`
+  width: 100%;
+  height: 100%;
+  padding: 4px;
+  object-fit: contain;
 `;
 
 const ProductImageText = styled.span`
@@ -361,16 +491,22 @@ const ProductImageText = styled.span`
 
 const ProductInfo = styled.div`
   min-width: 0;
+  height: 92px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 `;
 
 const ProductName = styled.h3`
-  min-height: 36px;
-  margin: 0 0 8px;
+  min-height: 34px;
+  margin: 0;
 
   color: var(--text-main);
   font-size: 14px;
-  font-weight: 700;
-  line-height: 1.35;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.2px;
 
   display: -webkit-box;
   overflow: hidden;
@@ -379,38 +515,66 @@ const ProductName = styled.h3`
 `;
 
 const ProductPrice = styled.p`
-  margin: 0 0 15px;
+  margin: 0;
 
   color: var(--text-main);
-  font-size: 22px;
+  font-size: 21px;
   font-weight: 900;
-  letter-spacing: -0.5px;
+  line-height: 1;
+  letter-spacing: -0.7px;
 `;
 
-const ProductMeta = styled.div`
+const ProductBottom = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
 `;
 
-const ProductRating = styled.div`
+const ProductReviewInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
   color: var(--text-sub);
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 700;
+  line-height: 1;
+`;
 
-  span {
-    color: #ffc400;
+const ReviewStar = styled.span`
+  color: #ffc400;
+  font-size: 15px;
+  line-height: 1;
+`;
+
+const CartButton = styled.button`
+  width: 26px;
+  height: 26px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 50%;
+  background-color: #e9f3ed;
+  color: var(--color-main);
+
+  font-size: 13px;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #d8eee4;
   }
 `;
 
-/* Health Banner */
 const HealthBanner = styled.section`
   position: relative;
   overflow: hidden;
 
-  height: 155px;
+  height: 145px;
   margin-top: 14px;
-  padding: 0 38px;
+  padding: 0 34px;
 
   display: flex;
   align-items: center;
@@ -419,18 +583,36 @@ const HealthBanner = styled.section`
   background-color: #dff2e7;
 `;
 
+const HealthIconCircle = styled.div`
+  width: 62px;
+  height: 62px;
+  margin-right: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background-color: #075348;
+  color: #33d6a0;
+
+  font-size: 28px;
+  flex-shrink: 0;
+`;
+
 const HealthTextBox = styled.div`
   position: relative;
   z-index: 2;
+  flex-shrink: 0;
 `;
 
 const HealthTitle = styled.h2`
-  margin: 0 0 12px;
+  margin: 0 0 10px;
 
   color: var(--color-main);
-  font-size: 30px;
+  font-size: 28px;
   font-weight: 900;
-  letter-spacing: -1px;
+  letter-spacing: -1.1px;
 
   strong {
     color: var(--text-main);
@@ -442,36 +624,37 @@ const HealthDesc = styled.p`
 
   color: var(--text-sub);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
 `;
 
-const HealthButton = styled.button`
-  width: 194px;
-  height: 43px;
-  margin-left: 70px;
-
-  border: 0;
-  border-radius: 999px;
-  background-color: var(--color-main);
-  color: var(--color-white);
-
-  font-size: 15px;
-  font-weight: 800;
+const HealthButtonWrap = styled.div`
+  margin-left: 58px;
+  position: relative;
+  z-index: 3;
 `;
 
-const HealthImagePlaceholder = styled.div`
+const HealthImageBox = styled.div`
   position: absolute;
-  right: 38px;
-  bottom: 18px;
+  right: 36px;
+  bottom: 0;
 
   width: 300px;
-  height: 115px;
+  height: 130px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const VisualPlaceholder = styled.div`
+  width: 100%;
+  height: 86%;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 14px;
+  border-radius: 12px;
   background-color: rgba(255, 255, 255, 0.45);
   color: var(--text-desc);
 
@@ -479,42 +662,18 @@ const HealthImagePlaceholder = styled.div`
   font-weight: 700;
 `;
 
-/* Temporary Common Button */
-const PillButton = styled.button`
-  width: 164px;
-  height: 28px;
-  padding: 0 16px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-
-  border: 0;
-  border-radius: 999px;
-  background-color: var(--color-main);
-  color: var(--color-white);
-
-  font-size: 12px;
-  font-weight: 800;
-
-  span {
-    font-size: 15px;
-    line-height: 1;
-  }
-`;
-
-const CartButton = styled.button`
-  width: 24px;
-  height: 24px;
+const BestProductEmpty = styled.div`
+  grid-column: 1 / -1;
+  height: 126px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border: 0;
-  border-radius: 50%;
-  background-color: #e9f3ed;
+  border-radius: 14px;
+  background-color: #f7faf8;
+  color: var(--text-sub);
 
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: 800;
 `;

@@ -9,28 +9,28 @@ const categoryList = [
     title: "사료",
     desc: "건강한 식습관의 시작",
     imageText: "사료 이미지",
-    path: "/store/dog/feed",
+    path: "/store/cat/feed",
   },
   {
     id: "toilet",
-    title: "배변패드",
+    title: "모래",
     desc: "위생적인 생활 필수품",
-    imageText: "배변패드 이미지",
-    path: "/store/dog/toilet",
+    imageText: "모래 이미지",
+    path: "/store/cat/toilet",
   },
   {
     id: "snack",
     title: "간식",
     desc: "맛과 건강 둘 다 챙긴 우리아이 간식",
     imageText: "간식 이미지",
-    path: "/store/dog/snack",
+    path: "/store/cat/snack",
   },
   {
     id: "supplement",
     title: "영양제",
     desc: "맞춤형 건강 케어",
     imageText: "영양제 이미지",
-    path: "/store/dog/supplement",
+    path: "/store/cat/supplement",
   },
 ];
 
@@ -52,11 +52,11 @@ function getTempReviewInfo(index) {
   return tempReviewList[index] ?? { rating: "0.0", count: 0 };
 }
 
-export default function PetStoreDogHomePage() {
+export default function PetStoreCatHomePage() {
   const navigate = useNavigate();
 
-  // 강아지 상품 중 베스트 상품만 조회
-  const { bestProductList, isBestLoading } = usePetStoreBestProductList("D");
+  // 고양이 상품 중 베스트 상품만 조회
+  const { bestProductList, isBestLoading } = usePetStoreBestProductList("C");
 
   return (
     <>
@@ -70,11 +70,11 @@ export default function PetStoreDogHomePage() {
 
           <HeroInner>
             <HeroTextBox>
-              <HeroEyebrow>우리 강아지를 위한 모든 것</HeroEyebrow>
+              <HeroEyebrow>우리 고양이를 위한 모든 것</HeroEyebrow>
               <HeroTitle>
-                건강한 강아지의
+                행복한 고양이의
                 <br />
-                <strong>행복한 일상</strong>
+                <strong>건강한 일상</strong>
               </HeroTitle>
               <HeroDesc>좋은 제품이 건강한 습관을 만듭니다.</HeroDesc>
 
@@ -97,7 +97,7 @@ export default function PetStoreDogHomePage() {
             </HeroTextBox>
 
             <HeroVisualBox>
-              <HeroVisualText>강아지 메인 배너 이미지 영역</HeroVisualText>
+              <HeroVisualText>고양이 메인 배너 이미지 영역</HeroVisualText>
             </HeroVisualBox>
           </HeroInner>
 
@@ -212,7 +212,7 @@ function getCategoryLabel(category) {
     FOOD: "사료",
     SNACK: "간식",
     SUPPLEMENT: "영양제",
-    TOILET: "배변패드",
+    TOILET: "모래",
   };
 
   return categoryMap[category] ?? "상품";

@@ -4,26 +4,6 @@ import { useLocation } from "react-router-dom";
 
 /**
  * 공용 네비게이션
- *
- * 이 Nav는 각 페이지에서 도메인에 맞는 네브 아이템 적어서 직접 import해서 붙여야 합니다.
- *
- * 사용 방식:
- * 0. 모르겠으면 PetStoreNav참고!!
- * 1. 메뉴 배열을 만든다.
- * 2. <Nav leftMenus={...} rightMenus={...} /> 형태로 넣는다.
- *
- * activeMenu를 넘기면 label 기준으로 활성화됩니다.
- * activeMenu를 넘기지 않으면 현재 URL(menu.path)을 기준으로 자동 활성화됩니다.
- *
- * 메뉴 예시:
- * { label: "강아지", path: "/store/dog" }
- * { label: "장바구니", path: "/store/cart", count: 3 }
- *
- * 사용 예시:
- * <Nav leftMenus={leftMenus} rightMenus={rightMenus} />
- *
- * 직접 활성 메뉴를 지정하고 싶을 때:
- * <Nav leftMenus={leftMenus} rightMenus={rightMenus} activeMenu="강아지" />
  */
 export default function Nav({
   leftMenus = [],
@@ -43,8 +23,12 @@ export default function Nav({
       return location.pathname === "/";
     }
 
+    // 도메인 루트 메뉴는 정확히 일치할 때만 active 처리
+    if (menu.path === "/store") {
+      return location.pathname === "/store";
+    }
+
     // 현재 URL이 menu.path와 같거나, 하위 경로이면 active 처리
-    // 예: /store/dog, /store/dog/1 모두 강아지 메뉴 active
     return (
       location.pathname === menu.path ||
       location.pathname.startsWith(`${menu.path}/`)

@@ -9,11 +9,7 @@ import com.kh.app.store.dto.response.StoreProductAdminDetailResDto;
 import com.kh.app.store.dto.response.StoreProductAdminListResDto;
 import com.kh.app.store.dto.response.StoreProductDetailResDto;
 import com.kh.app.store.dto.response.StoreProductListResDto;
-import com.kh.app.store.entity.StoreProductEntity;
-import com.kh.app.store.entity.StoreProductFeedingGuideEntity;
-import com.kh.app.store.entity.StoreProductImageEntity;
-import com.kh.app.store.entity.StoreProductNutritionEntity;
-import com.kh.app.store.entity.StoreProductTagEntity;
+import com.kh.app.store.entity.*;
 import com.kh.app.store.repository.StoreProductFeedingGuideRepository;
 import com.kh.app.store.repository.StoreProductImageRepository;
 import com.kh.app.store.repository.StoreProductNutritionRepository;
@@ -76,24 +72,74 @@ public class StoreProductService {
         return storeProductRepository.findAdminProductList(pageable);
     }
 
-    public List<StoreProductListResDto> getProductList() {
+    //검색 및 필터링 목록조회
+    public List<StoreProductListResDto> getProductList(
+            String targetPetType,
+            StoreProductCategory category,
+            String keyword,
+            Long tagId,
+            String tagName,
+            String sort
+    ) {
+        String petType = normalizeTargetPetType(targetPetType);
+        String keywordText = normalizeKeyword(keyword);
+        String tagNameText = normalizeKeyword(tagName);
+        String sortType = normalizeSort(sort);
 
-        //판매중인것만
-        List<StoreProductEntity> productList = storeProductRepository.findByProductSaleYnOrderByProductIdDesc("Y");
+        List<StoreProductEntity> productList =
+                storeProductRepository.findUserProductList(
+                        petType,
+                        category,
+                        keywordText,
+                        tagId,
+                        tagNameText,
+                        sortType
+                );
 
         return productList.stream()
-                .map(product -> {
-                    StoreProductImageEntity mainImage =
-                            storeProductImageRepository
-                                    .findFirstByProduct_ProductIdAndImageRepresentYnOrderBySortOrderAsc(
-                                            product.getProductId(),
-                                            "Y"
-                                    )
-                                    .orElse(null);
-
-                    return StoreProductListResDto.from(product, mainImage);
-                })
+                .map(this::toStoreProductListResDto)
                 .toList();
+    }
+
+    public List<StoreProductListResDto> getBestProductList(String targetPetType) {
+
+        List<StoreProductEntity> productList;
+
+        if (targetPetType == null || targetPetType.isBlank()) {
+            productList =
+                    storeProductRepository.findTop4ByProductSaleYnOrderByProductViewCountDescProductIdDesc(
+                            "Y"
+                    );
+        } else {
+            String petType = targetPetType.trim().toUpperCase();
+
+            if (!petType.equals("D") && !petType.equals("C")) {
+                throw new IllegalArgumentException("대상동물 타입은 D 또는 C만 가능합니다.");
+            }
+
+            productList =
+                    storeProductRepository.findTop4ByProductSaleYnAndProductTargetPetTypeOrderByProductViewCountDescProductIdDesc(
+                            "Y",
+                            petType
+                    );
+        }
+
+        return productList.stream()
+                .map(this::toStoreProductListResDto)
+                .toList();
+    }
+
+    private StoreProductListResDto toStoreProductListResDto(StoreProductEntity product) {
+
+        StoreProductImageEntity mainImage =
+                storeProductImageRepository
+                        .findFirstByProduct_ProductIdAndImageRepresentYnOrderBySortOrderAsc(
+                                product.getProductId(),
+                                "Y"
+                        )
+                        .orElse(null);
+
+        return StoreProductListResDto.from(product, mainImage);
     }
 
     public StoreProductAdminDetailResDto getAdminProductDetail(Long productId) {
@@ -357,6 +403,47 @@ public class StoreProductService {
         storeProductEntity.resumeSelling();
     }
 
+    //검색 및 필터링을 위한 메서드
+    private String normalizeTargetPetType(String targetPetType) {
+        if (targetPetType == null || targetPetType.isBlank()) {
+            return null;
+        }
+
+        String petType = targetPetType.trim().toUpperCase();
+
+        if (!petType.equals("D") && !petType.equals("C")) {
+            throw new IllegalArgumentException("대상동물 타입은 D 또는 C만 가능합니다.");
+        }
+
+        return petType;
+    }
+
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+
+        return keyword.trim();
+    }
+
+    private String normalizeSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return "latest";
+        }
+
+        String sortType = sort.trim();
+
+        if (
+                !sortType.equals("latest") &&
+                        !sortType.equals("popular") &&
+                        !sortType.equals("lowPrice") &&
+                        !sortType.equals("highPrice")
+        ) {
+            throw new IllegalArgumentException("지원하지 않는 정렬 조건입니다.");
+        }
+
+        return sortType;
+    }
 
 
 }
