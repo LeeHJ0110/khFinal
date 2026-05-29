@@ -1,6 +1,9 @@
 package com.kh.app.petcare.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.member.repository.MemberRepository;
+import com.kh.app.pet.dto.response.PetMyPageResDto;
 import com.kh.app.pet.entity.PetEntity;
 import com.kh.app.pet.entity.PetType;
 import com.kh.app.pet.repository.PetRepository;
@@ -41,6 +44,7 @@ public class PetCareService {
     private final SelfDiagnosisAnswerRepository answerRepository;
     private final ImageRepository imageRepository;
     private final PetRepository petRepository;
+    private final MemberRepository memberRepository;
 
     @Transactional
     public void requestDiagnosis(
@@ -145,7 +149,17 @@ public class PetCareService {
                         .map(answer -> {
                             DiagnosisAnswerDto dto = new DiagnosisAnswerDto();
                             dto.setQuestionId(answer.getQuestion().getQuestionId());
+                            dto.setQuestionCategory(
+                                    answer.getQuestion().getQuestionCategory()
+                            );
+                            dto.setQuestionContent(
+                                    answer.getQuestion().getQuestionContent()
+                            );
+                            dto.setQuestionContent(
+                                    answer.getQuestion().getQuestionContent()
+                            );
                             dto.setAnswerValue(answer.getAnswerValue());
+
                             return dto;
                         })
                         .toList();
@@ -156,14 +170,12 @@ public class PetCareService {
                         .map(ImgUrlResDto::from)
                         .toList();
 
-        return DiagnosisDetailResDto.builder()
-                .diagnosisReqId(diagnosisReq.getDiagnosisReqId())
-                .petId(diagnosisReq.getPetEntity().getId())
-                .diagnosisReqStatus(diagnosisReq.getDiagnosisReqStatus())
-                .createdAt(diagnosisReq.getCreatedAt())
-                .answerList(answerList)
-                .fileList(fileList)
-                .build();
+
+        return DiagnosisDetailResDto.from(
+                diagnosisReq,
+                answerList,
+                fileList
+        );
     }
     //펫 타입별 질문 조회
     public List<SelfDiagnosisQuestionResDto> getQuestionList(
@@ -174,6 +186,18 @@ public class PetCareService {
                 .findByPetType(petType)
                 .stream()
                 .map(SelfDiagnosisQuestionResDto::from)
+                .toList();
+    }
+ //반려동물 목록 조회
+    @Transactional(readOnly = true)
+    public List<PetMyPageResDto> getMyPetListForDiagnosis(String username) {
+
+        MemberEntity member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("회원 없음"));
+
+        return petRepository.findAllByMember_Id(member.getId())
+                .stream()
+                .map(PetMyPageResDto::from)
                 .toList();
     }
 }

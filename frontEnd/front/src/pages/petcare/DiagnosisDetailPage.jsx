@@ -26,6 +26,32 @@ function DiagnosisDetailPage() {
     });
   }
 
+  function formatPetType(petType) {
+    if (petType === "DOG") return "강아지";
+    if (petType === "CAT") return "고양이";
+    return petType ?? "-";
+  }
+
+  function formatGender(gender) {
+    if (gender === "M") return "수컷";
+    if (gender === "F") return "암컷";
+    return gender ?? "-";
+  }
+
+  function formatQuestionCategory(category) {
+    if (category === "VACCINE") return "예방접종";
+    if (category === "DISEASE") return "질병이력";
+    if (category === "STRESS") return "스트레스";
+    if (category === "SLEEP") return "수면";
+    if (category === "EXERCISE") return "운동";
+    if (category === "MEAL") return "식사";
+    if (category === "SKIN") return "피부";
+    if (category === "EYE") return "눈";
+    if (category === "TEETH") return "치아";
+    if (category === "CONSULT") return "상담내용";
+    return category ?? "-";
+  }
+
   if (isLoading) {
     return <Wrapper>불러오는 중...</Wrapper>;
   }
@@ -36,11 +62,28 @@ function DiagnosisDetailPage() {
 
       <InfoBox>
         <p>
-          <strong>진단 신청 번호 :</strong> {petCareVo.diagnosisReqId ?? "-"}
+          <strong>반려동물 이름 :</strong> {petCareVo.petName ?? "-"}
         </p>
 
         <p>
-          <strong>반려동물 번호 :</strong> {petCareVo.petId ?? "-"}
+          <strong>종류 :</strong> {formatPetType(petCareVo.petType)}
+        </p>
+
+        <p>
+          <strong>품종 :</strong> {petCareVo.breedName ?? "-"}
+        </p>
+
+        <p>
+          <strong>성별 :</strong> {formatGender(petCareVo.gender)}
+        </p>
+
+        <p>
+          <strong>생년월일 :</strong> {petCareVo.birthDate ?? "-"}
+        </p>
+
+        <p>
+          <strong>체중 :</strong>{" "}
+          {petCareVo.weight != null ? `${petCareVo.weight}kg` : "-"}
         </p>
 
         <p>
@@ -61,10 +104,23 @@ function DiagnosisDetailPage() {
           petCareVo.answerList.map((answer, idx) => (
             <AnswerBox key={idx}>
               <p>
-                <strong>질문 번호 :</strong> {answer.questionId}
+                <strong>질문 번호 :</strong> {answer.questionId ?? "-"}
               </p>
+
               <p>
-                <strong>답변 :</strong> {answer.answerValue}
+                <strong>카테고리 :</strong>{" "}
+                {formatQuestionCategory(answer.questionCategory)}
+              </p>
+
+              <p>
+                <strong>질문 :</strong> {answer.questionContent ?? "-"}
+              </p>
+
+              <p>
+                <strong>답변 :</strong>{" "}
+                {answer.answerValue && answer.answerValue.trim() !== ""
+                  ? answer.answerValue
+                  : "-"}
               </p>
             </AnswerBox>
           ))

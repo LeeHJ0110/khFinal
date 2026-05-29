@@ -57,6 +57,15 @@ public class PetCareController {
                 .status(HttpStatus.CREATED)
                 .build();
     }
+    // 건강진단 신청 화면용 내 반려동물 목록 조회
+    @GetMapping("/diagnosis/pets")
+    public ResponseEntity<Object> getMyPetListForDiagnosis(
+            @AuthenticationPrincipal String username
+    ) {
+        return ResponseEntity.ok(
+                petCareService.getMyPetListForDiagnosis(username)
+        );
+    }
     // 문진 질문 보여주기
     @GetMapping("/diagnosis/questions")
     public ResponseEntity<Object> getQuestionList(
