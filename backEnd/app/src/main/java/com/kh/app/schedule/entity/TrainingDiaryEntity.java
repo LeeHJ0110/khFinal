@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "TRAINING_DIARY")
@@ -18,16 +19,9 @@ public class TrainingDiaryEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "TRAINING_PET_ID", nullable = false)
-    private TrainingPetEntity trainingId;
-
-    @Column(name = "DATE", nullable = false)
-    private LocalDate date;
-
     @Column(name = "CONTENT", nullable = false, length = 4000)
     private String content;
 
     @Column(name = "TRAINING_TIME", nullable = false, length = 4)
-    private String trainingTime;
+    private LocalTime trainingTime;
 }
