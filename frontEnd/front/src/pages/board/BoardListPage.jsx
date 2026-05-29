@@ -4,12 +4,6 @@ import { useNavigate } from "react-router-dom";
 
 import useBoardList from "../../features/board/hooks/useBoardList";
 
-import FreeBoardList from "../../features/board/components/FreeBoardList";
-import ReviewBoardList from "../../features/board/components/ReviewBoardList";
-import FAQBoardList from "../../features/board/components/FAQBoardList";
-import NewsBoardList from "../../features/board/components/NewsBoardList";
-import BoardRightSidebar from "../../features/board/components/BoardRightSidebar";
-
 const Container = styled.div`
   width: var(--layout-width);
   margin: 0 auto;
