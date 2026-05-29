@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
 import static com.kh.app.store.entity.QStoreProductEntity.storeProductEntity;
+import static com.kh.app.store.entity.QStoreProductImageEntity.storeProductImageEntity;
 import static com.kh.app.store.entity.QStoreProductTagEntity.storeProductTagEntity;
 import com.kh.app.store.entity.StoreProductCategory;
 import com.kh.app.store.entity.StoreProductEntity;
@@ -28,8 +29,7 @@ public class StoreProductRepositoryImpl implements StoreProductRepositoryCustom 
                 .select(Projections.constructor(
                         StoreProductAdminListResDto.class,
                         storeProductEntity.productId,
-                        // 아직 이미지 저장 로직 없으므로 null 처리
-                        Expressions.nullExpression(String.class),
+                        storeProductImageEntity.imageChangedName,
                         storeProductEntity.productName,
                         storeProductEntity.productCategory,
                         storeProductEntity.productTargetPetType,
@@ -41,6 +41,11 @@ public class StoreProductRepositoryImpl implements StoreProductRepositoryCustom 
                 ))
                 .from(storeProductEntity)
                 .join(storeProductEntity.productTag, storeProductTagEntity)
+                .leftJoin(storeProductImageEntity)
+                .on(
+                        storeProductImageEntity.product.eq(storeProductEntity),
+                        storeProductImageEntity.imageRepresentYn.eq("Y")
+                )
                 .orderBy(storeProductEntity.productId.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

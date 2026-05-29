@@ -113,6 +113,7 @@ export default function PetStoreProductModal({
         <PetStoreProductForm
           key={`${mode}-${detailData?.productId ?? "new"}`}
           mode={mode}
+          detailData={detailData}
           initialBasicData={initialBasicData}
           initialNutrition={initialNutrition}
           initialFeedingGuideList={initialFeedingGuideList}

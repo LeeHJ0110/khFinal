@@ -49,6 +49,7 @@ export default function PetStoreAdminProductListPage() {
             <thead>
               <tr>
                 <th>상품ID</th>
+                <th>이미지</th>
                 <th>상품명</th>
                 <th>카테고리</th>
                 <th>대상동물</th>
@@ -63,6 +64,17 @@ export default function PetStoreAdminProductListPage() {
               {productList.map((product) => (
                 <tr key={product.productId}>
                   <td>{product.productId}</td>
+                  <td>
+                    {product.thumbnailUrl ? (
+                      <img
+                        src={product.thumbnailUrl}
+                        alt={product.productName}
+                        className="pet-store-admin-thumbnail"
+                      />
+                    ) : (
+                      <div className="pet-store-admin-no-image">NO IMG</div>
+                    )}
+                  </td>
                   <td>{product.productName}</td>
                   <td>{product.productCategory}</td>
                   <td>

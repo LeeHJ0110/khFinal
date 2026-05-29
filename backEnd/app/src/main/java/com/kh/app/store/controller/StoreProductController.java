@@ -57,22 +57,48 @@ public class StoreProductController {
     //1. 관리자 : 상품등록
     @Operation(summary = "상품 등록", description = "관리자가 상품을 등록하는 기능")
     @PostMapping("/admin/insert")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "201", description = "게시글 작성 성공"),
-//            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-//            @ApiResponse(responseCode = "401", description = "인증 정보 없음")
     public ResponseEntity<Void> insert(
-            @RequestPart(name = "data")StoreInsertReqDto reqDto,
-            //대표이미지랑 서브이미지들
+            @RequestPart(name = "data") StoreInsertReqDto reqDto,
             @RequestPart(name = "mainImage", required = false) MultipartFile mainImage,
             @RequestPart(name = "subImages", required = false) List<MultipartFile> subImages
+    ) throws IOException {
 
-            ) throws IOException {
+        log.info("========== 상품 등록 요청 도착 ==========");
+        log.info("상품명 = {}", reqDto.getProductName());
+
+        if (mainImage == null) {
+            log.info("대표이미지 mainImage == null");
+        } else {
+            log.info("대표이미지 originalName = {}", mainImage.getOriginalFilename());
+            log.info("대표이미지 size = {}", mainImage.getSize());
+            log.info("대표이미지 empty = {}", mainImage.isEmpty());
+            log.info("대표이미지 contentType = {}", mainImage.getContentType());
+        }
+
+        if (subImages == null) {
+            log.info("서브이미지 subImages == null");
+        } else {
+            log.info("서브이미지 개수 = {}", subImages.size());
+
+            for (int i = 0; i < subImages.size(); i++) {
+                MultipartFile file = subImages.get(i);
+
+                if (file == null) {
+                    log.info("서브이미지 {} == null", i);
+                    continue;
+                }
+
+                log.info("서브이미지 {} originalName = {}", i, file.getOriginalFilename());
+                log.info("서브이미지 {} size = {}", i, file.getSize());
+                log.info("서브이미지 {} empty = {}", i, file.isEmpty());
+                log.info("서브이미지 {} contentType = {}", i, file.getContentType());
+            }
+        }
+
         storeProductService.insert(reqDto, mainImage, subImages);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .build();
-
     }
 
     // 2. 관리자 : 상품 목록 조회

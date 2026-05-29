@@ -9,7 +9,7 @@ const categoryList = [
     title: "사료",
     desc: "건강한 식습관의 시작",
     imageText: "사료 이미지",
-    path: "/store/dog/feed",
+    path: "/store/dog/food",
   },
   {
     id: "toilet",
