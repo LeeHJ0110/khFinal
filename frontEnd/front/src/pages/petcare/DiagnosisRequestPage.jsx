@@ -1,633 +1,669 @@
 import React, { useEffect, useState } from "react";
-import { getMyInfo } from "../../features/mypage/member/api/mypageMemberApi";
-import { useParams } from "react-router-dom";
 import styled from "styled-components";
+import { getMyInfo } from "../../features/mypage/member/api/mypageMemberApi";
 import {
+  fetchMyPetList,
   fetchQuestionList,
   requestDiagnosis,
-  fetchMyPetList,
+  updatePetWeight,
 } from "../../features/petcare/api/petCareApi";
+import { useNavigate } from "react-router-dom";
+import DiagnosisProgress from "./DiagnosisProgress";
+import PetSelectStep from "./PetSelectStep";
+import YnQuestionStep from "./YnQuestionStep";
+import ScoreQuestionStep from "./ScoreQuestionStep";
+import ConsultStep from "./ConsultStep";
+import ImageUploadStep from "./ImageUploadStep";
 
+// 자가진단 카테고리 이동 순서
+const SELF_CATEGORY_ORDER = [
+  "STRESS",
+  "SLEEP",
+  "EXERCISE",
+  "MEAL",
+  "SKIN",
+  "EYE",
+  "TEETH",
+  "CONSULT",
+];
+
+// 카테고리 한글 표시
+function formatQuestionCategory(category) {
+  if (category === "STRESS") return "스트레스";
+  if (category === "SLEEP") return "수면";
+  if (category === "EXERCISE") return "운동";
+  if (category === "MEAL") return "식사";
+  if (category === "SKIN") return "피부";
+  if (category === "EYE") return "눈";
+  if (category === "TEETH") return "치아";
+  if (category === "CONSULT") return "기타 특이사항";
+
+  return category;
+}
+
+// 진단 신청 총괄 페이지
 function DiagnosisRequestPage() {
+  const navigate = useNavigate();
+  /*
+   * 상단 진행 단계
+   * BASIC    : 기본정보
+   * SELF     : 자가진단
+   * IMAGE    : 이미지 분석
+   * COMPLETE : 신청 완료
+   */
+  const [mainStep, setMainStep] = useState("BASIC");
+
+  /*
+   * 기본정보 내부 단계
+   * PET     : 펫 선택 + 현재 체중
+   * VACCINE : 예방접종
+   * DISEASE : 질병 이력
+   */
+  const [basicStep, setBasicStep] = useState("PET");
+
+  // 자가진단 내부 카테고리
+  const [selfStep, setSelfStep] = useState("STRESS");
+
+  // 로그인 회원 정보
+  const [memberInfo, setMemberInfo] = useState(null);
+
+  // 로그인한 회원의 반려동물 목록
   const [petList, setPetList] = useState([]);
+
+  // 현재 선택한 반려동물
   const [selectedPet, setSelectedPet] = useState(null);
 
-  const [questionList, setQuestionList] = useState([]);
-  const [answerList, setAnswerList] = useState([]);
-  const [consultContent, setConsultContent] = useState("");
+  // 사용자가 입력한 현재 체중
+  const [currentWeight, setCurrentWeight] = useState("");
 
+  // 전체 질문 목록
+  const [questionList, setQuestionList] = useState([]);
+
+  // 전체 답변 목록
+  const [answerList, setAnswerList] = useState([]);
+
+  // 이미지 분석 단계 업로드 파일
   const [eyeFiles, setEyeFiles] = useState([]);
   const [skinFiles, setSkinFiles] = useState([]);
   const [teethFiles, setTeethFiles] = useState([]);
-  const [memberInfo, setMemberInfo] = useState(null);
-  const formatPetType = (petType) => {
-    if (petType === "DOG") return "강아지";
-    if (petType === "CAT") return "고양이";
-    return petType ?? "-";
-  };
-  const formatQuestionCategory = (category) => {
-    if (category === "VACCINE") return "예방접종";
-    if (category === "DISEASE") return "질병이력";
-    if (category === "STRESS") return "스트레스";
-    if (category === "SLEEP") return "수면";
-    if (category === "EXERCISE") return "운동";
-    if (category === "MEAL") return "식사";
-    if (category === "SKIN") return "피부";
-    if (category === "EYE") return "눈";
-    if (category === "TEETH") return "치아";
-    if (category === "CONSULT") return "기타 특이사항";
 
-    return category ?? "-";
-  };
-  const formatGender = (gender) => {
-    if (gender === "M") return "수컷";
-    if (gender === "F") return "암컷";
-    return gender ?? "-";
-  };
+  // 최초 화면 로딩 여부
+  const [isLoading, setIsLoading] = useState(true);
 
-  const formatRepresentYn = (representYn) => {
-    if (representYn === "Y") return "대표동물";
-    if (representYn === "N") return "일반동물";
-    return representYn ?? "-";
-  };
+  // 체중 저장 중 여부
+  const [isWeightSaving, setIsWeightSaving] = useState(false);
 
+  // 건강진단 신청 요청 중 여부
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // 회원 정보 + 펫 목록 조회
   useEffect(() => {
-    async function loadPetList() {
+    async function loadInitialData() {
       try {
-        const res = await fetchMyPetList();
-        setPetList(res.data);
-        console.log("반려동물 목록:", res.data);
+        setIsLoading(true);
 
-        if (res.data.length > 0) {
-          setSelectedPet(res.data[0]);
-        }
+        const [memberRes, petRes] = await Promise.all([
+          getMyInfo(),
+          fetchMyPetList(),
+        ]);
+
+        const pets = petRes.data ?? [];
+
+        setMemberInfo(memberRes.data);
+        setPetList(pets);
+
+ // 신청 중이 아닌 첫 번째 펫을 기본 선택
+const selectablePet = pets.find(
+  (pet) => pet.diagnosisInProgress !== true
+);
+
+if (selectablePet) {
+  setSelectedPet(selectablePet);
+  setCurrentWeight(selectablePet.weight ?? "");
+} else {
+  setSelectedPet(null);
+  setCurrentWeight("");
+}
       } catch (err) {
         console.error(err);
-        alert("반려동물 정보를 불러오지 못했습니다.");
+        alert("회원 또는 반려동물 정보를 불러오지 못했습니다.");
+      } finally {
+        setIsLoading(false);
       }
     }
 
-    loadPetList();
+    loadInitialData();
   }, []);
 
-  useEffect(() => {
-    if (!selectedPet) return;
+  // 선택한 펫이 바뀌면 해당 동물의 질문 목록 조회
+useEffect(() => {
+  if (!selectedPet?.petId) {
+    return;
+  }
 
-    async function loadQuestions() {
-      try {
-        const res = await fetchQuestionList(selectedPet.petType);
-        setQuestionList(res.data);
-        setAnswerList([]);
-      } catch (err) {
-        console.error(err);
-      }
+  async function loadQuestions() {
+    try {
+      const res = await fetchQuestionList(selectedPet.petType);
+      const questions = res.data ?? [];
+
+      setQuestionList(questions);
+
+      setAnswerList(
+        questions.map((question) => ({
+          questionId: question.questionId,
+          questionCategory: question.questionCategory,
+          questionContent: question.questionContent,
+          answerValue: question.questionType === "YN" ? "N" : "",
+        }))
+      );
+    } catch (err) {
+      console.error(err);
+      alert("질문을 불러오지 못했습니다.");
     }
+  }
 
-    loadQuestions();
-  }, [selectedPet]);
+  loadQuestions();
+}, [selectedPet?.petId]);
 
-  useEffect(() => {
-    async function loadMemberInfo() {
-      try {
-        const res = await getMyInfo();
-        setMemberInfo(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    }
+  // 예방접종 YN 질문
+  const vaccineQuestionList = questionList.filter(
+    (question) =>
+      question.questionCategory === "VACCINE" &&
+      question.questionType === "YN"
+  );
 
-    loadMemberInfo();
-  }, []);
+  // 질병 이력 YN 질문
+  const diseaseQuestionList = questionList.filter(
+    (question) =>
+      question.questionCategory === "DISEASE" &&
+      question.questionType === "YN"
+  );
 
-  const handlePetChange = (e) => {
-    const petId = Number(e.target.value);
-    const pet = petList.find((item) => item.petId === petId);
+  // 현재 자가진단 SCORE 질문
+  const currentScoreQuestionList = questionList.filter(
+    (question) =>
+      question.questionCategory === selfStep &&
+      question.questionType === "SCORE"
+  );
 
+  // 상담 내용 TEXT 질문
+  const consultQuestion = questionList.find(
+    (question) =>
+      question.questionCategory === "CONSULT" &&
+      question.questionType === "TEXT"
+  );
+
+  // 반려동물 선택
+  const handleSelectPet = (pet) => {
     setSelectedPet(pet);
+    setCurrentWeight(pet.weight ?? "");
+
+    // 다른 반려동물을 선택하면 기존 이미지 초기화
+    setEyeFiles([]);
+    setSkinFiles([]);
+    setTeethFiles([]);
   };
 
-  const handleAnswer = (questionId, value) => {
-    setAnswerList((prev) => {
-      const filtered = prev.filter((item) => item.questionId !== questionId);
+  // 현재 체중 저장
+const handleUpdateWeight = async () => {
+  if (!selectedPet) {
+    alert("반려동물을 먼저 선택해 주세요.");
+    return;
+  }
 
-      return [
-        ...filtered,
-        {
-          questionId,
-          answerValue: value,
-        },
-      ];
-    });
-  };
+  const nextWeight = Number(currentWeight);
 
-  const getAnswerValue = (questionId) => {
-    return (
-      answerList.find((item) => item.questionId === questionId)?.answerValue ??
-      ""
+  if (
+    currentWeight === "" ||
+    Number.isNaN(nextWeight) ||
+    nextWeight <= 0
+  ) {
+    alert("현재 체중을 올바르게 입력해 주세요.");
+    return;
+  }
+
+  try {
+    setIsWeightSaving(true);
+
+    // 기존 펫 정보 + 변경된 몸무게 전송
+    await updatePetWeight(selectedPet, nextWeight);
+
+    // 화면에 표시되는 목록 값 수정
+    setPetList((prev) =>
+      prev.map((pet) =>
+        pet.petId === selectedPet.petId
+          ? {
+              ...pet,
+              weight: nextWeight,
+            }
+          : pet
+      )
+    );
+
+    // 현재 선택한 펫 값도 수정
+    setSelectedPet((prev) => ({
+      ...prev,
+      weight: nextWeight,
+    }));
+
+    alert("현재 체중이 저장되었습니다.");
+  } catch (err) {
+    console.error("몸무게 수정 실패:", err);
+    console.error("응답 상태:", err.response?.status);
+    console.error("응답 데이터:", err.response?.data);
+
+    alert("현재 체중을 저장하지 못했습니다.");
+  } finally {
+    setIsWeightSaving(false);
+  }
+};
+
+  // YN 답변 토글
+  // N → Y → N
+  const handleYnToggle = (questionId) => {
+    setAnswerList((prev) =>
+      prev.map((answer) =>
+        answer.questionId === questionId
+          ? {
+              ...answer,
+              answerValue: answer.answerValue === "Y" ? "N" : "Y",
+            }
+          : answer
+      )
     );
   };
 
-  const isChecked = (questionId, value) => {
-    return getAnswerValue(questionId) === value;
+  // 현재 YN 답변이 Y인지 확인
+  const isYnSelected = (questionId) => {
+    return (
+      answerList.find((answer) => answer.questionId === questionId)
+        ?.answerValue === "Y"
+    );
   };
 
-  const handleMultiAnswer = (questionId, option) => {
-    const currentValue = getAnswerValue(questionId);
-
-    const currentList = currentValue
-      ? currentValue.split(",").filter((item) => item !== "")
-      : [];
-
-    let nextList;
-
-    if (currentList.includes(option)) {
-      nextList = currentList.filter((item) => item !== option);
-    } else {
-      nextList = [...currentList, option];
-    }
-
-    handleAnswer(questionId, nextList.join(","));
+  // SCORE 또는 TEXT 답변 변경
+  const handleAnswerChange = (questionId, value) => {
+    setAnswerList((prev) =>
+      prev.map((answer) =>
+        answer.questionId === questionId
+          ? {
+              ...answer,
+              answerValue: value,
+            }
+          : answer
+      )
+    );
   };
 
-  const isMultiChecked = (questionId, option) => {
-    const currentValue = getAnswerValue(questionId);
-
-    if (!currentValue) {
-      return false;
-    }
-
-    return currentValue.split(",").includes(option);
+  // 특정 질문의 현재 답변값 조회
+  const getAnswerValue = (questionId) => {
+    return (
+      answerList.find((answer) => answer.questionId === questionId)
+        ?.answerValue ?? ""
+    );
   };
 
-  const getOptionList = (question) => {
-    if (question.optionList && question.optionList.length > 0) {
-      return question.optionList;
-    }
-
-    if (question.questionType === "SCORE") {
-      return [
-        "매우 그렇지않음",
-        "조금 그렇지않음",
-        "보통",
-        "조금 그렇다",
-        "매우그렇다",
-      ];
-    }
-
-    if (question.questionType === "SINGLE") {
-      return ["없음", "가끔", "자주"];
-    }
-
-    if (question.questionType === "MULTI") {
-      return ["기침", "구토", "설사", "가려움", "식욕저하"];
-    }
-
-    return [];
+  // 현재 SCORE 카테고리의 문항을 모두 선택했는지 검사
+  const hasEmptyScoreAnswer = () => {
+    return currentScoreQuestionList.some(
+      (question) => getAnswerValue(question.questionId) === ""
+    );
   };
 
-  const renderAnswerInput = (question) => {
-    const questionId = question.questionId;
-    const questionType = question.questionType;
+  // 다음 버튼
+  const handleNext = () => {
+    // 기본정보 1: 펫 선택
+    if (mainStep === "BASIC" && basicStep === "PET") {
+      if (!selectedPet) {
+        alert("반려동물을 선택해 주세요.");
+        return;
+      }
 
-    if (questionType === "YN") {
-      return (
-        <ButtonGroup>
-          <AnswerButton
-            type="button"
-            $active={isChecked(questionId, "Y")}
-            onClick={() => handleAnswer(questionId, "Y")}
-          >
-            예
-          </AnswerButton>
-
-          <AnswerButton
-            type="button"
-            $active={isChecked(questionId, "N")}
-            onClick={() => handleAnswer(questionId, "N")}
-          >
-            아니오
-          </AnswerButton>
-        </ButtonGroup>
-      );
+      setBasicStep("VACCINE");
+      return;
     }
 
-    if (questionType === "TEXT") {
-      return (
-        <TextInput
-          type="text"
-          placeholder="답변을 입력해 주세요."
-          value={getAnswerValue(questionId)}
-          onChange={(e) => handleAnswer(questionId, e.target.value)}
-        />
-      );
+    // 기본정보 2: 예방접종
+    if (mainStep === "BASIC" && basicStep === "VACCINE") {
+      setBasicStep("DISEASE");
+      return;
     }
 
-    if (questionType === "SCORE") {
-      return (
-        <ScoreGroup>
-          {getOptionList(question).map((score) => (
-            <ScoreButton
-              key={score}
-              type="button"
-              $active={isChecked(questionId, score)}
-              onClick={() => handleAnswer(questionId, score)}
-            >
-              {score}
-            </ScoreButton>
-          ))}
-        </ScoreGroup>
-      );
+    // 기본정보 3: 질병 이력
+    if (mainStep === "BASIC" && basicStep === "DISEASE") {
+      setMainStep("SELF");
+      setSelfStep("STRESS");
+      return;
     }
 
-    if (questionType === "SINGLE") {
-      return (
-        <OptionGroup>
-          {getOptionList(question).map((option) => (
-            <OptionButton
-              key={option}
-              type="button"
-              $active={isChecked(questionId, option)}
-              onClick={() => handleAnswer(questionId, option)}
-            >
-              {option}
-            </OptionButton>
-          ))}
-        </OptionGroup>
-      );
+    // 자가진단: SCORE 카테고리
+    if (mainStep === "SELF" && selfStep !== "CONSULT") {
+      if (currentScoreQuestionList.length === 0) {
+        alert(
+          `${formatQuestionCategory(selfStep)} 문항이 등록되어 있지 않습니다.`
+        );
+        return;
+      }
+
+      if (hasEmptyScoreAnswer()) {
+        alert("모든 문항에 답변해 주세요.");
+        return;
+      }
+
+      const currentIndex = SELF_CATEGORY_ORDER.indexOf(selfStep);
+      const nextCategory = SELF_CATEGORY_ORDER[currentIndex + 1];
+
+      setSelfStep(nextCategory);
+      return;
     }
 
-    if (questionType === "MULTI") {
-      return (
-        <CheckBoxGroup>
-          {getOptionList(question).map((option) => (
-            <CheckLabel key={option}>
-              <input
-                type="checkbox"
-                checked={isMultiChecked(questionId, option)}
-                onChange={() => handleMultiAnswer(questionId, option)}
-              />
-              <span>{option}</span>
-            </CheckLabel>
-          ))}
-        </CheckBoxGroup>
-      );
+    // 자가진단: 상담 내용까지 완료
+    if (mainStep === "SELF" && selfStep === "CONSULT") {
+      setMainStep("IMAGE");
     }
-
-    return null;
   };
 
+  // 건강진단 최종 신청
   const handleSubmit = async () => {
+      console.log("신청 직전 선택 펫:", selectedPet);
+      console.log("신청 직전 답변 목록:", answerList);
+      console.log("답변 개수:", answerList.length);
     if (!selectedPet) {
       alert("반려동물을 선택해 주세요.");
       return;
     }
 
+    if (eyeFiles.length === 0) {
+      alert("눈 이미지를 1장 이상 등록해 주세요.");
+      return;
+    }
+
+    if (skinFiles.length === 0) {
+      alert("피부 이미지를 1장 이상 등록해 주세요.");
+      return;
+    }
+
+    if (teethFiles.length === 0) {
+      alert("치아 이미지를 1장 이상 등록해 주세요.");
+      return;
+    }
+
     try {
-      const vo = {
+      setIsSubmitting(true);
+
+      await requestDiagnosis({
         petId: selectedPet.petId,
-        consultContent,
         answerList,
-      };
-      console.log(vo);
+        eyeFiles,
+        skinFiles,
+        teethFiles,
+      });
 
-      await requestDiagnosis(vo, eyeFiles, skinFiles, teethFiles);
+      setMainStep("COMPLETE");
 
-      alert("건강진단 신청 완료");
+      alert("건강진단 신청이 완료되었습니다.");
     } catch (err) {
       console.error(err);
-      alert("건강진단 신청 실패");
+      alert("건강진단 신청에 실패했습니다.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  // 이전 버튼
+  const handlePrevious = () => {
+    // 펫 선택 화면 → 이전 페이지
+    if (mainStep === "BASIC" && basicStep === "PET") {
+      window.history.back();
+      return;
+    }
+
+    // 예방접종 → 펫 선택
+    if (mainStep === "BASIC" && basicStep === "VACCINE") {
+      setBasicStep("PET");
+      return;
+    }
+
+    // 질병 이력 → 예방접종
+    if (mainStep === "BASIC" && basicStep === "DISEASE") {
+      setBasicStep("VACCINE");
+      return;
+    }
+
+    // 자가진단 내부 이전 카테고리
+    if (mainStep === "SELF") {
+      const currentIndex = SELF_CATEGORY_ORDER.indexOf(selfStep);
+
+      // 스트레스 → 질병 이력
+      if (currentIndex === 0) {
+        setMainStep("BASIC");
+        setBasicStep("DISEASE");
+        return;
+      }
+
+      setSelfStep(SELF_CATEGORY_ORDER[currentIndex - 1]);
+      return;
+    }
+
+    // 이미지 분석 → 상담 내용
+    if (mainStep === "IMAGE") {
+      setMainStep("SELF");
+      setSelfStep("CONSULT");
+      return;
+    }
+
+    // 신청 완료 → 이미지 분석
+    if (mainStep === "COMPLETE") {
+      setMainStep("IMAGE");
+    }
+  };
+
+  if (isLoading) {
+    return <Wrapper>정보를 불러오는 중입니다.</Wrapper>;
+  }
+
   return (
     <Wrapper>
-      <Title>건강진단 신청</Title>
-      <p>보호자 정보 : {memberInfo?.nickname}</p>
-      <Section>
-        <SectionTitle>반려동물 정보</SectionTitle>
+      <Title>건강 진단 신청</Title>
 
-        {petList.length > 0 && (
-          <PetSelect
-            value={selectedPet?.petId ?? ""}
-            onChange={handlePetChange}
-          >
-            {petList.map((pet) => (
-              <option key={pet.petId} value={pet.petId}>
-                {pet.name}
-              </option>
-            ))}
-          </PetSelect>
-        )}
+      <DiagnosisProgress mainStep={mainStep} />
 
-        {selectedPet && (
-          <PetCard>
-            <PetImage>{selectedPet.name?.substring(0, 1)}</PetImage>
+      {/* 기본정보 1: 펫 선택 + 현재 체중 */}
+      {mainStep === "BASIC" && basicStep === "PET" && (
+        <PetSelectStep
+          memberInfo={memberInfo}
+          petList={petList}
+          selectedPet={selectedPet}
+          currentWeight={currentWeight}
+          isWeightSaving={isWeightSaving}
+          onSelectPet={handleSelectPet}
+          onChangeWeight={setCurrentWeight}
+          onSaveWeight={handleUpdateWeight}
+        />
+      )}
 
-            <PetText>
-              <strong>{selectedPet.name}</strong>
+      {/* 기본정보 2: 예방접종 */}
+      {mainStep === "BASIC" && basicStep === "VACCINE" && (
+        <YnQuestionStep
+          title="예방접종"
+          description="최근 1년 이내 접종한 항목을 모두 선택해 주세요."
+          questionList={vaccineQuestionList}
+          isSelected={isYnSelected}
+          onToggle={handleYnToggle}
+        />
+      )}
 
-              <PetInfoList>
-                <span>{formatPetType(selectedPet.petType)}</span>
-                <span>{selectedPet.breedName ?? "품종 미등록"}</span>
-                <span>{formatGender(selectedPet.gender)}</span>
-                <span>{selectedPet.birthDate ?? "생년월일 미등록"}</span>
-                <span>
-                  {selectedPet.weight != null
-                    ? `${selectedPet.weight}kg`
-                    : "몸무게 미등록"}
-                </span>
-                <span>{formatRepresentYn(selectedPet.representYn)}</span>
-              </PetInfoList>
-            </PetText>
-          </PetCard>
-        )}
-      </Section>
+      {/* 기본정보 3: 질병 이력 */}
+      {mainStep === "BASIC" && basicStep === "DISEASE" && (
+        <YnQuestionStep
+          title="질병 이력"
+          description="진단받거나 치료받은 이력이 있는 항목을 모두 선택해 주세요."
+          questionList={diseaseQuestionList}
+          isSelected={isYnSelected}
+          onToggle={handleYnToggle}
+        />
+      )}
 
-      <Section>
-        <SectionTitle>문진표 작성</SectionTitle>
+      {/* 자가진단: SCORE 카테고리 */}
+      {/* 이미지 바뀜 카테고리마다 */}
+      {mainStep === "SELF" && selfStep !== "CONSULT" && (
+<ScoreQuestionStep
+  category={selfStep}
+  title={formatQuestionCategory(selfStep)}
+  description="현재 상태와 가장 가까운 항목을 선택해 주세요."
+  questionList={currentScoreQuestionList}
+  getAnswerValue={getAnswerValue}
+  onSelect={handleAnswerChange}
+/>
+      )}
 
-        {questionList.map((question) => (
-          <QuestionBox key={question.questionId}>
-            <QuestionMeta>
-              {formatQuestionCategory(question.questionCategory)}
-            </QuestionMeta>
-            <QuestionText>{question.questionContent}</QuestionText>
-            {renderAnswerInput(question)}
-          </QuestionBox>
-        ))}
-      </Section>
+      {/* 자가진단: 상담 내용 TEXT */}
+      {mainStep === "SELF" && selfStep === "CONSULT" && (
+        <ConsultStep
+          question={consultQuestion}
+          value={
+            consultQuestion
+              ? getAnswerValue(consultQuestion.questionId)
+              : ""
+          }
+          onChange={handleAnswerChange}
+        />
+      )}
 
-      <Section>
-        <SectionTitle>이미지 업로드</SectionTitle>
+      {/* 이미지 분석 */}
+      {mainStep === "IMAGE" && (
+        <ImageUploadStep
+          eyeFiles={eyeFiles}
+          skinFiles={skinFiles}
+          teethFiles={teethFiles}
+          onChangeEyeFiles={setEyeFiles}
+          onChangeSkinFiles={setSkinFiles}
+          onChangeTeethFiles={setTeethFiles}
+        />
+      )}
 
-        <UploadGrid>
-          <UploadBox>
-            <UploadTitle>눈 이미지</UploadTitle>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={(e) => setEyeFiles([...e.target.files])}
-            />
-          </UploadBox>
+      {/* 신청 완료 */}
+      {mainStep === "COMPLETE" && (
+        <TemporaryBox>
+          <TemporaryTitle>건강진단 신청 완료</TemporaryTitle>
 
-          <UploadBox>
-            <UploadTitle>피부 이미지</UploadTitle>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={(e) => setSkinFiles([...e.target.files])}
-            />
-          </UploadBox>
+          <TemporaryText>
+            건강진단 신청이 정상적으로 접수되었습니다.
+          </TemporaryText>
+        </TemporaryBox>
+      )}
 
-          <UploadBox>
-            <UploadTitle>치아 이미지</UploadTitle>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={(e) => setTeethFiles([...e.target.files])}
-            />
-          </UploadBox>
-        </UploadGrid>
-      </Section>
+   <ButtonGroup>
+  {mainStep === "COMPLETE" ? (
+    <NavigationButton
+      type="button"
+      $primary
+      onClick={() => navigate("/healthcare/requesthome")}
+    >
+      제출완료
+    </NavigationButton>
+  ) : (
+    <>
+      <NavigationButton
+        type="button"
+        onClick={handlePrevious}
+      >
+        이전
+      </NavigationButton>
 
-      <SubmitButton onClick={handleSubmit}>건강진단 신청</SubmitButton>
+      <NavigationButton
+        type="button"
+        $primary
+        disabled={isSubmitting}
+        onClick={
+          mainStep === "IMAGE"
+            ? handleSubmit
+            : handleNext
+        }
+      >
+        {mainStep === "IMAGE"
+          ? isSubmitting
+            ? "신청 중"
+            : "건강진단 신청"
+          : "다음"}
+      </NavigationButton>
+    </>
+  )}
+</ButtonGroup>
     </Wrapper>
   );
 }
 
 export default DiagnosisRequestPage;
 
-const Wrapper = styled.div`
-  width: 80%;
+const Wrapper = styled.main`
+  width: min(1100px, calc(100% - 48px));
+  min-height: 620px;
   margin: 0 auto;
-  padding: 32px 48px 80px;
+  padding: 54px 0 90px;
   box-sizing: border-box;
 `;
 
 const Title = styled.h1`
+  margin: 0 0 22px;
   color: #00a97b;
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 800;
-  margin-bottom: 32px;
+  text-align: center;
+  letter-spacing: -1.5px;
 `;
 
-const Section = styled.section`
-  margin-bottom: 28px;
-  padding: 28px;
-  border: 1px solid #d8eee6;
+const TemporaryBox = styled.section`
+  padding: 58px 24px;
+  border: 1px solid #e0ebe7;
   border-radius: 14px;
-  background: #fff;
+  background: #f8fcfa;
+  text-align: center;
 `;
 
-const SectionTitle = styled.h2`
+const TemporaryTitle = styled.h2`
+  margin: 0 0 12px;
   color: #00a97b;
-  font-size: 22px;
-  font-weight: 800;
-  margin-bottom: 18px;
-`;
-
-const PetSelect = styled.select`
-  width: 240px;
-  height: 42px;
-  margin-bottom: 18px;
-  padding: 0 12px;
-  border: 1px solid #d8eee6;
-  border-radius: 8px;
-`;
-
-const PetCard = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 18px;
-`;
-
-const PetImage = styled.div`
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: #d8eee6;
-  color: #00a97b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 800;
 `;
 
-const PetText = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-
-  strong {
-    font-size: 22px;
-  }
-`;
-
-const PetInfoList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-
-  span {
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: #f4fbf8;
-    color: #555;
-    font-size: 14px;
-    font-weight: 700;
-  }
-`;
-
-const QuestionBox = styled.div`
-  padding: 20px 0;
-  border-bottom: 1px solid #eee;
-
-  &:last-child {
-    border-bottom: none;
-  }
-`;
-
-const QuestionMeta = styled.p`
-  color: #00a97b;
-  font-size: 13px;
-  font-weight: 700;
-  margin-bottom: 6px;
-`;
-
-const QuestionText = styled.p`
-  font-size: 16px;
-  font-weight: 700;
-  margin-bottom: 12px;
+const TemporaryText = styled.p`
+  margin: 0;
+  color: #666;
 `;
 
 const ButtonGroup = styled.div`
   display: flex;
-  gap: 10px;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 34px;
 `;
 
-const AnswerButton = styled.button`
-  width: 86px;
-  height: 38px;
-  border: 1px solid #00a97b;
-  border-radius: 8px;
-  background: ${({ $active }) => ($active ? "#00a97b" : "white")};
-  color: ${({ $active }) => ($active ? "white" : "#00a97b")};
-  font-weight: 700;
-  cursor: pointer;
-`;
-
-const TextInput = styled.input`
-  width: 100%;
+const NavigationButton = styled.button`
+  min-width: 132px;
   height: 42px;
-  padding: 0 14px;
-  border: 1px solid #d8eee6;
+  padding: 0 18px;
+  border: 1px solid
+    ${({ $primary }) => ($primary ? "#00a97b" : "#d5e8e1")};
   border-radius: 8px;
-  box-sizing: border-box;
-`;
-
-const ScoreGroup = styled.div`
-  display: flex;
-  gap: 8px;
-`;
-
-const ScoreButton = styled.button`
-  min-width: 70px;
-  height: 38px;
-  border: 1px solid #00a97b;
-  border-radius: 8px;
-  background: ${({ $active }) => ($active ? "#00a97b" : "white")};
-  color: ${({ $active }) => ($active ? "white" : "#00a97b")};
-  font-weight: 700;
-  cursor: pointer;
-`;
-
-const OptionGroup = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-`;
-
-const OptionButton = styled.button`
-  min-width: 72px;
-  height: 38px;
-  padding: 0 14px;
-  border: 1px solid #00a97b;
-  border-radius: 8px;
-  background: ${({ $active }) => ($active ? "#00a97b" : "white")};
-  color: ${({ $active }) => ($active ? "white" : "#00a97b")};
-  font-weight: 700;
-  cursor: pointer;
-`;
-
-const CheckBoxGroup = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-`;
-
-const CheckLabel = styled.label`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  padding: 9px 12px;
-  border: 1px solid #d8eee6;
-  border-radius: 8px;
-  background: #f4fbf8;
-
+  background: ${({ $primary }) =>
+    $primary ? "#00a97b" : "#e7f4ef"};
+  color: ${({ $primary }) =>
+    $primary ? "#ffffff" : "#00a97b"};
   font-size: 14px;
-  font-weight: 700;
-  color: #333;
-
-  cursor: pointer;
-
-  input {
-    accent-color: #00a97b;
-  }
-`;
-
-const UploadGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-`;
-
-const UploadBox = styled.div`
-  padding: 20px;
-  border: 1px dashed #00a97b;
-  border-radius: 12px;
-  background: #f4fbf8;
-`;
-
-const UploadTitle = styled.h3`
-  color: #00a97b;
-  font-size: 16px;
-  margin-bottom: 12px;
-`;
-
-const TextArea = styled.textarea`
-  width: 100%;
-  height: 150px;
-  padding: 16px;
-  border: 1px solid #d8eee6;
-  border-radius: 12px;
-  resize: none;
-  font-size: 15px;
-  box-sizing: border-box;
-`;
-
-const SubmitButton = styled.button`
-  width: 100%;
-  height: 58px;
-  border: none;
-  border-radius: 12px;
-  background: #00a97b;
-  color: white;
-  font-size: 18px;
   font-weight: 800;
   cursor: pointer;
+  transition: 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(0, 169, 123, 0.14);
+  }
+
+  &:disabled {
+    background: #9dcfc0;
+    cursor: not-allowed;
+    transform: none;
+  }
 `;
