@@ -10,7 +10,10 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
 
   const { petList, fetchMyPetList } = usePet();
 
-  console.log(formData);
+  const today = new Date().toISOString().split("T")[0];
+  const createdDate = formData.createdAt?.split("T")[0];
+
+  const isToday = createdDate === today;
 
   return (
     <Wrapper>
@@ -70,8 +73,11 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
 
               <ButtonGroup>
                 <CancelButton onClick={onClose}>취소</CancelButton>
-
-                <SubmitButton type="submit">저장</SubmitButton>
+                {formData.isEdit ? (
+                  isToday && <SubmitButton type="submit">수정</SubmitButton>
+                ) : (
+                  <SubmitButton type="submit">저장</SubmitButton>
+                )}
               </ButtonGroup>
             </Body>
           </ModalBox>

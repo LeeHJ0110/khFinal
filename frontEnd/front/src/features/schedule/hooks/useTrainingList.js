@@ -17,6 +17,7 @@ export default function useTrainingList() {
         type: "training",
         content: item.content,
         trainingTime: item.trainingTime,
+        createdAt: item.createdAt,
       },
     }));
 

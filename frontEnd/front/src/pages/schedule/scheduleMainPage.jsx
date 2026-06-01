@@ -11,6 +11,7 @@ export default function ScheduleMainPage() {
     id: "",
     content: "",
     trainingTime: "",
+    createdAt: "",
     petList: [],
     isEdit: false,
   };

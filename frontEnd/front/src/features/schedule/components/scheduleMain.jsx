@@ -24,8 +24,9 @@ export default function ScheduleMain({ onOpenModal, detailOpen }) {
     id: "",
     content: "",
     trainingTime: "",
+    createdAt: "",
     petList: [],
-    isEdit: false,
+    isEdit: true,
   };
 
   // 켈린더 이벤트 호출
@@ -111,6 +112,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen }) {
             id: info.event.id,
             content: info.event.extendedProps?.content,
             trainingTime: info.event.extendedProps?.trainingTime,
+            createdAt: info.event.extendedProps?.createdAt,
           },
         });
       } else {
