@@ -10,11 +10,48 @@ export async function insertStoreProduct(formData) {
 }
 
 // 2. 관리자 : 상품 목록조회
-export async function fetchAdminProductList(page = 0) {
-  return await api.get(`/store/product/admin?page=${page}`);
+// page          : 페이지 번호
+// saleYn        : Y(판매중), N(판매중지)
+// keyword       : 상품명 검색어
+// targetPetType : D(강아지), C(고양이)
+// category      : FOOD, SNACK, SUPPLEMENT, TOILET
+// sort          : latest, oldest
+export async function fetchAdminProductList({
+  page = 0,
+  saleYn,
+  keyword,
+  targetPetType,
+  category,
+  sort = "latest",
+} = {}) {
+  const params = new URLSearchParams();
+
+  params.append("page", page);
+
+  if (saleYn) {
+    params.append("saleYn", saleYn);
+  }
+
+  if (keyword) {
+    params.append("keyword", keyword);
+  }
+
+  if (targetPetType) {
+    params.append("targetPetType", targetPetType);
+  }
+
+  if (category) {
+    params.append("category", category);
+  }
+
+  if (sort) {
+    params.append("sort", sort);
+  }
+
+  return await api.get(`/store/product/admin?${params.toString()}`);
 }
 
-// 3. 관리자 : 상품 상세조회
+// 3. 관리자 : 상품 상세조회 (수정용으로 쓰는거)
 export async function fetchAdminProductDetail(productId) {
   return await api.get(`/store/product/admin/${productId}`);
 }
@@ -36,6 +73,11 @@ export async function stopStoreProduct(productId) {
 // 6. 관리자 : 상품 판매재개
 export async function resumeStoreProduct(productId) {
   return await api.patch(`/store/product/admin/${productId}/resume`);
+}
+
+//7. 사용자 : 상품 상세조회
+export async function fetchProductDetail(productId) {
+  return await api.get(`/store/product/${productId}`);
 }
 
 //7. 사용자 : 베스트 상품 4개 목록 조회 (공통홈/ 강아지 홈/ 고양이 홈)

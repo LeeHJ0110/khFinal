@@ -154,7 +154,12 @@ export default function PetStoreDogHomePage() {
                   const tempReview = getTempReviewInfo(index);
 
                   return (
-                    <BestProductCard key={product.productId}>
+                    <BestProductCard
+                      key={product.productId}
+                      onClick={() =>
+                        navigate(`/store/product/${product.productId}`)
+                      }
+                    >
                       <ProductRank>{index + 1}</ProductRank>
 
                       <WishButton type="button" aria-label="관심상품">

@@ -44,6 +44,7 @@ import BoardListPage from "./pages/board/BoardListPage";
 // common
 import HomePage from "./pages/home/HomePage";
 import ErrorPage from "./pages/error/ErrorPage";
+import PetStoreProductDetailPage from "./pages/petStore/PetStoreProductDetailPage";
 
 function App() {
   return (
@@ -123,6 +124,11 @@ function App() {
             <Route
               path="cat/toilet"
               element={<PetStoreCatToiletProductListPage />}
+            />
+            {/* 상품 상세보기 */}
+            <Route
+              path="product/:productId"
+              element={<PetStoreProductDetailPage />}
             />
 
             {/* 사용자 보조 메뉴 */}

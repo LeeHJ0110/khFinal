@@ -10,7 +10,14 @@ import java.util.List;
 
 public interface StoreProductRepositoryCustom {
 
-    Page<StoreProductAdminListResDto> findAdminProductList(Pageable pageable);
+    Page<StoreProductAdminListResDto> findAdminProductList(
+            Pageable pageable,
+            String saleYn,
+            String keyword,
+            String targetPetType,
+            StoreProductCategory category,
+            String sort
+    );
 
     List<StoreProductEntity> findUserProductList(
             String targetPetType,

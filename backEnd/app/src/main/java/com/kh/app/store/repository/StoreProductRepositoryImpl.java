@@ -2,11 +2,9 @@ package com.kh.app.store.repository;
 
 import com.kh.app.store.dto.response.StoreProductAdminListResDto;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import java.util.List;
 import static com.kh.app.store.entity.QStoreProductEntity.storeProductEntity;
@@ -16,6 +14,7 @@ import com.kh.app.store.entity.StoreProductCategory;
 import com.kh.app.store.entity.StoreProductEntity;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.OrderSpecifier;
+import org.springframework.data.support.PageableExecutionUtils;
 
 @RequiredArgsConstructor
 public class StoreProductRepositoryImpl implements StoreProductRepositoryCustom {
@@ -23,7 +22,35 @@ public class StoreProductRepositoryImpl implements StoreProductRepositoryCustom 
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public Page<StoreProductAdminListResDto> findAdminProductList(Pageable pageable) {
+    public Page<StoreProductAdminListResDto> findAdminProductList(
+            Pageable pageable,
+            String saleYn,
+            String keyword,
+            String targetPetType,
+            StoreProductCategory category,
+            String sort
+    ) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        // 판매상태 조건
+        if (saleYn != null) {
+            builder.and(storeProductEntity.productSaleYn.eq(saleYn));
+        }
+
+        // 상품명 검색
+        if (keyword != null) {
+            builder.and(storeProductEntity.productName.containsIgnoreCase(keyword));
+        }
+
+        // 대상동물 조건
+        if (targetPetType != null) {
+            builder.and(storeProductEntity.productTargetPetType.eq(targetPetType));
+        }
+
+        // 카테고리 조건
+        if (category != null) {
+            builder.and(storeProductEntity.productCategory.eq(category));
+        }
 
         List<StoreProductAdminListResDto> content = queryFactory
                 .select(Projections.constructor(
@@ -40,13 +67,14 @@ public class StoreProductRepositoryImpl implements StoreProductRepositoryCustom 
                         storeProductEntity.createdAt
                 ))
                 .from(storeProductEntity)
-                .join(storeProductEntity.productTag, storeProductTagEntity)
+                .leftJoin(storeProductEntity.productTag, storeProductTagEntity)
                 .leftJoin(storeProductImageEntity)
                 .on(
                         storeProductImageEntity.product.eq(storeProductEntity),
                         storeProductImageEntity.imageRepresentYn.eq("Y")
                 )
-                .orderBy(storeProductEntity.productId.desc())
+                .where(builder)
+                .orderBy(getAdminProductOrders(sort))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -54,9 +82,29 @@ public class StoreProductRepositoryImpl implements StoreProductRepositoryCustom 
         Long total = queryFactory
                 .select(storeProductEntity.count())
                 .from(storeProductEntity)
+                .leftJoin(storeProductEntity.productTag, storeProductTagEntity)
+                .where(builder)
                 .fetchOne();
 
-        return new PageImpl<>(content, pageable, total == null ? 0 : total);
+        return PageableExecutionUtils.getPage(
+                content,
+                pageable,
+                () -> total == null ? 0 : total
+        );
+    }
+
+    private OrderSpecifier<?>[] getAdminProductOrders(String sort) {
+        if ("oldest".equals(sort)) {
+            return new OrderSpecifier<?>[]{
+                    storeProductEntity.createdAt.asc(),
+                    storeProductEntity.productId.asc()
+            };
+        }
+
+        return new OrderSpecifier<?>[]{
+                storeProductEntity.createdAt.desc(),
+                storeProductEntity.productId.desc()
+        };
     }
 
     @Override

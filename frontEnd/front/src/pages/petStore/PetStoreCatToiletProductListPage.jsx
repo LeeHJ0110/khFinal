@@ -2,6 +2,7 @@ import styled from "styled-components";
 import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreProductList from "../../features/petStore/hooks/usePetStoreProductList";
 import PetStoreRecentAside from "./PetStoreRecentAside";
+import { useNavigate } from "react-router-dom";
 
 const sortOptions = [
   { label: "최신순", value: "latest" },
@@ -25,6 +26,7 @@ const tagList = [
   아래 표시 부분을 실제 데이터로 변경하면 됩니다.
 */
 function getTempReviewInfo(index) {
+  const navigate = useNavigate();
   const tempReviewList = [
     { rating: "4.9", count: 128 },
     { rating: "4.8", count: 92 },
@@ -148,7 +150,12 @@ export default function PetStoreCatToiletProductListPage() {
                     const tempReview = getTempReviewInfo(index);
 
                     return (
-                      <ProductCard key={product.productId}>
+                      <ProductCard
+                        key={product.productId}
+                        onClick={() =>
+                          navigate(`/store/product/${product.productId}`)
+                        }
+                      >
                         <WishButton type="button" aria-label="관심상품">
                           ♡
                         </WishButton>
