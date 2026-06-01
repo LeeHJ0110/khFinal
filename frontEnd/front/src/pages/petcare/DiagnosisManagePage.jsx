@@ -76,9 +76,7 @@ export default function DiagnosisManagePage() {
           <LoadingArea>
             <LoadingSpinner />
 
-            <LoadingText>
-              건강진단 신청 내역을 불러오는 중입니다.
-            </LoadingText>
+            <LoadingText>건강진단 신청 내역을 불러오는 중입니다.</LoadingText>
           </LoadingArea>
         ) : (
           <Table>
@@ -97,9 +95,7 @@ export default function DiagnosisManagePage() {
                   <EmptyCell colSpan={4}>
                     <EmptyIcon>♡</EmptyIcon>
 
-                    <EmptyTitle>
-                      등록된 건강진단 신청이 없습니다.
-                    </EmptyTitle>
+                    <EmptyTitle>등록된 건강진단 신청이 없습니다.</EmptyTitle>
 
                     <EmptyDescription>
                       새로운 신청이 등록되면 이곳에서 확인할 수 있습니다.
@@ -111,36 +107,20 @@ export default function DiagnosisManagePage() {
                   <TableRow
                     key={item.diagnosisReqId}
                     onClick={() =>
-                      navigate(
-                        `/healthcare/manage/${item.diagnosisReqId}`
-                      )
+                      navigate(`/healthcare/manage/${item.diagnosisReqId}`)
                     }
                   >
-                    <NumberCell>
-                      {getRowNumber(idx)}
-                    </NumberCell>
+                    <NumberCell>{getRowNumber(idx)}</NumberCell>
 
                     <td>
-                      <StatusBadge
-                        $active={
-                          item.diagnosisReqStatus === "Y"
-                        }
-                      >
-                        <StatusDot
-                          $active={
-                            item.diagnosisReqStatus === "Y"
-                          }
-                        />
+                      <StatusBadge $active={item.diagnosisReqStatus === "Y"}>
+                        <StatusDot $active={item.diagnosisReqStatus === "Y"} />
 
-                        {formatStatus(
-                          item.diagnosisReqStatus
-                        )}
+                        {formatStatus(item.diagnosisReqStatus)}
                       </StatusBadge>
                     </td>
 
-                    <DateCell>
-                      {formatDate(item.createdAt)}
-                    </DateCell>
+                    <DateCell>{formatDate(item.createdAt)}</DateCell>
 
                     <td>
                       <DetailButton
@@ -148,9 +128,7 @@ export default function DiagnosisManagePage() {
                         onClick={(e) => {
                           e.stopPropagation();
 
-                          navigate(
-                            `/healthcare/manage/${item.diagnosisReqId}`
-                          );
+                          navigate(`/healthcare/manage/${item.diagnosisReqId}`);
                         }}
                       >
                         상세보기
@@ -170,42 +148,27 @@ export default function DiagnosisManagePage() {
           <PaginationButton
             type="button"
             disabled={currentPage === 0}
-            onClick={() =>
-              setCurrentPage((prev) => prev - 1)
-            }
+            onClick={() => setCurrentPage((prev) => prev - 1)}
           >
             ‹
           </PaginationButton>
 
-          {Array.from(
-            { length: totalPages },
-            (_, index) => (
-              <PaginationButton
-                key={index}
-                type="button"
-                $active={currentPage === index}
-                aria-current={
-                  currentPage === index
-                    ? "page"
-                    : undefined
-                }
-                onClick={() =>
-                  setCurrentPage(index)
-                }
-              >
-                {index + 1}
-              </PaginationButton>
-            )
-          )}
+          {Array.from({ length: totalPages }, (_, index) => (
+            <PaginationButton
+              key={index}
+              type="button"
+              $active={currentPage === index}
+              aria-current={currentPage === index ? "page" : undefined}
+              onClick={() => setCurrentPage(index)}
+            >
+              {index + 1}
+            </PaginationButton>
+          ))}
 
           <PaginationButton
             type="button"
-            disabled={
-              currentPage === totalPages - 1
-            }
-            onClick={() =>
-              setCurrentPage((prev) => prev + 1)
-            }
+            disabled={currentPage === totalPages - 1}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
           >
             ›
           </PaginationButton>
@@ -283,13 +246,11 @@ const TotalCount = styled.div`
 
   padding: 9px 15px;
 
-  border: 1px solid
-    rgba(0, 169, 123, 0.18);
+  border: 1px solid rgba(0, 169, 123, 0.18);
 
   border-radius: 999px;
 
-  background:
-    rgba(0, 169, 123, 0.06);
+  background: rgba(0, 169, 123, 0.06);
 
   color: #62706c;
 
@@ -317,9 +278,7 @@ const TableCard = styled.section`
 
   background: #ffffff;
 
-  box-shadow:
-    0 8px 24px
-    rgba(20, 72, 58, 0.055);
+  box-shadow: 0 8px 24px rgba(20, 72, 58, 0.055);
 `;
 
 const Table = styled.table`
@@ -332,8 +291,7 @@ const Table = styled.table`
   th {
     padding: 16px 14px;
 
-    border-bottom:
-      1px solid #e5eeeb;
+    border-bottom: 1px solid #e5eeeb;
 
     background: #f7fbf9;
 
@@ -348,8 +306,7 @@ const Table = styled.table`
   td {
     padding: 18px 14px;
 
-    border-bottom:
-      1px solid #edf2f0;
+    border-bottom: 1px solid #edf2f0;
 
     color: #47534f;
 
@@ -421,23 +378,14 @@ const StatusBadge = styled.span`
 
   border: 1px solid
     ${({ $active }) =>
-      $active
-        ? "rgba(0, 169, 123, 0.2)"
-        : "rgba(112, 126, 121, 0.18)"};
+      $active ? "rgba(0, 169, 123, 0.2)" : "rgba(112, 126, 121, 0.18)"};
 
   border-radius: 999px;
 
-  background:
-    ${({ $active }) =>
-      $active
-        ? "rgba(0, 169, 123, 0.08)"
-        : "#f5f7f6"};
+  background: ${({ $active }) =>
+    $active ? "rgba(0, 169, 123, 0.08)" : "#f5f7f6"};
 
-  color:
-    ${({ $active }) =>
-      $active
-        ? "#008f69"
-        : "#78837f"};
+  color: ${({ $active }) => ($active ? "#008f69" : "#78837f")};
 
   font-size: 12px;
   font-weight: 800;
@@ -449,11 +397,7 @@ const StatusDot = styled.span`
 
   border-radius: 50%;
 
-  background:
-    ${({ $active }) =>
-      $active
-        ? "#00a97b"
-        : "#aeb8b5"};
+  background: ${({ $active }) => ($active ? "#00a97b" : "#aeb8b5")};
 `;
 
 /* =====================================
@@ -470,8 +414,7 @@ const DetailButton = styled.button`
 
   padding: 8px 12px;
 
-  border: 1px solid
-    rgba(0, 169, 123, 0.2);
+  border: 1px solid rgba(0, 169, 123, 0.2);
 
   border-radius: 8px;
 
@@ -494,8 +437,7 @@ const DetailButton = styled.button`
 
     line-height: 1;
 
-    transition:
-      transform 0.18s ease;
+    transition: transform 0.18s ease;
   }
 
   &:hover {
@@ -504,13 +446,10 @@ const DetailButton = styled.button`
 
     transform: translateY(-2px);
 
-    box-shadow:
-      0 5px 11px
-      rgba(0, 169, 123, 0.15);
+    box-shadow: 0 5px 11px rgba(0, 169, 123, 0.15);
 
     span {
-      transform:
-        translateX(2px);
+      transform: translateX(2px);
     }
   }
 `;
@@ -524,6 +463,7 @@ const EmptyCell = styled.td`
 
   text-align: center !important;
 `;
+import PetCareNav from "./../../features/petcare/components/petcarehome/PetCareNav";
 
 const EmptyIcon = styled.div`
   margin-bottom: 10px;
@@ -572,23 +512,17 @@ const LoadingSpinner = styled.div`
   width: 28px;
   height: 28px;
 
-  border: 3px solid
-    rgba(0, 169, 123, 0.15);
+  border: 3px solid rgba(0, 169, 123, 0.15);
 
   border-top-color: #00a97b;
 
   border-radius: 50%;
 
-  animation:
-    rotate
-    0.8s
-    linear
-    infinite;
+  animation: rotate 0.8s linear infinite;
 
   @keyframes rotate {
     to {
-      transform:
-        rotate(360deg);
+      transform: rotate(360deg);
     }
   }
 `;
@@ -626,25 +560,13 @@ const PaginationButton = styled.button`
   align-items: center;
   justify-content: center;
 
-  border: 1px solid
-    ${({ $active }) =>
-      $active
-        ? "#00a97b"
-        : "#dce5e2"};
+  border: 1px solid ${({ $active }) => ($active ? "#00a97b" : "#dce5e2")};
 
   border-radius: 9px;
 
-  background:
-    ${({ $active }) =>
-      $active
-        ? "#00a97b"
-        : "#ffffff"};
+  background: ${({ $active }) => ($active ? "#00a97b" : "#ffffff")};
 
-  color:
-    ${({ $active }) =>
-      $active
-        ? "#ffffff"
-        : "#74807c"};
+  color: ${({ $active }) => ($active ? "#ffffff" : "#74807c")};
 
   font-size: 13px;
   font-weight: 800;
@@ -660,20 +582,12 @@ const PaginationButton = styled.button`
   &:hover:not(:disabled) {
     border-color: #00a97b;
 
-    background:
-      ${({ $active }) =>
-        $active
-          ? "#00a97b"
-          : "rgba(0, 169, 123, 0.08)"};
+    background: ${({ $active }) =>
+      $active ? "#00a97b" : "rgba(0, 169, 123, 0.08)"};
 
-    color:
-      ${({ $active }) =>
-        $active
-          ? "#ffffff"
-          : "#00a97b"};
+    color: ${({ $active }) => ($active ? "#ffffff" : "#00a97b")};
 
-    transform:
-      translateY(-2px);
+    transform: translateY(-2px);
   }
 
   &:disabled {
