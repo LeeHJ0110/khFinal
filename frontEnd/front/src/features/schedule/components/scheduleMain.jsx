@@ -105,9 +105,9 @@ export default function ScheduleMain({ onOpenModal, detailOpen }) {
     } else {
       if (info.event.extendedProps?.type === "training") {
         onOpenModal({
-          ...trainingInit,
           type: "training",
           data: {
+            ...trainingInit,
             id: info.event.id,
             content: info.event.extendedProps?.content,
             trainingTime: info.event.extendedProps?.trainingTime,
