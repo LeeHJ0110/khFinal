@@ -27,3 +27,8 @@ export async function fetchBoardList(category, page = 0, searchCondition = {}) {
     },
   });
 }
+
+export const fetchBoardDetail = async (boardId) => {
+  const response = await api.get(`/api/board/${boardId}`);
+  return response.data;
+};
