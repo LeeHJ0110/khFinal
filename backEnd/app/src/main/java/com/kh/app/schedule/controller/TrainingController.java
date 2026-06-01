@@ -1,9 +1,9 @@
 package com.kh.app.schedule.controller;
 
-import com.kh.app.schedule.dto.request.EventReqDto;
 import com.kh.app.schedule.dto.request.TrainReqDto;
-import com.kh.app.schedule.dto.response.EventResDto;
+import com.kh.app.schedule.dto.response.TrainingResDto;
 import com.kh.app.schedule.service.TrainingService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Slf4j
@@ -32,25 +33,31 @@ public class TrainingController {
     })
     @PostMapping
     public ResponseEntity<Object> write(
-            @RequestBody TrainReqDto reqDto
+            @RequestBody TrainReqDto reqDto,
+            @AuthenticationPrincipal String username
     ){
         log.info(reqDto.getContent());
         log.info(reqDto.getTrainingTime().toString());
-        trainingService.write(reqDto);
+        trainingService.write(reqDto, username);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .build();
     }
 
-//    //목록조회
-//    @GetMapping
-//    public ResponseEntity<List<EventResDto>> selectList(
-//            @AuthenticationPrincipal String username
-//    ){
-//        List<EventResDto> resDtoList = scheduleService.selectList(username);
-//        return ResponseEntity.ok(resDtoList);
-//    }
-//
+    @Operation(summary = "날짜 중복 확인")
+    @GetMapping("/checkDate")
+    public ResponseEntity<String> checkDate(@RequestParam LocalDate date) {
+        return ResponseEntity.ok(trainingService.checkDate(date));
+    }
+
+
+    //목록조회
+    @GetMapping
+    public ResponseEntity<List<TrainingResDto>> selectList(@AuthenticationPrincipal String username){
+        List<TrainingResDto> resDtoList = trainingService.selectList(username);
+        return ResponseEntity.ok(resDtoList);
+    }
+
 //    //상세조회
 //    @GetMapping("{id}")
 //    public ResponseEntity<EventResDto> selectOne(
@@ -60,20 +67,20 @@ public class TrainingController {
 //        EventResDto resDto = scheduleService.selectOne(id);
 //        return ResponseEntity.ok(resDto);
 //    }
-//
-//    //삭제
-//    @DeleteMapping("{id}")
-//    public ResponseEntity.BodyBuilder delete(@PathVariable Long id){
-//        scheduleService.delete(id);
-//        return ResponseEntity.ok();
-//    }
-//
-//    //수정
-//    @PutMapping("{id}")
-//    public ResponseEntity.BodyBuilder update(
-//            @PathVariable Long id,
-//            @RequestBody EventReqDto reqDto){
-//        scheduleService.update(id, reqDto);
-//        return ResponseEntity.ok();
-//    }
+
+    //삭제
+    @DeleteMapping("{id}")
+    public ResponseEntity.BodyBuilder delete(@PathVariable Long id){
+        trainingService.delete(id);
+        return ResponseEntity.ok();
+    }
+
+    //수정
+    @PutMapping("{id}")
+    public ResponseEntity.BodyBuilder update(
+            @PathVariable Long id,
+            @RequestBody TrainReqDto reqDto){
+        trainingService.update(id, reqDto);
+        return ResponseEntity.ok();
+    }
 }

@@ -5,6 +5,7 @@ export default function useScheduleWrite() {
   const [isSuccess, setSuccess] = useState(false);
 
   async function handleWrite(vo) {
+    setSuccess(false);
     const resp = await insertSchedule(vo);
     if (resp.status == 201) {
       setSuccess(true);

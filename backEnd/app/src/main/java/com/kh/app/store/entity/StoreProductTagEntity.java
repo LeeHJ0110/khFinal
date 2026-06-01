@@ -16,6 +16,10 @@ public class StoreProductTagEntity {
     @Column(name = "TAG_ID")
     private Long tagId;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "PRODUCT_CATEGORY", nullable = false, length = 30)
+    private StoreProductCategory productCategory;
+
     @Column(name = "TAG_NAME", nullable = false, length = 100)
     private String tagName;
 
@@ -29,27 +33,4 @@ public class StoreProductTagEntity {
     @Builder.Default
     private String tagUseYn = "Y";
 
-    public void update(
-            String tagName,
-            String tagSummary,
-            String tagDescription,
-            String tagUseYn
-    ) {
-        this.tagName = tagName;
-        this.tagSummary = tagSummary;
-        this.tagDescription = tagDescription;
-        this.tagUseYn = tagUseYn;
-    }
-
-    public void disable() {
-        this.tagUseYn = "N";
-    }
-
-    public void enable() {
-        this.tagUseYn = "Y";
-    }
-
-    public boolean isUsed() {
-        return "Y".equals(this.tagUseYn);
-    }
 }

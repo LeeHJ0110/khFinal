@@ -21,7 +21,7 @@ public class TrainingPetEntity {
     private PetEntity pet;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "TRAINING_PET_ID", nullable = false)
+    @JoinColumn(name = "TRAINING_DIARY", nullable = false)
     private TrainingDiaryEntity trainingDiary;
 
     public static TrainingPetEntity from(PetEntity petEntity, TrainingDiaryEntity diaryEntity) {
