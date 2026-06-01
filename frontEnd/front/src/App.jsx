@@ -44,6 +44,8 @@ import BoardListPage from "./pages/board/BoardListPage";
 // common
 import HomePage from "./pages/home/HomePage";
 import ErrorPage from "./pages/error/ErrorPage";
+import MessageBoxPage from "./pages/mypage/MessageBoxPage";
+import CommunityHistoryPage from "./pages/mypage/CommunityHistoryPage";
 
 function App() {
   return (
@@ -135,6 +137,8 @@ function App() {
             <Route path="member-edit" element={<MemberEditPage />} />
 
             <Route path="pet-manage" element={<PetManagePage />} />
+            <Route path="message" element={<MessageBoxPage />} />
+            <Route path="community" element={<CommunityHistoryPage />} />
           </Route>
 
           {/* 공용페이지 (route path 수정해야함)*/}
