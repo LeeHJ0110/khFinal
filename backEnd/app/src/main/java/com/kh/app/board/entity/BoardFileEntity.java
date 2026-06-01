@@ -50,4 +50,10 @@ public class BoardFileEntity extends BaseEntity {
                 .boardFileSize(file.getSize())
                 .build();
     }
+
+    public Object getFilePath() {
+        return null;
+    }
+
+
 }
