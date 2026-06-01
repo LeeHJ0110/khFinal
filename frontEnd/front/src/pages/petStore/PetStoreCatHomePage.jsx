@@ -9,15 +9,9 @@ const categoryList = [
     title: "사료",
     desc: "건강한 식습관의 시작",
     imageText: "사료 이미지",
-    path: "/store/cat/feed",
+    path: "/store/cat/food",
   },
-  {
-    id: "toilet",
-    title: "모래",
-    desc: "위생적인 생활 필수품",
-    imageText: "모래 이미지",
-    path: "/store/cat/toilet",
-  },
+
   {
     id: "snack",
     title: "간식",
@@ -31,6 +25,13 @@ const categoryList = [
     desc: "맞춤형 건강 케어",
     imageText: "영양제 이미지",
     path: "/store/cat/supplement",
+  },
+  {
+    id: "toilet",
+    title: "배변용품",
+    desc: "위생적인 생활 필수품",
+    imageText: "모래 이미지",
+    path: "/store/cat/toilet",
   },
 ];
 

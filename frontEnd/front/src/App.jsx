@@ -21,6 +21,16 @@ import DiagnosisDetailPage from "./pages/petcare/DiagnosisDetailPage";
 // store
 import PetStoreAdminProductListPage from "./pages/petStore/PetStoreAdminProductListPage";
 import PetStoreHomePage from "./pages/petStore/PetStoreHomePage";
+import PetStoreDogHomePage from "./pages/petStore/PetStoreDogHomePage";
+import PetStoreCatHomePage from "./pages/petStore/PetStoreCatHomePage";
+import PetStoreDogFoodProductListPage from "./pages/petStore/PetStoreDogFoodProductListPage";
+import PetStoreDogSnackProductListPage from "./pages/petStore/PetStoreDogSnackProductListPage";
+import PetStoreDogSupplementProductListPage from "./pages/petStore/PetStoreDogSupplementProductListPage";
+import PetStoreDogToiletProductListPage from "./pages/petStore/PetStoreDogToiletProductListPage";
+import PetStoreCatFoodProductListPage from "./pages/petStore/PetStoreCatFoodProductListPage";
+import PetStoreCatSnackProductListPage from "./pages/petStore/PetStoreCatSnackProductListPage";
+import PetStoreCatSupplementProductListPage from "./pages/petStore/PetStoreCatSupplementProductListPage";
+import PetStoreCatToiletProductListPage from "./pages/petStore/PetStoreCatToiletProductListPage";
 
 // mypage
 import MyPageHomePage from "./pages/mypage/MyPageHomePage";
@@ -34,9 +44,6 @@ import BoardListPage from "./pages/board/BoardListPage";
 // common
 import HomePage from "./pages/home/HomePage";
 import ErrorPage from "./pages/error/ErrorPage";
-import PetStoreDogHomePage from "./pages/petStore/PetStoreDogHomePage";
-import PetStoreCatHomePage from "./pages/petStore/PetStoreCatHomePage";
-import PetStoreDogFoodProductListPage from "./pages/petStore/PetStoreDogFoodProductListPage";
 
 function App() {
   return (
@@ -86,16 +93,37 @@ function App() {
               path="dog/food"
               element={<PetStoreDogFoodProductListPage />}
             />
-            <Route path="dog/snack" element={<PetStoreDogHomePage />} />
-            <Route path="dog/supplement" element={<PetStoreDogHomePage />} />
-            <Route path="dog/toilet" element={<PetStoreDogHomePage />} />
+            <Route
+              path="dog/snack"
+              element={<PetStoreDogSnackProductListPage />}
+            />
+            <Route
+              path="dog/supplement"
+              element={<PetStoreDogSupplementProductListPage />}
+            />
+            <Route
+              path="dog/toilet"
+              element={<PetStoreDogToiletProductListPage />}
+            />
 
             {/* 고양이 스토어 계열 -  임시로 홈 연결 */}
             <Route path="cat" element={<PetStoreCatHomePage />} />
-            <Route path="cat/feed" element={<PetStoreCatHomePage />} />
-            <Route path="cat/snack" element={<PetStoreCatHomePage />} />
-            <Route path="cat/supplement" element={<PetStoreCatHomePage />} />
-            <Route path="cat/toilet" element={<PetStoreCatHomePage />} />
+            <Route
+              path="cat/food"
+              element={<PetStoreCatFoodProductListPage />}
+            />
+            <Route
+              path="cat/snack"
+              element={<PetStoreCatSnackProductListPage />}
+            />
+            <Route
+              path="cat/supplement"
+              element={<PetStoreCatSupplementProductListPage />}
+            />
+            <Route
+              path="cat/toilet"
+              element={<PetStoreCatToiletProductListPage />}
+            />
 
             {/* 사용자 보조 메뉴 */}
           </Route>

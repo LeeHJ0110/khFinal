@@ -23,7 +23,6 @@ const tagList = [
 
   나중에 리뷰 기능 완성되면 이 함수는 삭제하고,
   아래 표시 부분을 실제 데이터로 변경하면 됩니다.
-
 */
 function getTempReviewInfo(index) {
   const tempReviewList = [
@@ -37,7 +36,7 @@ function getTempReviewInfo(index) {
   return tempReviewList[index % tempReviewList.length];
 }
 
-export default function PetStoreDogFoodProductListPage() {
+export default function PetStoreCatFoodProductListPage() {
   const {
     productList,
     isLoading,
@@ -51,7 +50,7 @@ export default function PetStoreDogFoodProductListPage() {
     handleSearch,
     handleChangeSort,
     handleChangeTagId,
-  } = usePetStoreProductList("D", "FOOD");
+  } = usePetStoreProductList("C", "FOOD");
 
   return (
     <>
@@ -61,18 +60,19 @@ export default function PetStoreDogFoodProductListPage() {
         <HeroBanner>
           <HeroInner>
             <HeroTextBox>
-              <HeroEyebrow>우리 강아지를 위한</HeroEyebrow>
+              <HeroEyebrow>우리 고양이를 위한</HeroEyebrow>
               <HeroTitle>
                 프리미엄 <strong>사료</strong>
               </HeroTitle>
               <HeroDesc>
-                영양 밸런스는 기본, 기호성까지 고려한 건강한 선택
-                <br />더 오래, 더 건강하게 함께해요.
+                까다로운 입맛과 균형 잡힌 영양까지 함께 생각한 선택
+                <br />
+                우리 냥이의 건강한 하루를 챙겨주세요.
               </HeroDesc>
             </HeroTextBox>
 
             <HeroImageBox>
-              <HeroImageText>강아지 사료 배너 이미지 영역</HeroImageText>
+              <HeroImageText>고양이 사료 배너 이미지 영역</HeroImageText>
             </HeroImageBox>
           </HeroInner>
         </HeroBanner>
