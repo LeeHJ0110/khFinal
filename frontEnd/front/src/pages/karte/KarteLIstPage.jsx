@@ -1,9 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-import useKarteList from "../../features/karte/hooks/useKarteList";
 import { useEffect } from "react";
+import useKarte from "../../features/karte/hooks/useKarte";
 
-export default function KarteLIstPage() {
+export default function KarteListPage() {
   const navigate = useNavigate();
   const {
     asyncFetchKarteList,
@@ -13,7 +13,7 @@ export default function KarteLIstPage() {
     totalPages,
     totalElements,
     isLoading,
-  } = useKarteList();
+  } = useKarte();
 
   useEffect(() => {
     asyncFetchKarteList(currentPage);
@@ -58,7 +58,7 @@ export default function KarteLIstPage() {
                 list.map((item, idx) => (
                   <tr
                     key={item.id}
-                    onClick={() => navigate(`/karte/${item.id}`)}
+                    onClick={() => navigate(`/healthcare/result/${item.id}`)}
                   >
                     <td>{getRowNumber(idx)}</td>
                     <td>{item.petName} 건강검진 결과</td>

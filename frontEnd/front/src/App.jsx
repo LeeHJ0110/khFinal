@@ -13,6 +13,8 @@ import MemberKakaoCallbackPage from "./pages/member/MemberKakaoCallbackPage";
 
 // healthcare
 import ScheduleMainPage from "./pages/schedule/ScheduleMainPage";
+import KarteListPage from "./pages/karte/KarteListPage";
+import KarteDetailPage from "./pages/karte/KarteDetailPage";
 import DiagnosisRequestHomePage from "./pages/petcare/DiagnosisRequestHomePage";
 import DiagnosisRequestPage from "./pages/petcare/DiagnosisRequestPage";
 import DiagnosisManagePage from "./pages/petcare/DiagnosisManagePage";
@@ -37,7 +39,6 @@ import ErrorPage from "./pages/error/ErrorPage";
 import PetStoreDogHomePage from "./pages/petStore/PetStoreDogHomePage";
 import PetStoreCatHomePage from "./pages/petStore/PetStoreCatHomePage";
 import PetStoreDogFoodProductListPage from "./pages/petStore/PetStoreDogFoodProductListPage";
-import KarteLIstPage from "./pages/karte/KarteLIstPage";
 
 function App() {
   return (
@@ -63,7 +64,8 @@ function App() {
             <Route path="schedule" element={<ScheduleMainPage />} />
 
             {/* 진단결과 */}
-            <Route path="resultList" element={<KarteLIstPage />} />
+            <Route path="resultList" element={<KarteListPage />} />
+            <Route path="result/:id" element={<KarteDetailPage />} />
 
             {/* user */}
             <Route path="requesthome" element={<DiagnosisRequestHomePage />} />

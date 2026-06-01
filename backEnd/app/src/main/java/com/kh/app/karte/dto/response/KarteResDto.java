@@ -16,14 +16,17 @@ public class KarteResDto {
     private PetEntity pet;
     private String writer;
     private LocalDateTime createdAt;
-    private List<ScoreEntity> scores;
+    private List<ScoreResDto> scores;
     private String summary;
     private String opinion;
-    public static KarteResDto from(KarteEntity karte, PetEntity pet, List<ScoreEntity> scores){
+    public static KarteResDto from(KarteEntity karte, PetEntity pet, List<ScoreResDto> scores){
         return KarteResDto.builder()
                 .pet(pet)
                 .writer(karte.getMember().getNickname())
                 .scores(scores)
+                .summary(karte.getSummary())
+                .opinion(karte.getOpinion())
+                .createdAt(karte.getCreatedAt())
                 .build();
     }
 }

@@ -4,6 +4,7 @@ import com.kh.app.board.dto.response.BoardListResDto;
 import com.kh.app.karte.dto.request.KarteReqDto;
 import com.kh.app.karte.dto.response.KarteListResDto;
 import com.kh.app.karte.dto.response.KarteResDto;
+import com.kh.app.karte.dto.response.ScoreResDto;
 import com.kh.app.karte.entity.KarteEntity;
 import com.kh.app.karte.entity.ScoreEntity;
 import com.kh.app.karte.repository.KarteRepository;
@@ -67,8 +68,12 @@ public class KarteService {
         DiagnosisReqEntity diagReq = diagnosisReqRepository.findById(karte.getDiaReq().getDiagnosisReqId())
                 .orElseThrow(() -> new IllegalArgumentException("진단신청 없음"));
         List<ScoreEntity> scores = scoreRepository.findAllByKarte(karte);
+        List<ScoreResDto> scoreDtos = scores.stream()
+                .map(ScoreResDto::from)
+                .toList();
+
         karte.visite();
-        return KarteResDto.from(karte, diagReq.getPetEntity(), scores);
+        return KarteResDto.from(karte, diagReq.getPetEntity(), scoreDtos);
     }
 
     @Transactional
