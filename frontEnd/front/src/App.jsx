@@ -44,6 +44,8 @@ import BoardListPage from "./pages/board/BoardListPage";
 // common
 import HomePage from "./pages/home/HomePage";
 import ErrorPage from "./pages/error/ErrorPage";
+import BoardHome from "./pages/board/BoardHome";
+import BoardDetailPage from "./pages/board/BoardDetailPage";
 
 function App() {
   return (
@@ -144,8 +146,10 @@ function App() {
           </Route>
 
           <Route path="community">
+            <Route element={<BoardHome />} />
             <Route path="write" element={<BoardWritePage />} />
             <Route path="list" element={<BoardListPage />} />
+            <Route path="detail" element={<BoardDetailPage />} />
           </Route>
         </Route>
       </Routes>
