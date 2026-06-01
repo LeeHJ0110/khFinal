@@ -2,12 +2,16 @@ package com.kh.app.board.service;
 
 import com.kh.app.board.dto.request.BoardSearchCondition;
 import com.kh.app.board.dto.request.BoardWriteReqDto;
+import com.kh.app.board.dto.response.BoardDetailResDto;
+import com.kh.app.board.dto.response.BoardFileResDto;
 import com.kh.app.board.dto.response.BoardResDto;
 import com.kh.app.board.entity.BoardEntity;
 import com.kh.app.board.entity.BoardFileEntity;
+import com.kh.app.board.exception.BoardErrorCode;
 import com.kh.app.board.repository.BoardFileRepository;
 import com.kh.app.board.repository.BoardRepository;
 import com.kh.app.common.entity.DelYn;
+import com.kh.app.common.exception.CustomException;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.aws.service.S3Service;
 import com.kh.app.member.repository.MemberRepository;
@@ -46,6 +50,24 @@ public class BoardService {
         System.out.println("BoardService.getList@@@@@servicedeee ");
         Page<BoardEntity> entityPage = boardRepository.getListByCategory(category, condition, pageable);
         return entityPage.map(BoardResDto::from);
+    }
+
+    @Transactional
+    public BoardDetailResDto getBoardDetail(Long id) {
+        BoardEntity entity = boardRepository.findById(id)
+                .orElseThrow(() -> new CustomException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        entity.increaseHit();
+
+        List<BoardFileResDto> fileList = boardFileRepository.findByBoardEntity(entity)
+                .stream()
+                .map(fileEntity -> {
+                    String fileUrl = s3Service.getFileUrl(fileEntity.getImageChangedName());
+                    return BoardFileResDto.from(fileEntity, fileUrl);
+                })
+                .toList();
+
+        return BoardDetailResDto.from(entity, fileList);
     }
 
     @Transactional

@@ -2,6 +2,7 @@ package com.kh.app.board.controller;
 
 import com.kh.app.board.dto.request.BoardSearchCondition;
 import com.kh.app.board.dto.request.BoardWriteReqDto;
+import com.kh.app.board.dto.response.BoardDetailResDto;
 import com.kh.app.board.dto.response.BoardResDto;
 import com.kh.app.board.service.BoardService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -77,11 +78,21 @@ public class BoardController {
 
 
 
-//    @Operation(summary = "게시글 상세조회")
-//    @GetMapping("/{category}/{boardId}")
-//    public void getOne(
-//            @PathVariable(name = "category") String category,
-//    ){
-//        boardService.getOne(category)
-//    }
+    @Operation(summary = "게시글 상세조회", description = "게시글 내용을 번호로 조회 (첨부파일들도 함께 조회)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200" , description = "게시글 상세조회 성공 ~~~") ,
+    })
+    @GetMapping("/detail/{boardId}")
+    public ResponseEntity<BoardDetailResDto> getBoardDetail(@PathVariable Long id){
+        System.out.println("BoardController.getBoardDetail @@@@@");
+        BoardDetailResDto dto = boardService.getBoardDetail(id);
+        return ResponseEntity.ok(dto);
+    }
+
+    //게시글 삭제
+
+
 }
+
+
+

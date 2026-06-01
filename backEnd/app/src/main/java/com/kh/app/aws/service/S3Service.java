@@ -43,6 +43,17 @@ public class S3Service {
         return s3key;
     }
 
+    public String getFileUrl(String s3Key) {
+        if (s3Key == null || s3Key.isBlank()) {
+            return null;
+        }
+
+        // 예: https://버킷명.s3.ap-northeast-2.amazonaws.com/board/uuid.png
+        return "https://" + bucket + ".s3.ap-northeast-2.amazonaws.com/" + s3Key;
+    }
+
+
+
     private String extractExtension(String originalFilename) {
         if (originalFilename == null || !originalFilename.contains(".")) {return "";}
         return originalFilename.substring(originalFilename.lastIndexOf("."));
