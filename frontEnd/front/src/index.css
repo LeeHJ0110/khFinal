@@ -136,9 +136,13 @@ html,
 body,
 #root {
   width: 100%;
-  min-width: var(--layout-width);
   min-height: 100%;
   margin: 0;
+}
+
+html,
+body {
+  overflow-x: hidden;
 }
 
 body {
