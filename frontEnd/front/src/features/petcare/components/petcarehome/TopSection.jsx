@@ -26,27 +26,18 @@ function TopSection() {
 
         const res = await fetchMyPetList();
 
-        const petList = Array.isArray(res.data)
-          ? res.data
-          : [];
+        const petList = Array.isArray(res.data) ? res.data : [];
 
         /*
          * 대표 펫이 있으면 대표 펫 기준으로 확인
          * 대표 펫이 없으면 목록의 첫 번째 펫 기준으로 확인
          */
         const representPet =
-          petList.find(
-            (pet) => pet.representYn === "Y"
-          ) ?? petList[0];
+          petList.find((pet) => pet.representYn === "Y") ?? petList[0];
 
-        setIsApplying(
-          representPet?.diagnosisInProgress === true
-        );
+        setIsApplying(representPet?.diagnosisInProgress === true);
       } catch (err) {
-        console.error(
-          "건강진단 신청 상태 조회 실패:",
-          err
-        );
+        console.error("건강진단 신청 상태 조회 실패:", err);
 
         // 조회 실패 시 화면은 유지
         setIsApplying(false);
@@ -73,9 +64,7 @@ function TopSection() {
   return (
     <HeroWrapper>
       <HeroLeft>
-        <HeroSubtitle>
-          우리 아이의 건강을 미리 체크하세요
-        </HeroSubtitle>
+        <HeroSubtitle>우리 아이의 건강을 미리 체크하세요</HeroSubtitle>
 
         <HeroTitle>
           <BrandText>PET&I FOR</BrandText>
@@ -113,55 +102,23 @@ function TopSection() {
       </HeroLeft>
 
       <DecorationArea>
-        <CrossIcon
-          src={item1}
-          alt=""
-        />
+        <CrossIcon src={item1} alt="" />
 
-        <PawIcon
-          className="paw-large"
-          src={item3}
-          alt=""
-        />
+        <PawIcon className="paw-large" src={item3} alt="" />
 
-        <PawIcon
-          className="paw-medium"
-          src={item3}
-          alt=""
-        />
+        <PawIcon className="paw-medium" src={item3} alt="" />
 
-        <PawIcon
-          className="paw-small"
-          src={item3}
-          alt=""
-        />
+        <PawIcon className="paw-small" src={item3} alt="" />
 
-        <HeartIcon
-          src={item2}
-          alt=""
-        />
+        <HeartIcon src={item2} alt="" />
 
-        <ShieldIcon
-          src={item4}
-          alt=""
-        />
+        <ShieldIcon src={item4} alt="" />
 
-        <PawIcon
-          className="paw-right-top"
-          src={item3}
-          alt=""
-        />
+        <PawIcon className="paw-right-top" src={item3} alt="" />
 
-        <PawIcon
-          className="paw-right-bottom"
-          src={item3}
-          alt=""
-        />
+        <PawIcon className="paw-right-bottom" src={item3} alt="" />
 
-        <HeroImage
-          src={mainImg}
-          alt="강아지와 고양이 건강진단 안내"
-        />
+        <HeroImage src={mainImg} alt="강아지와 고양이 건강진단 안내" />
       </DecorationArea>
     </HeroWrapper>
   );
@@ -175,23 +132,13 @@ export default TopSection;
 
 const HeroWrapper = styled.section`
   position: relative;
-
   width: 100%;
   height: 245px;
   min-height: 245px;
-
+  margin: auto;
   overflow: hidden;
 
-  border: 1px solid rgba(0, 169, 123, 0.16);
-  border-radius: 18px;
-
-  box-sizing: border-box;
-
-  background: color-mix(
-    in srgb,
-    var(--color-bg-soft) 50%,
-    var(--color-white)
-  );
+  background: color-mix(in srgb, var(--color-bg-soft) 50%, var(--color-white));
 `;
 
 /* =====================================
@@ -285,15 +232,8 @@ const StatusDot = styled.span`
 
   background: #00a97b;
 
-  animation: ${({ $loading }) =>
-    $loading
-      ? loadingPulse
-      : statusPulse}
-    ${({ $loading }) =>
-      $loading
-        ? "1.2s"
-        : "1.8s"}
-    ease-in-out infinite;
+  animation: ${({ $loading }) => ($loading ? loadingPulse : statusPulse)}
+    ${({ $loading }) => ($loading ? "1.2s" : "1.8s")} ease-in-out infinite;
 `;
 
 const Arrow = styled.span`

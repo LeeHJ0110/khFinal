@@ -51,6 +51,7 @@ public class PetDiagnosisResDto {
                                 ? pet.getRepresentYn().name()
                                 : null
                 )
+                //진단 진행여부
                 .diagnosisInProgress(diagnosisInProgress)
                 .build();
     }

@@ -112,18 +112,18 @@ function DiagnosisRequestPage() {
         setMemberInfo(memberRes.data);
         setPetList(pets);
 
- // 신청 중이 아닌 첫 번째 펫을 기본 선택
-const selectablePet = pets.find(
-  (pet) => pet.diagnosisInProgress !== true
-);
+        // 신청 중이 아닌 첫 번째 펫을 기본 선택
+        const selectablePet = pets.find(
+          (pet) => pet.diagnosisInProgress !== true,
+        );
 
-if (selectablePet) {
-  setSelectedPet(selectablePet);
-  setCurrentWeight(selectablePet.weight ?? "");
-} else {
-  setSelectedPet(null);
-  setCurrentWeight("");
-}
+        if (selectablePet) {
+          setSelectedPet(selectablePet);
+          setCurrentWeight(selectablePet.weight ?? "");
+        } else {
+          setSelectedPet(null);
+          setCurrentWeight("");
+        }
       } catch (err) {
         console.error(err);
         alert("회원 또는 반려동물 정보를 불러오지 못했습니다.");
@@ -136,61 +136,59 @@ if (selectablePet) {
   }, []);
 
   // 선택한 펫이 바뀌면 해당 동물의 질문 목록 조회
-useEffect(() => {
-  if (!selectedPet?.petId) {
-    return;
-  }
-
-  async function loadQuestions() {
-    try {
-      const res = await fetchQuestionList(selectedPet.petType);
-      const questions = res.data ?? [];
-
-      setQuestionList(questions);
-
-      setAnswerList(
-        questions.map((question) => ({
-          questionId: question.questionId,
-          questionCategory: question.questionCategory,
-          questionContent: question.questionContent,
-          answerValue: question.questionType === "YN" ? "N" : "",
-        }))
-      );
-    } catch (err) {
-      console.error(err);
-      alert("질문을 불러오지 못했습니다.");
+  useEffect(() => {
+    if (!selectedPet?.petId) {
+      return;
     }
-  }
 
-  loadQuestions();
-}, [selectedPet?.petId]);
+    async function loadQuestions() {
+      try {
+        const res = await fetchQuestionList(selectedPet.petType);
+        const questions = res.data ?? [];
+
+        setQuestionList(questions);
+
+        setAnswerList(
+          questions.map((question) => ({
+            questionId: question.questionId,
+            questionCategory: question.questionCategory,
+            questionContent: question.questionContent,
+            answerValue: question.questionType === "YN" ? "N" : "",
+          })),
+        );
+      } catch (err) {
+        console.error(err);
+        alert("질문을 불러오지 못했습니다.");
+      }
+    }
+
+    loadQuestions();
+  }, [selectedPet?.petId]);
 
   // 예방접종 YN 질문
   const vaccineQuestionList = questionList.filter(
     (question) =>
-      question.questionCategory === "VACCINE" &&
-      question.questionType === "YN"
+      question.questionCategory === "VACCINE" && question.questionType === "YN",
   );
 
   // 질병 이력 YN 질문
   const diseaseQuestionList = questionList.filter(
     (question) =>
-      question.questionCategory === "DISEASE" &&
-      question.questionType === "YN"
+      question.questionCategory === "DISEASE" && question.questionType === "YN",
   );
 
   // 현재 자가진단 SCORE 질문
   const currentScoreQuestionList = questionList.filter(
     (question) =>
       question.questionCategory === selfStep &&
-      question.questionType === "SCORE"
+      question.questionType === "SCORE",
   );
 
   // 상담 내용 TEXT 질문
   const consultQuestion = questionList.find(
     (question) =>
       question.questionCategory === "CONSULT" &&
-      question.questionType === "TEXT"
+      question.questionType === "TEXT",
   );
 
   // 반려동물 선택
@@ -205,58 +203,54 @@ useEffect(() => {
   };
 
   // 현재 체중 저장
-const handleUpdateWeight = async () => {
-  if (!selectedPet) {
-    alert("반려동물을 먼저 선택해 주세요.");
-    return;
-  }
+  const handleUpdateWeight = async () => {
+    if (!selectedPet) {
+      alert("반려동물을 먼저 선택해 주세요.");
+      return;
+    }
 
-  const nextWeight = Number(currentWeight);
+    const nextWeight = Number(currentWeight);
 
-  if (
-    currentWeight === "" ||
-    Number.isNaN(nextWeight) ||
-    nextWeight <= 0
-  ) {
-    alert("현재 체중을 올바르게 입력해 주세요.");
-    return;
-  }
+    if (currentWeight === "" || Number.isNaN(nextWeight) || nextWeight <= 0) {
+      alert("현재 체중을 올바르게 입력해 주세요.");
+      return;
+    }
 
-  try {
-    setIsWeightSaving(true);
+    try {
+      setIsWeightSaving(true);
 
-    // 기존 펫 정보 + 변경된 몸무게 전송
-    await updatePetWeight(selectedPet, nextWeight);
+      // 기존 펫 정보 + 변경된 몸무게 전송
+      await updatePetWeight(selectedPet, nextWeight);
 
-    // 화면에 표시되는 목록 값 수정
-    setPetList((prev) =>
-      prev.map((pet) =>
-        pet.petId === selectedPet.petId
-          ? {
-              ...pet,
-              weight: nextWeight,
-            }
-          : pet
-      )
-    );
+      // 화면에 표시되는 목록 값 수정
+      setPetList((prev) =>
+        prev.map((pet) =>
+          pet.petId === selectedPet.petId
+            ? {
+                ...pet,
+                weight: nextWeight,
+              }
+            : pet,
+        ),
+      );
 
-    // 현재 선택한 펫 값도 수정
-    setSelectedPet((prev) => ({
-      ...prev,
-      weight: nextWeight,
-    }));
+      // 현재 선택한 펫 값도 수정
+      setSelectedPet((prev) => ({
+        ...prev,
+        weight: nextWeight,
+      }));
 
-    alert("현재 체중이 저장되었습니다.");
-  } catch (err) {
-    console.error("몸무게 수정 실패:", err);
-    console.error("응답 상태:", err.response?.status);
-    console.error("응답 데이터:", err.response?.data);
+      alert("현재 체중이 저장되었습니다.");
+    } catch (err) {
+      console.error("몸무게 수정 실패:", err);
+      console.error("응답 상태:", err.response?.status);
+      console.error("응답 데이터:", err.response?.data);
 
-    alert("현재 체중을 저장하지 못했습니다.");
-  } finally {
-    setIsWeightSaving(false);
-  }
-};
+      alert("현재 체중을 저장하지 못했습니다.");
+    } finally {
+      setIsWeightSaving(false);
+    }
+  };
 
   // YN 답변 토글
   // N → Y → N
@@ -268,8 +262,8 @@ const handleUpdateWeight = async () => {
               ...answer,
               answerValue: answer.answerValue === "Y" ? "N" : "Y",
             }
-          : answer
-      )
+          : answer,
+      ),
     );
   };
 
@@ -290,8 +284,8 @@ const handleUpdateWeight = async () => {
               ...answer,
               answerValue: value,
             }
-          : answer
-      )
+          : answer,
+      ),
     );
   };
 
@@ -306,7 +300,7 @@ const handleUpdateWeight = async () => {
   // 현재 SCORE 카테고리의 문항을 모두 선택했는지 검사
   const hasEmptyScoreAnswer = () => {
     return currentScoreQuestionList.some(
-      (question) => getAnswerValue(question.questionId) === ""
+      (question) => getAnswerValue(question.questionId) === "",
     );
   };
 
@@ -340,7 +334,7 @@ const handleUpdateWeight = async () => {
     if (mainStep === "SELF" && selfStep !== "CONSULT") {
       if (currentScoreQuestionList.length === 0) {
         alert(
-          `${formatQuestionCategory(selfStep)} 문항이 등록되어 있지 않습니다.`
+          `${formatQuestionCategory(selfStep)} 문항이 등록되어 있지 않습니다.`,
         );
         return;
       }
@@ -365,9 +359,9 @@ const handleUpdateWeight = async () => {
 
   // 건강진단 최종 신청
   const handleSubmit = async () => {
-      console.log("신청 직전 선택 펫:", selectedPet);
-      console.log("신청 직전 답변 목록:", answerList);
-      console.log("답변 개수:", answerList.length);
+    console.log("신청 직전 선택 펫:", selectedPet);
+    console.log("신청 직전 답변 목록:", answerList);
+    console.log("답변 개수:", answerList.length);
     if (!selectedPet) {
       alert("반려동물을 선택해 주세요.");
       return;
@@ -468,128 +462,119 @@ const handleUpdateWeight = async () => {
 
       <DiagnosisProgress mainStep={mainStep} />
 
-      {/* 기본정보 1: 펫 선택 + 현재 체중 */}
-      {mainStep === "BASIC" && basicStep === "PET" && (
-        <PetSelectStep
-          memberInfo={memberInfo}
-          petList={petList}
-          selectedPet={selectedPet}
-          currentWeight={currentWeight}
-          isWeightSaving={isWeightSaving}
-          onSelectPet={handleSelectPet}
-          onChangeWeight={setCurrentWeight}
-          onSaveWeight={handleUpdateWeight}
-        />
-      )}
+      <StepContent>
+        {/* 기본정보 1: 펫 선택 + 현재 체중 */}
+        {mainStep === "BASIC" && basicStep === "PET" && (
+          <PetSelectStep
+            memberInfo={memberInfo}
+            petList={petList}
+            selectedPet={selectedPet}
+            currentWeight={currentWeight}
+            isWeightSaving={isWeightSaving}
+            onSelectPet={handleSelectPet}
+            onChangeWeight={setCurrentWeight}
+            onSaveWeight={handleUpdateWeight}
+          />
+        )}
 
-      {/* 기본정보 2: 예방접종 */}
-      {mainStep === "BASIC" && basicStep === "VACCINE" && (
-        <YnQuestionStep
-          title="예방접종"
-          description="최근 1년 이내 접종한 항목을 모두 선택해 주세요."
-          questionList={vaccineQuestionList}
-          isSelected={isYnSelected}
-          onToggle={handleYnToggle}
-        />
-      )}
+        {/* 기본정보 2: 예방접종 */}
+        {mainStep === "BASIC" && basicStep === "VACCINE" && (
+          <YnQuestionStep
+            title="예방접종"
+            description="최근 1년 이내 접종한 항목을 모두 선택해 주세요."
+            questionList={vaccineQuestionList}
+            isSelected={isYnSelected}
+            onToggle={handleYnToggle}
+          />
+        )}
 
-      {/* 기본정보 3: 질병 이력 */}
-      {mainStep === "BASIC" && basicStep === "DISEASE" && (
-        <YnQuestionStep
-          title="질병 이력"
-          description="진단받거나 치료받은 이력이 있는 항목을 모두 선택해 주세요."
-          questionList={diseaseQuestionList}
-          isSelected={isYnSelected}
-          onToggle={handleYnToggle}
-        />
-      )}
+        {/* 기본정보 3: 질병 이력 */}
+        {mainStep === "BASIC" && basicStep === "DISEASE" && (
+          <YnQuestionStep
+            title="질병 이력"
+            description="진단받거나 치료받은 이력이 있는 항목을 모두 선택해 주세요."
+            questionList={diseaseQuestionList}
+            isSelected={isYnSelected}
+            onToggle={handleYnToggle}
+          />
+        )}
 
-      {/* 자가진단: SCORE 카테고리 */}
-      {/* 이미지 바뀜 카테고리마다 */}
-      {mainStep === "SELF" && selfStep !== "CONSULT" && (
-<ScoreQuestionStep
-  category={selfStep}
-  title={formatQuestionCategory(selfStep)}
-  description="현재 상태와 가장 가까운 항목을 선택해 주세요."
-  questionList={currentScoreQuestionList}
-  getAnswerValue={getAnswerValue}
-  onSelect={handleAnswerChange}
-/>
-      )}
+        {/* 자가진단: SCORE 카테고리 */}
+        {mainStep === "SELF" && selfStep !== "CONSULT" && (
+          <ScoreQuestionStep
+            category={selfStep}
+            title={formatQuestionCategory(selfStep)}
+            description="현재 상태와 가장 가까운 항목을 선택해 주세요."
+            questionList={currentScoreQuestionList}
+            getAnswerValue={getAnswerValue}
+            onSelect={handleAnswerChange}
+          />
+        )}
 
-      {/* 자가진단: 상담 내용 TEXT */}
-      {mainStep === "SELF" && selfStep === "CONSULT" && (
-        <ConsultStep
-          question={consultQuestion}
-          value={
-            consultQuestion
-              ? getAnswerValue(consultQuestion.questionId)
-              : ""
-          }
-          onChange={handleAnswerChange}
-        />
-      )}
+        {/* 자가진단: 상담 내용 */}
+        {mainStep === "SELF" && selfStep === "CONSULT" && (
+          <ConsultStep
+            question={consultQuestion}
+            value={
+              consultQuestion ? getAnswerValue(consultQuestion.questionId) : ""
+            }
+            onChange={handleAnswerChange}
+          />
+        )}
 
-      {/* 이미지 분석 */}
-      {mainStep === "IMAGE" && (
-        <ImageUploadStep
-          eyeFiles={eyeFiles}
-          skinFiles={skinFiles}
-          teethFiles={teethFiles}
-          onChangeEyeFiles={setEyeFiles}
-          onChangeSkinFiles={setSkinFiles}
-          onChangeTeethFiles={setTeethFiles}
-        />
-      )}
+        {/* 이미지 분석 */}
+        {mainStep === "IMAGE" && (
+          <ImageUploadStep
+            eyeFiles={eyeFiles}
+            skinFiles={skinFiles}
+            teethFiles={teethFiles}
+            onChangeEyeFiles={setEyeFiles}
+            onChangeSkinFiles={setSkinFiles}
+            onChangeTeethFiles={setTeethFiles}
+          />
+        )}
 
-      {/* 신청 완료 */}
-      {mainStep === "COMPLETE" && (
-        <TemporaryBox>
-          <TemporaryTitle>건강진단 신청 완료</TemporaryTitle>
+        {/* 신청 완료 */}
+        {mainStep === "COMPLETE" && (
+          <TemporaryBox>
+            <TemporaryTitle>건강진단 신청 완료</TemporaryTitle>
 
-          <TemporaryText>
-            건강진단 신청이 정상적으로 접수되었습니다.
-          </TemporaryText>
-        </TemporaryBox>
-      )}
+            <TemporaryText>
+              건강진단 신청이 정상적으로 접수되었습니다.
+            </TemporaryText>
+          </TemporaryBox>
+        )}
+      </StepContent>
+      <ButtonGroup>
+        {mainStep === "COMPLETE" ? (
+          <NavigationButton
+            type="button"
+            $primary
+            onClick={() => navigate("/healthcare/requesthome")}
+          >
+            제출완료
+          </NavigationButton>
+        ) : (
+          <>
+            <NavigationButton type="button" onClick={handlePrevious}>
+              이전
+            </NavigationButton>
 
-   <ButtonGroup>
-  {mainStep === "COMPLETE" ? (
-    <NavigationButton
-      type="button"
-      $primary
-      onClick={() => navigate("/healthcare/requesthome")}
-    >
-      제출완료
-    </NavigationButton>
-  ) : (
-    <>
-      <NavigationButton
-        type="button"
-        onClick={handlePrevious}
-      >
-        이전
-      </NavigationButton>
-
-      <NavigationButton
-        type="button"
-        $primary
-        disabled={isSubmitting}
-        onClick={
-          mainStep === "IMAGE"
-            ? handleSubmit
-            : handleNext
-        }
-      >
-        {mainStep === "IMAGE"
-          ? isSubmitting
-            ? "신청 중"
-            : "건강진단 신청"
-          : "다음"}
-      </NavigationButton>
-    </>
-  )}
-</ButtonGroup>
+            <NavigationButton
+              type="button"
+              $primary
+              disabled={isSubmitting}
+              onClick={mainStep === "IMAGE" ? handleSubmit : handleNext}
+            >
+              {mainStep === "IMAGE"
+                ? isSubmitting
+                  ? "신청 중"
+                  : "건강진단 신청"
+                : "다음"}
+            </NavigationButton>
+          </>
+        )}
+      </ButtonGroup>
     </Wrapper>
   );
 }
@@ -598,9 +583,8 @@ export default DiagnosisRequestPage;
 
 const Wrapper = styled.main`
   width: min(1100px, calc(100% - 48px));
-  min-height: 620px;
   margin: 0 auto;
-  padding: 54px 0 90px;
+  padding: 54px 0 50px;
   box-sizing: border-box;
 `;
 
@@ -644,13 +628,10 @@ const NavigationButton = styled.button`
   min-width: 132px;
   height: 42px;
   padding: 0 18px;
-  border: 1px solid
-    ${({ $primary }) => ($primary ? "#00a97b" : "#d5e8e1")};
+  border: 1px solid ${({ $primary }) => ($primary ? "#00a97b" : "#d5e8e1")};
   border-radius: 8px;
-  background: ${({ $primary }) =>
-    $primary ? "#00a97b" : "#e7f4ef"};
-  color: ${({ $primary }) =>
-    $primary ? "#ffffff" : "#00a97b"};
+  background: ${({ $primary }) => ($primary ? "#00a97b" : "#e7f4ef")};
+  color: ${({ $primary }) => ($primary ? "#ffffff" : "#00a97b")};
   font-size: 14px;
   font-weight: 800;
   cursor: pointer;
@@ -666,4 +647,7 @@ const NavigationButton = styled.button`
     cursor: not-allowed;
     transform: none;
   }
+`;
+const StepContent = styled.section`
+  min-height: 400px;
 `;
