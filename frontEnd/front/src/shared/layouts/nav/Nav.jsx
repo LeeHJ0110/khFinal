@@ -28,6 +28,10 @@ export default function Nav({
       return location.pathname === "/store";
     }
 
+    if (menu.end) {
+      return location.pathname === menu.path;
+    }
+
     // 현재 URL이 menu.path와 같거나, 하위 경로이면 active 처리
     return (
       location.pathname === menu.path ||

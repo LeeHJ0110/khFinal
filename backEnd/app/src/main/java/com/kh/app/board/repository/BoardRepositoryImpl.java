@@ -22,12 +22,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BoardRepositoryImpl implements BoardRepositoryCustom {
 
+
     private final JPAQueryFactory queryFactory;
 
     @Override
     public Page<BoardEntity> getList(String category, BoardSearchCondition condition, Pageable pageable) {
         return getListByCategory(category, condition, pageable);
     }
+
 
     @Override
     public Page<BoardEntity> getListByCategory(String category, BoardSearchCondition condition, Pageable pageable) {
@@ -65,6 +67,8 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
                         board.delYn.eq(DelYn.N)
                 )
                 .fetchOne();
+
+
 
         long totalCount = (total != null) ? total : 0L;
 

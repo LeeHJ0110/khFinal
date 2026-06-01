@@ -4,12 +4,23 @@ import styled from "styled-components";
 import MyPageLayout from "./components/MyPageLayout";
 import usePet from "../../features/mypage/pet/hooks/usePet";
 import useMypageMember from "../../features/mypage/member/hooks/useMypageMember";
+import { useEffect, useState } from "react";
+import { getUnreadMessageCount } from "../../features/mypage/message/api/messageApi";
 
 export default function MyPageHomePage() {
   const navigate = useNavigate();
   const { member, loading: memberLoading } = useMypageMember();
   const { selectedPet, hasPet, loading: petLoading } = usePet();
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
 
+  useEffect(() => {
+    async function fetchUnreadCount() {
+      const response = await getUnreadMessageCount();
+      setUnreadMessageCount(response.data);
+    }
+
+    fetchUnreadCount();
+  }, []);
   return (
     <MyPageLayout>
       <TopGrid>
@@ -114,7 +125,7 @@ export default function MyPageHomePage() {
 
           <div>
             <p>쪽지함</p>
-            <h2>미확인 쪽지 3개</h2>
+            <h2>미확인 쪽지 {unreadMessageCount}개</h2>
           </div>
         </SummaryCard>
 

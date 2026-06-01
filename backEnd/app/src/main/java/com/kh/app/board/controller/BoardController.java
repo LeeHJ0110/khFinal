@@ -82,15 +82,23 @@ public class BoardController {
     @ApiResponses({
             @ApiResponse(responseCode = "200" , description = "게시글 상세조회 성공 ~~~") ,
     })
-    @GetMapping("/detail/{boardId}")
+    @GetMapping("/detail/{id}")
     public ResponseEntity<BoardDetailResDto> getBoardDetail(@PathVariable Long id){
-        System.out.println("BoardController.getBoardDetail @@@@@");
+        System.out.println("id = " + id);
         BoardDetailResDto dto = boardService.getBoardDetail(id);
         return ResponseEntity.ok(dto);
     }
 
-    //게시글 삭제
-
+    @Operation(summary = "게시글 삭제", description = "게시글의 DelYn을 Y처리 해서 조회 못하게 변경")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "게시글 삭제성공 ~~~"),
+    })
+    @DeleteMapping
+    public ResponseEntity<Object> delete(@RequestParam Long id){
+        System.out.println("삭제 요청 들어온 boardId = " + id);
+        boardService.delete(id);
+        return ResponseEntity.ok().build();
+    }
 
 }
 

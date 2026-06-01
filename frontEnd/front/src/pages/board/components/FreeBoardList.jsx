@@ -85,7 +85,7 @@ export default function FreeBoardList({ list, isLoading, onItemClick }) {
 
               <ItemMeta>
                 <LevelBadge>Lv.{item.writerLevel || 1}</LevelBadge>
-                <WriterName>{item.writerNickname || "익명회원"}</WriterName>
+                <WriterName>{item.writerNickname}</WriterName>
                 <RelativeTime>
                   {formatRelativeTime(item.createdAt)}
                 </RelativeTime>

@@ -48,6 +48,7 @@ export default function ReviewBoardList({
           padding: "60px 0",
           color: "#888888",
           fontSize: "14px",
+          fontFamily: "inherit",
         }}
       >
         로딩 중입니다... 🐕
@@ -55,7 +56,68 @@ export default function ReviewBoardList({
     );
   }
 
-  return <BoardListWrapper>ReviewBoardList</BoardListWrapper>;
+  // 목록 데이터가 없거나 비어있는 경우 빈 안내 화면 처리
+  if (!list || list.length === 0) {
+    return (
+      <EmptyListMessage>등록된 후기 게시글이 없습니다. 🐾</EmptyListMessage>
+    );
+  }
+
+  return (
+    <BoardListWrapper>
+      {list.map((item) => {
+        const thumbnailUrl = extractFirstImg(item.content);
+
+        return (
+          <ListItem key={item.boardId} onClick={() => onItemClick?.(item)}>
+            <ItemThumbnail>
+              {thumbnailUrl ? (
+                <img src={thumbnailUrl} alt={item.title} />
+              ) : (
+                <SvgPawPlaceholder />
+              )}
+            </ItemThumbnail>
+
+            <ItemContent>
+              {/* 카테고리 종류 분기 처리 배지 */}
+              <SubCategoryTag>
+                {item.boardCategory === "PRODUCT_REVIEW"
+                  ? "📦 상품 후기"
+                  : "🏢 시설 후기"}
+              </SubCategoryTag>
+
+              <ItemTitle>{item.title}</ItemTitle>
+
+              <ItemMeta>
+                <LevelBadge>Lv.{item.writerLevel ?? 1}</LevelBadge>
+                <WriterName>{item.writerNickname || "탈퇴한 회원"}</WriterName>
+                <span>•</span>
+                <RelativeTime>
+                  {formatRelativeTime(item.createdAt)}
+                </RelativeTime>
+                <span>•</span>
+                <StarsText>★ {(item.stars ?? 5).toFixed(1)}</StarsText>
+              </ItemMeta>
+            </ItemContent>
+
+            <ItemStats>
+              <StatIconWrapper title="조회수">
+                <SvgEye />
+                <span>{item.hits ?? 0}</span>
+              </StatIconWrapper>
+              <StatIconWrapper title="댓글">
+                <SvgComment />
+                <span>0</span>
+              </StatIconWrapper>
+              <div>
+                <span>0</span>
+              </div>
+            </ItemStats>
+          </ListItem>
+        );
+      })}
+    </BoardListWrapper>
+  );
 }
 
 // ==========================================
@@ -148,14 +210,14 @@ const SubCategoryTag = styled.span`
   font-weight: 700;
   letter-spacing: -0.2px;
   border: 1px solid #b2f2bb;
-  color: #37b24d;
+  color: #2b8a3e;
   background-color: #ebfbee;
 `;
 
 const ItemTitle = styled.h2`
   font-size: 16px;
   font-weight: 700;
-  color: var(--color-dark);
+  color: #222222;
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -163,7 +225,7 @@ const ItemTitle = styled.h2`
   line-height: 1.4;
 
   &:hover {
-    color: var(--color-main);
+    color: var(--color-main, #4a90e2);
   }
 `;
 
@@ -172,7 +234,7 @@ const ItemMeta = styled.div`
   align-items: center;
   gap: 12px;
   font-size: 12px;
-  color: var(--text-desc);
+  color: #777777;
 `;
 
 const LevelBadge = styled.span`
@@ -188,7 +250,7 @@ const LevelBadge = styled.span`
 `;
 
 const WriterName = styled.span`
-  color: var(--text-sub);
+  color: #444444;
   font-weight: 500;
 `;
 
@@ -197,7 +259,7 @@ const RelativeTime = styled.span``;
 const StarsText = styled.span`
   color: #ffbc00;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 13px;
 `;
 
 const ItemStats = styled.div`
@@ -220,4 +282,11 @@ const StatIconWrapper = styled.div`
     height: 14px;
     fill: #adb5bd;
   }
+`;
+
+const EmptyListMessage = styled.div`
+  text-align: center;
+  padding: 80px 0;
+  color: #888888;
+  font-size: 15px;
 `;

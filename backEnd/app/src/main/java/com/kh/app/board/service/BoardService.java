@@ -96,7 +96,7 @@ public class BoardService {
 
         // 제목 업데이트
         boardEntity.setTitle(reqDto.getTitle());
-        
+
         // 카테고리 업데이트
         com.kh.app.board.entity.BoardCategory categoryEnum = (reqDto.getBoardCategory() != null)
                 ? com.kh.app.board.entity.BoardCategory.valueOf(reqDto.getBoardCategory())
@@ -229,5 +229,15 @@ public class BoardService {
         }
         matcher.appendTail(sb);
         return sb.toString();
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        BoardEntity boardEntity = boardRepository.findById(id)
+                .orElseThrow(()-> new EntityNotFoundException("Board Not Found......"));
+
+        boardEntity.delete();
+
+        log.info("[게시글 소프트 딜리트 완료] boardId : {}, 상태: {}", id, boardEntity.getDelYn());
     }
 }
