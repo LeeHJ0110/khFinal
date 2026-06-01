@@ -5,10 +5,22 @@ import { useEffect, useState } from "react";
 import usePet from "../../mypage/pet/hooks/usePet";
 
 export default function TrainingDiaryModal({ open, onClose, data }) {
-  const { isLoading, openDetail, closeDetail, insertDiary } = useTraining();
+  const {
+    isSuccess,
+    openDetail,
+    closeDetail,
+    insertDiary,
+    editDiary,
+    deleteDiary,
+  } = useTraining();
   const { formData, handleChange } = useFormData(data);
-
   const { petList, fetchMyPetList } = usePet();
+
+  useEffect(() => {
+    if (isSuccess) {
+      onClose();
+    }
+  }, [isSuccess]);
 
   const today = new Date().toISOString().split("T")[0];
   const createdDate = formData.createdAt?.split("T")[0];
@@ -24,45 +36,54 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
             <Body
               onSubmit={(e) => {
                 e.preventDefault();
-                insertDiary(formData);
+
+                if (formData.isEdit) {
+                  editDiary(formData);
+                } else {
+                  insertDiary(formData);
+                }
               }}
             >
               <Row>
-                <Input
-                  type="number"
-                  min="0"
-                  max="23"
-                  placeholder="시간"
-                  value={formData.trainingTime?.split(":")[0] || ""}
+                <Select
+                  value={formData.trainingTime?.split(":")[0] || "00"}
                   onChange={(e) => {
                     const minute = formData.trainingTime?.split(":")[1] || "00";
 
                     handleChange({
                       target: {
                         name: "trainingTime",
-                        value: `${String(e.target.value).padStart(2, "0")}:${minute}`,
+                        value: `${e.target.value}:${minute}`,
                       },
                     });
                   }}
-                />
+                >
+                  {Array.from({ length: 24 }, (_, i) => (
+                    <option key={i} value={String(i).padStart(2, "0")}>
+                      {i}시간
+                    </option>
+                  ))}
+                </Select>
 
-                <Input
-                  type="number"
-                  min="0"
-                  max="59"
-                  placeholder="분"
-                  value={formData.trainingTime?.split(":")[1] || ""}
+                <Select
+                  value={formData.trainingTime?.split(":")[1] || "00"}
                   onChange={(e) => {
                     const hour = formData.trainingTime?.split(":")[0] || "00";
 
                     handleChange({
                       target: {
                         name: "trainingTime",
-                        value: `${hour}:${String(e.target.value).padStart(2, "0")}`,
+                        value: `${hour}:${e.target.value}`,
                       },
                     });
                   }}
-                />
+                >
+                  {Array.from({ length: 60 }, (_, i) => (
+                    <option key={i} value={String(i).padStart(2, "0")}>
+                      {i}분
+                    </option>
+                  ))}
+                </Select>
               </Row>
               <TextArea
                 value={formData.content}
@@ -74,7 +95,20 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
               <ButtonGroup>
                 <CancelButton onClick={onClose}>취소</CancelButton>
                 {formData.isEdit ? (
-                  isToday && <SubmitButton type="submit">수정</SubmitButton>
+                  isToday && (
+                    <>
+                      <DeleteButton
+                        type="button"
+                        onClick={() => {
+                          deleteDiary(formData);
+                          console.log("삭제");
+                        }}
+                      >
+                        삭제
+                      </DeleteButton>
+                      <SubmitButton type="submit">수정</SubmitButton>
+                    </>
+                  )
                 ) : (
                   <SubmitButton type="submit">저장</SubmitButton>
                 )}
@@ -120,6 +154,17 @@ const Title = styled.h2`
 `;
 
 const Input = styled.input`
+  height: 40px;
+
+  padding: 0 12px;
+
+  border: 1px solid #ddd;
+  border-radius: 8px;
+`;
+
+const Select = styled.select`
+  flex: 1;
+
   height: 40px;
 
   padding: 0 12px;
@@ -179,4 +224,19 @@ const Body = styled.form`
   flex-direction: column;
 
   gap: 18px;
+`;
+const DeleteButton = styled.button`
+  border: none;
+  padding: 12px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  background: #ff4d4d;
+  color: white;
+  transition: 0.2s;
+
+  &:hover {
+    background: #e60000;
+  }
 `;

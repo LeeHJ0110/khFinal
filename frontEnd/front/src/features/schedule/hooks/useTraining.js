@@ -1,13 +1,15 @@
 import { useState } from "react";
 import {
   checkDate,
+  fetchTrainingDelete,
+  fetchTrainingEdit,
   fetchTrainingInsert,
   fetchTrainingList,
 } from "../api/trainingAp";
 import { useNavigate } from "react-router-dom";
 
 export default function useTraining() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setSuccess] = useState(false);
 
   async function openDetail(iDate) {
     let date = iDate;
@@ -29,14 +31,30 @@ export default function useTraining() {
   }
 
   async function insertDiary(formData) {
+    setSuccess(false);
     const resp = await fetchTrainingInsert(formData);
     if (resp.status == 201) {
+      setSuccess(true);
     }
   }
 
+  async function editDiary(formData) {
+    setSuccess(false);
+    const resp = await fetchTrainingEdit(formData.id, formData);
+    setSuccess(true);
+  }
+
+  async function deleteDiary(formData) {
+    setSuccess(false);
+    const resp = await fetchTrainingDelete(formData.id);
+    setSuccess(true);
+  }
+
   return {
-    isLoading,
+    isSuccess,
     openDetail,
     insertDiary,
+    editDiary,
+    deleteDiary,
   };
 }

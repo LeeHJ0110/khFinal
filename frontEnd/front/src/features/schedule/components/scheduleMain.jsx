@@ -14,7 +14,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen }) {
     id: "",
     title: "",
     content: "",
-    at: "",
+    at: "00:00",
     startDate: "",
     endDate: "",
     backgroundColor: "#5EC8A7",

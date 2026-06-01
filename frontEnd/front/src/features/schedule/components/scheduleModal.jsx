@@ -94,41 +94,45 @@ export default function ScheduleModal({ open, onClose, data }) {
             </Field>
           </Row>
           <Row>
-            <Input
-              type="number"
-              min="0"
-              max="23"
-              placeholder="시간"
-              value={formData.at?.split(":")[0] || ""}
+            <Select
+              value={formData.at?.split(":")[0] || "00"}
               onChange={(e) => {
                 const minute = formData.at?.split(":")[1] || "00";
 
                 handleChange({
                   target: {
                     name: "at",
-                    value: `${String(e.target.value).padStart(2, "0")}:${minute}`,
+                    value: `${e.target.value}:${minute}`,
                   },
                 });
               }}
-            />
+            >
+              {Array.from({ length: 24 }, (_, i) => (
+                <option key={i} value={String(i).padStart(2, "0")}>
+                  {i}
+                </option>
+              ))}
+            </Select>
 
-            <Input
-              type="number"
-              min="0"
-              max="59"
-              placeholder="분"
-              value={formData.at?.split(":")[1] || ""}
+            <Select
+              value={formData.at?.split(":")[1] || "00"}
               onChange={(e) => {
                 const hour = formData.at?.split(":")[0] || "00";
 
                 handleChange({
                   target: {
                     name: "at",
-                    value: `${hour}:${String(e.target.value).padStart(2, "0")}`,
+                    value: `${hour}:${e.target.value}`,
                   },
                 });
               }}
-            />
+            >
+              {Array.from({ length: 60 }, (_, i) => (
+                <option key={i} value={String(i).padStart(2, "0")}>
+                  {i}
+                </option>
+              ))}
+            </Select>
           </Row>
 
           <Field>
@@ -412,4 +416,15 @@ const DeleteButton = styled.button`
   &:hover {
     background: #e60000;
   }
+`;
+
+const Select = styled.select`
+  flex: 1;
+
+  height: 40px;
+
+  padding: 0 12px;
+
+  border: 1px solid #ddd;
+  border-radius: 8px;
 `;

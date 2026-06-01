@@ -10,7 +10,7 @@ export default function ScheduleMainPage() {
   const trainingInit = {
     id: "",
     content: "",
-    trainingTime: "",
+    trainingTime: "00:00",
     createdAt: "",
     petList: [],
     isEdit: false,
