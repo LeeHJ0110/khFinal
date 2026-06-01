@@ -1,32 +1,61 @@
 package com.kh.app.petcare.dto.response;
 
 import com.kh.app.common.entity.DelYn;
+import com.kh.app.pet.entity.PetEntity;
 import com.kh.app.petcare.dto.request.DiagnosisAnswerDto;
+import com.kh.app.petcare.entity.DiagnosisReqEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
 @Setter
 @Builder
-
 public class DiagnosisDetailResDto {
 
-    // 진단 신청 번호
     private Long diagnosisReqId;
-    // 펫 번호
+
     private Long petId;
-    // 진행 상태
+
+    private String petName;
+    private String petType;
+    private String breedName;
+    private String gender;
+    private String birthDate;
+    private BigDecimal weight;
+
     private DelYn diagnosisReqStatus;
-    // 신청일
+
     private LocalDateTime createdAt;
-    // 답변 목록
+
     private List<DiagnosisAnswerDto> answerList;
 
-    // 업로드 이미지 목록
     private List<ImgUrlResDto> fileList;
-}
 
+    public static DiagnosisDetailResDto from(
+            DiagnosisReqEntity diagnosisReq,
+            List<DiagnosisAnswerDto> answerList,
+            List<ImgUrlResDto> fileList
+    ) {
+        PetEntity pet = diagnosisReq.getPetEntity();
+
+        return DiagnosisDetailResDto.builder()
+                .diagnosisReqId(diagnosisReq.getDiagnosisReqId())
+                .petId(pet.getId())
+                .petName(pet.getName())
+                .petType(pet.getBreed() != null ? pet.getBreed().getPetType().name() : null)
+                .breedName(pet.getBreed() != null ? pet.getBreed().getName() : null)
+                .gender(pet.getGender() != null ? pet.getGender().name() : null)
+                .birthDate(pet.getBirthDate())
+                .weight(pet.getWeight())
+                .diagnosisReqStatus(diagnosisReq.getDiagnosisReqStatus())
+                .createdAt(diagnosisReq.getCreatedAt())
+                .answerList(answerList)
+                .fileList(fileList)
+                .build();
+    }
+}

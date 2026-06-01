@@ -1,15 +1,15 @@
 package com.kh.app.petcare.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.member.repository.MemberRepository;
+import com.kh.app.pet.dto.response.PetMyPageResDto;
 import com.kh.app.pet.entity.PetEntity;
 import com.kh.app.pet.entity.PetType;
 import com.kh.app.pet.repository.PetRepository;
 import com.kh.app.petcare.dto.request.DiagnosisAnswerDto;
 import com.kh.app.petcare.dto.request.PetCareReqDto;
-import com.kh.app.petcare.dto.response.DiagnosisDetailResDto;
-import com.kh.app.petcare.dto.response.DiagnosisResDto;
-import com.kh.app.petcare.dto.response.ImgUrlResDto;
-import com.kh.app.petcare.dto.response.SelfDiagnosisQuestionResDto;
+import com.kh.app.petcare.dto.response.*;
 import com.kh.app.petcare.entity.DiagnosisReqEntity;
 import com.kh.app.petcare.entity.ImgCategory;
 import com.kh.app.petcare.entity.ImgUrlEntity;
@@ -30,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import com.kh.app.common.entity.DelYn;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +42,8 @@ public class PetCareService {
     private final SelfDiagnosisAnswerRepository answerRepository;
     private final ImageRepository imageRepository;
     private final PetRepository petRepository;
+    private final MemberRepository memberRepository;
+
 
     @Transactional
     public void requestDiagnosis(
@@ -56,11 +59,40 @@ public class PetCareService {
         PetCareReqDto reqDto =
                 objectMapper.readValue(data, PetCareReqDto.class);
 
+        // 선택한 반려동물 조회
         PetEntity pet = petRepository.findById(reqDto.getPetId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("반려동물을 찾을 수 없습니다.")
+                        new IllegalArgumentException(
+                                "반려동물을 찾을 수 없습니다."
+                        )
                 );
 
+        /*
+         * 해당 펫에 진행 중인 건강진단 신청이 이미 있는지 확인
+         *
+         * Y = 신청 중
+         * N = 신청 가능
+         */
+        boolean hasActiveDiagnosis =
+                diagnosisReqRepository
+                        .existsByPetEntity_IdAndDiagnosisReqStatus(
+                                pet.getId(),
+                                DelYn.Y
+                        );
+
+        if (hasActiveDiagnosis) {
+            throw new IllegalStateException(
+                    "이미 진행 중인 건강진단 신청이 있습니다."
+            );
+        }
+
+        /*
+         * 새로운 진단 신청 생성
+         *
+         * DiagnosisReqEntity에서
+         * diagnosisReqStatus 기본값이 DelYn.Y로 설정되어 있으므로
+         * 새 신청을 저장하면 자동으로 신청 중 상태가 됨
+         */
         DiagnosisReqEntity diagnosisReq =
                 DiagnosisReqEntity.builder()
                         .petEntity(pet)
@@ -68,12 +100,17 @@ public class PetCareService {
 
         diagnosisReqRepository.save(diagnosisReq);
 
+        // 사용자가 작성한 문진 답변 저장
         for (DiagnosisAnswerDto answerDto : reqDto.getAnswerList()) {
 
             SelfDiagnosisQuestionEntity question =
-                    questionRepository.findById(answerDto.getQuestionId())
+                    questionRepository.findById(
+                                    answerDto.getQuestionId()
+                            )
                             .orElseThrow(() ->
-                                    new IllegalArgumentException("질문을 찾을 수 없습니다.")
+                                    new IllegalArgumentException(
+                                            "질문을 찾을 수 없습니다."
+                                    )
                             );
 
             SelfDiagnosisAnswerEntity answer =
@@ -86,11 +123,30 @@ public class PetCareService {
             answerRepository.save(answer);
         }
 
-        saveImages(eyeFiles, diagnosisReq, ImgCategory.EYE);
-        saveImages(skinFiles, diagnosisReq, ImgCategory.SKIN);
-        saveImages(teethFiles, diagnosisReq, ImgCategory.TEETH);
+        // 눈, 피부, 치아 이미지 저장
+        saveImages(
+                eyeFiles,
+                diagnosisReq,
+                ImgCategory.EYE
+        );
 
-        log.info("건강진단 신청 완료");
+        saveImages(
+                skinFiles,
+                diagnosisReq,
+                ImgCategory.SKIN
+        );
+
+        saveImages(
+                teethFiles,
+                diagnosisReq,
+                ImgCategory.TEETH
+        );
+
+        log.info(
+                "건강진단 신청 완료 - petId={}, diagnosisReqId={}",
+                pet.getId(),
+                diagnosisReq.getDiagnosisReqId()
+        );
     }
 
     private void saveImages(
@@ -145,7 +201,17 @@ public class PetCareService {
                         .map(answer -> {
                             DiagnosisAnswerDto dto = new DiagnosisAnswerDto();
                             dto.setQuestionId(answer.getQuestion().getQuestionId());
+                            dto.setQuestionCategory(
+                                    answer.getQuestion().getQuestionCategory()
+                            );
+                            dto.setQuestionContent(
+                                    answer.getQuestion().getQuestionContent()
+                            );
+                            dto.setQuestionContent(
+                                    answer.getQuestion().getQuestionContent()
+                            );
                             dto.setAnswerValue(answer.getAnswerValue());
+
                             return dto;
                         })
                         .toList();
@@ -156,14 +222,12 @@ public class PetCareService {
                         .map(ImgUrlResDto::from)
                         .toList();
 
-        return DiagnosisDetailResDto.builder()
-                .diagnosisReqId(diagnosisReq.getDiagnosisReqId())
-                .petId(diagnosisReq.getPetEntity().getId())
-                .diagnosisReqStatus(diagnosisReq.getDiagnosisReqStatus())
-                .createdAt(diagnosisReq.getCreatedAt())
-                .answerList(answerList)
-                .fileList(fileList)
-                .build();
+
+        return DiagnosisDetailResDto.from(
+                diagnosisReq,
+                answerList,
+                fileList
+        );
     }
     //펫 타입별 질문 조회
     public List<SelfDiagnosisQuestionResDto> getQuestionList(
@@ -176,4 +240,33 @@ public class PetCareService {
                 .map(SelfDiagnosisQuestionResDto::from)
                 .toList();
     }
-}
+ //반려동물 목록 조회
+ @Transactional(readOnly = true)
+ public List<PetDiagnosisResDto> getMyPetListForDiagnosis(
+         String username
+ ) {
+
+     MemberEntity member = memberRepository.findByUsername(username)
+             .or(() -> memberRepository.findBySocialId(username))
+             .orElseThrow(() ->
+                     new IllegalArgumentException("회원 없음")
+             );
+
+     return petRepository.findAllByMember_Id(member.getId())
+             .stream()
+             .map(pet -> {
+
+                 boolean diagnosisInProgress =
+                         diagnosisReqRepository
+                                 .existsByPetEntity_IdAndDiagnosisReqStatus(
+                                         pet.getId(),
+                                         DelYn.Y
+                                 );
+
+                 return PetDiagnosisResDto.from(
+                         pet,
+                         diagnosisInProgress
+                 );
+             })
+             .toList();
+ }}

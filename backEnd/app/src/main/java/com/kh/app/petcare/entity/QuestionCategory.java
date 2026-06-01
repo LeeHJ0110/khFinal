@@ -10,5 +10,6 @@ public enum QuestionCategory {
     MEAL,          // 식사
     SKIN,          // 피부
     EYE,           // 눈
-    TEETH          // 치아
+    TEETH,          // 치아
+    CONSULT        //상담 내용
 }

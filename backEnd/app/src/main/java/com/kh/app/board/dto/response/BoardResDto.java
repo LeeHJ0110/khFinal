@@ -17,6 +17,7 @@ public class BoardResDto {
     private String boardSubCategory;
     private String title;
     private String writerNickname;
+    private Long writerLevel;
     private Long hits;
     private Long stars;
     private LocalDateTime createdAt;
@@ -28,6 +29,7 @@ public class BoardResDto {
                 .boardSubCategory(entity.getSubCategory() != null ? entity.getSubCategory().toString() : null)
                 .title(entity.getTitle())
                 .writerNickname(entity.getWriter().getNickname())
+                .writerLevel(entity.getWriter().getLevelExp())
                 .hits(entity.getHits())
                 .stars(entity.getStars())
                 .createdAt(entity.getCreatedAt())
