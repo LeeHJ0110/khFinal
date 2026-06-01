@@ -1,5 +1,7 @@
 package com.kh.app.karte.entity;
 
+import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.petcare.entity.DiagnosisReqEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,13 +17,13 @@ public class KarteEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @JoinColumn(name = "REQ_ID", nullable = false)
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    private Long req;           //TODO Type -> DiagnosisReqEntity
-//
-//    @JoinColumn(name = "WRITER_ID", nullable = false)
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    private Long writer;        //TODO Type -> MemberEntity
+    @JoinColumn(name = "REQ_ID", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private DiagnosisReqEntity diaReq;
+
+    @JoinColumn(name = "WRITER_ID", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private MemberEntity member;
 
     @Column(length = 1000, nullable = false)
     private String summary;
@@ -29,11 +31,12 @@ public class KarteEntity {
     @Column(length = 4000, nullable = false)
     private String opinion;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false , length = 1)
     @Builder.Default
     private VisitedYn visitedYn = VisitedYn.N;
 
-    public void visited(){
+    public void visite(){
         visitedYn = VisitedYn.Y;
     }
 }
