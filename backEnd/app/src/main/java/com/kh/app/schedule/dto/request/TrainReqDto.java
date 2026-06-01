@@ -19,10 +19,11 @@ public class TrainReqDto {
     private LocalTime trainingTime;
     private List<Long> trainingPetList;
 
-    public TrainingDiaryEntity toEntity(){
+    public TrainingDiaryEntity toEntity(MemberEntity memberEntity){
         return TrainingDiaryEntity.builder()
                 .content(content)
                 .trainingTime(trainingTime)
+                .member(memberEntity)
                 .build();
     }
 
