@@ -5,7 +5,9 @@ import BoardSubNavbar from "./BoardSubNavbar";
 export default function NewsBoardList({ activeTab, onTabChange }) {
   return (
     <>
-      <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+      {activeTab && onTabChange && (
+        <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+      )}
       <Wrapper>NewsBoardList</Wrapper>
     </>
   );

@@ -36,7 +36,9 @@ export default function FAQBoardList({
   if (isLoading) {
     return (
       <>
-        <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+        {activeTab && onTabChange && (
+          <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+        )}
         <div
           style={{
             textAlign: "center",
@@ -54,7 +56,9 @@ export default function FAQBoardList({
   if (!list || list.length === 0) {
     return (
       <>
-        <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+        {activeTab && onTabChange && (
+          <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+        )}
         <div
           style={{
             textAlign: "center",
@@ -72,7 +76,9 @@ export default function FAQBoardList({
 
   return (
     <>
-      <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+      {activeTab && onTabChange && (
+        <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+      )}
       <BoardListWrapper>
         {list.map((item) => {
           return (

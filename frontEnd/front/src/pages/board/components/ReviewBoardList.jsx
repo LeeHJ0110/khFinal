@@ -46,7 +46,9 @@ export default function ReviewBoardList({
   if (isLoading) {
     return (
       <>
-        <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+        {activeTab && onTabChange && (
+          <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+        )}
         <div
           style={{
             textAlign: "center",
@@ -66,7 +68,9 @@ export default function ReviewBoardList({
   if (!list || list.length === 0) {
     return (
       <>
-        <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+        {activeTab && onTabChange && (
+          <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+        )}
         <EmptyListMessage>등록된 후기 게시글이 없습니다. 🐾</EmptyListMessage>
       </>
     );
@@ -74,7 +78,9 @@ export default function ReviewBoardList({
 
   return (
     <>
-      <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+      {activeTab && onTabChange && (
+        <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+      )}
       <BoardListWrapper>
         {list.map((item) => {
           const thumbnailUrl = extractFirstImg(item.content);
