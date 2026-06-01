@@ -169,21 +169,21 @@ export default function BoardListPage() {
           <FilterBar>
             <TextFilters>
               <TextFilterItem
-                active={activeSort === "latest"}
+                $active={activeSort === "latest"}
                 onClick={() => handleSortChange("latest")}
               >
                 최신순
               </TextFilterItem>
               <FilterSeparator>|</FilterSeparator>
               <TextFilterItem
-                active={activeSort === "popular"}
+                $active={activeSort === "popular"}
                 onClick={() => handleSortChange("popular")}
               >
                 인기순
               </TextFilterItem>
               <FilterSeparator>|</FilterSeparator>
               <TextFilterItem
-                active={activeSort === "comments"}
+                $active={activeSort === "comments"}
                 onClick={() => handleSortChange("comments")}
               >
                 댓글순
@@ -193,7 +193,7 @@ export default function BoardListPage() {
             {activeTab === "FREE" && (
               <CategoryDropdownWrapper>
                 <CategoryDropdownButton
-                  open={dropdownOpen}
+                  $open={dropdownOpen}
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                 >
                   카테고리 : {boardMeta.FREE.subCategoryLabels[subCategory]}
@@ -205,7 +205,7 @@ export default function BoardListPage() {
                     {boardMeta.FREE.subCategories.map((subKey) => (
                       <DropdownItem
                         key={subKey}
-                        active={subCategory === subKey}
+                        $active={subCategory === subKey}
                         onClick={() => handleSubCategorySelect(subKey)}
                       >
                         {boardMeta.FREE.subCategoryLabels[subKey]}
@@ -217,13 +217,17 @@ export default function BoardListPage() {
             )}
           </FilterBar>
 
-          {/* 카테고리별 특화 리스트 컴포넌트 호출 */}
+          {/* ========================================================= */}
+          {/* [수정] 카테고리별 특화 리스트 컴포넌트 호출 실연동 */}
+          {/* ========================================================= */}
+
           {activeTab === "FREE" && (
             <FreeBoardList
               list={list}
               isLoading={isLoading}
+              // 자유게시판 클릭 시 상세조회 경로로 이동 (라우터 규칙 매칭)
               onItemClick={(item) =>
-                alert("상세 조회 API 개발 시 상세 이동 예정!")
+                navigate(`/community/detail/${item.boardId}`)
               }
             />
           )}
@@ -233,8 +237,9 @@ export default function BoardListPage() {
               category={activeTab}
               list={list}
               isLoading={isLoading}
+              // 상품/시설 후기게시판 클릭 시 상세조회 경로로 이동
               onItemClick={(item) =>
-                alert("상세 조회 API 개발 시 상세 이동 예정!")
+                navigate(`/community/detail/${item.boardId}`)
               }
             />
           )}
@@ -243,9 +248,8 @@ export default function BoardListPage() {
             <FAQBoardList
               list={list}
               isLoading={isLoading}
-              onItemClick={(item) =>
-                alert("상세 조회 API 개발 시 상세 이동 예정!")
-              }
+              // FAQ는 아코디언 컴포넌트 내부 자체 토글 제어이므로 onItemClick 함수를 비워두거나 넘기지 않아도 무방합니다.
+              onItemClick={null}
             />
           )}
 
@@ -253,8 +257,9 @@ export default function BoardListPage() {
             <NewsBoardList
               list={list}
               isLoading={isLoading}
+              // 뉴스게시판 클릭 시 상세조회 경로로 이동
               onItemClick={(item) =>
-                alert("상세 조회 API 개발 시 상세 이동 예정!")
+                navigate(`/community/detail/${item.boardId}`)
               }
             />
           )}
@@ -272,7 +277,7 @@ export default function BoardListPage() {
               {Array.from({ length: totalPages }).map((_, idx) => (
                 <PageNumberButton
                   key={idx}
-                  active={currentPage === idx}
+                  $active={currentPage === idx}
                   onClick={() => setCurrentPage(idx)}
                 >
                   {idx + 1}
@@ -293,21 +298,21 @@ export default function BoardListPage() {
             <SearchTypeToggleGroup>
               <SearchTypeButton
                 type="button"
-                active={searchType === "title"}
+                $active={searchType === "title"}
                 onClick={() => setSearchType("title")}
               >
                 제목
               </SearchTypeButton>
               <SearchTypeButton
                 type="button"
-                active={searchType === "writer"}
+                $active={searchType === "writer"}
                 onClick={() => setSearchType("writer")}
               >
                 작성자
               </SearchTypeButton>
               <SearchTypeButton
                 type="button"
-                active={searchType === "title_content"}
+                $active={searchType === "title_content"}
                 onClick={() => setSearchType("title_content")}
               >
                 제목+내용
@@ -374,8 +379,8 @@ const SubNavItem = styled.button`
   background: none;
   border: none;
   font-size: 14px;
-  font-weight: ${(props) => (props.active ? "700" : "500")};
-  color: ${(props) => (props.active ? "var(--color-main)" : "#555555")};
+  font-weight: ${(props) => (props.$active ? "700" : "500")};
+  color: ${(props) => (props.$active ? "var(--color-main)" : "#555555")};
   position: relative;
   cursor: pointer;
   transition: color 0.2s ease;
@@ -385,7 +390,7 @@ const SubNavItem = styled.button`
   }
 
   ${(props) =>
-    props.active &&
+    props.$active &&
     `
     &::after {
       content: "";
@@ -494,8 +499,8 @@ const TextFilterItem = styled.button`
   background: none;
   border: none;
   font-size: 13px;
-  font-weight: ${(props) => (props.active ? "700" : "400")};
-  color: ${(props) => (props.active ? "var(--color-main)" : "#888888")};
+  font-weight: ${(props) => (props.$active ? "700" : "400")};
+  color: ${(props) => (props.$active ? "var(--color-main)" : "#888888")};
   cursor: pointer;
   transition: color 0.15s ease;
 
@@ -536,7 +541,7 @@ const CategoryDropdownButton = styled.button`
     width: 12px;
     height: 12px;
     transition: transform 0.2s ease;
-    transform: ${(props) => (props.open ? "rotate(180deg)" : "rotate(0)")};
+    transform: ${(props) => (props.$open ? "rotate(180deg)" : "rotate(0)")};
   }
 `;
 
@@ -573,8 +578,8 @@ const DropdownItem = styled.button`
   border: none;
   font-size: 13px;
   text-align: center;
-  color: ${(props) => (props.active ? "var(--color-main)" : "#555555")};
-  font-weight: ${(props) => (props.active ? "700" : "400")};
+  color: ${(props) => (props.$active ? "var(--color-main)" : "#555555")};
+  font-weight: ${(props) => (props.$active ? "700" : "400")};
   cursor: pointer;
   transition: background-color 0.15s;
 
@@ -628,11 +633,11 @@ const PageNumberButton = styled.button`
   height: 32px;
   border-radius: 4px;
   border: 1px solid
-    ${(props) => (props.active ? "var(--color-main)" : "#dee2e6")};
+    ${(props) => (props.$active ? "var(--color-main)" : "#dee2e6")};
   background-color: ${(props) =>
     props.active ? "var(--color-main)" : "#ffffff"};
-  color: ${(props) => (props.active ? "#ffffff" : "#555555")};
-  font-weight: ${(props) => (props.active ? "700" : "500")};
+  color: ${(props) => (props.$active ? "#ffffff" : "#555555")};
+  font-weight: ${(props) => (props.$active ? "700" : "500")};
   font-size: 13px;
   display: flex;
   align-items: center;
@@ -642,9 +647,9 @@ const PageNumberButton = styled.button`
 
   &:hover {
     border-color: var(--color-main);
-    color: ${(props) => (props.active ? "#ffffff" : "var(--color-main)")};
+    color: ${(props) => (props.$active ? "#ffffff" : "var(--color-main)")};
     background-color: ${(props) =>
-      props.active ? "var(--color-main)" : "#fafbfc"};
+      props.$active ? "var(--color-main)" : "#fafbfc"};
   }
 `;
 
@@ -670,9 +675,9 @@ const SearchTypeButton = styled.button`
   padding: 0 16px;
   height: 100%;
   font-size: 13px;
-  font-weight: ${(props) => (props.active ? "700" : "500")};
-  background-color: ${(props) => (props.active ? "#ecfdf6" : "#ffffff")};
-  color: ${(props) => (props.active ? "var(--color-main)" : "#555555")};
+  font-weight: ${(props) => (props.$active ? "700" : "500")};
+  background-color: ${(props) => (props.$active ? "#ecfdf6" : "#ffffff")};
+  color: ${(props) => (props.$active ? "var(--color-main)" : "#555555")};
   border: none;
   border-right: 1px solid #dee2e6;
   cursor: pointer;

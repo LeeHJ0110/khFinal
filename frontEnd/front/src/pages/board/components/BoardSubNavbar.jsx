@@ -2,6 +2,7 @@ import styled from "styled-components";
 
 export default function BoardSubNavbar({ activeTab, onTabChange }) {
   const menuItems = [
+    { key: "HOME", label: "커뮤니티홈" },
     { key: "FREE", label: "자유게시판" },
     { key: "PRODUCT_REVIEW", label: "상품후기게시판" },
     { key: "FAC_REVIEW", label: "시설후기게시판" },
@@ -15,7 +16,7 @@ export default function BoardSubNavbar({ activeTab, onTabChange }) {
         {menuItems.map((item) => (
           <SubNavItem
             key={item.key}
-            active={activeTab === item.key}
+            $active={activeTab === item.key}
             onClick={() => {
               onTabChange(item.key);
             }}
@@ -57,7 +58,7 @@ const SubNavItem = styled.button`
   border: none;
   font-size: 14px;
   font-weight: ${(props) => (props.active ? "700" : "500")};
-  color: ${(props) => (props.active ? "var(--color-main)" : "#555555")};
+  color: ${(props) => (props.$active ? "var(--color-main)" : "#555555")};
   position: relative;
   cursor: pointer;
   transition: color 0.2s ease;
@@ -67,7 +68,7 @@ const SubNavItem = styled.button`
   }
 
   ${(props) =>
-    props.active &&
+    props.$active &&
     `
     &::after {
       content: "";
