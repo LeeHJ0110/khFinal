@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import BoardSubNavbar from "./BoardSubNavbar";
 
 // ==========================================
 // Helper: 상대 시간 계산 포맷터
@@ -25,72 +26,87 @@ function formatRelativeTime(dateString) {
   });
 }
 
-export default function FAQBoardList({ list, isLoading, onItemClick }) {
+export default function FAQBoardList({
+  list,
+  isLoading,
+  onItemClick,
+  activeTab,
+  onTabChange,
+}) {
   if (isLoading) {
     return (
-      <div
-        style={{
-          textAlign: "center",
-          padding: "60px 0",
-          color: "#888888",
-          fontSize: "14px",
-        }}
-      >
-        로딩 중입니다... 🐕
-      </div>
+      <>
+        <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+        <div
+          style={{
+            textAlign: "center",
+            padding: "60px 0",
+            color: "#888888",
+            fontSize: "14px",
+          }}
+        >
+          로딩 중입니다... 🐕
+        </div>
+      </>
     );
   }
 
   if (!list || list.length === 0) {
     return (
-      <div
-        style={{
-          textAlign: "center",
-          padding: "80px 0",
-          color: "#aaaaaa",
-          fontSize: "14px",
-          borderBottom: "1px solid #f1f3f4",
-        }}
-      >
-        자주 묻는 질문이 없습니다.
-      </div>
+      <>
+        <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+        <div
+          style={{
+            textAlign: "center",
+            padding: "80px 0",
+            color: "#aaaaaa",
+            fontSize: "14px",
+            borderBottom: "1px solid #f1f3f4",
+          }}
+        >
+          자주 묻는 질문이 없습니다.
+        </div>
+      </>
     );
   }
 
   return (
-    <BoardListWrapper>
-      {list.map((item) => {
-        return (
-          <ListItem
-            key={item.boardId}
-            onClick={() =>
-              onItemClick
-                ? onItemClick(item)
-                : alert("FAQ 상세 펼치기 준비 중!")
-            }
-          >
-            <ItemContent>
-              <SubCategoryTag>질문</SubCategoryTag>
-              <ItemTitle>{item.title}</ItemTitle>
-              <ItemMeta>
-                <LevelBadge>M.1</LevelBadge>
-                <WriterName>{item.writerNickname || "관리자"}</WriterName>
-                <RelativeTime>
-                  {formatRelativeTime(item.createdAt)}
-                </RelativeTime>
-              </ItemMeta>
-            </ItemContent>
+    <>
+      <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+      <BoardListWrapper>
+        {list.map((item) => {
+          return (
+            <ListItem
+              key={item.boardId}
+              onClick={() =>
+                onItemClick
+                  ? onItemClick(item)
+                  : alert("FAQ 상세 펼치기 준비 중!")
+              }
+            >
+              <ItemContent>
+                <SubCategoryTag>질문</SubCategoryTag>
+                <ItemTitle>{item.title}</ItemTitle>
+                <ItemMeta>
+                  <LevelBadge>M.1</LevelBadge>
+                  <WriterName>{item.writerNickname || "관리자"}</WriterName>
+                  <RelativeTime>
+                    {formatRelativeTime(item.createdAt)}
+                  </RelativeTime>
+                </ItemMeta>
+              </ItemContent>
 
-            <ItemStats>
-              <StatIconWrapper>
-                <SvgEye />
-                {item.hits ? item.hits.toLocaleString() : 0}
-              </StatIconWrapper>
-            </ItemStats>
-          </ListItem>
-        );
-      })}
-    </BoardListWrapper>
+              <ItemStats>
+                <StatIconWrapper>
+                  <SvgEye />
+                  {item.hits ? item.hits.toLocaleString() : 0}
+                </StatIconWrapper>
+              </ItemStats>
+            </ListItem>
+          );
+        })}
+      </BoardListWrapper>
+    </>
   );
 }
 

@@ -1,3 +1,4 @@
+import ReactDOM from "react-dom";
 import styled from "styled-components";
 
 export default function BoardSubNavbar({ activeTab, onTabChange }) {
@@ -10,7 +11,7 @@ export default function BoardSubNavbar({ activeTab, onTabChange }) {
     { key: "NEWS", label: "뉴스게시판" },
   ];
 
-  return (
+  const content = (
     <SubNavbar>
       <SubNavInner>
         {menuItems.map((item) => (
@@ -27,6 +28,13 @@ export default function BoardSubNavbar({ activeTab, onTabChange }) {
       </SubNavInner>
     </SubNavbar>
   );
+
+  const portalRoot = document.getElementById("board-subnavbar-portal");
+  if (portalRoot) {
+    return ReactDOM.createPortal(content, portalRoot);
+  }
+
+  return content;
 }
 
 const SubNavbar = styled.div`

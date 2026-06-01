@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import BoardSubNavbar from "./BoardSubNavbar";
 
 // 첫 번째 img src 추출
 function extractFirstImg(htmlContent) {
@@ -30,88 +31,100 @@ function formatRelativeTime(dateString) {
   });
 }
 
-export default function FreeBoardList({ list, isLoading, onItemClick }) {
+export default function FreeBoardList({
+  list,
+  isLoading,
+  onItemClick,
+  activeTab,
+  onTabChange,
+}) {
   if (isLoading) {
     return (
-      <div
-        style={{
-          textAlign: "center",
-          padding: "60px 0",
-          color: "#888888",
-          fontSize: "14px",
-        }}
-      >
-        로딩 중입니다... 🐕
-      </div>
+      <>
+        <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+        <div
+          style={{
+            textAlign: "center",
+            padding: "60px 0",
+            color: "#888888",
+            fontSize: "14px",
+          }}
+        >
+          로딩 중입니다... 🐕
+        </div>
+      </>
     );
   }
 
   return (
-    <BoardListWrapper>
-      {list.map((item) => {
-        const firstImg = extractFirstImg(item.content);
-        const mockComments = item.hits
-          ? Math.max(1, Math.floor(item.hits / 12))
-          : 0;
-        const mockLikes = item.hits
-          ? Math.max(0, Math.floor(item.hits / 18))
-          : 0;
+    <>
+      <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+      <BoardListWrapper>
+        {list.map((item) => {
+          const firstImg = extractFirstImg(item.content);
+          const mockComments = item.hits
+            ? Math.max(1, Math.floor(item.hits / 12))
+            : 0;
+          const mockLikes = item.hits
+            ? Math.max(0, Math.floor(item.hits / 18))
+            : 0;
 
-        return (
-          <ListItem
-            key={item.boardId}
-            onClick={() =>
-              onItemClick
-                ? onItemClick(item)
-                : alert("게시글 상세 이동 준비 중!")
-            }
-          >
-            <ItemThumbnail>
-              {firstImg ? (
-                <img src={firstImg} alt="Thumbnail" />
-              ) : (
-                <SvgPawPlaceholder />
-              )}
-            </ItemThumbnail>
+          return (
+            <ListItem
+              key={item.boardId}
+              onClick={() =>
+                onItemClick
+                  ? onItemClick(item)
+                  : alert("게시글 상세 이동 준비 중!")
+              }
+            >
+              <ItemThumbnail>
+                {firstImg ? (
+                  <img src={firstImg} alt="Thumbnail" />
+                ) : (
+                  <SvgPawPlaceholder />
+                )}
+              </ItemThumbnail>
 
-            <ItemContent>
-              {item.boardSubCategory && (
-                <SubCategoryTag type={item.boardSubCategory}>
-                  {item.boardSubCategory}
-                </SubCategoryTag>
-              )}
+              <ItemContent>
+                {item.boardSubCategory && (
+                  <SubCategoryTag type={item.boardSubCategory}>
+                    {item.boardSubCategory}
+                  </SubCategoryTag>
+                )}
 
-              <ItemTitle>{item.title}</ItemTitle>
+                <ItemTitle>{item.title}</ItemTitle>
 
-              <ItemMeta>
-                <LevelBadge>Lv.{item.writerLevel || 1}</LevelBadge>
-                <WriterName>{item.writerNickname}</WriterName>
-                <RelativeTime>
-                  {formatRelativeTime(item.createdAt)}
-                </RelativeTime>
-              </ItemMeta>
-            </ItemContent>
+                <ItemMeta>
+                  <LevelBadge>Lv.{item.writerLevel || 1}</LevelBadge>
+                  <WriterName>{item.writerNickname}</WriterName>
+                  <RelativeTime>
+                    {formatRelativeTime(item.createdAt)}
+                  </RelativeTime>
+                </ItemMeta>
+              </ItemContent>
 
-            <ItemStats>
-              <StatIconWrapper>
-                <SvgComment />
-                {mockComments}
-              </StatIconWrapper>
+              <ItemStats>
+                <StatIconWrapper>
+                  <SvgComment />
+                  {mockComments}
+                </StatIconWrapper>
 
-              <StatIconWrapper>
-                <SvgEye />
-                {item.hits ? item.hits.toLocaleString() : 0}
-              </StatIconWrapper>
+                <StatIconWrapper>
+                  <SvgEye />
+                  {item.hits ? item.hits.toLocaleString() : 0}
+                </StatIconWrapper>
 
-              <StatIconWrapper>
-                <SvgHeart />
-                {mockLikes}
-              </StatIconWrapper>
-            </ItemStats>
-          </ListItem>
-        );
-      })}
-    </BoardListWrapper>
+                <StatIconWrapper>
+                  <SvgHeart />
+                  {mockLikes}
+                </StatIconWrapper>
+              </ItemStats>
+            </ListItem>
+          );
+        })}
+      </BoardListWrapper>
+    </>
   );
 }
 

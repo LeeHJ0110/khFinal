@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import BoardSubNavbar from "./BoardSubNavbar";
 
 // ==========================================
 // Helper: HTML 본문에서 첫 번째 <img> src 추출
@@ -39,84 +40,95 @@ export default function ReviewBoardList({
   list,
   isLoading,
   onItemClick,
+  activeTab,
+  onTabChange,
 }) {
   if (isLoading) {
     return (
-      <div
-        style={{
-          textAlign: "center",
-          padding: "60px 0",
-          color: "#888888",
-          fontSize: "14px",
-          fontFamily: "inherit",
-        }}
-      >
-        로딩 중입니다... 🐕
-      </div>
+      <>
+        <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+        <div
+          style={{
+            textAlign: "center",
+            padding: "60px 0",
+            color: "#888888",
+            fontSize: "14px",
+            fontFamily: "inherit",
+          }}
+        >
+          로딩 중입니다... 🐕
+        </div>
+      </>
     );
   }
 
   // 목록 데이터가 없거나 비어있는 경우 빈 안내 화면 처리
   if (!list || list.length === 0) {
     return (
-      <EmptyListMessage>등록된 후기 게시글이 없습니다. 🐾</EmptyListMessage>
+      <>
+        <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+        <EmptyListMessage>등록된 후기 게시글이 없습니다. 🐾</EmptyListMessage>
+      </>
     );
   }
 
   return (
-    <BoardListWrapper>
-      {list.map((item) => {
-        const thumbnailUrl = extractFirstImg(item.content);
+    <>
+      <BoardSubNavbar activeTab={activeTab} onTabChange={onTabChange} />
+      <BoardListWrapper>
+        {list.map((item) => {
+          const thumbnailUrl = extractFirstImg(item.content);
 
-        return (
-          <ListItem key={item.boardId} onClick={() => onItemClick?.(item)}>
-            <ItemThumbnail>
-              {thumbnailUrl ? (
-                <img src={thumbnailUrl} alt={item.title} />
-              ) : (
-                <SvgPawPlaceholder />
-              )}
-            </ItemThumbnail>
+          return (
+            <ListItem key={item.boardId} onClick={() => onItemClick?.(item)}>
+              <ItemThumbnail>
+                {thumbnailUrl ? (
+                  <img src={thumbnailUrl} alt={item.title} />
+                ) : (
+                  <SvgPawPlaceholder />
+                )}
+              </ItemThumbnail>
 
-            <ItemContent>
-              {/* 카테고리 종류 분기 처리 배지 */}
-              <SubCategoryTag>
-                {item.boardCategory === "PRODUCT_REVIEW"
-                  ? "📦 상품 후기"
-                  : "🏢 시설 후기"}
-              </SubCategoryTag>
+              <ItemContent>
+                {/* 카테고리 종류 분기 처리 배지 */}
+                <SubCategoryTag>
+                  {item.boardCategory === "PRODUCT_REVIEW"
+                    ? "📦 상품 후기"
+                    : "🏢 시설 후기"}
+                </SubCategoryTag>
 
-              <ItemTitle>{item.title}</ItemTitle>
+                <ItemTitle>{item.title}</ItemTitle>
 
-              <ItemMeta>
-                <LevelBadge>Lv.{item.writerLevel ?? 1}</LevelBadge>
-                <WriterName>{item.writerNickname || "탈퇴한 회원"}</WriterName>
-                <span>•</span>
-                <RelativeTime>
-                  {formatRelativeTime(item.createdAt)}
-                </RelativeTime>
-                <span>•</span>
-                <StarsText>★ {(item.stars ?? 5).toFixed(1)}</StarsText>
-              </ItemMeta>
-            </ItemContent>
+                <ItemMeta>
+                  <LevelBadge>Lv.{item.writerLevel ?? 1}</LevelBadge>
+                  <WriterName>{item.writerNickname || "탈퇴한 회원"}</WriterName>
+                  <span>•</span>
+                  <RelativeTime>
+                    {formatRelativeTime(item.createdAt)}
+                  </RelativeTime>
+                  <span>•</span>
+                  <StarsText>★ {(item.stars ?? 5).toFixed(1)}</StarsText>
+                </ItemMeta>
+              </ItemContent>
 
-            <ItemStats>
-              <StatIconWrapper title="조회수">
-                <SvgEye />
-                <span>{item.hits ?? 0}</span>
-              </StatIconWrapper>
-              <StatIconWrapper title="댓글">
-                <SvgComment />
-                <span>0</span>
-              </StatIconWrapper>
-              <div>
-                <span>0</span>
-              </div>
-            </ItemStats>
-          </ListItem>
-        );
-      })}
-    </BoardListWrapper>
+              <ItemStats>
+                <StatIconWrapper title="조회수">
+                  <SvgEye />
+                  <span>{item.hits ?? 0}</span>
+                </StatIconWrapper>
+                <StatIconWrapper title="댓글">
+                  <SvgComment />
+                  <span>0</span>
+                </StatIconWrapper>
+                <div>
+                  <span>0</span>
+                </div>
+              </ItemStats>
+            </ListItem>
+          );
+        })}
+      </BoardListWrapper>
+    </>
   );
 }
 
