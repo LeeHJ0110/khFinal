@@ -26,44 +26,44 @@ function CheckSection() {
     { title: "결과 확인", image: resultImg },
   ];
 
- const diagnosisList = [
-  {
-    title: "눈 건강",
-    image: eyeImg,
-    firstLine: "눈물·충혈 확인",
-    secondLine: "눈 상태 진단",
-  },
-  {
-    title: "치아 건강",
-    image: toothImg,
-    firstLine: "치석·잇몸 확인",
-    secondLine: "구강 상태 진단",
-  },
-  {
-    title: "피부 건강",
-    image: skinImg,
-    firstLine: "발진·가려움 확인",
-    secondLine: "피부 상태 진단",
-  },
-  {
-    title: "스트레스",
-    image: stressImg,
-    firstLine: "행동 변화 확인",
-    secondLine: "정서 상태 진단",
-  },
-  {
-    title: "예방접종",
-    image: vaccineImg,
-    firstLine: "접종 이력 확인",
-    secondLine: "예방 상태 진단",
-  },
-  {
-    title: "질병 이력",
-    image: diseaseImg,
-    firstLine: "과거 병력 확인",
-    secondLine: "건강 이력 진단",
-  },
-];
+  const diagnosisList = [
+    {
+      title: "눈 건강",
+      image: eyeImg,
+      firstLine: "눈물·충혈 확인",
+      secondLine: "눈 상태 진단",
+    },
+    {
+      title: "치아 건강",
+      image: toothImg,
+      firstLine: "치석·잇몸 확인",
+      secondLine: "구강 상태 진단",
+    },
+    {
+      title: "피부 건강",
+      image: skinImg,
+      firstLine: "발진·가려움 확인",
+      secondLine: "피부 상태 진단",
+    },
+    {
+      title: "스트레스",
+      image: stressImg,
+      firstLine: "행동 변화 확인",
+      secondLine: "정서 상태 진단",
+    },
+    {
+      title: "예방접종",
+      image: vaccineImg,
+      firstLine: "접종 이력 확인",
+      secondLine: "예방 상태 진단",
+    },
+    {
+      title: "질병 이력",
+      image: diseaseImg,
+      firstLine: "과거 병력 확인",
+      secondLine: "건강 이력 진단",
+    },
+  ];
   const guideList = [
     {
       image: cameraImg,
@@ -173,8 +173,11 @@ export default CheckSection;
 ========================================= */
 
 const CheckWrapper = styled.section`
-  width: 100%;
+  width: 95%;
   height: 100%;
+
+  justify-self: end;
+  box-sizing: border-box;
 
   display: flex;
   flex-direction: column;
@@ -182,9 +185,7 @@ const CheckWrapper = styled.section`
 
   padding: 14px 16px;
 
-  border: 1px solid rgba(0, 169, 123, 0.2);
   border-radius: 12px;
-
   background: var(--color-white);
 `;
 
@@ -228,7 +229,6 @@ const ProcessItem = styled.div`
   align-items: center;
   gap: 6px;
 `;
-
 
 const ProcessImageBox = styled.div`
   width: 68px;
@@ -381,11 +381,7 @@ const GuideArea = styled.div`
 
   border-radius: 8px;
 
-  background: color-mix(
-    in srgb,
-    var(--color-bg-soft) 45%,
-    var(--color-white)
-  );
+  background: color-mix(in srgb, var(--color-bg-soft) 45%, var(--color-white));
 `;
 
 const GuideTitle = styled.h2`

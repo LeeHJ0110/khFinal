@@ -131,41 +131,6 @@ export default function BoardListPage() {
 
   return (
     <Container>
-      {/* 상단 서브 내비게이션 바 */}
-      {/* <SubNavbar>
-        <SubNavInner>
-          <SubNavItem
-            active={activeTab === "FREE"}
-            onClick={() => handleTabChange("FREE")}
-          >
-            자유게시판
-          </SubNavItem>
-          <SubNavItem
-            active={activeTab === "PRODUCT_REVIEW"}
-            onClick={() => handleTabChange("PRODUCT_REVIEW")}
-          >
-            상품후기게시판
-          </SubNavItem>
-          <SubNavItem
-            active={activeTab === "FAC_REVIEW"}
-            onClick={() => handleTabChange("FAC_REVIEW")}
-          >
-            시설후기게시판
-          </SubNavItem>
-          <SubNavItem
-            active={activeTab === "FAQ"}
-            onClick={() => handleTabChange("FAQ")}
-          >
-            FAQ게시판
-          </SubNavItem>
-          <SubNavItem
-            active={activeTab === "NEWS"}
-            onClick={() => handleTabChange("NEWS")}
-          >
-            뉴스게시판
-          </SubNavItem>
-        </SubNavInner>
-      </SubNavbar> */}
       <BoardSubNavbar activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* 2단 레이아웃 콘텐츠 */}

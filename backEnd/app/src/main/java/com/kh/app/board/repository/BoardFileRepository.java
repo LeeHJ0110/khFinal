@@ -10,7 +10,6 @@ import java.util.List;
 
 public interface BoardFileRepository extends JpaRepository<BoardFileEntity, Long> {
 
-//    List<BoardFileEntity> findAllByBoardEntityIdAndDelYnOrderByBoardFileOrderAsc(Long boardId, DelYn delYn);
 
     List<BoardFileEntity> findByBoardEntity(BoardEntity boardEntity);
 }

@@ -4,7 +4,7 @@ import styled from "styled-components";
 
 import { fetchMyPetList } from "../../api/petCareApi";
 import diagnosisPreviewImg from "../../img/건강진단 서브.png";
-import  bell from "../../img/알림.png";
+import bell from "../../img/알림.png";
 
 /* =====================================
    생년월일 → 만 나이 계산
@@ -95,7 +95,7 @@ function PreviewSection() {
   const age = calculateAge(petInfo?.birthDate);
 
   //신청중 상태 표시
-const isApplying = petInfo?.diagnosisInProgress === true;
+  const isApplying = petInfo?.diagnosisInProgress === true;
 
   return (
     <PreviewWrapper>
@@ -150,19 +150,17 @@ const isApplying = petInfo?.diagnosisInProgress === true;
                   지난 기록 보기
                 </SubButton>
 
-               
-
-<ApplyButton
-  type="button"
-  disabled={isApplying}
-  onClick={() => {
-    if (!isApplying) {
-      navigate("/healthcare/request");
-    }
-  }}
->
-  {isApplying ? "신청 중" : "신청 가능"}
-</ApplyButton>
+                <ApplyButton
+                  type="button"
+                  disabled={isApplying}
+                  onClick={() => {
+                    if (!isApplying) {
+                      navigate("/healthcare/request");
+                    }
+                  }}
+                >
+                  {isApplying ? "신청 중" : "신청 가능"}
+                </ApplyButton>
               </ProfileButtonGroup>
             </ProfileContent>
           </>
@@ -185,9 +183,9 @@ const isApplying = petInfo?.diagnosisInProgress === true;
       ===================================== */}
       <NeedDiagnosisArea>
         <NeedTextArea>
-         <TitleRow>
-        <BellIcon src={bell} alt="알림" />
-         <NeedTitle>진단이 필요한 경우</NeedTitle>
+          <TitleRow>
+            <BellIcon src={bell} alt="알림" />
+            <NeedTitle>진단이 필요한 경우</NeedTitle>
           </TitleRow>
           <NeedList>
             <NeedItem>
@@ -228,14 +226,16 @@ export default PreviewSection;
 ===================================== */
 
 const PreviewWrapper = styled.aside`
-  width: 100%;
+  width: 95%;
   height: 100%;
+
+  justify-self: start;
+  box-sizing: border-box;
 
   display: flex;
   flex-direction: column;
   gap: 12px;
 `;
-
 /* =====================================
    반려동물 정보
 ===================================== */
@@ -328,7 +328,6 @@ const PetName = styled.h2`
     color: var(--color-main);
   }
 `;
-
 
 const PetBreed = styled.p`
   margin: 0 0 12px;
@@ -463,15 +462,11 @@ const NeedDiagnosisArea = styled.section`
   justify-content: space-between;
   gap: 10px;
 
-  padding: 10px 18px;
+  padding: 2px 18px;
 
   border-radius: 10px;
 
-  background: color-mix(
-    in srgb,
-    var(--color-bg-soft) 55%,
-    var(--color-white)
-  );
+  background: color-mix(in srgb, var(--color-bg-soft) 55%, var(--color-white));
 `;
 
 const NeedTextArea = styled.div`
@@ -479,7 +474,6 @@ const NeedTextArea = styled.div`
 `;
 
 const NeedTitle = styled.h2`
-
   color: var(--text-main);
   font-size: 20px;
   font-weight: 800;
@@ -491,7 +485,6 @@ const NeedList = styled.ul`
   gap: 15px;
 
   padding: 3px;
-
 
   list-style: none;
 `;
@@ -550,7 +543,6 @@ const TitleRow = styled.div`
   align-items: center;
   gap: 8px;
 `;
-
 
 const BellIcon = styled.img`
   width: 34px;
