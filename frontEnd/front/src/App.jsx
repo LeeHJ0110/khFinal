@@ -37,6 +37,7 @@ import ErrorPage from "./pages/error/ErrorPage";
 import PetStoreDogHomePage from "./pages/petStore/PetStoreDogHomePage";
 import PetStoreCatHomePage from "./pages/petStore/PetStoreCatHomePage";
 import PetStoreDogFoodProductListPage from "./pages/petStore/PetStoreDogFoodProductListPage";
+import KarteLIstPage from "./pages/karte/KarteLIstPage";
 
 function App() {
   return (
@@ -58,7 +59,11 @@ function App() {
           <Route path="home" element={<HomePage />} />
           {/* 헬스케어 */}
           <Route path="healthcare">
+            {/* 스케줄 */}
             <Route path="schedule" element={<ScheduleMainPage />} />
+
+            {/* 진단결과 */}
+            <Route path="resultList" element={<KarteLIstPage />} />
 
             {/* user */}
             <Route path="requesthome" element={<DiagnosisRequestHomePage />} />

@@ -1,5 +1,6 @@
 package com.kh.app.karte.entity;
 
+import com.kh.app.common.entity.BaseEntity;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.petcare.entity.DiagnosisReqEntity;
 import jakarta.persistence.*;
@@ -11,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
-public class KarteEntity {
+public class KarteEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
