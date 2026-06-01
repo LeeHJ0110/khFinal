@@ -2,6 +2,7 @@ import styled from "styled-components";
 import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreProductList from "../../features/petStore/hooks/usePetStoreProductList";
 import PetStoreRecentAside from "./PetStoreRecentAside";
+import { useNavigate } from "react-router-dom";
 
 const sortOptions = [
   { label: "최신순", value: "latest" },
@@ -37,6 +38,7 @@ function getTempReviewInfo(index) {
 }
 
 export default function PetStoreDogSnackProductListPage() {
+  const navigate = useNavigate();
   const {
     productList,
     isLoading,
@@ -148,7 +150,12 @@ export default function PetStoreDogSnackProductListPage() {
                     const tempReview = getTempReviewInfo(index);
 
                     return (
-                      <ProductCard key={product.productId}>
+                      <ProductCard
+                        key={product.productId}
+                        onClick={() =>
+                          navigate(`/store/product/${product.productId}`)
+                        }
+                      >
                         <WishButton type="button" aria-label="관심상품">
                           ♡
                         </WishButton>

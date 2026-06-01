@@ -2,7 +2,6 @@ package com.kh.app.store.dto.response;
 
 import com.kh.app.store.entity.StoreProductCategory;
 import com.kh.app.store.entity.StoreProductEntity;
-import com.kh.app.store.entity.StoreProductImageEntity;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -26,7 +25,7 @@ public class StoreProductListResDto {
 
     public static StoreProductListResDto from(
             StoreProductEntity product,
-            StoreProductImageEntity mainImage
+            String mainImageUrl
     ) {
         return StoreProductListResDto.builder()
                 .productId(product.getProductId())
@@ -39,11 +38,7 @@ public class StoreProductListResDto {
                 )
                 .productTargetPetType(product.getProductTargetPetType())
                 .productPrice(product.getProductPrice())
-                .mainImageUrl(
-                        mainImage == null
-                                ? null
-                                : mainImage.getImageChangedName()
-                )
+                .mainImageUrl(mainImageUrl)
                 .build();
     }
 }

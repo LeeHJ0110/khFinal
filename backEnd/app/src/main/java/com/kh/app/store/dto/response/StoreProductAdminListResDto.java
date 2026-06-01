@@ -12,7 +12,6 @@ public class StoreProductAdminListResDto {
     private Long productId;
 
     // 목록 썸네일 이미지
-    // 현재는 이미지 저장 로직이 없으므로 null
     private String thumbnailUrl;
 
     // 상품명

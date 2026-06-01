@@ -3,7 +3,6 @@ package com.kh.app.store.dto.response;
 import com.kh.app.store.entity.StoreProductCategory;
 import com.kh.app.store.entity.StoreProductEntity;
 import com.kh.app.store.entity.StoreProductFeedingGuideEntity;
-import com.kh.app.store.entity.StoreProductImageEntity;
 import com.kh.app.store.entity.StoreProductNutritionEntity;
 import lombok.Builder;
 import lombok.Getter;
@@ -38,7 +37,8 @@ public class StoreProductDetailResDto {
             StoreProductEntity product,
             StoreProductNutritionEntity nutrition,
             List<StoreProductFeedingGuideEntity> feedingGuideList,
-            List<StoreProductImageEntity> imageList
+            String mainImageUrl,
+            List<String> subImageUrls
     ) {
         return StoreProductDetailResDto.builder()
                 .productId(product.getProductId())
@@ -53,8 +53,8 @@ public class StoreProductDetailResDto {
                 .productPrice(product.getProductPrice())
                 .productSaleYn(product.getProductSaleYn())
 
-                .mainImageUrl(getMainImageUrl(imageList))
-                .subImageUrls(getSubImageUrls(imageList))
+                .mainImageUrl(mainImageUrl)
+                .subImageUrls(subImageUrls == null ? List.of() : subImageUrls)
 
                 .feedingGuideList(
                         feedingGuideList == null
@@ -69,28 +69,5 @@ public class StoreProductDetailResDto {
                                 : StoreNutritionResDto.from(nutrition)
                 )
                 .build();
-    }
-
-    private static String getMainImageUrl(List<StoreProductImageEntity> imageList) {
-        if (imageList == null || imageList.isEmpty()) {
-            return null;
-        }
-
-        return imageList.stream()
-                .filter(image -> "Y".equals(image.getImageRepresentYn()))
-                .findFirst()
-                .map(StoreProductImageEntity::getImageChangedName)
-                .orElse(null);
-    }
-
-    private static List<String> getSubImageUrls(List<StoreProductImageEntity> imageList) {
-        if (imageList == null || imageList.isEmpty()) {
-            return List.of();
-        }
-
-        return imageList.stream()
-                .filter(image -> "N".equals(image.getImageRepresentYn()))
-                .map(StoreProductImageEntity::getImageChangedName)
-                .toList();
     }
 }

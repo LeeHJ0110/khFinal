@@ -11,11 +11,15 @@ import Nav from "../../shared/layouts/nav/Nav";
  *
  * /store/dog...
  * - 강아지 스토어 계열
- * - 강아지 / 고양이 / 사료 / 간식 / 영양제 / 배변패드 노출
+ * - 강아지 / 고양이 / 사료 / 간식 / 영양제 / 배변용품 노출
  *
  * /store/cat...
  * - 고양이 스토어 계열
- * - 강아지 / 고양이 / 사료 / 간식 / 영양제 / 배변패드 노출
+ * - 강아지 / 고양이 / 사료 / 간식 / 영양제 / 배변용품 노출
+ *
+ * /store/product/:productId
+ * - 상품 상세 페이지
+ * - 상품의 targetPetType, category를 받아서 강아지/고양이 계열 메뉴 노출
  */
 
 const homeMenus = [
@@ -24,10 +28,10 @@ const homeMenus = [
 ];
 
 const categoryMenus = [
-  { label: "사료", pathName: "food" },
-  { label: "간식", pathName: "snack" },
-  { label: "영양제", pathName: "supplement" },
-  { label: "배변용품", pathName: "toilet" },
+  { label: "사료", pathName: "food", category: "FOOD" },
+  { label: "간식", pathName: "snack", category: "SNACK" },
+  { label: "영양제", pathName: "supplement", category: "SUPPLEMENT" },
+  { label: "배변용품", pathName: "toilet", category: "TOILET" },
 ];
 
 const rightMenus = [
@@ -46,18 +50,27 @@ function makeStoreMenus(basePath) {
   ];
 }
 
-export default function PetStoreUserNav() {
+function getActiveCategoryLabel(activeCategory) {
+  const found = categoryMenus.find((menu) => menu.category === activeCategory);
+
+  return found ? found.label : "";
+}
+
+export default function PetStoreUserNav({ targetPetType, activeCategory }) {
   const { pathname } = useLocation();
 
   const isDogStore =
-    pathname === "/store/dog" || pathname.startsWith("/store/dog/");
+    pathname === "/store/dog" ||
+    pathname.startsWith("/store/dog/") ||
+    targetPetType === "D";
 
   const isCatStore =
-    pathname === "/store/cat" || pathname.startsWith("/store/cat/");
-
-  const isStoreHome = pathname === "/store";
+    pathname === "/store/cat" ||
+    pathname.startsWith("/store/cat/") ||
+    targetPetType === "C";
 
   let leftMenus = homeMenus;
+  let activeMenu = "";
 
   if (isDogStore) {
     leftMenus = makeStoreMenus("/store/dog");
@@ -67,5 +80,15 @@ export default function PetStoreUserNav() {
     leftMenus = makeStoreMenus("/store/cat");
   }
 
-  return <Nav leftMenus={leftMenus} rightMenus={rightMenus} />;
+  if (activeCategory) {
+    activeMenu = getActiveCategoryLabel(activeCategory);
+  }
+
+  return (
+    <Nav
+      leftMenus={leftMenus}
+      rightMenus={rightMenus}
+      activeMenu={activeMenu}
+    />
+  );
 }

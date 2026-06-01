@@ -92,6 +92,7 @@ export default function PetStoreHomePage() {
                     fontWeight="700"
                     gap="12px"
                     rightIcon="→"
+                    onClick={() => navigate(shortcut.path)}
                   >
                     {shortcut.buttonText}
                   </RoundedButton>
@@ -102,6 +103,7 @@ export default function PetStoreHomePage() {
                 <ShortcutArrowButton
                   type="button"
                   aria-label={`${shortcut.title} 이동`}
+                  onClick={() => navigate(shortcut.path)}
                 >
                   ›
                 </ShortcutArrowButton>
@@ -130,7 +132,12 @@ export default function PetStoreHomePage() {
                 const tempReview = getTempReviewInfo(index);
 
                 return (
-                  <BestProductCard key={product.productId}>
+                  <BestProductCard
+                    key={product.productId}
+                    onClick={() =>
+                      navigate(`/store/product/${product.productId}`)
+                    }
+                  >
                     <ProductVisualBox>
                       <BestBadge>BEST {index + 1}</BestBadge>
 

@@ -31,6 +31,7 @@ import PetStoreCatFoodProductListPage from "./pages/petStore/PetStoreCatFoodProd
 import PetStoreCatSnackProductListPage from "./pages/petStore/PetStoreCatSnackProductListPage";
 import PetStoreCatSupplementProductListPage from "./pages/petStore/PetStoreCatSupplementProductListPage";
 import PetStoreCatToiletProductListPage from "./pages/petStore/PetStoreCatToiletProductListPage";
+import PetStoreProductDetailPage from "./pages/petStore/PetStoreProductDetailPage";
 
 // mypage
 import MyPageHomePage from "./pages/mypage/MyPageHomePage";
@@ -127,6 +128,11 @@ function App() {
             <Route
               path="cat/toilet"
               element={<PetStoreCatToiletProductListPage />}
+            />
+            {/* 상품 상세보기 */}
+            <Route
+              path="product/:productId"
+              element={<PetStoreProductDetailPage />}
             />
 
             {/* 사용자 보조 메뉴 */}

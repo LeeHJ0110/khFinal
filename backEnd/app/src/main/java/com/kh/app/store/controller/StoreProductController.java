@@ -102,15 +102,30 @@ public class StoreProductController {
     }
 
     // 2. 관리자 : 상품 목록 조회
-    @Operation(summary = "관리자 상품 목록조회", description = "관리자가 전체 상품목록을 조회하는 기능")
+    @Operation(
+            summary = "관리자 상품 목록조회",
+            description = "관리자가 전체 상품목록을 검색, 필터, 정렬 조건으로 조회하는 기능"
+    )
     @GetMapping("/admin")
     public ResponseEntity<Page<StoreProductAdminListResDto>> getAdminProductList(
-            @RequestParam(name = "page", defaultValue = "0") int page
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "saleYn", required = false) String saleYn,
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "targetPetType", required = false) String targetPetType,
+            @RequestParam(name = "category", required = false) StoreProductCategory category,
+            @RequestParam(name = "sort", defaultValue = "latest") String sort
     ) {
-        Page<StoreProductAdminListResDto> result = storeProductService.getAdminProductList(page);
+        Page<StoreProductAdminListResDto> result =
+                storeProductService.getAdminProductList(
+                        page,
+                        saleYn,
+                        keyword,
+                        targetPetType,
+                        category,
+                        sort
+                );
 
         return ResponseEntity.ok(result);
-
     }
 
     // 3. 사용자 : 상품 목록 조회(조건 검색 / 페이징X)
@@ -141,7 +156,7 @@ public class StoreProductController {
     }
 
 
-    // 4. 관리자 : 상품 상세 조회
+    // 4. 관리자 : 상품 상세 조회 (이건 상세조회가 아니라 수정을 위해서 쓰는거임)
     @Operation(summary = "관리자 상품 상세조회", description = "관리자가 상품 수정 화면에 필요한 기존 상품 정보를 조회하는 기능")
     @GetMapping("/admin/{productId}")
     public ResponseEntity<StoreProductAdminDetailResDto> getAdminProductDetail(

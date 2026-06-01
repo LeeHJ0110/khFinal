@@ -67,22 +67,42 @@ public class StoreProductService {
                 productEntity.getProductPrice());
     }
 
-    public Page<StoreProductAdminListResDto> getAdminProductList(int page) {
-        Pageable pageable = PageRequest.of(page, 10);
+    public Page<StoreProductAdminListResDto> getAdminProductList(
+            int page,
+            String saleYn,
+            String keyword,
+            String targetPetType,
+            StoreProductCategory category,
+            String sort
+    ) {
+        int pageNo = Math.max(page, 0);
 
-        return storeProductRepository.findAdminProductList(pageable)
-                .map(dto -> new StoreProductAdminListResDto(
-                        dto.getProductId(),
-                        makeS3Url(dto.getThumbnailUrl()),
-                        dto.getProductName(),
-                        dto.getProductCategory(),
-                        dto.getProductTargetPetType(),
-                        dto.getProductPrice(),
-                        dto.getProductSaleYn(),
-                        dto.getProductViewCount(),
-                        dto.getTagName(),
-                        dto.getCreatedAt()
-                ));
+        String saleYnValue = normalizeSaleYn(saleYn);
+        String keywordValue = normalizeKeyword(keyword);
+        String targetPetTypeValue = normalizeTargetPetType(targetPetType);
+        String sortValue = normalizeAdminSort(sort);
+
+        Pageable pageable = PageRequest.of(pageNo, 10);
+
+        return storeProductRepository.findAdminProductList(
+                pageable,
+                saleYnValue,
+                keywordValue,
+                targetPetTypeValue,
+                category,
+                sortValue
+        ).map(dto -> new StoreProductAdminListResDto(
+                dto.getProductId(),
+                makeS3Url(dto.getThumbnailUrl()),
+                dto.getProductName(),
+                dto.getProductCategory(),
+                dto.getProductTargetPetType(),
+                dto.getProductPrice(),
+                dto.getProductSaleYn(),
+                dto.getProductViewCount(),
+                dto.getTagName(),
+                dto.getCreatedAt()
+        ));
     }
 
     //검색 및 필터링 목록조회
@@ -152,9 +172,14 @@ public class StoreProductService {
                         )
                         .orElse(null);
 
-        return StoreProductListResDto.from(product, mainImage);
+        String mainImageUrl = mainImage == null
+                ? null
+                : makeS3Url(mainImage.getImageChangedName());
+
+        return StoreProductListResDto.from(product, mainImageUrl);
     }
 
+    //이거 안쓸듯?
     public StoreProductAdminDetailResDto getAdminProductDetail(Long productId) {
         StoreProductEntity productEntity = storeProductRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
@@ -200,11 +225,15 @@ public class StoreProductService {
         List<StoreProductImageEntity> imageList =
                 storeProductImageRepository.findByProduct_ProductIdOrderBySortOrderAsc(productId);
 
+        String mainImageUrl = getMainImageUrl(imageList);
+        List<String> subImageUrls = getSubImageUrls(imageList);
+
         return StoreProductDetailResDto.from(
                 productEntity,
                 nutritionEntity,
                 feedingGuideList,
-                imageList
+                mainImageUrl,
+                subImageUrls
         );
     }
 
@@ -465,6 +494,57 @@ public class StoreProductService {
 
         return sortType;
     }
+    private String getMainImageUrl(List<StoreProductImageEntity> imageList) {
+        if (imageList == null || imageList.isEmpty()) {
+            return null;
+        }
 
+        return imageList.stream()
+                .filter(image -> "Y".equals(image.getImageRepresentYn()))
+                .findFirst()
+                .map(StoreProductImageEntity::getImageChangedName)
+                .map(this::makeS3Url)
+                .orElse(null);
+    }
+
+    private List<String> getSubImageUrls(List<StoreProductImageEntity> imageList) {
+        if (imageList == null || imageList.isEmpty()) {
+            return List.of();
+        }
+
+        return imageList.stream()
+                .filter(image -> "N".equals(image.getImageRepresentYn()))
+                .map(StoreProductImageEntity::getImageChangedName)
+                .map(this::makeS3Url)
+                .toList();
+    }
+
+    private String normalizeSaleYn(String saleYn) {
+        if (saleYn == null || saleYn.isBlank()) {
+            return null;
+        }
+
+        String saleYnValue = saleYn.trim().toUpperCase();
+
+        if (!saleYnValue.equals("Y") && !saleYnValue.equals("N")) {
+            throw new IllegalArgumentException("판매상태는 Y 또는 N만 가능합니다.");
+        }
+
+        return saleYnValue;
+    }
+
+    private String normalizeAdminSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return "latest";
+        }
+
+        String sortValue = sort.trim();
+
+        if (!sortValue.equals("latest") && !sortValue.equals("oldest")) {
+            throw new IllegalArgumentException("관리자 상품 목록 정렬 조건은 latest 또는 oldest만 가능합니다.");
+        }
+
+        return sortValue;
+    }
 
 }
