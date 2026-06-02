@@ -2,6 +2,13 @@ import styled from "styled-components";
 import useKarte from "../../features/karte/hooks/useKarte";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
+import {
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+} from "recharts";
 
 export default function KarteDetailPage() {
   const { isLoading, data, asyncFetchKarteDetail } = useKarte();
@@ -16,6 +23,10 @@ export default function KarteDetailPage() {
     const date = new Date(dateString);
     return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, "0")}월 ${String(date.getDate()).padStart(2, "0")}일`;
   };
+
+  const scoresWithoutTotal = data.scores.filter(
+    (score) => score.category !== "TOTAL",
+  );
 
   return (
     <Wrapper>
@@ -52,11 +63,33 @@ export default function KarteDetailPage() {
 
               <OpinionContainer>
                 <OpinionHeader>진단 요약 내용</OpinionHeader>
-                <OpinionContent>{data.opinion}</OpinionContent>
+                <OpinionContent>{data.summary}</OpinionContent>
               </OpinionContainer>
             </RightSection>
           </ContentRow>
-          <div>차트존</div>
+          <div>
+            <RadarChart
+              style={{
+                width: "100%",
+                maxWidth: "500px",
+                maxHeight: "80vh",
+                aspectRatio: 1,
+              }}
+              responsive
+              outerRadius="80%"
+              data={scoresWithoutTotal}
+            >
+              <PolarGrid />
+              <PolarAngleAxis dataKey="category" />
+              <PolarRadiusAxis angle={90} domain={[0, 100]} />
+              <Radar
+                dataKey="score"
+                stroke="#5EC8A7"
+                fill="#5EC8A7"
+                fillOpacity={0.6}
+              />
+            </RadarChart>
+          </div>
           <div>의사소견</div>
         </>
       )}

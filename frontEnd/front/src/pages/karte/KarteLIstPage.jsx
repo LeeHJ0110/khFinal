@@ -46,6 +46,7 @@ export default function KarteListPage() {
                 <th>번호</th>
                 <th>제목</th>
                 <th>생성일</th>
+                <th>작성자</th>
                 <th>열람여부</th>
               </tr>
             </thead>
@@ -63,6 +64,7 @@ export default function KarteListPage() {
                     <td>{getRowNumber(idx)}</td>
                     <td>{item.petName} 건강검진 결과</td>
                     <td>{formatDate(item.createdAt)}</td>
+                    <td>{item.writer}</td>
                     <td>{item.visited}</td>
                   </tr>
                 ))

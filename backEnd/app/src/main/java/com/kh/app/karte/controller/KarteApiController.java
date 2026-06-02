@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 
+@Slf4j
 @Tag(name = "건강진단결과", description = "건강진단결과 관련 api")
 @RestController
 @RequestMapping("/api/karte")
@@ -36,6 +38,10 @@ public class KarteApiController {
             @RequestBody KarteReqDto reqDto,
             @AuthenticationPrincipal String username
     ){
+        log.info("데이터 id" + reqDto.getDiaReqId());
+        log.info("데이터 의견" + reqDto.getOpinion());
+        log.info("데이터 요약" + reqDto.getSummary());
+        log.info("데이터 score" + reqDto.getScores());
         karteService.write(reqDto, username);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -51,7 +57,7 @@ public class KarteApiController {
             @RequestParam(defaultValue = "0") int pno,
             @AuthenticationPrincipal String username
     ){
-        Page<KarteListResDto> karteListPage = karteService.getBoardList(pno, username);
+        Page<KarteListResDto> karteListPage = karteService.getKarteList(pno, username);
         return ResponseEntity.ok(karteListPage);
     }
 
