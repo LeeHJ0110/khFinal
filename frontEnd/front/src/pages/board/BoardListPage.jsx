@@ -131,7 +131,7 @@ export default function BoardListPage() {
 
   return (
     <Container>
-      <BoardSubNavbar activeTab={activeTab} onTabChange={handleTabChange} />
+      <div id="board-subnavbar-portal" style={{ width: "100%" }} />
 
       {/* 2단 레이아웃 콘텐츠 */}
       <LayoutWrapper>
@@ -225,6 +225,8 @@ export default function BoardListPage() {
             <FreeBoardList
               list={list}
               isLoading={isLoading}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
               // 자유게시판 클릭 시 상세조회 경로로 이동 (라우터 규칙 매칭)
               onItemClick={(item) =>
                 navigate(`/community/detail/${item.boardId}`)
@@ -237,6 +239,8 @@ export default function BoardListPage() {
               category={activeTab}
               list={list}
               isLoading={isLoading}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
               // 상품/시설 후기게시판 클릭 시 상세조회 경로로 이동
               onItemClick={(item) =>
                 navigate(`/community/detail/${item.boardId}`)
@@ -248,6 +252,8 @@ export default function BoardListPage() {
             <FAQBoardList
               list={list}
               isLoading={isLoading}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
               // FAQ는 아코디언 컴포넌트 내부 자체 토글 제어이므로 onItemClick 함수를 비워두거나 넘기지 않아도 무방합니다.
               onItemClick={null}
             />
@@ -257,6 +263,8 @@ export default function BoardListPage() {
             <NewsBoardList
               list={list}
               isLoading={isLoading}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
               // 뉴스게시판 클릭 시 상세조회 경로로 이동
               onItemClick={(item) =>
                 navigate(`/community/detail/${item.boardId}`)
