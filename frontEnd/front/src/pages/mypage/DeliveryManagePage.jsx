@@ -3,6 +3,7 @@ import styled from "styled-components";
 import MyPageLayout from "./components/MyPageLayout";
 import useDeliveryAddress from "../../features/mypage/delivery/hooks/useDeliveryAddress";
 import AddressSearchModal from "../../shared/components/AddressSearchModal";
+
 const emptyForm = {
   name: "",
   receiverName: "",
@@ -11,6 +12,27 @@ const emptyForm = {
   address: "",
   addressDetail: "",
 };
+
+function formatPhoneNumber(value) {
+  const numbers = value.replace(/[^0-9]/g, "");
+
+  if (numbers.length <= 3) {
+    return numbers;
+  }
+
+  if (numbers.length <= 7) {
+    return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+  }
+
+  return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(
+    7,
+    11,
+  )}`;
+}
+
+function getOnlyPhoneNumber(value) {
+  return value.replace(/[^0-9]/g, "");
+}
 
 export default function DeliveryManagePage() {
   const {
@@ -26,12 +48,25 @@ export default function DeliveryManagePage() {
   const [isCreateMode, setCreateMode] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
   const [isAddressModalOpen, setAddressModalOpen] = useState(false);
+
   function handleChange(evt) {
     const { name, value } = evt.target;
 
+    let nextValue = value;
+
+    if (name === "phone") {
+      const numbers = getOnlyPhoneNumber(value);
+
+      if (numbers.length > 11) {
+        return;
+      }
+
+      nextValue = formatPhoneNumber(numbers);
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: nextValue,
     }));
   }
 
@@ -42,7 +77,7 @@ export default function DeliveryManagePage() {
     setFormData({
       name: delivery.name || "",
       receiverName: delivery.receiverName || "",
-      phone: delivery.phone || "",
+      phone: formatPhoneNumber(delivery.phone || ""),
       zipCode: delivery.zipCode || "",
       address: delivery.address || "",
       addressDetail: delivery.addressDetail || "",
@@ -73,13 +108,25 @@ export default function DeliveryManagePage() {
       return;
     }
 
+    const phoneOnlyNumber = getOnlyPhoneNumber(formData.phone);
+
+    if (!/^010\d{8}$/.test(phoneOnlyNumber)) {
+      alert("전화번호는 010으로 시작하는 11자리 숫자여야 합니다.");
+      return;
+    }
+
     if (!formData.address.trim()) {
       alert("주소를 입력하세요.");
       return;
     }
 
+    const requestData = {
+      ...formData,
+      phone: phoneOnlyNumber,
+    };
+
     if (isCreateMode) {
-      const result = await handleCreateDelivery(formData);
+      const result = await handleCreateDelivery(requestData);
 
       if (result) {
         alert("배송지가 추가되었습니다.");
@@ -90,7 +137,7 @@ export default function DeliveryManagePage() {
       return;
     }
 
-    const result = await handleUpdateDelivery(openedId, formData);
+    const result = await handleUpdateDelivery(openedId, requestData);
 
     if (result) {
       alert("배송지가 수정되었습니다.");
@@ -120,7 +167,6 @@ export default function DeliveryManagePage() {
       alert("대표 배송지로 변경되었습니다.");
     }
   }
-
   return (
     <MyPageLayout>
       <Header>

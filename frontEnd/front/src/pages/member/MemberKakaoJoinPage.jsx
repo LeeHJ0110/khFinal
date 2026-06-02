@@ -21,6 +21,7 @@ export default function MemberKakaoJoinPage() {
     handleSubmit,
     handleCheckNickname,
     nicknameMessage,
+    phoneMessage,
     isSuccess,
   } = useMemberKakaoJoinForm(socialId, marketingAgreeYn);
 
@@ -90,7 +91,7 @@ export default function MemberKakaoJoinPage() {
             <div className="with-btn">
               <input
                 type="text"
-                placeholder="- 없이 숫자만 입력해주세요"
+                placeholder="전화번호"
                 name="phone"
                 onChange={handleChange}
                 value={formData.phone}
@@ -98,6 +99,8 @@ export default function MemberKakaoJoinPage() {
 
               <button type="button">인증</button>
             </div>
+
+            <p className="form-message">{phoneMessage}</p>
           </div>
 
           {/* 이메일 */}
@@ -126,6 +129,7 @@ export default function MemberKakaoJoinPage() {
                 name="address"
                 onChange={handleChange}
                 value={formData.address}
+                readOnly
               />
 
               <button type="button" onClick={() => setAddressModalOpen(true)}>

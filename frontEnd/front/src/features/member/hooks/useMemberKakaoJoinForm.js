@@ -14,14 +14,64 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
   });
 
   const [nicknameMessage, setNicknameMessage] = useState("");
+  const [phoneMessage, setPhoneMessage] = useState("");
+
   const [isNicknameChecked, setNicknameChecked] = useState(false);
+
+  function formatPhoneNumber(value) {
+    const numbers = value.replace(/[^0-9]/g, "");
+
+    if (numbers.length <= 3) {
+      return numbers;
+    }
+
+    if (numbers.length <= 7) {
+      return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+    }
+
+    return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(
+      7,
+      11,
+    )}`;
+  }
+
+  function getOnlyPhoneNumber(value) {
+    return value.replace(/[^0-9]/g, "");
+  }
+
+  function validatePhone(phone) {
+    const numbers = getOnlyPhoneNumber(phone);
+
+    if (!numbers) {
+      return "";
+    }
+
+    if (!/^010\d{8}$/.test(numbers)) {
+      return "전화번호 형식이 올바르지 않습니다.";
+    }
+
+    return "올바른 전화번호입니다.";
+  }
 
   function handleChange(evt) {
     const { name, value } = evt.target;
 
+    let nextValue = value;
+
+    if (name === "phone") {
+      const numbers = getOnlyPhoneNumber(value);
+
+      if (numbers.length > 11) {
+        return;
+      }
+
+      nextValue = formatPhoneNumber(numbers);
+      setPhoneMessage(validatePhone(nextValue));
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: nextValue,
     }));
 
     if (name === "nickname") {
@@ -60,8 +110,15 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
       return;
     }
 
-    if (!formData.phone) {
+    const phoneOnlyNumber = getOnlyPhoneNumber(formData.phone);
+
+    if (!phoneOnlyNumber) {
       alert("전화번호를 입력해주세요.");
+      return;
+    }
+
+    if (!/^010\d{8}$/.test(phoneOnlyNumber)) {
+      alert("전화번호는 010으로 시작하는 11자리 숫자여야 합니다.");
       return;
     }
 
@@ -77,6 +134,7 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
 
     const requestData = {
       ...formData,
+      phone: phoneOnlyNumber,
       socialId,
       memberMarketingAgreeYn: marketingAgreeYn,
     };
@@ -94,6 +152,7 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
     handleSubmit,
     handleCheckNickname,
     nicknameMessage,
+    phoneMessage,
     isSuccess,
   };
 }

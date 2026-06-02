@@ -76,6 +76,7 @@ public class MemberService {
         }
 
         MemberEntity entity = MemberEntity.builder()
+                .username(dto.getSocialId())
                 .socialId(dto.getSocialId())
                 .nickname(dto.getNickname())
                 .email(dto.getEmail())

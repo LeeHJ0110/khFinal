@@ -21,6 +21,7 @@ export default function MemberJoinPage() {
     usernameMessage,
     nicknameMessage,
     passwordMessage,
+    phoneMessage,
     isSuccess,
   } = useMemberJoinForm(marketingAgreeYn);
 
@@ -128,6 +129,8 @@ export default function MemberJoinPage() {
 
               <button type="button">인증</button>
             </div>
+
+            <p className="form-message">{phoneMessage}</p>
           </div>
 
           <div className="form-field">

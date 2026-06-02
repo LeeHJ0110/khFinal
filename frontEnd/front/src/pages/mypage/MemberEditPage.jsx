@@ -3,6 +3,28 @@ import styled from "styled-components";
 import MyPageLayout from "./components/MyPageLayout";
 import useMypageMember from "../../features/mypage/member/hooks/useMypageMember";
 import AddressSearchModal from "../../shared/components/AddressSearchModal";
+
+function formatPhoneNumber(value) {
+  const numbers = value.replace(/[^0-9]/g, "");
+
+  if (numbers.length <= 3) {
+    return numbers;
+  }
+
+  if (numbers.length <= 7) {
+    return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+  }
+
+  return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(
+    7,
+    11,
+  )}`;
+}
+
+function getOnlyPhoneNumber(value) {
+  return value.replace(/[^0-9]/g, "");
+}
+
 export default function MemberEditPage() {
   const { member, loading, handleNicknameCheck, handleUpdateMyInfo } =
     useMypageMember();
@@ -27,7 +49,7 @@ export default function MemberEditPage() {
     setFormData({
       nickname: member.nickname || "",
       email: member.email || "",
-      phone: member.phone || "",
+      phone: formatPhoneNumber(member.phone || ""),
       address: member.address || "",
       addressDetail: member.addressDetail || "",
     });
@@ -36,9 +58,21 @@ export default function MemberEditPage() {
   function handleChange(evt) {
     const { name, value } = evt.target;
 
+    let nextValue = value;
+
+    if (name === "phone") {
+      const numbers = getOnlyPhoneNumber(value);
+
+      if (numbers.length > 11) {
+        return;
+      }
+
+      nextValue = formatPhoneNumber(numbers);
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: nextValue,
     }));
 
     if (name === "nickname") {
@@ -82,7 +116,19 @@ export default function MemberEditPage() {
       return;
     }
 
-    await handleUpdateMyInfo(formData);
+    const phoneOnlyNumber = getOnlyPhoneNumber(formData.phone);
+
+    if (!/^010\d{8}$/.test(phoneOnlyNumber)) {
+      alert("전화번호는 010으로 시작하는 11자리 숫자여야 합니다.");
+      return;
+    }
+
+    const requestData = {
+      ...formData,
+      phone: phoneOnlyNumber,
+    };
+
+    await handleUpdateMyInfo(requestData);
   }
 
   return (
