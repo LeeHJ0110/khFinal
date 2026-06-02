@@ -27,7 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
+import org.springframework.data.domain.Sort;
 import java.io.IOException;
 import java.util.List;
 import com.kh.app.common.entity.DelYn;
@@ -172,20 +172,21 @@ public class PetCareService {
             imageRepository.save(image);
         }
     }
+//수의사 목록 페이징 오래된순 정렬 최상단으로 위치
+public Page<DiagnosisResDto> requestDiagnosisList(int pno) {
 
-    public Page<DiagnosisResDto> requestDiagnosisList(int pno) {
+    Pageable pageable = PageRequest.of(
+            pno,
+            10,
+            Sort.by(
+                    Sort.Order.asc("createdAt"),
+                    Sort.Order.asc("diagnosisReqId")
+            )
+    );
 
-        Pageable pageable = PageRequest.of(pno, 10);
-
-        return diagnosisReqRepository.findAll(pageable)
-                .map(entity -> DiagnosisResDto.builder()
-                        .diagnosisReqId(entity.getDiagnosisReqId())
-                        .diagnosisReqStatus(entity.getDiagnosisReqStatus())
-                        .createdAt(entity.getCreatedAt())
-                        .build()
-                );
-    }
-
+    return diagnosisReqRepository.findAll(pageable)
+            .map(DiagnosisResDto::from);
+}
     //상세보기
     @Transactional(readOnly = true)
     public DiagnosisDetailResDto getDiagnosisDetail(Long diagnosisReqId) {

@@ -9,11 +9,11 @@ import eyeImage from "../../features/petcare/img/눈.png";
 import teethImage from "../../features/petcare/img/치아.png";
 
 const SCORE_OPTIONS = [
+  "아주 그렇지 않다",
+  "조금 그렇지 않다",
+  "보통",
   "아주 그렇다",
   "조금 그렇다",
-  "보통",
-  "조금 그렇지 않다",
-  "아주 그렇지 않다",
 ];
 
 // 카테고리별 이미지 연결
@@ -42,7 +42,7 @@ function ScoreQuestionStep({
     <Section>
       {categoryImage && (
         <CategoryImage
-           key={category}
+          key={category}
           src={categoryImage}
           alt={`${title} 이미지`}
         />
@@ -57,13 +57,8 @@ function ScoreQuestionStep({
       ) : (
         <QuestionList>
           {questionList.map((question, questionIndex) => (
-            <QuestionCard
-              key={question.questionId}
-              $index={questionIndex}
-            >
-              <QuestionText>
-                {question.questionContent}
-              </QuestionText>
+            <QuestionCard key={question.questionId} $index={questionIndex}>
+              <QuestionText>{question.questionContent}</QuestionText>
 
               <ScoreButtonList>
                 {SCORE_OPTIONS.map((option) => {
@@ -75,9 +70,7 @@ function ScoreQuestionStep({
                       key={option}
                       type="button"
                       $active={isActive}
-                      onClick={() =>
-                        onSelect(question.questionId, option)
-                      }
+                      onClick={() => onSelect(question.questionId, option)}
                     >
                       {option}
                     </ScoreButton>
@@ -223,25 +216,20 @@ const ScoreButtonList = styled.div`
 `;
 
 const ScoreButton = styled.button`
-
   min-height: 38px;
   padding: 5px;
 
-  border: 1px solid
-    ${({ $active }) => ($active ? "#00a97b" : "#cfd8d5")};
+  border: 1px solid ${({ $active }) => ($active ? "#00a97b" : "#cfd8d5")};
 
   border-radius: 7px;
 
-  background: ${({ $active }) =>
-    $active ? "#00a97b" : "#ffffff"};
+  background: ${({ $active }) => ($active ? "#00a97b" : "#ffffff")};
 
-  color: ${({ $active }) =>
-    $active ? "#ffffff" : "#666666"};
+  color: ${({ $active }) => ($active ? "#ffffff" : "#666666")};
 
   font-size: 13px;
 
-  font-weight: ${({ $active }) =>
-    $active ? "700" : "500"};
+  font-weight: ${({ $active }) => ($active ? "700" : "500")};
 
   cursor: pointer;
 
