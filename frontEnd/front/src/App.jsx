@@ -13,6 +13,8 @@ import MemberKakaoCallbackPage from "./pages/member/MemberKakaoCallbackPage";
 
 // healthcare
 import ScheduleMainPage from "./pages/schedule/ScheduleMainPage";
+import KarteListPage from "./pages/karte/KarteListPage";
+import KarteDetailPage from "./pages/karte/KarteDetailPage";
 import DiagnosisRequestHomePage from "./pages/petcare/DiagnosisRequestHomePage";
 import DiagnosisRequestPage from "./pages/petcare/DiagnosisRequestPage";
 import DiagnosisManagePage from "./pages/petcare/DiagnosisManagePage";
@@ -70,7 +72,12 @@ function App() {
           <Route path="home" element={<HomePage />} />
           {/* 헬스케어 */}
           <Route path="healthcare">
+            {/* 스케줄 */}
             <Route path="schedule" element={<ScheduleMainPage />} />
+
+            {/* 진단결과 */}
+            <Route path="resultList" element={<KarteListPage />} />
+            <Route path="result/:id" element={<KarteDetailPage />} />
 
             {/* user */}
             <Route path="requesthome" element={<DiagnosisRequestHomePage />} />
