@@ -25,3 +25,7 @@ export function updatePet(petId, data) {
 export function deletePet(petId) {
   return api.delete(`/pet/${petId}`);
 }
+
+export function changeRepresentPet(petId) {
+  return api.put(`/pet/${petId}/represent`);
+}

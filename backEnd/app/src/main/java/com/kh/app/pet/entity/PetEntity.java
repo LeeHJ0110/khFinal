@@ -31,7 +31,7 @@ public class PetEntity extends BaseEntity {
     private String name;
 
     // 생년월일
-    @Column(name = "PET_BIRTH_DATE", length = 8)
+    @Column(name = "PET_BIRTH_DATE", length = 10)
     private String birthDate;
 
     // 성별
@@ -75,6 +75,9 @@ public class PetEntity extends BaseEntity {
     }
     public void delete() {
         this.delYn = DelYn.Y;
+    }
+    public void changeRepresentYn(PetRepresentYn representYn) {
+        this.representYn = representYn;
     }
 
 }
