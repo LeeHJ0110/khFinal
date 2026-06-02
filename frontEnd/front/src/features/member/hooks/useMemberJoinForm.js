@@ -13,6 +13,7 @@ export default function useMemberJoinForm(marketingAgreeYn = "N") {
     phone: "",
     address: "",
     addressDetail: "",
+    zipCode: "",
   });
 
   const [usernameMessage, setUsernameMessage] = useState("");

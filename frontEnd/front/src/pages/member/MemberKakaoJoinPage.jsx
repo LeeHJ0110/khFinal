@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import useMemberKakaoJoinForm from "../../features/member/hooks/useMemberKakaoJoinForm";
@@ -6,7 +6,7 @@ import useMemberKakaoJoinForm from "../../features/member/hooks/useMemberKakaoJo
 import "./MemberJoinPage.css";
 
 import logo from "../../assets/images/login_logo2.png";
-
+import AddressSearchModal from "../../shared/components/AddressSearchModal";
 export default function MemberKakaoJoinPage() {
   const location = useLocation();
 
@@ -14,7 +14,7 @@ export default function MemberKakaoJoinPage() {
 
   const marketingAgreeYn = location.state?.marketingAgreeYn || "N";
   const navigate = useNavigate();
-
+  const [isAddressModalOpen, setAddressModalOpen] = useState(false);
   const {
     formData,
     handleChange,
@@ -128,7 +128,9 @@ export default function MemberKakaoJoinPage() {
                 value={formData.address}
               />
 
-              <button type="button">주소 검색</button>
+              <button type="button" onClick={() => setAddressModalOpen(true)}>
+                주소검색
+              </button>
             </div>
           </div>
 
@@ -165,6 +167,26 @@ export default function MemberKakaoJoinPage() {
           </button>
         </form>
       </section>
+      {isAddressModalOpen && (
+        <AddressSearchModal
+          onClose={() => setAddressModalOpen(false)}
+          onComplete={({ address, zipCode }) => {
+            handleChange({
+              target: {
+                name: "address",
+                value: address,
+              },
+            });
+
+            handleChange({
+              target: {
+                name: "zipCode",
+                value: zipCode,
+              },
+            });
+          }}
+        />
+      )}
     </main>
   );
 }

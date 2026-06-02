@@ -10,6 +10,7 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
     phone: "",
     address: "",
     addressDetail: "",
+    zipCode: "",
   });
 
   const [nicknameMessage, setNicknameMessage] = useState("");

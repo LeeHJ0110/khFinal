@@ -137,7 +137,10 @@ public class DeliveryAddressService {
     }
 
     // 회원가입 시 기본 배송지 생성
-    public void createDefaultDeliveryAddress(MemberEntity member) {
+    public void createDefaultDeliveryAddress(
+            MemberEntity member,
+            String zipCode
+    ) {
         if (member.getAddress() == null || member.getAddress().isBlank()) {
             return;
         }
@@ -148,7 +151,7 @@ public class DeliveryAddressService {
                         .name("집")
                         .receiverName(member.getNickname())
                         .phone(member.getPhone())
-                        .zipCode(null)
+                        .zipCode(zipCode)
                         .address(member.getAddress())
                         .addressDetail(member.getAddressDetail())
                         .defaultYn(DeliveryDefaultYn.Y)

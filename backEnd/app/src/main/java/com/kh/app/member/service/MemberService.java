@@ -53,7 +53,8 @@ public class MemberService {
                 memberRepository.save(entity);
 
         deliveryAddressService.createDefaultDeliveryAddress(
-                savedMember
+                savedMember,
+                dto.getZipCode()
         );
 
         log.info("[회원가입 완료] username : {}", dto.getUsername());
@@ -94,7 +95,8 @@ public class MemberService {
                 memberRepository.save(entity);
 
         deliveryAddressService.createDefaultDeliveryAddress(
-                savedMember
+                savedMember,
+                dto.getZipCode()
         );
 
         log.info("[카카오 회원가입 완료] socialId : {}", dto.getSocialId());
