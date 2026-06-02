@@ -4,6 +4,7 @@ import com.kh.app.common.entity.DelYn;
 import com.kh.app.pet.dto.request.PetUpdateReqDto;
 import com.kh.app.pet.dto.response.BreedListResDto;
 import com.kh.app.pet.entity.BreedEntity;
+import com.kh.app.pet.entity.PetRepresentYn;
 import com.kh.app.pet.entity.PetType;
 import com.kh.app.pet.repository.BreedRepository;
 import com.kh.app.member.entity.MemberEntity;
@@ -128,5 +129,31 @@ public class PetService {
         }
 
         pet.delete();
+    }
+    @Transactional
+    public void changeRepresentPet(Long petId, String loginKey) {
+
+        MemberEntity member = memberRepository.findByUsername(loginKey)
+                .or(() -> memberRepository.findBySocialId(loginKey))
+                .orElseThrow(() ->
+                        new IllegalStateException("회원 정보가 존재하지 않습니다.")
+                );
+
+        PetEntity targetPet = petRepository.findById(petId)
+                .orElseThrow(() ->
+                        new IllegalStateException("펫 정보가 존재하지 않습니다.")
+                );
+
+        if (!targetPet.getMember().getId().equals(member.getId())) {
+            throw new IllegalStateException("본인 펫만 대표동물로 설정할 수 있습니다.");
+        }
+
+        List<PetEntity> petList = petRepository.findAllByMember_Id(member.getId());
+
+        for (PetEntity pet : petList) {
+            pet.changeRepresentYn(PetRepresentYn.N);
+        }
+
+        targetPet.changeRepresentYn(PetRepresentYn.Y);
     }
 }

@@ -1,6 +1,7 @@
 package com.kh.app.member.service;
 
 import com.kh.app.common.exception.CustomException;
+import com.kh.app.delivery.service.DeliveryAddressService;
 import com.kh.app.member.dto.request.MemberJoinReqDto;
 import com.kh.app.member.dto.request.MemberKakaoJoinReqDto;
 import com.kh.app.member.dto.request.MemberKakaoLoginReqDto;
@@ -32,6 +33,7 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
     private final KakaoClient kakaoClient;
     private final JwtUtil jwtUtil;
+    private final DeliveryAddressService deliveryAddressService;
 
     @Transactional
     public void join(MemberJoinReqDto dto) {
@@ -44,8 +46,16 @@ public class MemberService {
         }
 
         String encodedPassword = passwordEncoder.encode(dto.getPassword());
+
         MemberEntity entity = dto.toEntity(encodedPassword);
-        memberRepository.save(entity);
+
+        MemberEntity savedMember =
+                memberRepository.save(entity);
+
+        deliveryAddressService.createDefaultDeliveryAddress(
+                savedMember,
+                dto.getZipCode()
+        );
 
         log.info("[회원가입 완료] username : {}", dto.getUsername());
     }
@@ -56,6 +66,7 @@ public class MemberService {
                 "[카카오 회원가입 socialId] {}",
                 dto.getSocialId()
         );
+
         if (memberRepository.existsBySocialId(dto.getSocialId())) {
             throw new IllegalStateException("이미 가입된 카카오 회원입니다.");
         }
@@ -65,6 +76,7 @@ public class MemberService {
         }
 
         MemberEntity entity = MemberEntity.builder()
+                .username(dto.getSocialId())
                 .socialId(dto.getSocialId())
                 .nickname(dto.getNickname())
                 .email(dto.getEmail())
@@ -72,13 +84,21 @@ public class MemberService {
                 .address(dto.getAddress())
                 .addressDetail(dto.getAddressDetail())
                 .memberMarketingAgreeYn(
-                        MemberMarketingAgreeYn.valueOf(dto.getMemberMarketingAgreeYn())
+                        MemberMarketingAgreeYn.valueOf(
+                                dto.getMemberMarketingAgreeYn()
+                        )
                 )
                 .role(MemberRole.U)
                 .status(MemberStatus.A)
                 .build();
 
-        memberRepository.save(entity);
+        MemberEntity savedMember =
+                memberRepository.save(entity);
+
+        deliveryAddressService.createDefaultDeliveryAddress(
+                savedMember,
+                dto.getZipCode()
+        );
 
         log.info("[카카오 회원가입 완료] socialId : {}", dto.getSocialId());
     }
@@ -101,44 +121,39 @@ public class MemberService {
                 kakaoUserInfo.getSocialId()
         );
 
-        return memberRepository.findBySocialId(kakaoUserInfo.getSocialId())
-                .map(member -> {
-                    String token = jwtUtil.createJwt(
-                            member.getSocialId(),
-                            member.getNickname(),
-                            member.getRole().name()
-                    );
+        return memberRepository.findBySocialId(
+                kakaoUserInfo.getSocialId()
+        ).map(member -> {
+            String token = jwtUtil.createJwt(
+                    member.getSocialId(),
+                    member.getNickname(),
+                    member.getRole().name()
+            );
 
-                    return MemberKakaoLoginRespDto.builder()
-                            .result("LOGIN")
-                            .token(token)
-                            .build();
-                })
-                .orElseGet(() -> MemberKakaoLoginRespDto.builder()
-                        .result("NEED_JOIN")
-                        .socialId(kakaoUserInfo.getSocialId())
-                        .email(kakaoUserInfo.getEmail())
-                        .nickname(kakaoUserInfo.getNickname())
-                        .build());
+            return MemberKakaoLoginRespDto.builder()
+                    .result("LOGIN")
+                    .token(token)
+                    .build();
+        }).orElseGet(() -> MemberKakaoLoginRespDto.builder()
+                .result("NEED_JOIN")
+                .socialId(kakaoUserInfo.getSocialId())
+                .email(kakaoUserInfo.getEmail())
+                .nickname(kakaoUserInfo.getNickname())
+                .build());
     }
-    public MemberMyPageResDto getMyInfo(String loginKey) {
 
-        MemberEntity member = memberRepository.findByUsername(loginKey)
-                .or(() -> memberRepository.findBySocialId(loginKey))
-                .orElseThrow(() ->
-                        new IllegalStateException("회원 정보가 존재하지 않습니다.")
-                );
+    public MemberMyPageResDto getMyInfo(String loginKey) {
+        MemberEntity member = getLoginMember(loginKey);
 
         return MemberMyPageResDto.from(member);
     }
-    @Transactional
-    public void updateMyInfo(String loginKey, MemberUpdateReqDto request) {
 
-        MemberEntity member = memberRepository.findByUsername(loginKey)
-                .or(() -> memberRepository.findBySocialId(loginKey))
-                .orElseThrow(() ->
-                        new IllegalStateException("회원 정보가 존재하지 않습니다.")
-                );
+    @Transactional
+    public void updateMyInfo(
+            String loginKey,
+            MemberUpdateReqDto request
+    ) {
+        MemberEntity member = getLoginMember(loginKey);
 
         member.updateMyInfo(
                 request.getNickname(),
@@ -147,5 +162,13 @@ public class MemberService {
                 request.getAddress(),
                 request.getAddressDetail()
         );
+    }
+
+    private MemberEntity getLoginMember(String loginKey) {
+        return memberRepository.findByUsername(loginKey)
+                .or(() -> memberRepository.findBySocialId(loginKey))
+                .orElseThrow(() ->
+                        new IllegalStateException("회원 정보가 존재하지 않습니다.")
+                );
     }
 }

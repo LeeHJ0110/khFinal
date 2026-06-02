@@ -13,6 +13,8 @@ import MemberKakaoCallbackPage from "./pages/member/MemberKakaoCallbackPage";
 
 // healthcare
 import ScheduleMainPage from "./pages/schedule/ScheduleMainPage";
+import KarteListPage from "./pages/karte/KarteListPage";
+import KarteDetailPage from "./pages/karte/KarteDetailPage";
 import DiagnosisRequestHomePage from "./pages/petcare/DiagnosisRequestHomePage";
 import DiagnosisRequestPage from "./pages/petcare/DiagnosisRequestPage";
 import DiagnosisManagePage from "./pages/petcare/DiagnosisManagePage";
@@ -49,6 +51,7 @@ import MessageBoxPage from "./pages/mypage/MessageBoxPage";
 import CommunityHistoryPage from "./pages/mypage/CommunityHistoryPage";
 import BoardHome from "./pages/board/BoardHome";
 import BoardDetailPage from "./pages/board/BoardDetailPage";
+import DeliveryManagePage from "./pages/mypage/DeliveryManagePage";
 
 function App() {
   return (
@@ -70,7 +73,12 @@ function App() {
           <Route path="home" element={<HomePage />} />
           {/* 헬스케어 */}
           <Route path="healthcare">
+            {/* 스케줄 */}
             <Route path="schedule" element={<ScheduleMainPage />} />
+
+            {/* 진단결과 */}
+            <Route path="result" element={<KarteListPage />} />
+            <Route path="result/:id" element={<KarteDetailPage />} />
 
             {/* user */}
             <Route path="requesthome" element={<DiagnosisRequestHomePage />} />
@@ -147,6 +155,7 @@ function App() {
             <Route path="pet-manage" element={<PetManagePage />} />
             <Route path="message" element={<MessageBoxPage />} />
             <Route path="community" element={<CommunityHistoryPage />} />
+            <Route path="delivery" element={<DeliveryManagePage />} />
           </Route>
 
           {/* 공용페이지 (route path 수정해야함)*/}
@@ -156,10 +165,10 @@ function App() {
           </Route>
 
           <Route path="community">
-            <Route element={<BoardHome />} />
+            <Route index element={<BoardHome />} />
             <Route path="write" element={<BoardWritePage />} />
             <Route path="list" element={<BoardListPage />} />
-            <Route path="detail" element={<BoardDetailPage />} />
+            <Route path="detail/:id" element={<BoardDetailPage />} />
           </Route>
         </Route>
       </Routes>

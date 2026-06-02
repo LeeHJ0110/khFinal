@@ -5,6 +5,7 @@ import {
   getBreedList,
   getMyPetList,
   updatePet,
+  changeRepresentPet,
 } from "../api/petApi";
 export default function usePet() {
   const [petList, setPetList] = useState([]);
@@ -120,6 +121,19 @@ export default function usePet() {
 
   const selectedPet = petList[selectedPetIndex] || null;
 
+  async function handleRepresentPet(petId) {
+    try {
+      await changeRepresentPet(petId);
+
+      await fetchMyPetList();
+
+      return true;
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  }
+
   return {
     petList,
     breedList,
@@ -136,5 +150,6 @@ export default function usePet() {
     nextPet,
     handleUpdatePet,
     handleDeletePet,
+    handleRepresentPet,
   };
 }

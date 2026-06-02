@@ -5,18 +5,20 @@ import { useEffect, useState } from "react";
 import usePet from "../../mypage/pet/hooks/usePet";
 
 export default function TrainingDiaryModal({ open, onClose, data }) {
-  const {
-    isSuccess,
-    openDetail,
-    closeDetail,
-    insertDiary,
-    editDiary,
-    deleteDiary,
-  } = useTraining();
+  const { isSuccess, insertDiary, editDiary, deleteDiary } = useTraining();
   const { formData, handleChange } = useFormData(data);
-  const { petList, fetchMyPetList } = usePet();
+  const { petList, loading, fetchMyPetList } = usePet();
+
+  const [checkedPetIds, setCheckedPetIds] = useState([]);
 
   useEffect(() => {
+    if (open && data) {
+      setCheckedPetIds(data.trainingPetList || []);
+    }
+  }, [open, data]);
+
+  useEffect(() => {
+    fetchMyPetList();
     if (isSuccess) {
       onClose();
     }
@@ -26,6 +28,14 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
   const createdDate = formData.createdAt?.split("T")[0];
 
   const isToday = createdDate === today;
+
+  const handleCheckboxChange = (petId, isChecked) => {
+    if (isChecked) {
+      setCheckedPetIds((prev) => [...prev, petId]);
+    } else {
+      setCheckedPetIds((prev) => prev.filter((id) => id !== petId));
+    }
+  };
 
   return (
     <Wrapper>
@@ -90,7 +100,35 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
                 name="content"
                 onChange={handleChange}
               />
-              <div>펫 선택창</div>
+              {loading ? (
+                <p>로딩중</p>
+              ) : (
+                <>
+                  {petList.map((pet) => (
+                    <label key={pet.petId}>
+                      <input
+                        type="checkbox"
+                        checked={formData.trainingPetList.includes(pet.petId)}
+                        onChange={(e) => {
+                          const nextPetList = e.target.checked
+                            ? [...formData.trainingPetList, pet.petId]
+                            : formData.trainingPetList.filter(
+                                (id) => id !== pet.petId,
+                              );
+
+                          handleChange({
+                            target: {
+                              name: "trainingPetList",
+                              value: nextPetList,
+                            },
+                          });
+                        }}
+                      />
+                      {pet.name}
+                    </label>
+                  ))}
+                </>
+              )}
 
               <ButtonGroup>
                 <CancelButton onClick={onClose}>취소</CancelButton>
@@ -100,7 +138,11 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
                       <DeleteButton
                         type="button"
                         onClick={() => {
-                          deleteDiary(formData);
+                          const finalFormData = {
+                            ...formData,
+                            petList: checkedPetIds,
+                          };
+                          deleteDiary(finalFormData);
                           console.log("삭제");
                         }}
                       >

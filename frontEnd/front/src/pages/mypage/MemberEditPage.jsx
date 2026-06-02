@@ -2,6 +2,28 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import MyPageLayout from "./components/MyPageLayout";
 import useMypageMember from "../../features/mypage/member/hooks/useMypageMember";
+import AddressSearchModal from "../../shared/components/AddressSearchModal";
+
+function formatPhoneNumber(value) {
+  const numbers = value.replace(/[^0-9]/g, "");
+
+  if (numbers.length <= 3) {
+    return numbers;
+  }
+
+  if (numbers.length <= 7) {
+    return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
+  }
+
+  return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(
+    7,
+    11,
+  )}`;
+}
+
+function getOnlyPhoneNumber(value) {
+  return value.replace(/[^0-9]/g, "");
+}
 
 export default function MemberEditPage() {
   const { member, loading, handleNicknameCheck, handleUpdateMyInfo } =
@@ -17,6 +39,7 @@ export default function MemberEditPage() {
 
   const [isNicknameChecked, setNicknameChecked] = useState(false);
   const [checkedNickname, setCheckedNickname] = useState("");
+  const [isAddressModalOpen, setAddressModalOpen] = useState(false);
 
   useEffect(() => {
     if (!member) {
@@ -26,7 +49,7 @@ export default function MemberEditPage() {
     setFormData({
       nickname: member.nickname || "",
       email: member.email || "",
-      phone: member.phone || "",
+      phone: formatPhoneNumber(member.phone || ""),
       address: member.address || "",
       addressDetail: member.addressDetail || "",
     });
@@ -35,9 +58,21 @@ export default function MemberEditPage() {
   function handleChange(evt) {
     const { name, value } = evt.target;
 
+    let nextValue = value;
+
+    if (name === "phone") {
+      const numbers = getOnlyPhoneNumber(value);
+
+      if (numbers.length > 11) {
+        return;
+      }
+
+      nextValue = formatPhoneNumber(numbers);
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: nextValue,
     }));
 
     if (name === "nickname") {
@@ -81,7 +116,19 @@ export default function MemberEditPage() {
       return;
     }
 
-    await handleUpdateMyInfo(formData);
+    const phoneOnlyNumber = getOnlyPhoneNumber(formData.phone);
+
+    if (!/^010\d{8}$/.test(phoneOnlyNumber)) {
+      alert("전화번호는 010으로 시작하는 11자리 숫자여야 합니다.");
+      return;
+    }
+
+    const requestData = {
+      ...formData,
+      phone: phoneOnlyNumber,
+    };
+
+    await handleUpdateMyInfo(requestData);
   }
 
   return (
@@ -144,7 +191,7 @@ export default function MemberEditPage() {
 
             <SmallButton
               type="button"
-              onClick={() => alert("주소검색 기능은 추후 연결 예정입니다.")}
+              onClick={() => setAddressModalOpen(true)}
             >
               주소검색
             </SmallButton>
@@ -168,6 +215,17 @@ export default function MemberEditPage() {
           </SubmitButton>
         </ButtonArea>
       </FormCard>
+      {isAddressModalOpen && (
+        <AddressSearchModal
+          onClose={() => setAddressModalOpen(false)}
+          onComplete={({ address }) => {
+            setFormData((prev) => ({
+              ...prev,
+              address,
+            }));
+          }}
+        />
+      )}
     </MyPageLayout>
   );
 }

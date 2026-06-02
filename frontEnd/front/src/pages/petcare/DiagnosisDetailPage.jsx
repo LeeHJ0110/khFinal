@@ -1,16 +1,9 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
-import {
-  useNavigate,
-  useParams,
-} from "react-router-dom";
-import styled, {
-  keyframes,
-} from "styled-components";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import styled, { keyframes } from "styled-components";
 import usePetCareDetail from "../../features/petcare/hooks/usePetCareDetail";
+import useFormData from "../../shared/hooks/useFormData";
+import useKarte from "../../features/karte/hooks/useKarte";
 
 /* =====================================
    카테고리 표시 정보
@@ -141,8 +134,7 @@ function calculateAge(birthDate) {
 
   const birthdayPassed =
     today.getMonth() + 1 > month ||
-    (today.getMonth() + 1 === month &&
-      today.getDate() >= day);
+    (today.getMonth() + 1 === month && today.getDate() >= day);
 
   if (!birthdayPassed) {
     age -= 1;
@@ -188,11 +180,7 @@ function formatStatus(status) {
 }
 
 function getAnswerText(value) {
-  if (
-    value === null ||
-    value === undefined ||
-    String(value).trim() === ""
-  ) {
+  if (value === null || value === undefined || String(value).trim() === "") {
     return "-";
   }
 
@@ -208,11 +196,7 @@ function getAnswerText(value) {
 }
 
 function getImageCategoryLabel(category) {
-  return (
-    CATEGORY_META[category]?.label ??
-    category ??
-    "기타"
-  );
+  return CATEGORY_META[category]?.label ?? category ?? "기타";
 }
 
 function getImageUrl(file) {
@@ -234,19 +218,14 @@ function DiagnosisDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const {
-    petCareVo,
-    asyncFetchPetCareDetail,
-    isLoading,
-  } = usePetCareDetail();
-
+  const { petCareVo, asyncFetchPetCareDetail, isLoading } = usePetCareDetail();
+  const { asyncFetchKarteWrite, isSuccess } = useKarte();
   // 카테고리별 수의사 평가 점수
-  const [categoryScores, setCategoryScores] =
-    useState({});
+  const [categoryScores, setCategoryScores] = useState({});
 
   // 수의사 종합 의견
-  const [doctorComment, setDoctorComment] =
-    useState("");
+  const [opinion, setOpinion] = useState("");
+  const [summary, setSummary] = useState("");
 
   useEffect(() => {
     if (id) {
@@ -254,32 +233,32 @@ function DiagnosisDetailPage() {
     }
   }, [id]);
 
-  const answerList =
-    petCareVo?.answerList ?? [];
+  useEffect(() => {
+    if (isSuccess) {
+      navigate(-1);
+    }
+  }, [isSuccess, navigate]);
 
-  const fileList =
-    petCareVo?.fileList ?? [];
+  const answerList = petCareVo?.answerList ?? [];
+
+  const fileList = petCareVo?.fileList ?? [];
 
   /* =====================================
      답변 카테고리별 그룹화
   ===================================== */
 
   const groupedAnswers = useMemo(() => {
-    return answerList.reduce(
-      (groupMap, answer) => {
-        const category =
-          answer.questionCategory ?? "ETC";
+    return answerList.reduce((groupMap, answer) => {
+      const category = answer.questionCategory ?? "ETC";
 
-        if (!groupMap[category]) {
-          groupMap[category] = [];
-        }
+      if (!groupMap[category]) {
+        groupMap[category] = [];
+      }
 
-        groupMap[category].push(answer);
+      groupMap[category].push(answer);
 
-        return groupMap;
-      },
-      {}
-    );
+      return groupMap;
+    }, {});
   }, [answerList]);
 
   /* =====================================
@@ -287,23 +266,16 @@ function DiagnosisDetailPage() {
   ===================================== */
 
   const visibleCategories = useMemo(() => {
-    const registeredCategories =
-      CATEGORY_ORDER.filter(
-        (category) =>
-          groupedAnswers[category] &&
-          groupedAnswers[category].length > 0
-      );
+    const registeredCategories = CATEGORY_ORDER.filter(
+      (category) =>
+        groupedAnswers[category] && groupedAnswers[category].length > 0,
+    );
 
-    const extraCategories =
-      Object.keys(groupedAnswers).filter(
-        (category) =>
-          !CATEGORY_ORDER.includes(category)
-      );
+    const extraCategories = Object.keys(groupedAnswers).filter(
+      (category) => !CATEGORY_ORDER.includes(category),
+    );
 
-    return [
-      ...registeredCategories,
-      ...extraCategories,
-    ];
+    return [...registeredCategories, ...extraCategories];
   }, [groupedAnswers]);
 
   /* =====================================
@@ -311,51 +283,36 @@ function DiagnosisDetailPage() {
   ===================================== */
 
   const groupedFiles = useMemo(() => {
-    return fileList.reduce(
-      (groupMap, file) => {
-        const category =
-          file.category ?? "ETC";
+    return fileList.reduce((groupMap, file) => {
+      const category = file.category ?? "ETC";
 
-        if (!groupMap[category]) {
-          groupMap[category] = [];
-        }
+      if (!groupMap[category]) {
+        groupMap[category] = [];
+      }
 
-        groupMap[category].push(file);
+      groupMap[category].push(file);
 
-        return groupMap;
-      },
-      {}
-    );
+      return groupMap;
+    }, {});
   }, [fileList]);
 
   /* =====================================
      카테고리 점수 변경
   ===================================== */
 
-  const handleScoreChange = (
-    category,
-    value
-  ) => {
+  const handleScoreChange = (category, value) => {
     if (value === "") {
       setCategoryScores((prev) => ({
         ...prev,
         [category]: "",
       }));
-
       return;
     }
-
     const numberValue = Number(value);
-
     if (Number.isNaN(numberValue)) {
       return;
     }
-
-    const normalizedValue = Math.min(
-      100,
-      Math.max(0, numberValue)
-    );
-
+    const normalizedValue = Math.min(100, Math.max(0, numberValue));
     setCategoryScores((prev) => ({
       ...prev,
       [category]: normalizedValue,
@@ -369,34 +326,24 @@ function DiagnosisDetailPage() {
   ===================================== */
 
   const averageScore = useMemo(() => {
-    const scoreList = Object.entries(
-      categoryScores
-    )
+    const scoreList = Object.entries(categoryScores)
       .filter(
         ([category, score]) =>
           category !== "CONSULT" &&
           score !== "" &&
           score !== null &&
-          score !== undefined
+          score !== undefined,
       )
       .map(([, score]) => Number(score))
-      .filter(
-        (score) =>
-          !Number.isNaN(score)
-      );
+      .filter((score) => !Number.isNaN(score));
 
     if (scoreList.length === 0) {
       return null;
     }
 
-    const sum = scoreList.reduce(
-      (acc, score) => acc + score,
-      0
-    );
+    const sum = scoreList.reduce((acc, score) => acc + score, 0);
 
-    return Math.round(
-      sum / scoreList.length
-    );
+    return Math.round(sum / scoreList.length);
   }, [categoryScores]);
 
   /* =====================================
@@ -405,22 +352,24 @@ function DiagnosisDetailPage() {
   ===================================== */
 
   const handleSaveEvaluation = () => {
-    const evaluationData = {
-      diagnosisReqId:
-        petCareVo?.diagnosisReqId,
-      categoryScores,
-      averageScore,
-      doctorComment,
+    const scores = Object.entries(categoryScores).map(([category, score]) => ({
+      category,
+      score,
+    }));
+
+    scores.push({
+      category: "TOTAL",
+      score: averageScore,
+    });
+    const formData = {
+      diaReqId: petCareVo?.diagnosisReqId,
+      scores,
+      opinion,
+      summary,
     };
 
-    console.log(
-      "수의사 평가 저장 요청 데이터:",
-      evaluationData
-    );
-
-    alert(
-      "평가 저장 API 연결이 필요합니다."
-    );
+    console.log("수의사 평가 저장 요청 데이터:", formData);
+    asyncFetchKarteWrite(formData);
   };
 
   /* =====================================
@@ -433,9 +382,7 @@ function DiagnosisDetailPage() {
         <LoadingArea>
           <LoadingSpinner />
 
-          <LoadingText>
-            건강진단 상세 정보를 불러오는 중입니다.
-          </LoadingText>
+          <LoadingText>건강진단 상세 정보를 불러오는 중입니다.</LoadingText>
         </LoadingArea>
       </Wrapper>
     );
@@ -449,16 +396,9 @@ function DiagnosisDetailPage() {
     return (
       <Wrapper>
         <EmptyPage>
-          <EmptyPageTitle>
-            건강진단 정보를 찾을 수 없습니다.
-          </EmptyPageTitle>
+          <EmptyPageTitle>건강진단 정보를 찾을 수 없습니다.</EmptyPageTitle>
 
-          <BackButton
-            type="button"
-            onClick={() =>
-              navigate(-1)
-            }
-          >
+          <BackButton type="button" onClick={() => navigate(-1)}>
             목록으로 돌아가기
           </BackButton>
         </EmptyPage>
@@ -466,8 +406,7 @@ function DiagnosisDetailPage() {
     );
   }
 
-  const age =
-    calculateAge(petCareVo.birthDate);
+  const age = calculateAge(petCareVo.birthDate);
 
   return (
     <Wrapper>
@@ -477,27 +416,17 @@ function DiagnosisDetailPage() {
 
       <PageHeader>
         <div>
-          <Eyebrow>
-            VETERINARY ASSESSMENT
-          </Eyebrow>
+          <Eyebrow>VETERINARY ASSESSMENT</Eyebrow>
 
-          <PageTitle>
-            건강진단 상세 평가
-          </PageTitle>
+          <PageTitle>건강진단 상세 평가</PageTitle>
 
           <PageDescription>
-            보호자가 작성한 문진 결과와
-            업로드 이미지를 확인한 후 항목별
-            평가 점수를 입력해 주세요.
+            보호자가 작성한 문진 결과와 업로드 이미지를 확인한 후 항목별 평가
+            점수를 입력해 주세요.
           </PageDescription>
         </div>
 
-        <BackButton
-          type="button"
-          onClick={() =>
-            navigate(-1)
-          }
-        >
+        <BackButton type="button" onClick={() => navigate(-1)}>
           목록으로
         </BackButton>
       </PageHeader>
@@ -509,117 +438,63 @@ function DiagnosisDetailPage() {
       <ProfileCard>
         <ProfileHeader>
           <ProfileTitleArea>
-            <ProfileLabel>
-              PATIENT INFORMATION
-            </ProfileLabel>
+            <ProfileLabel>PATIENT INFORMATION</ProfileLabel>
 
-            <PetName>
-              {petCareVo.petName ??
-                "이름 미등록"}
-            </PetName>
+            <PetName>{petCareVo.petName ?? "이름 미등록"}</PetName>
 
             <PetSubText>
-              {formatPetType(
-                petCareVo.petType
-              )}
+              {formatPetType(petCareVo.petType)}
 
               <Divider>·</Divider>
 
-              {petCareVo.breedName ??
-                "품종 미등록"}
+              {petCareVo.breedName ?? "품종 미등록"}
             </PetSubText>
           </ProfileTitleArea>
 
-          <StatusBadge
-            $active={
-              petCareVo.diagnosisReqStatus ===
-              "Y"
-            }
-          >
-            <StatusDot
-              $active={
-                petCareVo.diagnosisReqStatus ===
-                "Y"
-              }
-            />
+          <StatusBadge $active={petCareVo.diagnosisReqStatus === "Y"}>
+            <StatusDot $active={petCareVo.diagnosisReqStatus === "Y"} />
 
-            {formatStatus(
-              petCareVo.diagnosisReqStatus
-            )}
+            {formatStatus(petCareVo.diagnosisReqStatus)}
           </StatusBadge>
         </ProfileHeader>
 
         <ProfileGrid>
           <ProfileInfoItem>
-            <InfoLabel>
-              진단 신청 번호
-            </InfoLabel>
+            <InfoLabel>진단 신청 번호</InfoLabel>
+
+            <InfoValue>#{petCareVo.diagnosisReqId ?? "-"}</InfoValue>
+          </ProfileInfoItem>
+
+          <ProfileInfoItem>
+            <InfoLabel>성별</InfoLabel>
+
+            <InfoValue>{formatGender(petCareVo.gender)}</InfoValue>
+          </ProfileInfoItem>
+
+          <ProfileInfoItem>
+            <InfoLabel>나이</InfoLabel>
+
+            <InfoValue>{age !== null ? `${age}살` : "-"}</InfoValue>
+          </ProfileInfoItem>
+
+          <ProfileInfoItem>
+            <InfoLabel>생년월일</InfoLabel>
+
+            <InfoValue>{formatBirthDate(petCareVo.birthDate)}</InfoValue>
+          </ProfileInfoItem>
+
+          <ProfileInfoItem>
+            <InfoLabel>체중</InfoLabel>
 
             <InfoValue>
-              #
-              {petCareVo.diagnosisReqId ??
-                "-"}
+              {petCareVo.weight != null ? `${petCareVo.weight}kg` : "-"}
             </InfoValue>
           </ProfileInfoItem>
 
           <ProfileInfoItem>
-            <InfoLabel>
-              성별
-            </InfoLabel>
+            <InfoLabel>신청일</InfoLabel>
 
-            <InfoValue>
-              {formatGender(
-                petCareVo.gender
-              )}
-            </InfoValue>
-          </ProfileInfoItem>
-
-          <ProfileInfoItem>
-            <InfoLabel>
-              나이
-            </InfoLabel>
-
-            <InfoValue>
-              {age !== null
-                ? `${age}살`
-                : "-"}
-            </InfoValue>
-          </ProfileInfoItem>
-
-          <ProfileInfoItem>
-            <InfoLabel>
-              생년월일
-            </InfoLabel>
-
-            <InfoValue>
-              {formatBirthDate(
-                petCareVo.birthDate
-              )}
-            </InfoValue>
-          </ProfileInfoItem>
-
-          <ProfileInfoItem>
-            <InfoLabel>
-              체중
-            </InfoLabel>
-
-            <InfoValue>
-              {petCareVo.weight != null
-                ? `${petCareVo.weight}kg`
-                : "-"}
-            </InfoValue>
-          </ProfileInfoItem>
-
-          <ProfileInfoItem>
-            <InfoLabel>
-              신청일
-            </InfoLabel>
-
-            <InfoValue>
-              {formatDate(
-                petCareVo.createdAt
-              )}
-            </InfoValue>
+            <InfoValue>{formatDate(petCareVo.createdAt)}</InfoValue>
           </ProfileInfoItem>
         </ProfileGrid>
       </ProfileCard>
@@ -630,34 +505,23 @@ function DiagnosisDetailPage() {
 
       <EvaluationSummary>
         <SummaryTitleArea>
-          <SummaryEyebrow>
-            ASSESSMENT SUMMARY
-          </SummaryEyebrow>
+          <SummaryEyebrow>ASSESSMENT SUMMARY</SummaryEyebrow>
 
-          <SummaryTitle>
-            수의사 평가 현황
-          </SummaryTitle>
+          <SummaryTitle>수의사 평가 현황</SummaryTitle>
 
           <SummaryDescription>
-            카테고리별 평가 점수를 입력하면
-            평균 점수가 자동으로 계산됩니다.
+            카테고리별 평가 점수를 입력하면 평균 점수가 자동으로 계산됩니다.
           </SummaryDescription>
         </SummaryTitleArea>
 
         <AverageScoreBox>
-          <AverageScoreLabel>
-            평균 평가 점수
-          </AverageScoreLabel>
+          <AverageScoreLabel>평균 평가 점수</AverageScoreLabel>
 
           <AverageScoreValue>
-            {averageScore !== null
-              ? averageScore
-              : "-"}
+            {averageScore !== null ? averageScore : "-"}
           </AverageScoreValue>
 
-          <AverageScoreUnit>
-            / 100
-          </AverageScoreUnit>
+          <AverageScoreUnit>/ 100</AverageScoreUnit>
         </AverageScoreBox>
       </EvaluationSummary>
 
@@ -668,229 +532,136 @@ function DiagnosisDetailPage() {
       <Section>
         <SectionHeader>
           <div>
-            <SectionEyebrow>
-              QUESTIONNAIRE REVIEW
-            </SectionEyebrow>
+            <SectionEyebrow>QUESTIONNAIRE REVIEW</SectionEyebrow>
 
-            <SectionTitle>
-              카테고리별 문진 평가
-            </SectionTitle>
+            <SectionTitle>카테고리별 문진 평가</SectionTitle>
 
             <SectionDescription>
-              문진 답변을 검토한 후 각 항목의
-              평가 점수를 입력해 주세요.
+              문진 답변을 검토한 후 각 항목의 평가 점수를 입력해 주세요.
             </SectionDescription>
           </div>
 
-          <CountBadge>
-            총 {answerList.length}개 문항
-          </CountBadge>
+          <CountBadge>총 {answerList.length}개 문항</CountBadge>
         </SectionHeader>
 
         {visibleCategories.length === 0 ? (
-          <EmptyCard>
-            등록된 문진 답변이 없습니다.
-          </EmptyCard>
+          <EmptyCard>등록된 문진 답변이 없습니다.</EmptyCard>
         ) : (
           <CategoryList>
-            {visibleCategories.map(
-              (
-                category,
-                categoryIndex
-              ) => {
-                const meta =
-                  CATEGORY_META[category] ?? {
-                    label: category,
-                    description:
-                      "추가 문진 항목",
-                  };
+            {visibleCategories.map((category, categoryIndex) => {
+              const meta = CATEGORY_META[category] ?? {
+                label: category,
+                description: "추가 문진 항목",
+              };
 
-                const categoryAnswers =
-                  groupedAnswers[category];
+              const categoryAnswers = groupedAnswers[category];
 
-                /* =====================================
+              /* =====================================
                    CONSULT 전용 카드
                    - 점수 없음
                    - 태그형 답변 없음
                 ===================================== */
 
-                if (
-                  category === "CONSULT"
-                ) {
-                  return (
-                    <ConsultCard
-                      key={category}
-                      $index={
-                        categoryIndex
-                      }
-                    >
-                      <ConsultHeader>
-                        <CategoryTitleArea>
-                          <CategoryNumber>
-                            {String(
-                              categoryIndex +
-                                1
-                            ).padStart(
-                              2,
-                              "0"
-                            )}
-                          </CategoryNumber>
-
-                          <div>
-                            <CategoryTitle>
-                              {meta.label}
-                            </CategoryTitle>
-
-                            <CategoryDescription>
-                              {
-                                meta.description
-                              }
-                            </CategoryDescription>
-                          </div>
-                        </CategoryTitleArea>
-
-                        <ConsultBadge>
-                          보호자 작성
-                        </ConsultBadge>
-                      </ConsultHeader>
-
-                      <ConsultBody>
-                        <ConsultLabel>
-                          상담 요청 내용
-                        </ConsultLabel>
-
-                        <ConsultContentList>
-                          {categoryAnswers.map(
-                            (
-                              answer,
-                              index
-                            ) => (
-                              <ConsultContent
-                                key={
-                                  answer.questionId ??
-                                  `${category}-${index}`
-                                }
-                              >
-                                {getAnswerText(
-                                  answer.answerValue
-                                )}
-                              </ConsultContent>
-                            )
-                          )}
-                        </ConsultContentList>
-                      </ConsultBody>
-                    </ConsultCard>
-                  );
-                }
-
-                /* =====================================
-                   일반 평가 카테고리
-                ===================================== */
-
+              if (category === "CONSULT") {
                 return (
-                  <CategoryCard
-                    key={category}
-                    $index={
-                      categoryIndex
-                    }
-                  >
-                    <CategoryHeader>
+                  <ConsultCard key={category} $index={categoryIndex}>
+                    <ConsultHeader>
                       <CategoryTitleArea>
                         <CategoryNumber>
-                          {String(
-                            categoryIndex + 1
-                          ).padStart(
-                            2,
-                            "0"
-                          )}
+                          {String(categoryIndex + 1).padStart(2, "0")}
                         </CategoryNumber>
 
                         <div>
-                          <CategoryTitle>
-                            {meta.label}
-                          </CategoryTitle>
+                          <CategoryTitle>{meta.label}</CategoryTitle>
 
                           <CategoryDescription>
-                            {
-                              meta.description
-                            }
+                            {meta.description}
                           </CategoryDescription>
                         </div>
                       </CategoryTitleArea>
 
-                      <ScoreInputArea>
-                        <ScoreLabel>
-                          평가 점수
-                        </ScoreLabel>
+                      <ConsultBadge>보호자 작성</ConsultBadge>
+                    </ConsultHeader>
 
-                        <ScoreInputRow>
-                          <ScoreInput
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={
-                              categoryScores[
-                                category
-                              ] ?? ""
-                            }
-                            placeholder="0"
-                            onChange={(
-                              e
-                            ) =>
-                              handleScoreChange(
-                                category,
-                                e.target
-                                  .value
-                              )
-                            }
-                          />
+                    <ConsultBody>
+                      <ConsultLabel>상담 요청 내용</ConsultLabel>
 
-                          <ScoreUnit>
-                            / 100
-                          </ScoreUnit>
-                        </ScoreInputRow>
-                      </ScoreInputArea>
-                    </CategoryHeader>
-
-                    <AnswerList>
-                      {categoryAnswers.map(
-                        (
-                          answer,
-                          index
-                        ) => (
-                          <AnswerItem
-                            key={
-                              answer.questionId ??
-                              `${category}-${index}`
-                            }
+                      <ConsultContentList>
+                        {categoryAnswers.map((answer, index) => (
+                          <ConsultContent
+                            key={answer.questionId ?? `${category}-${index}`}
                           >
-                            <QuestionText>
-                              {answer.questionContent ??
-                                "질문 내용 없음"}
-                            </QuestionText>
-
-                            <AnswerValue
-                              $positive={
-                                answer.answerValue ===
-                                "Y"
-                              }
-                              $negative={
-                                answer.answerValue ===
-                                "N"
-                              }
-                            >
-                              {getAnswerText(
-                                answer.answerValue
-                              )}
-                            </AnswerValue>
-                          </AnswerItem>
-                        )
-                      )}
-                    </AnswerList>
-                  </CategoryCard>
+                            {getAnswerText(answer.answerValue)}
+                          </ConsultContent>
+                        ))}
+                      </ConsultContentList>
+                    </ConsultBody>
+                  </ConsultCard>
                 );
               }
-            )}
+
+              /* =====================================
+                   일반 평가 카테고리
+                ===================================== */
+
+              return (
+                <CategoryCard key={category} $index={categoryIndex}>
+                  <CategoryHeader>
+                    <CategoryTitleArea>
+                      <CategoryNumber>
+                        {String(categoryIndex + 1).padStart(2, "0")}
+                      </CategoryNumber>
+
+                      <div>
+                        <CategoryTitle>{meta.label}</CategoryTitle>
+
+                        <CategoryDescription>
+                          {meta.description}
+                        </CategoryDescription>
+                      </div>
+                    </CategoryTitleArea>
+
+                    <ScoreInputArea>
+                      <ScoreLabel>평가 점수</ScoreLabel>
+
+                      <ScoreInputRow>
+                        <ScoreInput
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={categoryScores[category] ?? ""}
+                          placeholder="0"
+                          onChange={(e) =>
+                            handleScoreChange(category, e.target.value)
+                          }
+                        />
+
+                        <ScoreUnit>/ 100</ScoreUnit>
+                      </ScoreInputRow>
+                    </ScoreInputArea>
+                  </CategoryHeader>
+
+                  <AnswerList>
+                    {categoryAnswers.map((answer, index) => (
+                      <AnswerItem
+                        key={answer.questionId ?? `${category}-${index}`}
+                      >
+                        <QuestionText>
+                          {answer.questionContent ?? "질문 내용 없음"}
+                        </QuestionText>
+
+                        <AnswerValue
+                          $positive={answer.answerValue === "Y"}
+                          $negative={answer.answerValue === "N"}
+                        >
+                          {getAnswerText(answer.answerValue)}
+                        </AnswerValue>
+                      </AnswerItem>
+                    ))}
+                  </AnswerList>
+                </CategoryCard>
+              );
+            })}
           </CategoryList>
         )}
       </Section>
@@ -902,110 +673,66 @@ function DiagnosisDetailPage() {
       <Section>
         <SectionHeader>
           <div>
-            <SectionEyebrow>
-              IMAGE REVIEW
-            </SectionEyebrow>
+            <SectionEyebrow>IMAGE REVIEW</SectionEyebrow>
 
-            <SectionTitle>
-              업로드 이미지
-            </SectionTitle>
+            <SectionTitle>업로드 이미지</SectionTitle>
 
             <SectionDescription>
-              눈, 피부, 치아 관련 이미지를
-              확인해 주세요.
+              눈, 피부, 치아 관련 이미지를 확인해 주세요.
             </SectionDescription>
           </div>
 
-          <CountBadge>
-            총 {fileList.length}장
-          </CountBadge>
+          <CountBadge>총 {fileList.length}장</CountBadge>
         </SectionHeader>
 
         {fileList.length === 0 ? (
-          <EmptyCard>
-            업로드된 이미지가 없습니다.
-          </EmptyCard>
+          <EmptyCard>업로드된 이미지가 없습니다.</EmptyCard>
         ) : (
           <ImageCategoryList>
-            {Object.entries(
-              groupedFiles
-            ).map(
-              ([
-                category,
-                files,
-              ]) => (
-                <ImageCategorySection
-                  key={category}
-                >
-                  <ImageCategoryHeader>
-                    <ImageCategoryTitle>
-                      {getImageCategoryLabel(
-                        category
-                      )}
-                    </ImageCategoryTitle>
+            {Object.entries(groupedFiles).map(([category, files]) => (
+              <ImageCategorySection key={category}>
+                <ImageCategoryHeader>
+                  <ImageCategoryTitle>
+                    {getImageCategoryLabel(category)}
+                  </ImageCategoryTitle>
 
-                    <ImageCount>
-                      {files.length}장
-                    </ImageCount>
-                  </ImageCategoryHeader>
+                  <ImageCount>{files.length}장</ImageCount>
+                </ImageCategoryHeader>
 
-                  <ImageGrid>
-                    {files.map(
-                      (
-                        file,
-                        index
-                      ) => {
-                        const imageUrl =
-                          getImageUrl(
-                            file
-                          );
+                <ImageGrid>
+                  {files.map((file, index) => {
+                    const imageUrl = getImageUrl(file);
 
-                        return (
-                          <ImageCard
-                            key={
-                              file.imgId ??
-                              `${category}-${index}`
+                    return (
+                      <ImageCard key={file.imgId ?? `${category}-${index}`}>
+                        {imageUrl ? (
+                          <UploadedImage
+                            src={imageUrl}
+                            alt={file.imageOriginName ?? `${category} 이미지`}
+                          />
+                        ) : (
+                          <ImagePlaceholder>
+                            이미지 미리보기 URL이 없습니다.
+                          </ImagePlaceholder>
+                        )}
+
+                        <ImageInfo>
+                          <ImageFileName
+                            title={
+                              file.imageOriginName || file.imageChangedName
                             }
                           >
-                            {imageUrl ? (
-                              <UploadedImage
-                                src={
-                                  imageUrl
-                                }
-                                alt={
-                                  file.imageOriginName ??
-                                  `${category} 이미지`
-                                }
-                              />
-                            ) : (
-                              <ImagePlaceholder>
-                                이미지
-                                미리보기
-                                URL이
-                                없습니다.
-                              </ImagePlaceholder>
-                            )}
-
-                            <ImageInfo>
-                              <ImageFileName
-                                title={
-                                  file.imageOriginName ||
-                                  file.imageChangedName
-                                }
-                              >
-                                {file.imageOriginName ||
-                                  file.imageChangedName ||
-                                  "파일명 없음"}
-                              </ImageFileName>
-                            </ImageInfo>
-                          </ImageCard>
-                        );
-                      }
-                    )}
-                  </ImageGrid>
-                </ImageCategorySection>
-              )
-            )}
+                            {file.imageOriginName ||
+                              file.imageChangedName ||
+                              "파일명 없음"}
+                          </ImageFileName>
+                        </ImageInfo>
+                      </ImageCard>
+                    );
+                  })}
+                </ImageGrid>
+              </ImageCategorySection>
+            ))}
           </ImageCategoryList>
         )}
       </Section>
@@ -1017,48 +744,49 @@ function DiagnosisDetailPage() {
       <Section>
         <SectionHeader>
           <div>
-            <SectionEyebrow>
-              FINAL COMMENT
-            </SectionEyebrow>
+            <SectionEyebrow>OPINION</SectionEyebrow>
 
-            <SectionTitle>
-              수의사 종합 의견
-            </SectionTitle>
+            <SectionTitle>수의사 종합 의견</SectionTitle>
 
             <SectionDescription>
-              보호자에게 전달할 진단 의견을
-              작성해 주세요.
+              보호자에게 전달할 진단 의견을 작성해 주세요.
             </SectionDescription>
           </div>
         </SectionHeader>
 
         <CommentBox
-          value={doctorComment}
+          value={opinion}
           placeholder="반려동물의 상태에 대한 종합 의견을 입력해 주세요."
-          onChange={(e) =>
-            setDoctorComment(
-              e.target.value
-            )
-          }
+          onChange={(e) => setOpinion(e.target.value)}
+        />
+      </Section>
+
+      <Section>
+        <SectionHeader>
+          <div>
+            <SectionEyebrow>SUMMARY</SectionEyebrow>
+
+            <SectionTitle>진단 요약</SectionTitle>
+
+            <SectionDescription>
+              진단 내용의 요약을 입력해 주세요
+            </SectionDescription>
+          </div>
+        </SectionHeader>
+
+        <CommentBox
+          value={summary}
+          placeholder="간단하게 반려동물의 상태를 설명해주세요."
+          onChange={(e) => setSummary(e.target.value)}
         />
       </Section>
 
       <ActionArea>
-        <SecondaryButton
-          type="button"
-          onClick={() =>
-            navigate(-1)
-          }
-        >
+        <SecondaryButton type="button" onClick={() => navigate(-1)}>
           목록으로
         </SecondaryButton>
 
-        <PrimaryButton
-          type="button"
-          onClick={
-            handleSaveEvaluation
-          }
-        >
+        <PrimaryButton type="button" onClick={handleSaveEvaluation}>
           평가 저장
         </PrimaryButton>
       </ActionArea>
@@ -1095,10 +823,7 @@ const spin = keyframes`
 ===================================== */
 
 const Wrapper = styled.main`
-  width: min(
-    1180px,
-    calc(100% - 48px)
-  );
+  width: min(1180px, calc(100% - 48px));
 
   margin: 0 auto;
   padding: 52px 0 90px;
@@ -1153,8 +878,7 @@ const BackButton = styled.button`
 
   padding: 10px 15px;
 
-  border: 1px solid
-    rgba(0, 169, 123, 0.22);
+  border: 1px solid rgba(0, 169, 123, 0.22);
 
   border-radius: 9px;
 
@@ -1183,22 +907,15 @@ const BackButton = styled.button`
 const ProfileCard = styled.section`
   padding: 23px 25px;
 
-  border: 1px solid
-    rgba(0, 169, 123, 0.18);
+  border: 1px solid rgba(0, 169, 123, 0.18);
 
   border-radius: 16px;
 
   background: #ffffff;
 
-  box-shadow:
-    0 7px 22px
-    rgba(20, 72, 58, 0.05);
+  box-shadow: 0 7px 22px rgba(20, 72, 58, 0.05);
 
-  animation:
-    ${fadeUp}
-    0.4s
-    ease-out
-    both;
+  animation: ${fadeUp} 0.4s ease-out both;
 `;
 
 const ProfileHeader = styled.header`
@@ -1211,8 +928,7 @@ const ProfileHeader = styled.header`
 
   padding-bottom: 17px;
 
-  border-bottom: 1px solid
-    #e8efed;
+  border-bottom: 1px solid #e8efed;
 `;
 
 const ProfileTitleArea = styled.div`
@@ -1257,8 +973,7 @@ const Divider = styled.span`
 const ProfileGrid = styled.div`
   display: grid;
 
-  grid-template-columns:
-    repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
 
   margin-top: 18px;
 
@@ -1268,16 +983,14 @@ const ProfileGrid = styled.div`
   overflow: hidden;
 
   @media (max-width: 900px) {
-    grid-template-columns:
-      repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 `;
 
 const ProfileInfoItem = styled.div`
   padding: 13px 14px;
 
-  border-right:
-    1px solid #e4ece9;
+  border-right: 1px solid #e4ece9;
 
   background: #fbfdfc;
 
@@ -1315,23 +1028,14 @@ const StatusBadge = styled.span`
 
   border: 1px solid
     ${({ $active }) =>
-      $active
-        ? "rgba(0, 169, 123, 0.22)"
-        : "rgba(108, 123, 118, 0.17)"};
+      $active ? "rgba(0, 169, 123, 0.22)" : "rgba(108, 123, 118, 0.17)"};
 
   border-radius: 999px;
 
-  background:
-    ${({ $active }) =>
-      $active
-        ? "rgba(0, 169, 123, 0.08)"
-        : "#f4f6f5"};
+  background: ${({ $active }) =>
+    $active ? "rgba(0, 169, 123, 0.08)" : "#f4f6f5"};
 
-  color:
-    ${({ $active }) =>
-      $active
-        ? "#008f69"
-        : "#7c8985"};
+  color: ${({ $active }) => ($active ? "#008f69" : "#7c8985")};
 
   font-size: 12px;
   font-weight: 800;
@@ -1343,11 +1047,7 @@ const StatusDot = styled.span`
 
   border-radius: 50%;
 
-  background:
-    ${({ $active }) =>
-      $active
-        ? "#00a97b"
-        : "#aeb8b5"};
+  background: ${({ $active }) => ($active ? "#00a97b" : "#aeb8b5")};
 `;
 
 /* =====================================
@@ -1365,8 +1065,7 @@ const EvaluationSummary = styled.section`
   margin-top: 22px;
   padding: 18px 22px;
 
-  border: 1px solid
-    rgba(0, 169, 123, 0.2);
+  border: 1px solid rgba(0, 169, 123, 0.2);
 
   border-radius: 14px;
 
@@ -1491,13 +1190,11 @@ const CountBadge = styled.span`
 
   padding: 7px 11px;
 
-  border: 1px solid
-    rgba(0, 169, 123, 0.15);
+  border: 1px solid rgba(0, 169, 123, 0.15);
 
   border-radius: 999px;
 
-  background:
-    rgba(0, 169, 123, 0.05);
+  background: rgba(0, 169, 123, 0.05);
 
   color: #008f69;
 
@@ -1526,17 +1223,9 @@ const CategoryCard = styled.article`
 
   background: #ffffff;
 
-  box-shadow:
-    0 4px 15px
-    rgba(25, 76, 63, 0.035);
+  box-shadow: 0 4px 15px rgba(25, 76, 63, 0.035);
 
-  animation:
-    ${fadeUp}
-    0.38s
-    ease-out
-    ${({ $index }) =>
-      $index * 0.05}s
-    both;
+  animation: ${fadeUp} 0.38s ease-out ${({ $index }) => $index * 0.05}s both;
 `;
 
 const CategoryHeader = styled.header`
@@ -1549,8 +1238,7 @@ const CategoryHeader = styled.header`
 
   padding: 14px 16px;
 
-  border-bottom:
-    1px solid #e8efed;
+  border-bottom: 1px solid #e8efed;
 
   background: #f8fcfa;
 `;
@@ -1574,8 +1262,7 @@ const CategoryNumber = styled.span`
 
   border-radius: 9px;
 
-  background:
-    rgba(0, 169, 123, 0.1);
+  background: rgba(0, 169, 123, 0.1);
 
   color: #008f69;
 
@@ -1648,9 +1335,7 @@ const ScoreInput = styled.input`
   &:focus {
     border-color: #00a97b;
 
-    box-shadow:
-      0 0 0 3px
-      rgba(0, 169, 123, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 169, 123, 0.1);
   }
 `;
 
@@ -1668,8 +1353,7 @@ const AnswerList = styled.div`
 const AnswerItem = styled.div`
   display: grid;
 
-  grid-template-columns:
-    minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
 
   align-items: center;
 
@@ -1677,8 +1361,7 @@ const AnswerItem = styled.div`
 
   padding: 11px 0;
 
-  border-bottom:
-    1px solid #eef2f1;
+  border-bottom: 1px solid #eef2f1;
 
   &:last-child {
     border-bottom: none;
@@ -1703,31 +1386,29 @@ const AnswerValue = styled.span`
 
   border-radius: 999px;
 
-  background:
-    ${({ $positive, $negative }) => {
-      if ($positive) {
-        return "rgba(0, 169, 123, 0.09)";
-      }
+  background: ${({ $positive, $negative }) => {
+    if ($positive) {
+      return "rgba(0, 169, 123, 0.09)";
+    }
 
-      if ($negative) {
-        return "#f3f5f4";
-      }
+    if ($negative) {
+      return "#f3f5f4";
+    }
 
-      return "rgba(0, 169, 123, 0.055)";
-    }};
+    return "rgba(0, 169, 123, 0.055)";
+  }};
 
-  color:
-    ${({ $positive, $negative }) => {
-      if ($positive) {
-        return "#008f69";
-      }
+  color: ${({ $positive, $negative }) => {
+    if ($positive) {
+      return "#008f69";
+    }
 
-      if ($negative) {
-        return "#89938f";
-      }
+    if ($negative) {
+      return "#89938f";
+    }
 
-      return "#58746c";
-    }};
+    return "#58746c";
+  }};
 
   font-size: 12px;
   font-weight: 800;
@@ -1748,17 +1429,9 @@ const ConsultCard = styled.article`
 
   background: #ffffff;
 
-  box-shadow:
-    0 4px 15px
-    rgba(25, 76, 63, 0.035);
+  box-shadow: 0 4px 15px rgba(25, 76, 63, 0.035);
 
-  animation:
-    ${fadeUp}
-    0.38s
-    ease-out
-    ${({ $index }) =>
-      $index * 0.05}s
-    both;
+  animation: ${fadeUp} 0.38s ease-out ${({ $index }) => $index * 0.05}s both;
 `;
 
 const ConsultHeader = styled.header`
@@ -1771,8 +1444,7 @@ const ConsultHeader = styled.header`
 
   padding: 14px 16px;
 
-  border-bottom:
-    1px solid #e8efed;
+  border-bottom: 1px solid #e8efed;
 
   background: #f4faf8;
 `;
@@ -1782,13 +1454,11 @@ const ConsultBadge = styled.span`
 
   padding: 6px 10px;
 
-  border: 1px solid
-    rgba(0, 169, 123, 0.17);
+  border: 1px solid rgba(0, 169, 123, 0.17);
 
   border-radius: 999px;
 
-  background:
-    rgba(0, 169, 123, 0.07);
+  background: rgba(0, 169, 123, 0.07);
 
   color: #008f69;
 
@@ -1885,8 +1555,7 @@ const ImageCount = styled.span`
 
   border-radius: 999px;
 
-  background:
-    rgba(0, 169, 123, 0.08);
+  background: rgba(0, 169, 123, 0.08);
 
   color: #008f69;
 
@@ -1897,11 +1566,7 @@ const ImageCount = styled.span`
 const ImageGrid = styled.div`
   display: grid;
 
-  grid-template-columns:
-    repeat(
-      auto-fill,
-      minmax(170px, 1fr)
-    );
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
 
   gap: 12px;
 `;
@@ -1990,9 +1655,7 @@ const CommentBox = styled.textarea`
   &:focus {
     border-color: #00a97b;
 
-    box-shadow:
-      0 0 0 3px
-      rgba(0, 169, 123, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 169, 123, 0.1);
   }
 `;
 
@@ -2079,18 +1742,13 @@ const LoadingSpinner = styled.div`
   width: 29px;
   height: 29px;
 
-  border: 3px solid
-    rgba(0, 169, 123, 0.15);
+  border: 3px solid rgba(0, 169, 123, 0.15);
 
   border-top-color: #00a97b;
 
   border-radius: 50%;
 
-  animation:
-    ${spin}
-    0.8s
-    linear
-    infinite;
+  animation: ${spin} 0.8s linear infinite;
 `;
 
 const LoadingText = styled.p`

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 export default function PetStoreProductImageSection({
   mode,
@@ -7,10 +7,11 @@ export default function PetStoreProductImageSection({
   setMainImage,
   subImages,
   setSubImages,
+  mainImagePreview,
+  setMainImagePreview,
+  subImagePreviews,
+  setSubImagePreviews,
 }) {
-  const [mainImagePreview, setMainImagePreview] = useState("");
-  const [subImagePreviews, setSubImagePreviews] = useState([]);
-
   const currentImageList = useMemo(() => {
     return (
       detailData?.imageList ||
@@ -53,24 +54,63 @@ export default function PetStoreProductImageSection({
     setMainImagePreview(URL.createObjectURL(file));
   }
 
-  function handleSubImagesChange(evt) {
-    const files = Array.from(evt.target.files ?? []);
+  function handleSubImageChange(evt, index) {
+    const file = evt.target.files?.[0];
 
-    setSubImages(files);
-    setSubImagePreviews(files.map((file) => URL.createObjectURL(file)));
+    if (!file) {
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+
+    setSubImages((prev) => {
+      const next = [...prev];
+      next[index] = file;
+      return next;
+    });
+
+    setSubImagePreviews((prev) => {
+      const next = [...prev];
+
+      if (next[index]) {
+        URL.revokeObjectURL(next[index]);
+      }
+
+      next[index] = previewUrl;
+      return next;
+    });
+  }
+
+  function handleRemoveSubImage(index) {
+    setSubImages((prev) => {
+      const next = [...prev];
+      next[index] = null;
+      return next;
+    });
+
+    setSubImagePreviews((prev) => {
+      const next = [...prev];
+
+      if (next[index]) {
+        URL.revokeObjectURL(next[index]);
+      }
+
+      next[index] = "";
+      return next;
+    });
   }
 
   return (
     <section className="product-form-section">
-      <h3>상품 이미지</h3>
+      <h3>2. 이미지</h3>
 
       {mode === "update" && currentImageList.length > 0 && (
-        <div className="product-form-image-current-area">
-          <p className="product-form-image-title">현재 등록된 이미지</p>
+        <div className="current-image-area">
+          <p>현재 등록된 이미지</p>
 
-          <div className="product-form-image-preview-list">
+          <div className="current-image-list">
             {currentMainImage && (
-              <div className="product-form-image-preview-card">
+              <div className="current-image-card">
                 <img
                   src={
                     currentMainImage.imageUrl ||
@@ -79,13 +119,13 @@ export default function PetStoreProductImageSection({
                   }
                   alt="현재 대표 이미지"
                 />
-                <span>현재 대표</span>
+                <span>대표</span>
               </div>
             )}
 
             {currentSubImages.map((image) => (
               <div
-                className="product-form-image-preview-card"
+                className="current-image-card"
                 key={
                   image.imageId ||
                   image.productImageId ||
@@ -98,62 +138,82 @@ export default function PetStoreProductImageSection({
                     image.thumbnailUrl ||
                     image.imageChangedName
                   }
-                  alt="현재 상세 이미지"
+                  alt="현재 추가 이미지"
                 />
-                <span>현재 상세</span>
+                <span>추가</span>
               </div>
             ))}
           </div>
-
-          <p className="product-form-image-help">
-            새 이미지를 선택하지 않으면 기존 이미지가 유지됩니다.
-          </p>
         </div>
       )}
 
-      <div className="product-form-row">
-        <label>대표 이미지</label>
+      <div className="image-upload-layout">
+        <label className="image-upload-main">
+          <span>대표이미지 *</span>
 
-        <input type="file" accept="image/*" onChange={handleMainImageChange} />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleMainImageChange}
+          />
 
-        {mainImage && (
-          <p className="product-form-file-name">{mainImage.name}</p>
-        )}
-
-        {mainImagePreview && (
-          <div className="product-form-image-preview-card">
-            <img src={mainImagePreview} alt="새 대표 이미지 미리보기" />
-            <span>새 대표</span>
+          <div className="upload-box upload-box-main">
+            {mainImagePreview ? (
+              <img src={mainImagePreview} alt="대표 이미지 미리보기" />
+            ) : (
+              <>
+                <strong>↥</strong>
+                <p>이미지 파일을 업로드하세요.</p>
+              </>
+            )}
           </div>
-        )}
-      </div>
 
-      <div className="product-form-row">
-        <label>상세 이미지</label>
+          {mainImage && <em>{mainImage.name}</em>}
+        </label>
 
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleSubImagesChange}
-        />
+        <div className="image-upload-sub-area">
+          <span>
+            추가 이미지 <small>최대 3개</small>
+          </span>
 
-        {subImages.length > 0 && (
-          <p className="product-form-file-name">
-            {subImages.length}개 파일 선택됨
-          </p>
-        )}
+          <div className="image-upload-sub-list">
+            {[0, 1, 2].map((index) => (
+              <div className="image-upload-sub-slot" key={index}>
+                <label className="image-upload-sub">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(evt) => handleSubImageChange(evt, index)}
+                  />
 
-        {subImagePreviews.length > 0 && (
-          <div className="product-form-image-preview-list">
-            {subImagePreviews.map((previewUrl, index) => (
-              <div className="product-form-image-preview-card" key={previewUrl}>
-                <img src={previewUrl} alt={`새 상세 이미지 ${index + 1}`} />
-                <span>새 상세 {index + 1}</span>
+                  <div className="upload-box">
+                    {subImagePreviews[index] ? (
+                      <img
+                        src={subImagePreviews[index]}
+                        alt={`추가 이미지 ${index + 1}`}
+                      />
+                    ) : (
+                      <>
+                        <strong>+</strong>
+                        <p>추가 이미지</p>
+                      </>
+                    )}
+                  </div>
+                </label>
+
+                {subImagePreviews[index] && (
+                  <button
+                    type="button"
+                    className="sub-image-remove-button"
+                    onClick={() => handleRemoveSubImage(index)}
+                  >
+                    삭제
+                  </button>
+                )}
               </div>
             ))}
           </div>
-        )}
+        </div>
       </div>
     </section>
   );

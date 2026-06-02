@@ -9,4 +9,5 @@ import java.util.List;
 public interface PetRepository extends JpaRepository<PetEntity, Long> {
     List<PetEntity> findAllByMember_IdAndDelYn(Long memberId, DelYn delYn);
     List<PetEntity> findAllByMember_Id(Long memberId);
+
 }

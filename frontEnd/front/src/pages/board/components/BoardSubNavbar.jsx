@@ -1,3 +1,4 @@
+import ReactDOM from "react-dom";
 import styled from "styled-components";
 
 export default function BoardSubNavbar({ activeTab, onTabChange }) {
@@ -10,7 +11,7 @@ export default function BoardSubNavbar({ activeTab, onTabChange }) {
     { key: "NEWS", label: "뉴스게시판" },
   ];
 
-  return (
+  const content = (
     <SubNavbar>
       <SubNavInner>
         {menuItems.map((item) => (
@@ -27,6 +28,13 @@ export default function BoardSubNavbar({ activeTab, onTabChange }) {
       </SubNavInner>
     </SubNavbar>
   );
+
+  const portalRoot = document.getElementById("board-subnavbar-portal");
+  if (portalRoot) {
+    return ReactDOM.createPortal(content, portalRoot);
+  }
+
+  return content;
 }
 
 const SubNavbar = styled.div`
@@ -44,12 +52,13 @@ const SubNavbar = styled.div`
 `;
 
 const SubNavInner = styled.div`
-  width: 1400px;
+  width: var(--layout-width);
+  max-width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   gap: 32px;
-  padding: 0 20px;
+  padding: 0 var(--layout-padding-x);
 `;
 
 const SubNavItem = styled.button`

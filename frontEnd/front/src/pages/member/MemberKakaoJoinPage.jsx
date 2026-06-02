@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import useMemberKakaoJoinForm from "../../features/member/hooks/useMemberKakaoJoinForm";
@@ -6,7 +6,7 @@ import useMemberKakaoJoinForm from "../../features/member/hooks/useMemberKakaoJo
 import "./MemberJoinPage.css";
 
 import logo from "../../assets/images/login_logo2.png";
-
+import AddressSearchModal from "../../shared/components/AddressSearchModal";
 export default function MemberKakaoJoinPage() {
   const location = useLocation();
 
@@ -14,13 +14,14 @@ export default function MemberKakaoJoinPage() {
 
   const marketingAgreeYn = location.state?.marketingAgreeYn || "N";
   const navigate = useNavigate();
-
+  const [isAddressModalOpen, setAddressModalOpen] = useState(false);
   const {
     formData,
     handleChange,
     handleSubmit,
     handleCheckNickname,
     nicknameMessage,
+    phoneMessage,
     isSuccess,
   } = useMemberKakaoJoinForm(socialId, marketingAgreeYn);
 
@@ -90,7 +91,7 @@ export default function MemberKakaoJoinPage() {
             <div className="with-btn">
               <input
                 type="text"
-                placeholder="- 없이 숫자만 입력해주세요"
+                placeholder="전화번호"
                 name="phone"
                 onChange={handleChange}
                 value={formData.phone}
@@ -98,6 +99,8 @@ export default function MemberKakaoJoinPage() {
 
               <button type="button">인증</button>
             </div>
+
+            <p className="form-message">{phoneMessage}</p>
           </div>
 
           {/* 이메일 */}
@@ -126,9 +129,12 @@ export default function MemberKakaoJoinPage() {
                 name="address"
                 onChange={handleChange}
                 value={formData.address}
+                readOnly
               />
 
-              <button type="button">주소 검색</button>
+              <button type="button" onClick={() => setAddressModalOpen(true)}>
+                주소검색
+              </button>
             </div>
           </div>
 
@@ -165,6 +171,26 @@ export default function MemberKakaoJoinPage() {
           </button>
         </form>
       </section>
+      {isAddressModalOpen && (
+        <AddressSearchModal
+          onClose={() => setAddressModalOpen(false)}
+          onComplete={({ address, zipCode }) => {
+            handleChange({
+              target: {
+                name: "address",
+                value: address,
+              },
+            });
+
+            handleChange({
+              target: {
+                name: "zipCode",
+                value: zipCode,
+              },
+            });
+          }}
+        />
+      )}
     </main>
   );
 }

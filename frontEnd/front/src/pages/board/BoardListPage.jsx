@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import useBoardList from "../../features/board/hooks/useBoardList";
 import NewsBoardList from "./components/NewsBoardList";
@@ -18,12 +18,12 @@ export default function BoardListPage() {
     FREE: {
       title: "자유게시판",
       subtitle: "반려동물에 대한 자유로운 이야기와 정보를 나눠보세요.",
-      subCategories: ["ALL", "TALK", "INFORMATION", "JOKE"],
+      subCategories: ["ALL", "잡담", "정보", "유머"],
       subCategoryLabels: {
         ALL: "전체",
-        TALK: "잡담",
-        INFORMATION: "정보",
-        JOKE: "유머",
+        잡담: "잡담",
+        정보: "정보",
+        유머: "유머",
       },
     },
     PRODUCT_REVIEW: {
@@ -53,7 +53,8 @@ export default function BoardListPage() {
     },
   };
 
-  const [activeTab, setActiveTab] = useState("FREE");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("category") || "FREE";
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchType, setSearchType] = useState("title");
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -98,10 +99,14 @@ export default function BoardListPage() {
 
   // 카테고리 탭 스위칭 핸들러
   const handleTabChange = (tabKey) => {
-    setActiveTab(tabKey);
-    setSubCategory("ALL");
-    setSearchKeyword("");
-    setCurrentPage(0);
+    if (tabKey === "HOME") {
+      navigate("/community");
+    } else {
+      setSearchParams({ category: tabKey });
+      setSubCategory("ALL");
+      setSearchKeyword("");
+      setCurrentPage(0);
+    }
   };
 
   // 말머리 서브 카테고리 선택 핸들러
@@ -131,7 +136,7 @@ export default function BoardListPage() {
 
   return (
     <Container>
-      <BoardSubNavbar activeTab={activeTab} onTabChange={handleTabChange} />
+      <div id="board-subnavbar-portal" style={{ width: "100%" }} />
 
       {/* 2단 레이아웃 콘텐츠 */}
       <LayoutWrapper>
@@ -225,6 +230,8 @@ export default function BoardListPage() {
             <FreeBoardList
               list={list}
               isLoading={isLoading}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
               // 자유게시판 클릭 시 상세조회 경로로 이동 (라우터 규칙 매칭)
               onItemClick={(item) =>
                 navigate(`/community/detail/${item.boardId}`)
@@ -237,6 +244,8 @@ export default function BoardListPage() {
               category={activeTab}
               list={list}
               isLoading={isLoading}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
               // 상품/시설 후기게시판 클릭 시 상세조회 경로로 이동
               onItemClick={(item) =>
                 navigate(`/community/detail/${item.boardId}`)
@@ -248,6 +257,8 @@ export default function BoardListPage() {
             <FAQBoardList
               list={list}
               isLoading={isLoading}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
               // FAQ는 아코디언 컴포넌트 내부 자체 토글 제어이므로 onItemClick 함수를 비워두거나 넘기지 않아도 무방합니다.
               onItemClick={null}
             />
@@ -257,6 +268,8 @@ export default function BoardListPage() {
             <NewsBoardList
               list={list}
               isLoading={isLoading}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
               // 뉴스게시판 클릭 시 상세조회 경로로 이동
               onItemClick={(item) =>
                 navigate(`/community/detail/${item.boardId}`)
@@ -407,11 +420,12 @@ const SubNavItem = styled.button`
 
 // 메인 2단 레이아웃 콘텐츠 영역
 const LayoutWrapper = styled.div`
-  width: 1400px;
+  width: var(--layout-width);
+  max-width: 100%;
   margin: 40px auto 80px auto;
   display: flex;
   gap: 30px;
-  padding: 0 20px;
+  padding: 0 var(--layout-padding-x);
   align-items: flex-start;
 `;
 
@@ -636,7 +650,7 @@ const PageNumberButton = styled.button`
     ${(props) => (props.$active ? "var(--color-main)" : "#dee2e6")};
   background-color: ${(props) =>
     props.active ? "var(--color-main)" : "#ffffff"};
-  color: ${(props) => (props.$active ? "#ffffff" : "#555555")};
+  color: ${(props) => (props.$active ? "#000000" : "#555555")};
   font-weight: ${(props) => (props.$active ? "700" : "500")};
   font-size: 13px;
   display: flex;
