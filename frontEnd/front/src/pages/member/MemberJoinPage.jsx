@@ -1,14 +1,15 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useMemberJoinForm from "../../features/member/hooks/useMemberJoinForm";
 
 import "./MemberJoinPage.css";
 import logo from "../../assets/images/login_logo2.png";
+import AddressSearchModal from "../../shared/components/AddressSearchModal";
 
 export default function MemberJoinPage() {
   const navigate = useNavigate();
   const location = useLocation();
-
+  const [isAddressModalOpen, setAddressModalOpen] = useState(false);
   const marketingAgreeYn = location.state?.marketingAgreeYn || "N";
 
   const {
@@ -151,9 +152,12 @@ export default function MemberJoinPage() {
                 name="address"
                 onChange={handleChange}
                 value={formData.address}
+                readOnly
               />
 
-              <button type="button">주소 검색</button>
+              <button type="button" onClick={() => setAddressModalOpen(true)}>
+                주소검색
+              </button>
             </div>
           </div>
 
@@ -174,6 +178,26 @@ export default function MemberJoinPage() {
           </button>
         </form>
       </section>
+      {isAddressModalOpen && (
+        <AddressSearchModal
+          onClose={() => setAddressModalOpen(false)}
+          onComplete={({ address, zipCode }) => {
+            handleChange({
+              target: {
+                name: "address",
+                value: address,
+              },
+            });
+
+            handleChange({
+              target: {
+                name: "zipCode",
+                value: zipCode,
+              },
+            });
+          }}
+        />
+      )}
     </main>
   );
 }

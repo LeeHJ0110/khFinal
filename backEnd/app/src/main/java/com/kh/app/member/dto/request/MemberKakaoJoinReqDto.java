@@ -19,4 +19,5 @@ public class MemberKakaoJoinReqDto {
     private String addressDetail;
 
     private String memberMarketingAgreeYn;
+    private String zipCode;
 }

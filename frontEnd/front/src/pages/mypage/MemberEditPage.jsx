@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import MyPageLayout from "./components/MyPageLayout";
 import useMypageMember from "../../features/mypage/member/hooks/useMypageMember";
-
+import AddressSearchModal from "../../shared/components/AddressSearchModal";
 export default function MemberEditPage() {
   const { member, loading, handleNicknameCheck, handleUpdateMyInfo } =
     useMypageMember();
@@ -17,6 +17,7 @@ export default function MemberEditPage() {
 
   const [isNicknameChecked, setNicknameChecked] = useState(false);
   const [checkedNickname, setCheckedNickname] = useState("");
+  const [isAddressModalOpen, setAddressModalOpen] = useState(false);
 
   useEffect(() => {
     if (!member) {
@@ -144,7 +145,7 @@ export default function MemberEditPage() {
 
             <SmallButton
               type="button"
-              onClick={() => alert("주소검색 기능은 추후 연결 예정입니다.")}
+              onClick={() => setAddressModalOpen(true)}
             >
               주소검색
             </SmallButton>
@@ -168,6 +169,17 @@ export default function MemberEditPage() {
           </SubmitButton>
         </ButtonArea>
       </FormCard>
+      {isAddressModalOpen && (
+        <AddressSearchModal
+          onClose={() => setAddressModalOpen(false)}
+          onComplete={({ address }) => {
+            setFormData((prev) => ({
+              ...prev,
+              address,
+            }));
+          }}
+        />
+      )}
     </MyPageLayout>
   );
 }

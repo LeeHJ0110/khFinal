@@ -2,7 +2,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import MyPageLayout from "./components/MyPageLayout";
 import useDeliveryAddress from "../../features/mypage/delivery/hooks/useDeliveryAddress";
-
+import AddressSearchModal from "../../shared/components/AddressSearchModal";
 const emptyForm = {
   name: "",
   receiverName: "",
@@ -25,7 +25,7 @@ export default function DeliveryManagePage() {
   const [openedId, setOpenedId] = useState(null);
   const [isCreateMode, setCreateMode] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
-
+  const [isAddressModalOpen, setAddressModalOpen] = useState(false);
   function handleChange(evt) {
     const { name, value } = evt.target;
 
@@ -199,12 +199,11 @@ export default function DeliveryManagePage() {
                           name="zipCode"
                           value={formData.zipCode}
                           onChange={handleChange}
+                          readOnly
                         />
                         <SmallButton
                           type="button"
-                          onClick={() =>
-                            alert("주소검색 기능은 추후 연결 예정입니다.")
-                          }
+                          onClick={() => setAddressModalOpen(true)}
                         >
                           주소검색
                         </SmallButton>
@@ -217,6 +216,7 @@ export default function DeliveryManagePage() {
                         name="address"
                         value={formData.address}
                         onChange={handleChange}
+                        readOnly
                       />
                     </FormRow>
 
@@ -294,12 +294,11 @@ export default function DeliveryManagePage() {
                       name="zipCode"
                       value={formData.zipCode}
                       onChange={handleChange}
+                      readOnly
                     />
                     <SmallButton
                       type="button"
-                      onClick={() =>
-                        alert("주소검색 기능은 추후 연결 예정입니다.")
-                      }
+                      onClick={() => setAddressModalOpen(true)}
                     >
                       주소검색
                     </SmallButton>
@@ -312,6 +311,7 @@ export default function DeliveryManagePage() {
                     name="address"
                     value={formData.address}
                     onChange={handleChange}
+                    readOnly
                   />
                 </FormRow>
 
@@ -342,6 +342,18 @@ export default function DeliveryManagePage() {
           </>
         )}
       </DeliveryBox>
+      {isAddressModalOpen && (
+        <AddressSearchModal
+          onClose={() => setAddressModalOpen(false)}
+          onComplete={({ address, zipCode }) => {
+            setFormData((prev) => ({
+              ...prev,
+              address,
+              zipCode,
+            }));
+          }}
+        />
+      )}
     </MyPageLayout>
   );
 }
