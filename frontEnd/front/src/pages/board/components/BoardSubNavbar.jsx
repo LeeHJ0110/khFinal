@@ -52,13 +52,12 @@ const SubNavbar = styled.div`
 `;
 
 const SubNavInner = styled.div`
-  width: var(--layout-width);
-  max-width: 100%;
+  width: 1400px;
   height: 100%;
   display: flex;
   align-items: center;
   gap: 32px;
-  padding: 0 var(--layout-padding-x);
+  padding: 0 20px;
 `;
 
 const SubNavItem = styled.button`
