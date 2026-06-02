@@ -35,9 +35,13 @@ export default function DiagnosisManagePage() {
     });
   }
 
-  // 화면상 순번 계산
+  /*
+   * 화면상 순번 계산
+   * 백엔드에서 오래된 신청부터 조회하므로
+   * 첫 페이지는 1~10번, 두 번째 페이지는 11~20번으로 표시
+   */
   function getRowNumber(idx) {
-    return totalElements - currentPage * 10 - idx;
+    return currentPage * 10 + idx + 1;
   }
 
   // 상태 문구 변환
@@ -51,6 +55,19 @@ export default function DiagnosisManagePage() {
     }
 
     return "상태 확인 필요";
+  }
+
+  // 펫 종류 문구 변환
+  function formatPetType(petType) {
+    if (petType === "D" || petType === "DOG") {
+      return "강아지";
+    }
+
+    if (petType === "C" || petType === "CAT") {
+      return "고양이";
+    }
+
+    return "-";
   }
 
   return (
@@ -83,6 +100,8 @@ export default function DiagnosisManagePage() {
             <thead>
               <tr>
                 <th>번호</th>
+                <th>신청자</th>
+                <th>펫 종류</th>
                 <th>진행 상태</th>
                 <th>신청일</th>
                 <th>상세보기</th>
@@ -92,7 +111,7 @@ export default function DiagnosisManagePage() {
             <tbody>
               {list.length === 0 ? (
                 <tr>
-                  <EmptyCell colSpan={4}>
+                  <EmptyCell colSpan={6}>
                     <EmptyIcon>♡</EmptyIcon>
 
                     <EmptyTitle>등록된 건강진단 신청이 없습니다.</EmptyTitle>
@@ -111,6 +130,10 @@ export default function DiagnosisManagePage() {
                     }
                   >
                     <NumberCell>{getRowNumber(idx)}</NumberCell>
+
+                    <td>{item.memberNickname ?? "-"}</td>
+
+                    <td>{formatPetType(item.petType)}</td>
 
                     <td>
                       <StatusBadge $active={item.diagnosisReqStatus === "Y"}>
@@ -247,11 +270,9 @@ const TotalCount = styled.div`
   padding: 9px 15px;
 
   border: 1px solid rgba(0, 169, 123, 0.18);
-
   border-radius: 999px;
 
   background: rgba(0, 169, 123, 0.06);
-
   color: #62706c;
 
   font-size: 13px;
@@ -269,9 +290,9 @@ const TotalCount = styled.div`
 ===================================== */
 
 const TableCard = styled.section`
-  overflow: hidden;
-
   min-height: 330px;
+
+  overflow: hidden;
 
   border: 1px solid #e2ece8;
   border-radius: 16px;
@@ -294,7 +315,6 @@ const Table = styled.table`
     border-bottom: 1px solid #e5eeeb;
 
     background: #f7fbf9;
-
     color: #687571;
 
     font-size: 13px;
@@ -316,19 +336,27 @@ const Table = styled.table`
   }
 
   th:nth-child(1) {
-    width: 16%;
+    width: 8%;
   }
 
   th:nth-child(2) {
-    width: 32%;
+    width: 20%;
   }
 
   th:nth-child(3) {
-    width: 32%;
+    width: 16%;
   }
 
   th:nth-child(4) {
     width: 20%;
+  }
+
+  th:nth-child(5) {
+    width: 20%;
+  }
+
+  th:nth-child(6) {
+    width: 16%;
   }
 
   tbody tr:last-child td {
@@ -339,9 +367,7 @@ const Table = styled.table`
 const TableRow = styled.tr`
   cursor: pointer;
 
-  transition:
-    background-color 0.18s ease,
-    transform 0.18s ease;
+  transition: background-color 0.18s ease;
 
   &:hover {
     background: #f8fffc;
@@ -365,13 +391,11 @@ const DateCell = styled.td`
 ===================================== */
 
 const StatusBadge = styled.span`
-  display: inline-flex;
-
   min-width: 106px;
 
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-
   gap: 7px;
 
   padding: 7px 11px;
@@ -406,16 +430,13 @@ const StatusDot = styled.span`
 
 const DetailButton = styled.button`
   display: inline-flex;
-
   align-items: center;
   justify-content: center;
-
   gap: 6px;
 
   padding: 8px 12px;
 
   border: 1px solid rgba(0, 169, 123, 0.2);
-
   border-radius: 8px;
 
   background: #ffffff;
@@ -434,7 +455,6 @@ const DetailButton = styled.button`
 
   span {
     font-size: 17px;
-
     line-height: 1;
 
     transition: transform 0.18s ease;
@@ -463,7 +483,6 @@ const EmptyCell = styled.td`
 
   text-align: center !important;
 `;
-import PetCareNav from "./../../features/petcare/components/petcarehome/PetCareNav";
 
 const EmptyIcon = styled.div`
   margin-bottom: 10px;
@@ -496,15 +515,12 @@ const EmptyDescription = styled.p`
 ===================================== */
 
 const LoadingArea = styled.div`
-  display: flex;
-
   min-height: 330px;
 
+  display: flex;
   flex-direction: column;
-
   align-items: center;
   justify-content: center;
-
   gap: 13px;
 `;
 
@@ -513,7 +529,6 @@ const LoadingSpinner = styled.div`
   height: 28px;
 
   border: 3px solid rgba(0, 169, 123, 0.15);
-
   border-top-color: #00a97b;
 
   border-radius: 50%;
@@ -542,30 +557,25 @@ const LoadingText = styled.p`
 
 const Pagination = styled.div`
   display: flex;
-
   align-items: center;
   justify-content: center;
-
   gap: 7px;
 
   margin-top: 26px;
 `;
 
 const PaginationButton = styled.button`
-  display: flex;
-
   min-width: 36px;
   height: 36px;
 
+  display: flex;
   align-items: center;
   justify-content: center;
 
   border: 1px solid ${({ $active }) => ($active ? "#00a97b" : "#dce5e2")};
-
   border-radius: 9px;
 
   background: ${({ $active }) => ($active ? "#00a97b" : "#ffffff")};
-
   color: ${({ $active }) => ($active ? "#ffffff" : "#74807c")};
 
   font-size: 13px;

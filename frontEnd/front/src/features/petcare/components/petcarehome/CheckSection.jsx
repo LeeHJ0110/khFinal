@@ -64,6 +64,7 @@ function CheckSection() {
       secondLine: "건강 이력 진단",
     },
   ];
+
   const guideList = [
     {
       image: cameraImg,
@@ -164,28 +165,21 @@ export default CheckSection;
    전체 영역
 ========================================= */
 
-/* =========================================
-   전체 영역
-========================================= */
-
-/* =========================================
-   전체 영역
-========================================= */
-
 const CheckWrapper = styled.section`
-  width: 95%;
+  width: 100%;
   height: 100%;
 
-  justify-self: end;
-  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 20px 16px 28px;
 
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 46px;
 
-  padding: 14px 16px;
+  box-sizing: border-box;
 
   border-radius: 12px;
+
   background: var(--color-white);
 `;
 
@@ -194,10 +188,11 @@ const CheckWrapper = styled.section`
 ========================================= */
 
 const SectionTitle = styled.h2`
-  margin: 0 0 8px;
+  margin: 0 0 20px;
 
   color: var(--color-main);
-  font-size: 16px;
+
+  font-size: 17px;
   font-weight: 800;
 `;
 
@@ -222,23 +217,23 @@ const ProcessFragment = styled.div`
 `;
 
 const ProcessItem = styled.div`
-  width: 92px;
+  width: 120px;
 
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
 `;
 
 const ProcessImageBox = styled.div`
-  width: 68px;
-  height: 68px;
+  width: 120px;
+  height: 100px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border: 1px solid rgba(0, 169, 123, 0.25);
+  border: 2px solid rgba(0, 169, 123, 0.25);
   border-radius: 10px;
 
   background: var(--color-white);
@@ -251,16 +246,18 @@ const ProcessImageBox = styled.div`
 
   &:hover {
     border-color: rgba(0, 169, 123, 0.55);
+
     background: var(--color-bg-light);
 
     box-shadow: 0 6px 14px rgba(0, 169, 123, 0.12);
+
     transform: translateY(-3px);
   }
 `;
 
 const ProcessImage = styled.img`
-  width: 52px;
-  height: 52px;
+  width: 100px;
+  height: 80px;
 
   object-fit: contain;
 
@@ -275,6 +272,7 @@ const ProcessText = styled.p`
   margin: 0;
 
   color: var(--text-main);
+
   font-size: 13px;
   font-weight: 700;
 `;
@@ -283,6 +281,7 @@ const Arrow = styled.span`
   margin-bottom: 18px;
 
   color: var(--color-main);
+
   font-size: 22px;
   font-weight: 700;
 `;
@@ -296,39 +295,45 @@ const DiagnosisArea = styled.div``;
 const DiagnosisGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
 `;
 
 const DiagnosisCard = styled.div`
-  min-height: 64px;
+  min-height: 88px;
 
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 
-  padding: 8px 14px;
+  padding: 12px 16px;
 
-  border: 1px solid rgba(0, 169, 123, 0.2);
-  border-radius: 8px;
+  box-sizing: border-box;
+
+  border: 1px solid rgba(0, 169, 123, 0.24);
+  border-radius: 9px;
 
   background: var(--color-white);
 
   transition:
     border-color 0.25s ease,
     background-color 0.25s ease,
-    box-shadow 0.25s ease;
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
 
   &:hover {
     border-color: rgba(0, 169, 123, 0.48);
+
     background: var(--color-bg-light);
 
     box-shadow: 0 5px 12px rgba(0, 169, 123, 0.09);
+
+    transform: translateY(-2px);
   }
 `;
 
 const DiagnosisImageBox = styled.div`
-  width: 46px;
-  height: 46px;
+  width: 60px;
+  height: 60px;
 
   flex-shrink: 0;
 
@@ -338,28 +343,30 @@ const DiagnosisImageBox = styled.div`
 `;
 
 const DiagnosisImage = styled.img`
-  width: 42px;
-  height: 42px;
+  width: 56px;
+  height: 56px;
 
   object-fit: contain;
 
   transition: transform 0.25s ease;
 
   ${DiagnosisCard}:hover & {
-    transform: scale(1.1);
+    transform: scale(1.08);
   }
 `;
+
 const DiagnosisTextBox = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 `;
 
 const DiagnosisTitle = styled.h3`
   margin: 0 0 2px;
 
   color: var(--color-main);
-  font-size: 13px;
+
+  font-size: 15px;
   font-weight: 800;
 `;
 
@@ -367,9 +374,10 @@ const DiagnosisDesc = styled.p`
   margin: 0;
 
   color: var(--text-sub);
-  font-size: 10px;
+
+  font-size: 12px;
   font-weight: 500;
-  line-height: 1.35;
+  line-height: 1.4;
 `;
 
 /* =========================================
@@ -377,36 +385,44 @@ const DiagnosisDesc = styled.p`
 ========================================= */
 
 const GuideArea = styled.div`
-  padding: 10px 16px 11px;
+  width: 100%;
+  min-height: 118px;
 
-  border-radius: 8px;
+  align-self: center;
+
+  padding: 15px 22px 18px;
+
+  box-sizing: border-box;
+
+  border-radius: 10px;
 
   background: color-mix(in srgb, var(--color-bg-soft) 45%, var(--color-white));
 `;
 
 const GuideTitle = styled.h2`
-  margin: 0 0 8px;
+  margin: 0 0 13px;
 
   color: var(--color-main);
-  font-size: 14px;
+
+  font-size: 15px;
   font-weight: 800;
 `;
 
 const GuideList = styled.div`
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  gap: 20px;
 `;
 
 const GuideItem = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 `;
 
 const GuideImageBox = styled.div`
-  width: 42px;
-  height: 42px;
+  width: 52px;
+  height: 52px;
 
   flex-shrink: 0;
 
@@ -416,8 +432,8 @@ const GuideImageBox = styled.div`
 `;
 
 const GuideImage = styled.img`
-  width: 38px;
-  height: 38px;
+  width: 48px;
+  height: 48px;
 
   object-fit: contain;
 `;
@@ -427,14 +443,17 @@ const GuideText = styled.p`
 
   display: flex;
   flex-direction: column;
+  gap: 2px;
 
   color: var(--text-sub);
-  font-size: 10px;
+
+  font-size: 11px;
   line-height: 1.5;
 
   strong {
     color: var(--text-main);
-    font-size: 11px;
+
+    font-size: 12px;
     font-weight: 700;
   }
 `;

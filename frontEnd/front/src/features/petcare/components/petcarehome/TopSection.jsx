@@ -102,23 +102,24 @@ function TopSection() {
       </HeroLeft>
 
       <DecorationArea>
+        {/* 왼쪽·가운데 장식: 위치 유지 */}
         <CrossIcon src={item1} alt="" />
 
         <PawIcon className="paw-large" src={item3} alt="" />
-
         <PawIcon className="paw-medium" src={item3} alt="" />
-
         <PawIcon className="paw-small" src={item3} alt="" />
 
         <HeartIcon src={item2} alt="" />
 
-        <ShieldIcon src={item4} alt="" />
+        {/* 오른쪽 이미지 묶음만 왼쪽으로 이동 */}
+        <RightVisualGroup>
+          <ShieldIcon src={item4} alt="" />
 
-        <PawIcon className="paw-right-top" src={item3} alt="" />
+          <PawIcon className="paw-right-top" src={item3} alt="" />
+          <PawIcon className="paw-right-bottom" src={item3} alt="" />
 
-        <PawIcon className="paw-right-bottom" src={item3} alt="" />
-
-        <HeroImage src={mainImg} alt="강아지와 고양이 건강진단 안내" />
+          <HeroImage src={mainImg} alt="강아지와 고양이 건강진단 안내" />
+        </RightVisualGroup>
       </DecorationArea>
     </HeroWrapper>
   );
@@ -137,7 +138,6 @@ const HeroWrapper = styled.section`
   min-height: 245px;
   margin: auto;
   overflow: hidden;
-
   background: color-mix(in srgb, var(--color-bg-soft) 50%, var(--color-white));
 `;
 
@@ -148,7 +148,7 @@ const HeroWrapper = styled.section`
 const HeroLeft = styled.div`
   position: absolute;
   top: 28px;
-  left: 52px;
+  left: 180px;
   z-index: 5;
 `;
 
@@ -312,10 +312,17 @@ const ApplyButton = styled.button`
 
 const DecorationArea = styled.div`
   position: absolute;
-
   inset: 0;
 
   pointer-events: none;
+`;
+
+const RightVisualGroup = styled.div`
+  position: absolute;
+  inset: 0;
+
+  /* 강아지·고양이와 오른쪽 장식만 왼쪽으로 이동 */
+  transform: translateX(-200px);
 `;
 
 const HeroImage = styled.img`
@@ -345,10 +352,8 @@ const iconFloat = keyframes`
 
 const CrossIcon = styled.img`
   position: absolute;
-
-  left: 350px;
+  left: 435px;
   bottom: 22px;
-
   width: 72px;
   height: auto;
 
@@ -358,7 +363,7 @@ const CrossIcon = styled.img`
 const HeartIcon = styled.img`
   position: absolute;
 
-  left: 70%;
+  left: 75%;
   top: 40px;
 
   width: 42px;

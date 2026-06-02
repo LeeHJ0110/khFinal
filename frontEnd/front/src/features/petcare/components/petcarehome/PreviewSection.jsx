@@ -39,7 +39,6 @@ function calculateAge(birthDate) {
 
 /* =====================================
    프로필 이미지 필드 확인
-   실제 DTO 필드명이 확인되면 하나만 남겨도 됨
 ===================================== */
 
 function getProfileImageUrl(petInfo) {
@@ -56,8 +55,10 @@ function getProfileImageUrl(petInfo) {
 function PreviewSection() {
   const navigate = useNavigate();
 
+  const [petList, setPetList] = useState([]);
   const [petInfo, setPetInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isPetMenuOpen, setIsPetMenuOpen] = useState(false);
 
   useEffect(() => {
     async function loadPetInfo() {
@@ -65,15 +66,20 @@ function PreviewSection() {
         const res = await fetchMyPetList();
 
         console.log("반려동물 목록:", res.data);
+        //조회한 펫 목록도 저장
+        const fetchedPetList = Array.isArray(res.data) ? res.data : [];
 
-        const petList = Array.isArray(res.data) ? res.data : [];
+        setPetList(fetchedPetList);
 
+        //신청상태 y인 펫 선택 없으면 다음 펫선택
         const representPet =
-          petList.find((pet) => pet.representYn === "Y") ?? petList[0];
+          fetchedPetList.find((pet) => pet.representYn === "Y") ??
+          fetchedPetList[0];
 
         setPetInfo(representPet ?? null);
       } catch (err) {
         console.error("반려동물 정보 조회 실패:", err);
+
         setPetInfo(null);
       } finally {
         setIsLoading(false);
@@ -94,8 +100,14 @@ function PreviewSection() {
   const profileImageUrl = getProfileImageUrl(petInfo);
   const age = calculateAge(petInfo?.birthDate);
 
-  //신청중 상태 표시
+  // 건강진단 신청 진행 여부
   const isApplying = petInfo?.diagnosisInProgress === true;
+
+  //펫 선택 함수 추가
+  const handleSelectPet = (pet) => {
+    setPetInfo(pet);
+    setIsPetMenuOpen(false);
+  };
 
   return (
     <PreviewWrapper>
@@ -117,7 +129,39 @@ function PreviewSection() {
             </ProfileImageBox>
 
             <ProfileContent>
-              <PetName>{petInfo.name ?? "이름 정보 없음"}</PetName>
+              <ProfileHeader>
+                <PetName>{petInfo.name ?? "이름 정보 없음"}</PetName>
+
+                <PetChangeArea>
+                  <ChangePetButton
+                    type="button"
+                    onClick={() => setIsPetMenuOpen((prev) => !prev)}
+                  >
+                    펫 바꾸기
+                  </ChangePetButton>
+
+                  {isPetMenuOpen && (
+                    <PetSelectMenu>
+                      {petList.map((pet) => (
+                        <PetSelectItem
+                          key={pet.petId}
+                          type="button"
+                          $selected={pet.petId === petInfo.petId}
+                          onClick={() => handleSelectPet(pet)}
+                        >
+                          <PetSelectName>
+                            {pet.name ?? "이름 없음"}
+                          </PetSelectName>
+
+                          <PetSelectBreed>
+                            {pet.breedName ?? "품종 정보 없음"}
+                          </PetSelectBreed>
+                        </PetSelectItem>
+                      ))}
+                    </PetSelectMenu>
+                  )}
+                </PetChangeArea>
+              </ProfileHeader>
 
               <PetBreed>{petInfo.breedName ?? "품종 정보 없음"}</PetBreed>
 
@@ -141,6 +185,14 @@ function PreviewSection() {
                       : "성별 정보 없음"}
                 </PetInfoBadge>
               </PetInfoList>
+
+              <PointNotice>
+                <PointIcon>P</PointIcon>
+
+                <PointText>
+                  건강 진단 신청 시 <strong>2,000P</strong>가 차감됩니다.
+                </PointText>
+              </PointNotice>
 
               <ProfileButtonGroup>
                 <SubButton
@@ -185,8 +237,10 @@ function PreviewSection() {
         <NeedTextArea>
           <TitleRow>
             <BellIcon src={bell} alt="알림" />
+
             <NeedTitle>진단이 필요한 경우</NeedTitle>
           </TitleRow>
+
           <NeedList>
             <NeedItem>
               <CheckIcon>✓</CheckIcon>
@@ -226,30 +280,38 @@ export default PreviewSection;
 ===================================== */
 
 const PreviewWrapper = styled.aside`
-  width: 95%;
+  /*
+   * 오른쪽 카드 묶음 전체를 왼쪽으로 55px 이동
+   * 줄어든 오른쪽 너비도 함께 보충
+   */
+  width: 100%;
   height: 100%;
-
-  justify-self: start;
-  box-sizing: border-box;
+  //margin-left: -55px;
+  //justify-self: start;
 
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
+
+  box-sizing: border-box;
 `;
+
 /* =====================================
    반려동물 정보
 ===================================== */
 
 const PetProfileArea = styled.section`
-  min-height: 178px;
-
+  min-height: 300px;
+  margin-top: 57px;
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 20px;
 
-  padding: 16px 18px;
+  padding: 18px 20px;
 
-  border: 1px solid rgba(0, 169, 123, 0.18);
+  box-sizing: border-box;
+
+  border: 1px solid rgba(0, 169, 123, 0.2);
   border-radius: 12px;
 
   background: var(--color-white);
@@ -260,15 +322,17 @@ const PetProfileArea = styled.section`
     border-color 0.25s ease;
 
   &:hover {
-    transform: translateY(-4px);
     border-color: rgba(0, 169, 123, 0.38);
+
     box-shadow: 0 10px 24px rgba(0, 169, 123, 0.1);
+
+    transform: translateY(-3px);
   }
 `;
 
 const ProfileImageBox = styled.div`
-  width: 128px;
-  height: 128px;
+  width: 140px;
+  height: 140px;
 
   flex-shrink: 0;
 
@@ -276,8 +340,9 @@ const ProfileImageBox = styled.div`
   align-items: center;
   justify-content: center;
 
-  border-radius: 50%;
   overflow: hidden;
+
+  border-radius: 50%;
 
   background: var(--color-bg-light);
 
@@ -286,8 +351,9 @@ const ProfileImageBox = styled.div`
     box-shadow 0.25s ease;
 
   ${PetProfileArea}:hover & {
-    transform: scale(1.05);
     box-shadow: 0 6px 16px rgba(0, 169, 123, 0.14);
+
+    transform: scale(1.04);
   }
 `;
 
@@ -306,7 +372,8 @@ const ProfileImage = styled.img`
 
 const NoProfileImage = styled.span`
   color: var(--text-desc);
-  font-size: 12px;
+
+  font-size: 13px;
   font-weight: 600;
 `;
 
@@ -315,11 +382,21 @@ const ProfileContent = styled.div`
   min-width: 0;
 `;
 
+const ProfileHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  margin-bottom: 5px;
+`;
+
 const PetName = styled.h2`
-  margin: 0 0 4px;
+  margin: 0;
 
   color: var(--text-main);
-  font-size: 25px;
+
+  font-size: 27px;
   font-weight: 800;
 
   transition: color 0.2s ease;
@@ -329,11 +406,42 @@ const PetName = styled.h2`
   }
 `;
 
+const ChangePetButton = styled.button`
+  flex-shrink: 0;
+
+  padding: 6px 10px;
+
+  border: 1px solid rgba(0, 169, 123, 0.34);
+  border-radius: 7px;
+
+  background: var(--color-white);
+  color: var(--color-main);
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover {
+    border-color: var(--color-main);
+
+    background: var(--color-bg-light);
+
+    transform: translateY(-1px);
+  }
+`;
+
 const PetBreed = styled.p`
-  margin: 0 0 12px;
+  margin: 0 0 13px;
 
   color: var(--text-sub);
-  font-size: 13px;
+
+  font-size: 14px;
   font-weight: 500;
 `;
 
@@ -342,19 +450,19 @@ const PetInfoList = styled.div`
   flex-wrap: wrap;
   gap: 7px;
 
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 `;
 
 const PetInfoBadge = styled.span`
-  padding: 4px 9px;
+  padding: 5px 9px;
 
-  border: 1px solid rgba(0, 169, 123, 0.16);
+  border: 1px solid rgba(0, 169, 123, 0.18);
   border-radius: 6px;
 
   background: var(--color-white);
   color: var(--text-sub);
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
 
   transition:
@@ -364,11 +472,65 @@ const PetInfoBadge = styled.span`
 
   ${PetProfileArea}:hover & {
     border-color: rgba(0, 169, 123, 0.3);
+
     background: var(--color-bg-light);
   }
 
   &:hover {
     transform: translateY(-2px);
+  }
+`;
+
+/* =====================================
+   포인트 차감 안내
+===================================== */
+
+const PointNotice = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  margin-bottom: 12px;
+  padding: 8px 10px;
+
+  border-radius: 7px;
+
+  background: rgba(255, 184, 0, 0.1);
+`;
+
+const PointIcon = styled.span`
+  width: 19px;
+  height: 19px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #ffb800;
+  color: #ffffff;
+
+  font-size: 11px;
+  font-weight: 800;
+`;
+
+const PointText = styled.p`
+  margin: 0;
+
+  color: #8a6400;
+
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+
+  strong {
+    color: #c77f00;
+
+    font-size: 13px;
+    font-weight: 800;
   }
 `;
 
@@ -378,7 +540,7 @@ const ProfileButtonGroup = styled.div`
 `;
 
 const SubButton = styled.button`
-  height: 40px;
+  height: 43px;
 
   border: 1px solid var(--text-disabled);
   border-radius: 7px 0 0 7px;
@@ -386,8 +548,10 @@ const SubButton = styled.button`
   background: var(--color-white);
   color: var(--text-sub);
 
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
+
+  cursor: pointer;
 
   transition:
     background-color 0.2s ease,
@@ -400,16 +564,22 @@ const SubButton = styled.button`
 `;
 
 const ApplyButton = styled.button`
-  padding: 10px 18px;
+  height: 43px;
+
   border: none;
-  border-radius: 7px;
+  border-radius: 0 7px 7px 0;
+
   background: #00a97b;
   color: #ffffff;
+
   font-size: 14px;
   font-weight: 700;
 
+  cursor: pointer;
+
   &:disabled {
     background: #c5d4cf;
+
     cursor: not-allowed;
   }
 `;
@@ -420,25 +590,26 @@ const ApplyButton = styled.button`
 
 const EmptyPetArea = styled.div`
   width: 100%;
-  min-height: 126px;
+  min-height: 148px;
 
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 14px;
 `;
 
 const EmptyPetText = styled.p`
   margin: 0;
 
   color: var(--text-sub);
-  font-size: 14px;
+
+  font-size: 15px;
   font-weight: 600;
 `;
 
 const RegisterButton = styled.button`
-  padding: 10px 16px;
+  padding: 11px 17px;
 
   border: 1px solid var(--color-main);
   border-radius: 8px;
@@ -446,8 +617,10 @@ const RegisterButton = styled.button`
   background: var(--color-white);
   color: var(--color-main);
 
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
+
+  cursor: pointer;
 `;
 
 /* =====================================
@@ -455,36 +628,62 @@ const RegisterButton = styled.button`
 ===================================== */
 
 const NeedDiagnosisArea = styled.section`
-  min-height: 158px;
+  width: 100%;
+  height: 240px;
+  min-height: 243px;
+
+  flex-shrink: 0;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 16px;
+  padding: 20px 24px;
 
-  padding: 2px 18px;
+  box-sizing: border-box;
 
-  border-radius: 10px;
+  border-radius: 11px;
 
   background: color-mix(in srgb, var(--color-bg-soft) 55%, var(--color-white));
 `;
 
 const NeedTextArea = styled.div`
-  flex: 1;
+  min-width: 0;
+`;
+
+const TitleRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  margin-bottom: 13px;
+`;
+
+const BellIcon = styled.img`
+  width: 30px;
+  height: 30px;
+
+  flex-shrink: 0;
+
+  object-fit: contain;
 `;
 
 const NeedTitle = styled.h2`
+  margin: 0;
+
   color: var(--text-main);
-  font-size: 20px;
+
+  font-size: 18px;
   font-weight: 800;
 `;
 
 const NeedList = styled.ul`
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
 
-  padding: 3px;
+  margin: 0;
+  padding: 0;
 
   list-style: none;
 `;
@@ -495,33 +694,37 @@ const NeedItem = styled.li`
   gap: 10px;
 
   color: var(--text-sub);
-  font-size: 15px;
+
+  font-size: 14px;
   font-weight: 500;
+  line-height: 1.35;
 `;
 
 const CheckIcon = styled.span`
-  width: 17px;
-  height: 17px;
+  width: 25px;
+  height: 25px;
+
+  flex-shrink: 0;
 
   display: flex;
   align-items: center;
   justify-content: center;
-
-  flex-shrink: 0;
 
   border-radius: 50%;
 
   background: var(--color-main);
   color: var(--color-white);
 
-  font-size: 11px;
+  font-size: 15px;
   font-weight: 800;
 `;
 
 const NeedImage = styled.img`
-  width: 317px;
+  width: min(235px, 38%);
   height: auto;
+
   flex-shrink: 0;
+
   object-fit: contain;
 `;
 
@@ -531,22 +734,75 @@ const NeedImage = styled.img`
 
 const LoadingText = styled.p`
   margin: 0;
-  padding: 24px;
+  padding: 26px;
 
   color: var(--text-sub);
+
   font-size: 14px;
   font-weight: 600;
 `;
+const PetChangeArea = styled.div`
+  position: relative;
 
-const TitleRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-shrink: 0;
 `;
 
-const BellIcon = styled.img`
-  width: 34px;
-  height: 34px;
+const PetSelectMenu = styled.div`
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  z-index: 20;
 
-  object-fit: contain;
+  width: 170px;
+  padding: 6px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  border: 1px solid rgba(0, 169, 123, 0.22);
+  border-radius: 9px;
+
+  background: var(--color-white);
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+`;
+
+const PetSelectItem = styled.button`
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+
+  padding: 9px 10px;
+
+  border: none;
+  border-radius: 6px;
+
+  background: ${({ $selected }) =>
+    $selected ? "rgba(0, 169, 123, 0.1)" : "var(--color-white)"};
+
+  cursor: pointer;
+
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 169, 123, 0.08);
+  }
+`;
+
+const PetSelectName = styled.span`
+  color: var(--text-main);
+
+  font-size: 13px;
+  font-weight: 800;
+`;
+
+const PetSelectBreed = styled.span`
+  color: var(--text-sub);
+
+  font-size: 11px;
+  font-weight: 500;
 `;
