@@ -5,6 +5,7 @@ import com.kh.app.delivery.dto.request.DeliveryAddressUpdateReqDto;
 import com.kh.app.delivery.dto.response.DeliveryAddressListResDto;
 import com.kh.app.delivery.service.DeliveryAddressService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -34,7 +35,7 @@ public class DeliveryAddressController {
     @PostMapping
     public ResponseEntity<Long> create(
             Authentication authentication,
-            @RequestBody DeliveryAddressCreateReqDto request
+            @Valid @RequestBody DeliveryAddressCreateReqDto request
     ) {
         String loginKey = authentication.getName();
 
@@ -48,7 +49,7 @@ public class DeliveryAddressController {
     public ResponseEntity<Void> update(
             Authentication authentication,
             @PathVariable Long deliveryAddressId,
-            @RequestBody DeliveryAddressUpdateReqDto request
+            @Valid @RequestBody DeliveryAddressUpdateReqDto request
     ) {
         String loginKey = authentication.getName();
 

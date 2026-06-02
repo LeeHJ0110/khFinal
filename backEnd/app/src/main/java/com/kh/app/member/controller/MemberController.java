@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class MemberController {
             @ApiResponse(responseCode = "400", description = "아이디 또는 닉네임 중복")
     })
     @PostMapping("/join")
-    public ResponseEntity<Void> join(@RequestBody MemberJoinReqDto dto) {
+    public ResponseEntity<Void> join( @Valid @RequestBody MemberJoinReqDto dto) {
         memberService.join(dto);
 
         return ResponseEntity
@@ -42,7 +43,7 @@ public class MemberController {
 
     @Operation(summary = "카카오 추가 회원가입", description = "카카오 로그인 후 추가 정보 입력 회원가입")
     @PostMapping("/kakao/join")
-    public ResponseEntity<Void> kakaoJoin(@RequestBody MemberKakaoJoinReqDto dto) {
+    public ResponseEntity<Void> kakaoJoin(@Valid @RequestBody MemberKakaoJoinReqDto dto) {
         memberService.kakaoJoin(dto);
 
         return ResponseEntity
