@@ -66,19 +66,12 @@ export function PopularPostsWidget({ list, onItemClick }) {
             if (item.category === "PRODUCT_REVIEW") categoryLabel = "상품후기";
             if (item.category === "FAC_REVIEW") categoryLabel = "시설후기";
 
-            const firstImg =
-              extractFirstImg(item.content) ||
-              "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150&q=80";
-
             return (
               <PopularItem
                 key={item.boardId}
                 onClick={() => onItemClick?.(item)}
               >
                 <RankNumber $rank={index + 1}>{index + 1}</RankNumber>
-                <PopularThumbnail>
-                  <img src={firstImg} alt="썸네일" />
-                </PopularThumbnail>
                 <PopularItemTitle>{item.title}</PopularItemTitle>
                 <CategoryBadge $type={item.category}>
                   {categoryLabel}
@@ -418,6 +411,7 @@ const PopularList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 12px;
+  height: 235px;
 `;
 
 const PopularItem = styled.div`
@@ -425,7 +419,7 @@ const PopularItem = styled.div`
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  padding: 4px 0;
+  padding: 10px 0;
 
   &:hover h4 {
     color: var(--color-main, #00a97b);
@@ -449,21 +443,6 @@ const RankNumber = styled.span`
     if (props.$rank === 3) return "#00a896"; // 3위 청록
     return "#adb5bd";
   }};
-`;
-
-const PopularThumbnail = styled.div`
-  width: 48px;
-  height: 48px;
-  border-radius: 6px;
-  overflow: hidden;
-  background-color: #f1f3f5;
-  flex-shrink: 0;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
 `;
 
 const PopularItemTitle = styled.h4`
