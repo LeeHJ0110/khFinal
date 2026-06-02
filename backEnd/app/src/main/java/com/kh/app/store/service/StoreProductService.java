@@ -312,6 +312,8 @@ public class StoreProductService {
             return;
         }
 
+        validateFeedingGuideList(feedingGuideList);
+
         for (StoreFeedingGuideInsertReqDto guideDto : feedingGuideList) {
             StoreProductFeedingGuideEntity guideEntity = guideDto.toEntity(productEntity);
             storeProductFeedingGuideRepository.save(guideEntity);
@@ -323,6 +325,10 @@ public class StoreProductService {
 
         if (feedingGuideList == null) {
             return;
+        }
+
+        if (!feedingGuideList.isEmpty()) {
+            validateFeedingGuideList(feedingGuideList);
         }
 
         storeProductFeedingGuideRepository.deleteByProduct_ProductId(productEntity.getProductId());
@@ -547,4 +553,66 @@ public class StoreProductService {
         return sortValue;
     }
 
+    private void validateFeedingGuideList(List<StoreFeedingGuideInsertReqDto> feedingGuideList) {
+        if (feedingGuideList == null || feedingGuideList.isEmpty()) {
+            return;
+        }
+
+        if (feedingGuideList.size() != 3) {
+            throw new IllegalArgumentException("급여기준은 3개를 입력해야 합니다.");
+        }
+
+        for (StoreFeedingGuideInsertReqDto guideDto : feedingGuideList) {
+            Long minWeight = guideDto.getFeedingMinWeight();
+            Long maxWeight = guideDto.getFeedingMaxWeight();
+
+            if (guideDto.getFeedingDailyAmount() == null || guideDto.getFeedingDailyAmount() <= 0) {
+                throw new IllegalArgumentException("1일 급여량은 0보다 커야 합니다.");
+            }
+
+            if (minWeight != null && minWeight < 0) {
+                throw new IllegalArgumentException("최소 체중은 0 이상이어야 합니다.");
+            }
+
+            if (maxWeight != null && maxWeight <= 0) {
+                throw new IllegalArgumentException("최대 체중은 0보다 커야 합니다.");
+            }
+
+            if (minWeight != null && maxWeight != null && minWeight >= maxWeight) {
+                throw new IllegalArgumentException("최소 체중은 최대 체중보다 작아야 합니다.");
+            }
+        }
+
+        StoreFeedingGuideInsertReqDto first = feedingGuideList.get(0);
+        StoreFeedingGuideInsertReqDto second = feedingGuideList.get(1);
+        StoreFeedingGuideInsertReqDto third = feedingGuideList.get(2);
+
+        if (first.getFeedingMinWeight() != null) {
+            throw new IllegalArgumentException("1번 급여기준의 최소 체중은 비워야 합니다.");
+        }
+
+        if (first.getFeedingMaxWeight() == null) {
+            throw new IllegalArgumentException("1번 급여기준의 최대 체중은 필수입니다.");
+        }
+
+        if (second.getFeedingMinWeight() == null || second.getFeedingMaxWeight() == null) {
+            throw new IllegalArgumentException("2번 급여기준은 최소/최대 체중이 모두 필요합니다.");
+        }
+
+        if (third.getFeedingMinWeight() == null) {
+            throw new IllegalArgumentException("3번 급여기준의 최소 체중은 필수입니다.");
+        }
+
+        if (third.getFeedingMaxWeight() != null) {
+            throw new IllegalArgumentException("3번 급여기준의 최대 체중은 비워야 합니다.");
+        }
+
+        if (!first.getFeedingMaxWeight().equals(second.getFeedingMinWeight())) {
+            throw new IllegalArgumentException("1번 최대 체중과 2번 최소 체중이 같아야 합니다.");
+        }
+
+        if (!second.getFeedingMaxWeight().equals(third.getFeedingMinWeight())) {
+            throw new IllegalArgumentException("2번 최대 체중과 3번 최소 체중이 같아야 합니다.");
+        }
+    }
 }
