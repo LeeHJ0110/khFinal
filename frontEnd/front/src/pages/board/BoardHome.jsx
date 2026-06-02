@@ -113,49 +113,23 @@ export default function BoardHome() {
 
             {/* 2단: 2분할 숏컷 버튼 */}
             <ShortcutRow>
-              <ShortcutButton
-                onClick={() => navigate("/store")}
-                $bg="#ebfbee"
-                $color="#099268"
-              >
-                <ShortcutTitle>PET&I SHOP</ShortcutTitle>
+              <ShortcutButton onClick={() => navigate("/store")} $bg="#ebfbee">
+                <ShortcutTitle $color="#099268">PET&I FOR</ShortcutTitle>
                 <ShortcutLabel>쇼핑몰</ShortcutLabel>
                 <ShortcutSubLabel>사료, 간식, 용품까지 완비!</ShortcutSubLabel>
-                <ShortcutLinkText>바로가기 &gt;</ShortcutLinkText>
+                <ShortcutLinkText $color="#099268">
+                  바로가기 &gt;
+                </ShortcutLinkText>
               </ShortcutButton>
-              <ShortcutButton
-                onClick={() => navigate("/mypage")}
-                $bg="#fff9db"
-                $color="#f08c00"
-              >
-                <ShortcutTitle>PET&I POINT</ShortcutTitle>
+              <ShortcutButton onClick={() => navigate("/mypage")} $bg="#fff9db">
+                <ShortcutTitle $color="#f08c00">PET&I FOR</ShortcutTitle>
                 <ShortcutLabel>포인트 샵</ShortcutLabel>
                 <ShortcutSubLabel>모은 포인트로 특별 득템!</ShortcutSubLabel>
-                <ShortcutLinkText>바로가기 &gt;</ShortcutLinkText>
+                <ShortcutLinkText $color="#f08c00">
+                  바로가기 &gt;
+                </ShortcutLinkText>
               </ShortcutButton>
             </ShortcutRow>
-
-            {/* 3단: 건강관리 카드 */}
-            <HealthCard onClick={() => navigate("/healthcare/requesthome")}>
-              <HealthContent>
-                <HealthBadge>PET&I HEALTHCARE</HealthBadge>
-                <HealthTitle>
-                  반려동물 <br />
-                  건강관리 시작하기
-                </HealthTitle>
-                <HealthDesc>
-                  건강검진, 예방접종, 행동관리까지 <br />한 곳에서 간편하고
-                  철저하게!
-                </HealthDesc>
-                <HealthButton>건강관리 바로가기 &gt;</HealthButton>
-              </HealthContent>
-              <HealthImage>
-                <img
-                  src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=200&q=80"
-                  alt="건강관리 펫"
-                />
-              </HealthImage>
-            </HealthCard>
           </PromoStack>
         </HeroSection>
 
@@ -195,8 +169,28 @@ export default function BoardHome() {
             />
           </GridColumn>
 
-          {/* 3열: 뉴스게시판 (Mock) */}
+          {/* 3열: 건강관리 + 뉴스게시판 */}
           <GridColumn>
+            <HealthCard onClick={() => navigate("/healthcare/requesthome")}>
+              <HealthContent>
+                <HealthBadge>PET&I HEALTHCARE</HealthBadge>
+                <HealthTitle>
+                  반려동물 <br />
+                  건강관리 시작하기
+                </HealthTitle>
+                <HealthDesc>
+                  건강검진, 예방접종, 행동관리까지 <br />한 곳에서 간편하고
+                  철저하게!
+                </HealthDesc>
+                <HealthButton>건강관리 바로가기 &gt;</HealthButton>
+              </HealthContent>
+              <HealthImage>
+                <img
+                  src="https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=200&q=80"
+                  alt="건강관리 펫"
+                />
+              </HealthImage>
+            </HealthCard>
             <LatestNewsWidget
               onMoreClick={() => navigate("/community/list?category=NEWS")}
             />
@@ -210,6 +204,12 @@ export default function BoardHome() {
 // ==========================================
 // Styled Components (Premium Aesthetics)
 // ==========================================
+
+// ==========================================
+// 1. 공통 컨테이너 및 래퍼 스타일 (전체 레이아웃 및 헤더 연동 가로폭/여백 제어)
+// ==========================================
+
+// 최외각 컨테이너 (화면 중앙 정렬 및 배경색 설정)
 const Container = styled.div`
   width: 100%;
   background-color: #fafbfc;
@@ -219,6 +219,7 @@ const Container = styled.div`
   font-family: "Paperozi", "Noto Sans KR", sans-serif;
 `;
 
+// 콘텐츠 내부 정렬 래퍼 (상단 헤더/푸터의 1920px 폭 및 56px 여백 구조와 동기화)
 const HomeContentWrapper = styled.div`
   width: var(--layout-width);
   max-width: 100%;
@@ -229,7 +230,11 @@ const HomeContentWrapper = styled.div`
   gap: 40px;
 `;
 
-// 메인 히어로 섹션
+// ==========================================
+// 2. 상단 히어로 섹션 (좌측 와이드 메인 비주얼 배너)
+// ==========================================
+
+// 히어로 영역 가로 정렬 컨테이너
 const HeroSection = styled.div`
   display: flex;
   gap: 30px;
@@ -237,6 +242,7 @@ const HeroSection = styled.div`
   align-items: stretch;
 `;
 
+// 메인 비주얼 슬라이더/배너 본체
 const HeroBanner = styled.div`
   flex: 1;
   background: linear-gradient(135deg, #ebfbee 0%, #d3f9d8 100%);
@@ -251,6 +257,7 @@ const HeroBanner = styled.div`
   box-shadow: 0 10px 30px rgba(0, 169, 123, 0.04);
 `;
 
+// 배너 텍스트 콘텐츠 영역
 const HeroBannerContent = styled.div`
   display: flex;
   flex-direction: column;
@@ -258,6 +265,7 @@ const HeroBannerContent = styled.div`
   flex: 1;
 `;
 
+// 배너 상단 카테고리 서브타이틀
 const HeroSubtitle = styled.span`
   font-size: 13px;
   font-weight: 800;
@@ -266,6 +274,7 @@ const HeroSubtitle = styled.span`
   margin-bottom: 12px;
 `;
 
+// 배너 굵은 메인 메시지
 const HeroTitle = styled.h1`
   font-size: 34px;
   font-weight: 900;
@@ -290,6 +299,7 @@ const HeroTitle = styled.h1`
   }
 `;
 
+// 배너 소개 설명 텍스트
 const HeroDesc = styled.p`
   font-size: 14px;
   color: #495057;
@@ -297,6 +307,7 @@ const HeroDesc = styled.p`
   margin: 0 0 24px 0;
 `;
 
+// 배너 내 바로가기 액션 버튼
 const HeroButton = styled.button`
   align-self: flex-start;
   height: 44px;
@@ -318,6 +329,7 @@ const HeroButton = styled.button`
   }
 `;
 
+// 배너 내 메인 일러스트/사진 래퍼
 const HeroImageWrapper = styled.div`
   width: 320px;
   height: 320px;
@@ -335,7 +347,11 @@ const HeroImageWrapper = styled.div`
   }
 `;
 
-// 우측 3단 프로모션 스택
+// ==========================================
+// 3. 우측 프로모션 스택 (이벤트 카드, 쇼핑몰/포인트 샵 숏컷 카드)
+// ==========================================
+
+// 우측 사이드바 성격의 세로형 컨텐츠 스택
 const PromoStack = styled.div`
   width: 420px;
   display: flex;
@@ -343,6 +359,7 @@ const PromoStack = styled.div`
   gap: 20px;
 `;
 
+// 이벤트 공지용 카드 레이아웃
 const EventCard = styled.div`
   background: linear-gradient(135deg, #228be6 0%, #1c7ed6 100%);
   border-radius: 12px;
@@ -358,6 +375,7 @@ const EventCard = styled.div`
   }
 `;
 
+// 이벤트 배지 라벨
 const EventBadge = styled.span`
   font-size: 9px;
   font-weight: 800;
@@ -366,24 +384,28 @@ const EventBadge = styled.span`
   border-radius: 4px;
 `;
 
+// 이벤트 메인 타이틀
 const EventTitle = styled.h3`
   font-size: 16px;
   font-weight: 800;
   margin: 10px 0 6px 0;
 `;
 
+// 이벤트 설명 문구
 const EventDesc = styled.p`
   font-size: 12px;
   opacity: 0.9;
   margin: 0 0 4px 0;
 `;
 
+// 이벤트 상세 부가 텍스트
 const EventSubText = styled.p`
   font-size: 10px;
   opacity: 0.75;
   margin: 0 0 12px 0;
 `;
 
+// 이벤트 진행 기간 표시부
 const EventPeriod = styled.span`
   font-size: 9px;
   opacity: 0.6;
@@ -391,6 +413,7 @@ const EventPeriod = styled.span`
   margin-bottom: 10px;
 `;
 
+// 이벤트 상세 링크 표시부
 const EventButton = styled.span`
   font-size: 11px;
   font-weight: 700;
@@ -398,55 +421,71 @@ const EventButton = styled.span`
   padding-bottom: 2px;
 `;
 
+// 쇼핑몰 & 포인트 샵의 2단 가로 정렬 로우
 const ShortcutRow = styled.div`
   display: flex;
   gap: 15px;
 `;
 
+// 쇼핑몰/포인트 샵 바로가기 개별 카드 (우측 공간 확보로 패딩 및 텍스트 강조)
 const ShortcutButton = styled.div`
   flex: 1;
   background-color: ${(props) => props.$bg};
-  border-radius: 10px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 24px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
   transition: all 0.2s ease;
+  height: 210px;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
   }
 `;
 
+// 숏컷 최상단 영어 고유 서비스 로고 라벨
 const ShortcutTitle = styled.span`
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 800;
-  opacity: 0.65;
-  margin-bottom: 6px;
+  color: ${(props) => props.$color || "#868e96"};
+  opacity: 0.85;
+  text-transform: uppercase;
 `;
 
+// 숏컷 한글 타이틀 (예: 쇼핑몰, 포인트 샵)
 const ShortcutLabel = styled.h4`
-  font-size: 13px;
+  font-size: 18px;
   font-weight: 800;
   color: #212529;
-  margin: 0 0 4px 0;
+  margin: 0;
 `;
 
+// 숏컷 한 줄 소개 설명부
 const ShortcutSubLabel = styled.p`
-  font-size: 9px;
+  font-size: 11px;
   color: #868e96;
-  margin: 0 0 12px 0;
-  line-height: 1.3;
+  margin: 0 0 4px 0;
+  line-height: 1.4;
 `;
 
+// 숏컷 우측 하단 바로가기 링크
 const ShortcutLinkText = styled.span`
-  font-size: 10px;
-  font-weight: 700;
-  color: ${(props) => props.theme.color || "#495057"};
+  font-size: 12px;
+  font-weight: 800;
+  color: ${(props) => props.$color || "#495057"};
+  display: inline-flex;
+  align-items: center;
 `;
 
+// ==========================================
+// 4. 반려동물 건강관리 카드 (대시보드 3열 상단 배치)
+// ==========================================
+
+// 메인 건강관리 안내 카드 본체
 const HealthCard = styled.div`
   background: linear-gradient(135deg, #12b886 0%, #0ca678 100%);
   border-radius: 12px;
@@ -465,12 +504,14 @@ const HealthCard = styled.div`
   }
 `;
 
+// 건강관리 텍스트 콘텐츠 영역
 const HealthContent = styled.div`
   display: flex;
   flex-direction: column;
   flex: 1;
 `;
 
+// 건강관리 서비스 태그 배지
 const HealthBadge = styled.span`
   font-size: 9px;
   font-weight: 800;
@@ -481,6 +522,7 @@ const HealthBadge = styled.span`
   margin-bottom: 8px;
 `;
 
+// 건강관리 주요 제목 텍스트
 const HealthTitle = styled.h3`
   font-size: 15px;
   font-weight: 800;
@@ -488,6 +530,7 @@ const HealthTitle = styled.h3`
   margin: 0 0 8px 0;
 `;
 
+// 건강관리 상세 설명 문구
 const HealthDesc = styled.p`
   font-size: 10px;
   opacity: 0.85;
@@ -495,6 +538,7 @@ const HealthDesc = styled.p`
   margin: 0 0 14px 0;
 `;
 
+// 건강관리 바로가기 버튼 표시부
 const HealthButton = styled.span`
   font-size: 11px;
   font-weight: 700;
@@ -503,6 +547,7 @@ const HealthButton = styled.span`
   align-self: flex-start;
 `;
 
+// 건강관리 카드 내부 동그란 시각 일러스트 영역
 const HealthImage = styled.div`
   width: 80px;
   height: 80px;
@@ -518,7 +563,11 @@ const HealthImage = styled.div`
   }
 `;
 
-// 대시보드 3열 그리드
+// ==========================================
+// 5. 하단 대시보드 그리드 (3열 2단 배치 레이아웃 구조)
+// ==========================================
+
+// 게시판 위젯용 3개 균등분할(3열 1fr) 그리드 컨테이너
 const DashboardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -526,6 +575,7 @@ const DashboardGrid = styled.div`
   width: 100%;
 `;
 
+// 각 열 단위의 수직 플렉스 컨테이너
 const GridColumn = styled.div`
   display: flex;
   flex-direction: column;
