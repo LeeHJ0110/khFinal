@@ -18,12 +18,12 @@ export default function BoardListPage() {
     FREE: {
       title: "자유게시판",
       subtitle: "반려동물에 대한 자유로운 이야기와 정보를 나눠보세요.",
-      subCategories: ["ALL", "TALK", "INFORMATION", "JOKE"],
+      subCategories: ["ALL", "잡담", "정보", "유머"],
       subCategoryLabels: {
         ALL: "전체",
-        TALK: "잡담",
-        INFORMATION: "정보",
-        JOKE: "유머",
+        잡담: "잡담",
+        정보: "정보",
+        유머: "유머",
       },
     },
     PRODUCT_REVIEW: {
