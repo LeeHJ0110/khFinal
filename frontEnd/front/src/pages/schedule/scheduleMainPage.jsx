@@ -2,7 +2,7 @@ import styled from "styled-components";
 import ScheduleMain from "../../features/schedule/components/ScheduleMain";
 import TrainingDiaryModal from "../../features/schedule/components/TrainingDiaryModal";
 import useTraining from "../../features/schedule/hooks/useTraining";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ScheduleModal from "../../features/schedule/components/scheduleModal";
 import useFormData from "../../shared/hooks/useFormData";
 
@@ -12,9 +12,10 @@ export default function ScheduleMainPage() {
     content: "",
     trainingTime: "00:00",
     createdAt: "",
-    petList: [],
+    trainingPetList: [],
     isEdit: false,
   };
+  const { checkToday, isDuple } = useTraining();
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [modalType, setModalType] = useState(null);
@@ -31,8 +32,16 @@ export default function ScheduleMainPage() {
     setDetailOpen(false);
   };
 
+  useEffect(() => {
+    console.log(isDuple);
+
+    if (isDuple) {
+      handleOpenModal({ type: "training", data: trainingInit });
+    }
+  }, [isDuple]);
+
   function handleTraininClick() {
-    handleOpenModal({ type: "training", data: trainingInit });
+    checkToday();
   }
 
   return (

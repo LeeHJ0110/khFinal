@@ -10,24 +10,24 @@ import { useNavigate } from "react-router-dom";
 
 export default function useTraining() {
   const [isSuccess, setSuccess] = useState(false);
+  const [isDuple, setDuple] = useState(false);
 
-  async function openDetail(iDate) {
-    let date = iDate;
-    if (date) {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const day = String(now.getDate()).padStart(2, "0");
+  async function checkToday() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
 
-      date = `${year}-${month}-${day}`;
-    }
+    const date = `${year}-${month}-${day}`;
 
     const checker = await checkDate(date);
 
-    if (checker == "등록가능") {
-      // setDetailOpen(true);
+    if (checker.data == "등록가능") {
+      setDuple(true);
+    } else {
+      alert(checker.data);
+      setDuple(false);
     }
-    // alert(checker.data);
   }
 
   async function insertDiary(formData) {
@@ -52,7 +52,8 @@ export default function useTraining() {
 
   return {
     isSuccess,
-    openDetail,
+    isDuple,
+    checkToday,
     insertDiary,
     editDiary,
     deleteDiary,

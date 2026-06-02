@@ -5,14 +5,7 @@ import { useEffect, useState } from "react";
 import usePet from "../../mypage/pet/hooks/usePet";
 
 export default function TrainingDiaryModal({ open, onClose, data }) {
-  const {
-    isSuccess,
-    openDetail,
-    closeDetail,
-    insertDiary,
-    editDiary,
-    deleteDiary,
-  } = useTraining();
+  const { isSuccess, insertDiary, editDiary, deleteDiary } = useTraining();
   const { formData, handleChange } = useFormData(data);
   const { petList, loading, fetchMyPetList } = usePet();
 
@@ -20,7 +13,7 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
 
   useEffect(() => {
     if (open && data) {
-      setCheckedPetIds(data.petList || []);
+      setCheckedPetIds(data.trainingPetList || []);
     }
   }, [open, data]);
 
@@ -43,7 +36,6 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
       setCheckedPetIds((prev) => prev.filter((id) => id !== petId));
     }
   };
-  console.log(formData);
 
   return (
     <Wrapper>
@@ -113,18 +105,20 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
               ) : (
                 <>
                   {petList.map((pet) => (
-                    <label key={pet.id}>
+                    <label key={pet.petId}>
                       <input
                         type="checkbox"
-                        checked={formData.petList.includes(pet.id)}
+                        checked={formData.trainingPetList.includes(pet.petId)}
                         onChange={(e) => {
                           const nextPetList = e.target.checked
-                            ? [...formData.petList, pet.id]
-                            : formData.petList.filter((id) => id !== pet.id);
+                            ? [...formData.trainingPetList, pet.petId]
+                            : formData.trainingPetList.filter(
+                                (id) => id !== pet.petId,
+                              );
 
                           handleChange({
                             target: {
-                              name: "petList",
+                              name: "trainingPetList",
                               value: nextPetList,
                             },
                           });
