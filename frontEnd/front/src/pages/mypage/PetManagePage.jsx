@@ -17,6 +17,7 @@ export default function PetManagePage() {
     fetchBreedList,
     handleUpdatePet,
     handleDeletePet,
+    handleRepresentPet,
   } = usePet();
 
   const emptyForm = {
@@ -233,10 +234,10 @@ export default function PetManagePage() {
                 <InfoRow>
                   <span>생년월일</span>
                   <Input
+                    type="date"
                     name="birthDate"
                     value={formData.birthDate}
                     onChange={handleChange}
-                    placeholder="2021.03.15"
                   />
                 </InfoRow>
 
@@ -250,23 +251,19 @@ export default function PetManagePage() {
                   />
                 </InfoRow>
 
-                <InfoRow>
-                  <span>대표동물</span>
-                  <Select
-                    name="representYn"
-                    value={formData.representYn}
-                    onChange={handleChange}
-                  >
-                    <option value="Y">대표</option>
-                    <option value="N">일반</option>
-                  </Select>
-                </InfoRow>
-
                 <ButtonRow>
                   {isCreateMode ? (
                     <Button type="submit">등록하기</Button>
                   ) : (
                     <>
+                      {selectedPet?.representYn !== "Y" && (
+                        <Button
+                          type="button"
+                          onClick={() => handleRepresentPet(selectedPet.petId)}
+                        >
+                          대표동물 지정
+                        </Button>
+                      )}
                       <Button type="submit">수정하기</Button>
                       <Button type="button" onClick={handleDelete}>
                         삭제하기

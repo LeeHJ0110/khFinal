@@ -79,4 +79,15 @@ public class PetController {
 
         return ResponseEntity.ok().build();
     }
+    @PutMapping("/{petId}/represent")
+    public ResponseEntity<Void> changeRepresentPet(
+            @PathVariable Long petId,
+            Authentication authentication
+    ) {
+        String loginKey = authentication.getName();
+
+        petService.changeRepresentPet(petId, loginKey);
+
+        return ResponseEntity.ok().build();
+    }
 }
