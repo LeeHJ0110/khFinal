@@ -220,9 +220,10 @@ const Container = styled.div`
 `;
 
 const HomeContentWrapper = styled.div`
-  width: 1400px;
+  width: var(--layout-width);
+  max-width: 100%;
   margin: 0 auto;
-  padding: 40px 20px 80px 20px;
+  padding: 40px var(--layout-padding-x) 80px var(--layout-padding-x);
   display: flex;
   flex-direction: column;
   gap: 40px;

@@ -156,10 +156,10 @@ function App() {
           </Route>
 
           <Route path="community">
-            <Route element={<BoardHome />} />
+            <Route index element={<BoardHome />} />
             <Route path="write" element={<BoardWritePage />} />
             <Route path="list" element={<BoardListPage />} />
-            <Route path="detail" element={<BoardDetailPage />} />
+            <Route path="detail/:id" element={<BoardDetailPage />} />
           </Route>
         </Route>
       </Routes>

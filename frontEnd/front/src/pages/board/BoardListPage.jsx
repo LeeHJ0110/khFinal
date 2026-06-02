@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+
 
 import useBoardList from "../../features/board/hooks/useBoardList";
 import NewsBoardList from "./components/NewsBoardList";
@@ -53,7 +54,8 @@ export default function BoardListPage() {
     },
   };
 
-  const [activeTab, setActiveTab] = useState("FREE");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get("category") || "FREE";
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchType, setSearchType] = useState("title");
   const [searchKeyword, setSearchKeyword] = useState("");
@@ -98,10 +100,14 @@ export default function BoardListPage() {
 
   // 카테고리 탭 스위칭 핸들러
   const handleTabChange = (tabKey) => {
-    setActiveTab(tabKey);
-    setSubCategory("ALL");
-    setSearchKeyword("");
-    setCurrentPage(0);
+    if (tabKey === "HOME") {
+      navigate("/community");
+    } else {
+      setSearchParams({ category: tabKey });
+      setSubCategory("ALL");
+      setSearchKeyword("");
+      setCurrentPage(0);
+    }
   };
 
   // 말머리 서브 카테고리 선택 핸들러
@@ -415,11 +421,12 @@ const SubNavItem = styled.button`
 
 // 메인 2단 레이아웃 콘텐츠 영역
 const LayoutWrapper = styled.div`
-  width: 1400px;
+  width: var(--layout-width);
+  max-width: 100%;
   margin: 40px auto 80px auto;
   display: flex;
   gap: 30px;
-  padding: 0 20px;
+  padding: 0 var(--layout-padding-x);
   align-items: flex-start;
 `;
 
