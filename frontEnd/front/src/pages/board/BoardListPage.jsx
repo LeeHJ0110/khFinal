@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-
 import useBoardList from "../../features/board/hooks/useBoardList";
 import NewsBoardList from "./components/NewsBoardList";
 import FAQBoardList from "./components/FAQBoardList";
@@ -651,7 +650,7 @@ const PageNumberButton = styled.button`
     ${(props) => (props.$active ? "var(--color-main)" : "#dee2e6")};
   background-color: ${(props) =>
     props.active ? "var(--color-main)" : "#ffffff"};
-  color: ${(props) => (props.$active ? "#ffffff" : "#555555")};
+  color: ${(props) => (props.$active ? "#000000" : "#555555")};
   font-weight: ${(props) => (props.$active ? "700" : "500")};
   font-size: 13px;
   display: flex;
