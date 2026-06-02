@@ -50,7 +50,6 @@ public class TrainingController {
         return ResponseEntity.ok(trainingService.checkDate(date));
     }
 
-
     //목록조회
     @GetMapping
     public ResponseEntity<List<TrainingResDto>> selectList(@AuthenticationPrincipal String username){

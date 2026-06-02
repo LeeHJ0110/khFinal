@@ -25,7 +25,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen }) {
     content: "",
     trainingTime: "",
     createdAt: "",
-    petList: [],
+    trainingPetList: [],
     isEdit: true,
   };
 
