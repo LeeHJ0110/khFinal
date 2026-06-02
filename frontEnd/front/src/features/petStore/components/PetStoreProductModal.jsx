@@ -1,3 +1,4 @@
+import "./PetStoreProductModal.css";
 import PetStoreProductForm from "./PetStoreProductForm";
 
 const emptyBasicData = {
@@ -20,6 +21,20 @@ const emptyNutrition = {
 };
 
 const emptyFeedingGuideList = [
+  {
+    feedingMinWeight: "",
+    feedingMaxWeight: "",
+    feedingDailyAmount: "",
+    feedingUnit: "g",
+    feedingNote: "",
+  },
+  {
+    feedingMinWeight: "",
+    feedingMaxWeight: "",
+    feedingDailyAmount: "",
+    feedingUnit: "g",
+    feedingNote: "",
+  },
   {
     feedingMinWeight: "",
     feedingMaxWeight: "",
@@ -69,13 +84,17 @@ function makeInitialFeedingGuideList(mode, detailData) {
     return emptyFeedingGuideList;
   }
 
-  return detailData.feedingGuideList.map((guide) => ({
+  const mappedList = detailData.feedingGuideList.map((guide) => ({
     feedingMinWeight: guide.feedingMinWeight ?? "",
     feedingMaxWeight: guide.feedingMaxWeight ?? "",
     feedingDailyAmount: guide.feedingDailyAmount ?? "",
     feedingUnit: guide.feedingUnit ?? "g",
     feedingNote: guide.feedingNote ?? "",
   }));
+
+  return [0, 1, 2].map((index) => {
+    return mappedList[index] ?? emptyFeedingGuideList[index];
+  });
 }
 
 export default function PetStoreProductModal({
@@ -100,14 +119,10 @@ export default function PetStoreProductModal({
   const initialFeedingGuideList = makeInitialFeedingGuideList(mode, detailData);
 
   return (
-    <div className="modal-backdrop">
-      <div className="product-modal">
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="product-modal" onClick={(evt) => evt.stopPropagation()}>
         <div className="product-modal-header">
           <h2>{mode === "insert" ? "상품등록" : "상품수정"}</h2>
-
-          <button type="button" onClick={onClose}>
-            닫기
-          </button>
         </div>
 
         <PetStoreProductForm

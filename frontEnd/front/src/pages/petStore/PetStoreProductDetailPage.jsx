@@ -176,6 +176,10 @@ export default function PetStoreProductDetailPage() {
   const totalPrice = (product.productPrice ?? 0) * quantity;
   const bottomToggleText = "구매하기";
 
+  const showNutritionAndFeeding = isNutritionAndFeedingCategory(
+    product.productCategory,
+  );
+
   return (
     <>
       <PetStoreUserNav
@@ -325,185 +329,191 @@ export default function PetStoreProductDetailPage() {
               </TagCardIconBox>
             </TagAnalysisCard>
 
-            <SectionBlock>
-              <SectionTitleRow>
-                <SectionTitle>영양성분 / 주요성분</SectionTitle>
-                <SectionDesc>
-                  상품 등록 시 입력한 영양 정보를 기준으로 표시됩니다.
-                </SectionDesc>
-              </SectionTitleRow>
+            {showNutritionAndFeeding && (
+              <SectionBlock>
+                <SectionTitleRow>
+                  <SectionTitle>영양성분 / 주요성분</SectionTitle>
+                  <SectionDesc>
+                    상품 등록 시 입력한 영양 정보를 기준으로 표시됩니다.
+                  </SectionDesc>
+                </SectionTitleRow>
 
-              {product.nutrition ? (
-                <NutritionTable>
-                  <thead>
-                    <tr>
-                      <th>주요 성분</th>
-                      <th>함량</th>
-                      <th>주요 성분</th>
-                      <th>함량</th>
-                    </tr>
-                  </thead>
+                {product.nutrition ? (
+                  <NutritionTable>
+                    <thead>
+                      <tr>
+                        <th>주요 성분</th>
+                        <th>함량</th>
+                        <th>주요 성분</th>
+                        <th>함량</th>
+                      </tr>
+                    </thead>
 
-                  <tbody>
-                    <tr>
-                      <td>칼로리</td>
-                      <td>
-                        {formatNutritionValue(
-                          "calorie",
-                          product.nutrition.nutritionCalorie,
-                        )}
-                      </td>
-                      <td>수분</td>
-                      <td>
-                        {formatNutritionValue(
-                          "percent",
-                          product.nutrition.nutritionMoisture,
-                        )}
-                      </td>
-                    </tr>
+                    <tbody>
+                      <tr>
+                        <td>칼로리</td>
+                        <td>
+                          {formatNutritionValue(
+                            "calorie",
+                            product.nutrition.nutritionCalorie,
+                          )}
+                        </td>
+                        <td>수분</td>
+                        <td>
+                          {formatNutritionValue(
+                            "percent",
+                            product.nutrition.nutritionMoisture,
+                          )}
+                        </td>
+                      </tr>
 
-                    <tr>
-                      <td>단백질</td>
-                      <td>
-                        {formatNutritionValue(
-                          "percent",
-                          product.nutrition.nutritionProtein,
-                        )}
-                      </td>
-                      <td>칼슘</td>
-                      <td>
-                        {formatNutritionValue(
-                          "percent",
-                          product.nutrition.nutritionCalcium,
-                        )}
-                      </td>
-                    </tr>
+                      <tr>
+                        <td>단백질</td>
+                        <td>
+                          {formatNutritionValue(
+                            "percent",
+                            product.nutrition.nutritionProtein,
+                          )}
+                        </td>
+                        <td>칼슘</td>
+                        <td>
+                          {formatNutritionValue(
+                            "percent",
+                            product.nutrition.nutritionCalcium,
+                          )}
+                        </td>
+                      </tr>
 
-                    <tr>
-                      <td>지방</td>
-                      <td>
-                        {formatNutritionValue(
-                          "percent",
-                          product.nutrition.nutritionFat,
-                        )}
-                      </td>
-                      <td>인</td>
-                      <td>
-                        {formatNutritionValue(
-                          "percent",
-                          product.nutrition.nutritionPhosphorus,
-                        )}
-                      </td>
-                    </tr>
+                      <tr>
+                        <td>지방</td>
+                        <td>
+                          {formatNutritionValue(
+                            "percent",
+                            product.nutrition.nutritionFat,
+                          )}
+                        </td>
+                        <td>인</td>
+                        <td>
+                          {formatNutritionValue(
+                            "percent",
+                            product.nutrition.nutritionPhosphorus,
+                          )}
+                        </td>
+                      </tr>
 
-                    <tr>
-                      <td>식이섬유</td>
-                      <td>
-                        {formatNutritionValue(
-                          "percent",
-                          product.nutrition.nutritionFiber,
-                        )}
-                      </td>
-                      <td>기타</td>
-                      <td>{displayValue(product.nutrition.nutritionEtc)}</td>
-                    </tr>
-                  </tbody>
-                </NutritionTable>
-              ) : (
-                <EmptyPanel>등록된 영양성분 정보가 없습니다.</EmptyPanel>
-              )}
-            </SectionBlock>
+                      <tr>
+                        <td>식이섬유</td>
+                        <td>
+                          {formatNutritionValue(
+                            "percent",
+                            product.nutrition.nutritionFiber,
+                          )}
+                        </td>
+                        <td>기타</td>
+                        <td>{displayValue(product.nutrition.nutritionEtc)}</td>
+                      </tr>
+                    </tbody>
+                  </NutritionTable>
+                ) : (
+                  <EmptyPanel>등록된 영양성분 정보가 없습니다.</EmptyPanel>
+                )}
+              </SectionBlock>
+            )}
 
-            <SectionBlock>
-              <SectionTitleRow>
-                <SectionTitle>급여 기준 / 급여 추천</SectionTitle>
-                <SectionDesc>
-                  반려동물 정보 연동 전까지는 상품 등록 기준 급여량을
-                  표시합니다.
-                </SectionDesc>
-              </SectionTitleRow>
+            {showNutritionAndFeeding && (
+              <SectionBlock>
+                <SectionTitleRow>
+                  <SectionTitle>급여 기준 / 급여 추천</SectionTitle>
+                  <SectionDesc>
+                    반려동물 정보 연동 전까지는 상품 등록 기준 급여량을
+                    표시합니다.
+                  </SectionDesc>
+                </SectionTitleRow>
 
-              <FeedingRecommendLayout>
-                <FeedingGuideCard>
-                  <FeedingGuideLeft>
-                    <FeedingGuideTitle>급여 방법</FeedingGuideTitle>
+                <FeedingRecommendLayout>
+                  <FeedingGuideCard>
+                    <FeedingGuideLeft>
+                      <FeedingGuideTitle>급여 방법</FeedingGuideTitle>
 
-                    <FeedingMethodContent>
-                      <FeedingFoodImageBox>
-                        {selectedImageUrl ? (
-                          <FeedingFoodImage
-                            src={selectedImageUrl}
-                            alt={product.productName}
-                          />
-                        ) : (
-                          <FeedingFoodEmoji>
-                            {product.productTargetPetType === "D" ? "🐶" : "🐱"}
-                          </FeedingFoodEmoji>
-                        )}
-                      </FeedingFoodImageBox>
+                      <FeedingMethodContent>
+                        <FeedingFoodImageBox>
+                          {selectedImageUrl ? (
+                            <FeedingFoodImage
+                              src={selectedImageUrl}
+                              alt={product.productName}
+                            />
+                          ) : (
+                            <FeedingFoodEmoji>
+                              {product.productTargetPetType === "D"
+                                ? "🐶"
+                                : "🐱"}
+                            </FeedingFoodEmoji>
+                          )}
+                        </FeedingFoodImageBox>
 
-                      <FeedingMethodTextBox>
-                        <FeedingMethodName>
-                          {product.productName}
-                        </FeedingMethodName>
-                        <FeedingMethodDesc>
-                          권장량에 따라 급여해주세요.
-                        </FeedingMethodDesc>
-                      </FeedingMethodTextBox>
-                    </FeedingMethodContent>
-                  </FeedingGuideLeft>
+                        <FeedingMethodTextBox>
+                          <FeedingMethodName>
+                            {product.productName}
+                          </FeedingMethodName>
+                          <FeedingMethodDesc>
+                            권장량에 따라 급여해주세요.
+                          </FeedingMethodDesc>
+                        </FeedingMethodTextBox>
+                      </FeedingMethodContent>
+                    </FeedingGuideLeft>
 
-                  <FeedingGuideRight>
-                    {product.feedingGuideList?.length > 0 ? (
-                      product.feedingGuideList.map((guide, index) => (
-                        <FeedingPillRow key={guide.feedingGuideId ?? index}>
-                          <span>♟ {getFeedingWeightRange(guide)}</span>
-                          <strong>1일 {getFeedingAmount(guide)}</strong>
-                        </FeedingPillRow>
-                      ))
-                    ) : (
-                      <FeedingEmptyText>
-                        등록된 급여 기준이 없습니다.
-                      </FeedingEmptyText>
-                    )}
-                  </FeedingGuideRight>
-                </FeedingGuideCard>
+                    <FeedingGuideRight>
+                      {product.feedingGuideList?.length > 0 ? (
+                        product.feedingGuideList.map((guide, index) => (
+                          <FeedingPillRow key={guide.feedingGuideId ?? index}>
+                            <span>♟ {getFeedingWeightRange(guide)}</span>
+                            <strong>1일 {getFeedingAmount(guide)}</strong>
+                          </FeedingPillRow>
+                        ))
+                      ) : (
+                        <FeedingEmptyText>
+                          등록된 급여 기준이 없습니다.
+                        </FeedingEmptyText>
+                      )}
+                    </FeedingGuideRight>
+                  </FeedingGuideCard>
 
-                <PetRecommendCard>
-                  <RecommendArrowButton type="button" $left>
-                    ‹
-                  </RecommendArrowButton>
+                  <PetRecommendCard>
+                    <RecommendArrowButton type="button" $left>
+                      ‹
+                    </RecommendArrowButton>
 
-                  <RecommendPetInfoBox>
-                    <RecommendCardLabel>
-                      우리 아이 추천 급여량
-                    </RecommendCardLabel>
+                    <RecommendPetInfoBox>
+                      <RecommendCardLabel>
+                        우리 아이 추천 급여량
+                      </RecommendCardLabel>
 
-                    <RecommendPetMain>
-                      <RecommendPetImageBox>
-                        {product.productTargetPetType === "D" ? "🐶" : "🐱"}
-                      </RecommendPetImageBox>
+                      <RecommendPetMain>
+                        <RecommendPetImageBox>
+                          {product.productTargetPetType === "D" ? "🐶" : "🐱"}
+                        </RecommendPetImageBox>
 
-                      <RecommendPetTextBox>
-                        <RecommendPetName>깨깨</RecommendPetName>
-                        <RecommendPetMeta>
-                          비숑 프리제 · 5살 · 7kg
-                        </RecommendPetMeta>
-                      </RecommendPetTextBox>
-                    </RecommendPetMain>
-                  </RecommendPetInfoBox>
+                        <RecommendPetTextBox>
+                          <RecommendPetName>깨깨</RecommendPetName>
+                          <RecommendPetMeta>
+                            비숑 프리제 · 5살 · 7kg
+                          </RecommendPetMeta>
+                        </RecommendPetTextBox>
+                      </RecommendPetMain>
+                    </RecommendPetInfoBox>
 
-                  <RecommendAmountArea>
-                    <span>1일 권장 급여량</span>
-                    <strong>1일 80g</strong>
-                  </RecommendAmountArea>
+                    <RecommendAmountArea>
+                      <span>1일 권장 급여량</span>
+                      <strong>1일 80g</strong>
+                    </RecommendAmountArea>
 
-                  <RecommendArrowButton type="button" $right>
-                    ›
-                  </RecommendArrowButton>
-                </PetRecommendCard>
-              </FeedingRecommendLayout>
-            </SectionBlock>
+                    <RecommendArrowButton type="button" $right>
+                      ›
+                    </RecommendArrowButton>
+                  </PetRecommendCard>
+                </FeedingRecommendLayout>
+              </SectionBlock>
+            )}
           </AnalysisSection>
 
           <DetailContentSection ref={detailRef}>
@@ -690,20 +700,24 @@ function getCategoryLabel(category) {
   return map[category] ?? category;
 }
 
+function isNutritionAndFeedingCategory(category) {
+  return ["FOOD", "SNACK", "SUPPLEMENT"].includes(category);
+}
+
 function getFeedingWeightRange(guide) {
   const min = guide.feedingMinWeight;
   const max = guide.feedingMaxWeight;
 
+  if (min == null && max != null) {
+    return `${max}kg 미만`;
+  }
+
   if (min != null && max != null) {
-    return `${min}kg ~ ${max}kg`;
+    return `${min}kg 이상 ~ ${max}kg 미만`;
   }
 
-  if (min != null) {
+  if (min != null && max == null) {
     return `${min}kg 이상`;
-  }
-
-  if (max != null) {
-    return `${max}kg 이하`;
   }
 
   return "-";
