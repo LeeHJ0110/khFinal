@@ -26,7 +26,6 @@ const tagList = [
   아래 표시 부분을 실제 데이터로 변경하면 됩니다.
 */
 function getTempReviewInfo(index) {
-  const navigate = useNavigate();
   const tempReviewList = [
     { rating: "4.9", count: 128 },
     { rating: "4.8", count: 92 },
@@ -39,6 +38,7 @@ function getTempReviewInfo(index) {
 }
 
 export default function PetStoreCatToiletProductListPage() {
+  const navigate = useNavigate();
   const {
     productList,
     isLoading,
