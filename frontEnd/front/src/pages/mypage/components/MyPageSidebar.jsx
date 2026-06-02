@@ -1,9 +1,21 @@
 import styled from "styled-components";
 import { NavLink } from "react-router-dom";
 import useMypageMember from "../../../features/mypage/member/hooks/useMypageMember";
-
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { logout } from "../../../features/member/store/memberSlice";
 export default function MyPageSidebar() {
   const { member, loading } = useMypageMember();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  function handleLogout() {
+    localStorage.removeItem("accessToken");
+
+    dispatch(logout());
+
+    navigate("/member/login");
+  }
   return (
     <SideBar>
       <ProfileBox>
@@ -33,6 +45,7 @@ export default function MyPageSidebar() {
 
         <MenuItem to="/mypage/points">포인트 내역</MenuItem>
       </MenuList>
+      <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
     </SideBar>
   );
 }
@@ -42,6 +55,9 @@ const SideBar = styled.aside`
   background: #e9fbf4;
   padding: 42px 0 24px;
   flex-shrink: 0;
+
+  display: flex;
+  flex-direction: column;
 `;
 
 const ProfileBox = styled.div`
@@ -99,5 +115,28 @@ const MenuItem = styled(NavLink)`
 
   &:hover {
     background: #d5f5ea;
+  }
+`;
+const MenuArea = styled.div`
+  flex: 1;
+`;
+
+const LogoutButton = styled.button`
+  margin: 20px;
+  height: 48px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: #ff6b6b;
+  color: white;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  &:hover {
+    background: #fa5252;
   }
 `;
