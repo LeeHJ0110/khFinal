@@ -420,12 +420,11 @@ const SubNavItem = styled.button`
 
 // 메인 2단 레이아웃 콘텐츠 영역
 const LayoutWrapper = styled.div`
-  width: var(--layout-width);
-  max-width: 100%;
+  width: 1400px;
   margin: 40px auto 80px auto;
   display: flex;
   gap: 30px;
-  padding: 0 var(--layout-padding-x);
+  padding: 0 20px;
   align-items: flex-start;
 `;
 
