@@ -10,6 +10,7 @@ export default function useKarte() {
   const [list, setList] = useState([]);
   const [data, setData] = useState({});
   const [isLoading, setLoading] = useState(false);
+  const [isSuccess, setSuccess] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
@@ -37,7 +38,7 @@ export default function useKarte() {
   //등록
   async function asyncFetchKarteWrite(vo) {
     setLoading(true);
-    const rest = await fetchKarteWrite(vo);
+    const resp = await fetchKarteWrite(vo);
     if (resp.status == 201) {
       setSuccess(true);
     }
@@ -55,6 +56,7 @@ export default function useKarte() {
     asyncFetchKarteWrite,
     asyncFetchKarteDelete,
     asyncFetchKarteDetail,
+    isSuccess,
     data,
     list,
     currentPage,

@@ -55,7 +55,7 @@ public class KarteService {
         log.info("[진단결과 작성 완료] writer: {}", memberEntity);
     }
 
-    public Page<KarteListResDto> getBoardList(int pno, String username) {
+    public Page<KarteListResDto> getKarteList(int pno, String username) {
         MemberEntity memberEntity = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("맴버 없음"));
         PageRequest pageRequest = PageRequest.of(pno, 10);

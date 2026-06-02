@@ -77,7 +77,7 @@ function App() {
             <Route path="schedule" element={<ScheduleMainPage />} />
 
             {/* 진단결과 */}
-            <Route path="resultList" element={<KarteListPage />} />
+            <Route path="result" element={<KarteListPage />} />
             <Route path="result/:id" element={<KarteDetailPage />} />
 
             {/* user */}
