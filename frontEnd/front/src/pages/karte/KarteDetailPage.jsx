@@ -24,7 +24,7 @@ export default function KarteDetailPage() {
     return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, "0")}월 ${String(date.getDate()).padStart(2, "0")}일`;
   };
 
-  const scoresWithoutTotal = data.scores.filter(
+  const scoresWithoutTotal = data.scores?.filter(
     (score) => score.category !== "TOTAL",
   );
 
