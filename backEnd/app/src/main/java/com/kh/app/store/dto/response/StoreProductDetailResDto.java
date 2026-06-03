@@ -6,10 +6,12 @@ import com.kh.app.store.entity.StoreProductFeedingGuideEntity;
 import com.kh.app.store.entity.StoreProductNutritionEntity;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
 @Getter
+@Setter
 @Builder
 public class StoreProductDetailResDto {
 
@@ -32,6 +34,11 @@ public class StoreProductDetailResDto {
 
     // 영양성분
     private StoreNutritionResDto nutrition;
+
+    // 맞춤 급여 추천
+    private String feedingRecommendStatus;
+    private String feedingRecommendMessage;
+    private List<StorePetFeedingRecommendResDto> recommendPetList;
 
     public static StoreProductDetailResDto from(
             StoreProductEntity product,
@@ -68,6 +75,13 @@ public class StoreProductDetailResDto {
                                 ? null
                                 : StoreNutritionResDto.from(nutrition)
                 )
+
+                // 기본값: 로그인 안 한 상태로 내려줌
+                // 나중에 서비스에서 로그인 회원이면 SUCCESS 등으로 덮어씀
+                .feedingRecommendStatus("NEED_LOGIN")
+                .feedingRecommendMessage("로그인 후 맞춤 급여 정보를 확인할 수 있습니다.")
+                .recommendPetList(List.of())
+
                 .build();
     }
 }

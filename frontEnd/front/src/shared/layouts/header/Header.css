@@ -1,20 +1,14 @@
 /* ================================
    Header
-   - 1920px 고정 레이아웃
-   - 좌우 여백은 index.css의 --layout-padding-x 기준
-   - 우측 영역은 로그인/비로그인 상태에 따라 grid 구조 변경
 ================================ */
 
 .header {
-  /* Header Layout */
-  --header-edge-correction: 20px;
+  --header-edge-correction: 0px;
 
-  /* Left Area */
   --header-logo-width: 92px;
   --header-logo-area-width: 126px;
   --header-menu-item-width: 126px;
 
-  /* Right Area */
   --header-search-width: 320px;
   --header-alarm-width: 32px;
   --header-user-width: 180px;
@@ -29,13 +23,15 @@
 
 /* Header Inner */
 .header-inner {
-  width: var(--layout-width);
+  width: 100%;
+  max-width: var(--layout-max-width);
   height: 100%;
   margin: 0 auto;
   padding: 0 var(--layout-padding-x);
 
   display: flex;
   align-items: center;
+  min-width: 0;
 }
 
 /* Logo */
@@ -57,7 +53,6 @@
   object-fit: contain;
   object-position: center;
 
-  /* 로고 시각 중심 보정: 값이 커질수록 오른쪽 이동 */
   transform: translateX(20px);
 }
 
@@ -69,6 +64,8 @@
   display: flex;
   align-items: center;
   gap: 0;
+
+  flex-shrink: 0;
 }
 
 .header-menu a {
@@ -113,21 +110,23 @@
   display: grid;
   align-items: center;
   column-gap: 14px;
+
+  min-width: 0;
 }
 
 /* 로그인: 검색 / 알림 / 유저 / 로그아웃 */
 .header-right.is-login {
   grid-template-columns:
-    var(--header-search-width)
+    minmax(180px, var(--header-search-width))
     var(--header-alarm-width)
-    var(--header-user-width)
+    minmax(120px, var(--header-user-width))
     var(--header-action-width);
 }
 
 /* 비로그인: 검색 / 로그인 / 회원가입 */
 .header-right.is-guest {
   grid-template-columns:
-    var(--header-search-width)
+    minmax(180px, var(--header-search-width))
     72px
     var(--header-action-width);
 }
@@ -178,4 +177,36 @@
 
 .header-join-btn:hover {
   background-color: var(--color-bg-light);
+}
+
+/* 노트북 폭 대응 */
+@media (max-width: 1440px) {
+  .header {
+    --header-logo-area-width: 120px;
+    --header-menu-item-width: 118px;
+    --header-search-width: 260px;
+    --header-action-width: 96px;
+  }
+
+  .header-menu a {
+    font-size: 13px;
+  }
+}
+
+/* 더 작은 화면 대응 */
+@media (max-width: 1200px) {
+  .header {
+    --header-logo-area-width: 110px;
+    --header-menu-item-width: 104px;
+    --header-search-width: 220px;
+    --header-action-width: 88px;
+  }
+
+  .header-right {
+    column-gap: 8px;
+  }
+
+  .header-logo img {
+    transform: translateX(10px);
+  }
 }

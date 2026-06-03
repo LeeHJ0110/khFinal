@@ -6,7 +6,7 @@ import useFormData from "../../shared/hooks/useFormData";
 import useMemberLogin from "../../features/member/hooks/useMemberLogin";
 
 import "./LoginPage.css";
-import bg from "../../assets/images/LOGIN.png";
+import bg from "../../assets/images/로그인용.mp4";
 import logo from "../../assets/images/login_logo1.png";
 import logo2 from "../../assets/images/login_logo2.png";
 
@@ -41,9 +41,9 @@ export default function MemberLoginPage() {
       navigate("/");
     }
   }
+
   function handleKakaoLogin() {
     const clientId = import.meta.env.VITE_KAKAO_REST_API_KEY;
-
     const redirectUri = import.meta.env.VITE_KAKAO_REDIRECT_URI;
 
     const kakaoAuthUrl =
@@ -54,8 +54,15 @@ export default function MemberLoginPage() {
 
     window.location.href = kakaoAuthUrl;
   }
+
   return (
-    <main className="login-page" style={{ backgroundImage: `url(${bg})` }}>
+    <main className="login-page">
+      <video className="login-bg-video" autoPlay muted loop playsInline>
+        <source src={bg} type="video/mp4" />
+      </video>
+
+      <div className="login-overlay" />
+
       <section className="login-hero">
         <img src={logo} alt="PET&I FOR" className="main-logo" />
 

@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -171,9 +172,10 @@ public class StoreProductController {
     @Operation(summary = "사용자 상품 상세조회", description = "사용자가 특정 상품의 상세 정보를 조회하는 기능")
     @GetMapping("/{productId}")
     public ResponseEntity<StoreProductDetailResDto> getProductDetail(
-            @PathVariable Long productId
+            @PathVariable Long productId,
+            @AuthenticationPrincipal String username
     ) {
-        StoreProductDetailResDto result = storeProductService.getProductDetail(productId);
+        StoreProductDetailResDto result = storeProductService.getProductDetail(productId, username);
         return ResponseEntity.ok(result);
     }
 
