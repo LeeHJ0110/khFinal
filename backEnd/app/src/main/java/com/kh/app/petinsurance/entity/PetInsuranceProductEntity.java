@@ -1,4 +1,4 @@
-package com.kh.app.petcare.entity;
+package com.kh.app.petinsurance.entity;
 
 import com.kh.app.common.entity.BaseEntity;
 import jakarta.persistence.*;
