@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreProductDetail from "../../features/petStore/hooks/usePetStoreProudctDetail";
 
@@ -10,17 +10,20 @@ export default function PetStoreProductDetailPage() {
   const { product, isLoading, error } = usePetStoreProductDetail(productId);
 
   const [selectedImageUrl, setSelectedImageUrl] = useState("");
+  const [imageFadeKey, setImageFadeKey] = useState(0);
   const [activeTab, setActiveTab] = useState("analysis");
   const [showBottomBar, setShowBottomBar] = useState(false);
   const [isBottomOrderOpen, setIsBottomOrderOpen] = useState(false);
   const [bottomOffset, setBottomOffset] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isTabFixed, setIsTabFixed] = useState(false);
+  const [recommendPetIndex, setRecommendPetIndex] = useState(0);
 
   const tabAnchorRef = useRef(null);
   const analysisRef = useRef(null);
   const detailRef = useRef(null);
   const reviewRef = useRef(null);
+  const navigate = useNavigate();
 
   const imageList = useMemo(() => {
     if (!product) {
@@ -31,6 +34,20 @@ export default function PetStoreProductDetailPage() {
       Boolean,
     );
   }, [product]);
+
+  const recommendPetList = product?.recommendPetList ?? [];
+  const recommendStatus = product?.feedingRecommendStatus ?? "NEED_LOGIN";
+  const recommendMessage =
+    product?.feedingRecommendMessage ??
+    "로그인 후 맞춤 급여 정보를 확인할 수 있습니다.";
+
+  const currentRecommendPet = recommendPetList[recommendPetIndex] ?? null;
+  const hasRecommendPet = recommendPetList.length > 0;
+  const canMoveRecommendPet = recommendPetList.length > 1;
+
+  useEffect(() => {
+    setRecommendPetIndex(0);
+  }, [productId]);
 
   useEffect(() => {
     if (product?.mainImageUrl) {
@@ -94,6 +111,43 @@ export default function PetStoreProductDetailPage() {
     };
   }, []);
 
+  useEffect(() => {
+    const revealItems = document.querySelectorAll("[data-reveal]");
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.16,
+        rootMargin: "0px 0px -60px 0px",
+      },
+    );
+
+    revealItems.forEach((item) => observer.observe(item));
+
+    return () => observer.disconnect();
+  }, [product]);
+
+  function handleRecommendActionClick() {
+    if (recommendStatus === "NEED_LOGIN") {
+      navigate("/member/login");
+      return;
+    }
+
+    if (
+      recommendStatus === "NEED_PET_REGISTER" ||
+      recommendStatus === "NO_MATCHED_PET"
+    ) {
+      navigate("/mypage/pet-manage");
+    }
+  }
+
   function scrollToSection(sectionName) {
     const sectionMap = {
       analysis: analysisRef,
@@ -124,6 +178,35 @@ export default function PetStoreProductDetailPage() {
 
   function handleIncreaseQuantity() {
     setQuantity((prev) => prev + 1);
+  }
+
+  function handleSelectImage(url) {
+    if (selectedImageUrl === url) {
+      return;
+    }
+
+    setSelectedImageUrl(url);
+    setImageFadeKey((prev) => prev + 1);
+  }
+
+  function handlePrevRecommendPet() {
+    if (!hasRecommendPet) {
+      return;
+    }
+
+    setRecommendPetIndex((prev) =>
+      prev === 0 ? recommendPetList.length - 1 : prev - 1,
+    );
+  }
+
+  function handleNextRecommendPet() {
+    if (!hasRecommendPet) {
+      return;
+    }
+
+    setRecommendPetIndex((prev) =>
+      prev === recommendPetList.length - 1 ? 0 : prev + 1,
+    );
   }
 
   if (isLoading) {
@@ -193,7 +276,11 @@ export default function PetStoreProductDetailPage() {
             <ImageSection>
               <MainImageBox>
                 {selectedImageUrl ? (
-                  <MainImage src={selectedImageUrl} alt={product.productName} />
+                  <MainImage
+                    key={`${selectedImageUrl}-${imageFadeKey}`}
+                    src={selectedImageUrl}
+                    alt={product.productName}
+                  />
                 ) : (
                   <ImagePlaceholder>상품 이미지</ImagePlaceholder>
                 )}
@@ -205,7 +292,7 @@ export default function PetStoreProductDetailPage() {
                     key={`${url}-${index}`}
                     type="button"
                     $active={selectedImageUrl === url}
-                    onClick={() => setSelectedImageUrl(url)}
+                    onClick={() => handleSelectImage(url)}
                   >
                     <ThumbImage
                       src={url}
@@ -315,7 +402,7 @@ export default function PetStoreProductDetailPage() {
 
         <ContentInner>
           <AnalysisSection ref={analysisRef}>
-            <TagAnalysisCard>
+            <TagAnalysisCard data-reveal>
               <TagCardText>
                 <TagCardEyebrow>상품 태그 분석</TagCardEyebrow>
 
@@ -330,12 +417,9 @@ export default function PetStoreProductDetailPage() {
             </TagAnalysisCard>
 
             {showNutritionAndFeeding && (
-              <SectionBlock>
+              <SectionBlock data-reveal>
                 <SectionTitleRow>
                   <SectionTitle>영양성분 / 주요성분</SectionTitle>
-                  <SectionDesc>
-                    상품 등록 시 입력한 영양 정보를 기준으로 표시됩니다.
-                  </SectionDesc>
                 </SectionTitleRow>
 
                 {product.nutrition ? (
@@ -421,13 +505,9 @@ export default function PetStoreProductDetailPage() {
             )}
 
             {showNutritionAndFeeding && (
-              <SectionBlock>
+              <SectionBlock data-reveal>
                 <SectionTitleRow>
                   <SectionTitle>급여 기준 / 급여 추천</SectionTitle>
-                  <SectionDesc>
-                    반려동물 정보 연동 전까지는 상품 등록 기준 급여량을
-                    표시합니다.
-                  </SectionDesc>
                 </SectionTitleRow>
 
                 <FeedingRecommendLayout>
@@ -478,36 +558,101 @@ export default function PetStoreProductDetailPage() {
                     </FeedingGuideRight>
                   </FeedingGuideCard>
 
-                  <PetRecommendCard>
-                    <RecommendArrowButton type="button" $left>
+                  <PetRecommendCard $disabled={recommendStatus !== "SUCCESS"}>
+                    <RecommendArrowButton
+                      type="button"
+                      $left
+                      disabled={!canMoveRecommendPet}
+                      onClick={handlePrevRecommendPet}
+                    >
                       ‹
                     </RecommendArrowButton>
 
-                    <RecommendPetInfoBox>
-                      <RecommendCardLabel>
-                        우리 아이 추천 급여량
-                      </RecommendCardLabel>
+                    {recommendStatus === "SUCCESS" && currentRecommendPet ? (
+                      <RecommendSlideContent key={currentRecommendPet.petId}>
+                        <RecommendPetInfoBox>
+                          <RecommendCardLabel>
+                            우리 아이 추천 급여량
+                          </RecommendCardLabel>
 
-                      <RecommendPetMain>
-                        <RecommendPetImageBox>
-                          {product.productTargetPetType === "D" ? "🐶" : "🐱"}
-                        </RecommendPetImageBox>
+                          <RecommendPetMain>
+                            <RecommendPetImageBox>
+                              {currentRecommendPet.petImageUrl ? (
+                                <RecommendPetImage
+                                  src={currentRecommendPet.petImageUrl}
+                                  alt={currentRecommendPet.petName}
+                                />
+                              ) : (
+                                getPetEmoji(
+                                  currentRecommendPet.petType,
+                                  product.productTargetPetType,
+                                )
+                              )}
+                            </RecommendPetImageBox>
 
-                        <RecommendPetTextBox>
-                          <RecommendPetName>깨깨</RecommendPetName>
-                          <RecommendPetMeta>
-                            비숑 프리제 · 5살 · 7kg
-                          </RecommendPetMeta>
-                        </RecommendPetTextBox>
-                      </RecommendPetMain>
-                    </RecommendPetInfoBox>
+                            <RecommendPetTextBox>
+                              <RecommendPetName>
+                                {currentRecommendPet.petName}
+                              </RecommendPetName>
+                              <RecommendPetMeta>
+                                {getRecommendPetMeta(currentRecommendPet)}
+                              </RecommendPetMeta>
+                            </RecommendPetTextBox>
+                          </RecommendPetMain>
+                        </RecommendPetInfoBox>
 
-                    <RecommendAmountArea>
-                      <span>1일 권장 급여량</span>
-                      <strong>1일 80g</strong>
-                    </RecommendAmountArea>
+                        <RecommendAmountArea>
+                          <span>1일 권장 급여량</span>
+                          <strong>
+                            {getRecommendAmountText(currentRecommendPet)}
+                          </strong>
+                        </RecommendAmountArea>
+                      </RecommendSlideContent>
+                    ) : (
+                      <>
+                        <RecommendPetInfoBox>
+                          <RecommendCardLabel>
+                            우리 아이 추천 급여량
+                          </RecommendCardLabel>
 
-                    <RecommendArrowButton type="button" $right>
+                          <RecommendPetMain>
+                            <RecommendPetImageBox>
+                              {product.productTargetPetType === "D"
+                                ? "🐶"
+                                : "🐱"}
+                            </RecommendPetImageBox>
+
+                            <RecommendPetTextBox>
+                              <RecommendPetName>
+                                맞춤 급여 정보
+                              </RecommendPetName>
+                              <RecommendPetMeta>
+                                {recommendMessage}
+                              </RecommendPetMeta>
+                            </RecommendPetTextBox>
+                          </RecommendPetMain>
+                        </RecommendPetInfoBox>
+
+                        <RecommendAmountArea>
+                          <span>맞춤 급여량 확인</span>
+                          <RecommendActionButton
+                            type="button"
+                            onClick={handleRecommendActionClick}
+                          >
+                            {recommendStatus === "NEED_LOGIN"
+                              ? "로그인 하러가기"
+                              : "반려동물 등록하기"}
+                          </RecommendActionButton>
+                        </RecommendAmountArea>
+                      </>
+                    )}
+
+                    <RecommendArrowButton
+                      type="button"
+                      $right
+                      disabled={!canMoveRecommendPet}
+                      onClick={handleNextRecommendPet}
+                    >
                       ›
                     </RecommendArrowButton>
                   </PetRecommendCard>
@@ -516,7 +661,7 @@ export default function PetStoreProductDetailPage() {
             )}
           </AnalysisSection>
 
-          <DetailContentSection ref={detailRef}>
+          <DetailContentSection ref={detailRef} data-reveal>
             <PromoLongImageBox>
               <PromoPlaceholder>
                 <PromoPlaceholderTitle>
@@ -558,7 +703,7 @@ export default function PetStoreProductDetailPage() {
             </ProductInfoBlock>
           </DetailContentSection>
 
-          <ReviewSection ref={reviewRef}>
+          <ReviewSection ref={reviewRef} data-reveal>
             <SectionTitleRow>
               <SectionTitle>구매자 리뷰</SectionTitle>
               <SectionDesc>리뷰 기능은 추후 연동 예정입니다.</SectionDesc>
@@ -689,6 +834,57 @@ function displayValue(value) {
   return value === null || value === undefined || value === "" ? "-" : value;
 }
 
+function getPetEmoji(petType, productTargetPetType) {
+  const type = petType ?? productTargetPetType;
+
+  if (type === "D") {
+    return "🐶";
+  }
+
+  if (type === "C") {
+    return "🐱";
+  }
+
+  return "🐾";
+}
+
+function formatPetWeight(weight) {
+  if (weight === null || weight === undefined || weight === "") {
+    return "-";
+  }
+
+  return `${weight}kg`;
+}
+
+function getRecommendPetMeta(pet) {
+  if (!pet) {
+    return "";
+  }
+
+  const breedName = pet.breedName ?? "품종 정보 없음";
+  const weight = formatPetWeight(pet.petWeight);
+
+  return `${breedName} · ${weight}`;
+}
+
+function getRecommendAmountText(pet) {
+  if (!pet) {
+    return "-";
+  }
+
+  if (pet.dailyAmountText) {
+    return pet.dailyAmountText;
+  }
+
+  const guide = pet.matchedFeedingGuide;
+
+  if (!guide || guide.feedingDailyAmount == null) {
+    return "-";
+  }
+
+  return `1일 ${guide.feedingDailyAmount}${guide.feedingUnit ?? "g"}`;
+}
+
 function getCategoryLabel(category) {
   const map = {
     FOOD: "사료",
@@ -787,6 +983,22 @@ const Wrapper = styled.main`
   width: 100%;
   background-color: var(--color-white);
   padding-bottom: 190px;
+
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(28px);
+    filter: blur(6px);
+    transition:
+      opacity 0.62s ease,
+      transform 0.62s cubic-bezier(0.18, 0.89, 0.32, 1.05),
+      filter 0.62s ease;
+  }
+
+  [data-reveal].is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
 `;
 
 const TopSection = styled.section`
@@ -801,10 +1013,15 @@ const TopInner = styled.div`
   display: grid;
   grid-template-columns: 600px 560px;
   gap: 70px;
-  align-items: start;
+  align-items: stretch;
 `;
 
-const ImageSection = styled.section``;
+const ImageSection = styled.section`
+  min-height: 586px;
+
+  display: flex;
+  flex-direction: column;
+`;
 
 const MainImageBox = styled.div`
   width: 600px;
@@ -823,6 +1040,23 @@ const MainImage = styled.img`
   width: 100%;
   height: 100%;
   object-fit: contain;
+
+  animation: mainImageFadeIn 0.32s ease both;
+  will-change: opacity, transform, filter;
+
+  @keyframes mainImageFadeIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.985);
+      filter: blur(5px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: scale(1);
+      filter: blur(0);
+    }
+  }
 `;
 
 const ImagePlaceholder = styled.div`
@@ -832,7 +1066,8 @@ const ImagePlaceholder = styled.div`
 `;
 
 const ThumbList = styled.div`
-  margin-top: 38px;
+  margin-top: auto;
+  padding-top: 18px;
 
   display: flex;
   justify-content: center;
@@ -1104,6 +1339,19 @@ const WishButton = styled.button`
   font-size: 36px;
   line-height: 1;
   cursor: pointer;
+
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: var(--color-main);
+    color: var(--color-main);
+    box-shadow: 0 8px 18px rgba(18, 45, 46, 0.08);
+  }
 `;
 
 const CartButton = styled.button`
@@ -1117,6 +1365,17 @@ const CartButton = styled.button`
   font-size: 17px;
   font-weight: 900;
   cursor: pointer;
+
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    background-color: #f0fff8;
+    box-shadow: 0 8px 18px rgba(0, 174, 142, 0.12);
+  }
 `;
 
 const BuyButton = styled.button`
@@ -1130,6 +1389,17 @@ const BuyButton = styled.button`
   font-size: 17px;
   font-weight: 900;
   cursor: pointer;
+
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    filter 0.16s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+    box-shadow: 0 10px 22px rgba(0, 174, 142, 0.2);
+  }
 `;
 
 const TabAnchor = styled.div`
@@ -1190,15 +1460,51 @@ const AnalysisSection = styled.section`
 
 const TagAnalysisCard = styled.section`
   position: relative;
-  min-height: 210px;
-  padding: 38px 52px;
+  min-height: 168px;
+  padding: 30px 44px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
   overflow: hidden;
-  background: linear-gradient(120deg, #e9fff5 0%, #b7f0da 52%, #effaf5 100%);
+  border: 1px solid rgba(0, 174, 142, 0.12);
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      circle at 92% 18%,
+      rgba(0, 174, 142, 0.16),
+      transparent 34%
+    ),
+    linear-gradient(120deg, #f2fff9 0%, #c9f5e8 52%, #fffaf2 100%);
+
+  box-shadow: 0 12px 30px rgba(18, 45, 46, 0.055);
+
+  &::before {
+    content: "";
+    position: absolute;
+    right: 120px;
+    top: -40px;
+
+    width: 120px;
+    height: 120px;
+
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.42);
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    right: -36px;
+    bottom: -54px;
+
+    width: 180px;
+    height: 180px;
+
+    border-radius: 50%;
+    background-color: rgba(0, 174, 142, 0.1);
+  }
 `;
 
 const TagCardText = styled.div`
@@ -1207,46 +1513,52 @@ const TagCardText = styled.div`
 `;
 
 const TagCardEyebrow = styled.p`
-  margin: 0 0 8px;
+  margin: 0 0 7px;
 
   color: var(--color-main);
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 900;
 `;
 
 const TagCardTitle = styled.h2`
-  margin: 0 0 14px;
+  margin: 0 0 10px;
 
   color: var(--text-main);
-  font-size: 30px;
+  font-size: 28px;
   font-weight: 900;
   letter-spacing: -1px;
 `;
 
 const TagCardDesc = styled.p`
-  width: 520px;
+  width: 580px;
   margin: 0;
 
-  color: var(--text-sub);
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1.65;
+  color: #42615a;
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.62;
+  word-break: keep-all;
 `;
 
 const TagCardIconBox = styled.div`
-  width: 180px;
-  height: 180px;
+  position: relative;
+  z-index: 2;
+
+  width: 128px;
+  height: 128px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.45);
+  flex-shrink: 0;
+  border-radius: 34px;
+  background-color: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.65);
 `;
 
 const TagCardIcon = styled.span`
-  font-size: 80px;
+  font-size: 62px;
 `;
 
 const SectionBlock = styled.section`
@@ -1328,8 +1640,8 @@ const FeedingRecommendLayout = styled.div`
 `;
 
 const FeedingGuideCard = styled.article`
-  min-height: 210px;
-  padding: 18px 22px;
+  height: 170px;
+  padding: 20px 22px;
 
   display: grid;
   grid-template-columns: 250px 1fr;
@@ -1338,27 +1650,35 @@ const FeedingGuideCard = styled.article`
   border: 1px solid #d5e0dc;
   border-radius: 14px;
   background-color: var(--color-white);
+  box-shadow: 0 8px 24px rgba(18, 45, 46, 0.035);
 `;
 
 const FeedingGuideLeft = styled.div`
   padding-right: 22px;
 
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  display: grid;
+  grid-template-rows: 28px 1fr;
+  align-items: center;
 
   border-right: 1px solid #e2ebe7;
 `;
 
 const FeedingGuideTitle = styled.p`
-  margin: 0 0 14px;
+  height: 26px;
+  margin: 0 0 16px;
+
+  display: flex;
+  align-items: center;
 
   color: var(--color-main);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
+  letter-spacing: -0.2px;
 `;
 
 const FeedingMethodContent = styled.div`
+  flex: 1;
+
   display: flex;
   align-items: center;
   gap: 16px;
@@ -1379,9 +1699,8 @@ const FeedingFoodImageBox = styled.div`
 
   overflow: hidden;
   border-radius: 10px;
-  background-color: #f4faf7;
+  background: linear-gradient(135deg, #f4faf7 0%, #effaf5 100%);
 `;
-
 const FeedingFoodImage = styled.img`
   width: 100%;
   height: 100%;
@@ -1422,26 +1741,34 @@ const FeedingGuideRight = styled.div`
 `;
 
 const FeedingPillRow = styled.div`
-  height: 38px;
-  padding: 0 18px;
+  height: 36px;
+  padding: 0 16px;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 
-  border-radius: 6px;
-  background-color: #c9f2e5;
+  border-radius: 7px;
+  background: linear-gradient(90deg, #c9f2e5 0%, #d8f8ed 100%);
 
   span {
-    color: #4e7568;
-    font-size: 13px;
-    font-weight: 800;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+
+    color: #3f7767;
+    font-size: 12px;
+    font-weight: 850;
   }
 
   strong {
-    color: #4e7568;
-    font-size: 13px;
-    font-weight: 900;
+    flex-shrink: 0;
+
+    color: #3f7767;
+    font-size: 12px;
+    font-weight: 950;
   }
 `;
 
@@ -1459,17 +1786,22 @@ const FeedingEmptyText = styled.div`
 
 const PetRecommendCard = styled.article`
   position: relative;
-  min-height: 210px;
-  padding: 26px 70px 26px 84px;
+  height: 170px;
+  padding: 20px 70px 20px 72px;
 
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 210px;
-  align-items: center;
-  gap: 28px;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  align-items: stretch;
+  gap: 24px;
 
   border: 1px solid #d5e0dc;
   border-radius: 14px;
-  background-color: var(--color-white);
+  background-color: ${(props) =>
+    props.$disabled ? "#f3f3f3" : "var(--color-white)"};
+
+  box-shadow: 0 8px 24px rgba(18, 45, 46, 0.035);
+  filter: ${(props) => (props.$disabled ? "grayscale(0.35)" : "none")};
+  overflow: hidden;
 `;
 
 const RecommendArrowButton = styled.button`
@@ -1497,29 +1829,45 @@ const RecommendArrowButton = styled.button`
 
   left: ${(props) => (props.$left ? "22px" : "auto")};
   right: ${(props) => (props.$right ? "22px" : "auto")};
-`;
 
+  &:disabled {
+    opacity: 0.25;
+    cursor: default;
+    box-shadow: none;
+  }
+`;
 const RecommendPetInfoBox = styled.div`
   min-width: 0;
+
+  display: flex;
+  flex-direction: column;
 `;
 
 const RecommendCardLabel = styled.p`
-  margin: 0 0 18px;
+  height: 26px;
+  margin: 0 0 16px;
+
+  display: flex;
+  align-items: center;
 
   color: var(--color-main);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 900;
+  letter-spacing: -0.2px;
 `;
 
 const RecommendPetMain = styled.div`
+  flex: 1;
+
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 16px;
+  min-width: 0;
 `;
 
 const RecommendPetImageBox = styled.div`
-  width: 76px;
-  height: 76px;
+  width: 68px;
+  height: 68px;
 
   display: flex;
   align-items: center;
@@ -1529,41 +1877,63 @@ const RecommendPetImageBox = styled.div`
   overflow: hidden;
 
   border-radius: 50%;
-  background-color: #f4faf7;
+  background: linear-gradient(135deg, #f4faf7 0%, #e7fff5 100%);
 
-  font-size: 42px;
+  font-size: 38px;
+`;
+
+const RecommendPetImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 `;
 
 const RecommendPetTextBox = styled.div`
   min-width: 0;
 `;
-
 const RecommendPetName = styled.p`
-  margin: 0 0 8px;
+  max-width: 170px;
+  margin: 0 0 7px;
+
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 
   color: var(--text-main);
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 900;
   letter-spacing: -1px;
 `;
 
 const RecommendPetMeta = styled.p`
+  max-width: 190px;
   margin: 0;
 
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
   color: var(--text-desc);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
 `;
 
 const RecommendAmountArea = styled.div`
-  text-align: left;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+
+  padding-top: 20px;
 
   span {
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 7px;
 
     color: var(--text-sub);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 900;
   }
 
@@ -1571,10 +1941,65 @@ const RecommendAmountArea = styled.div`
     display: block;
 
     color: var(--color-main);
-    font-size: 42px;
+    font-size: 38px;
     font-weight: 900;
     letter-spacing: -1.8px;
     line-height: 1;
+    white-space: nowrap;
+  }
+`;
+
+const RecommendSlideContent = styled.div`
+  display: contents;
+
+  ${RecommendPetInfoBox},
+  ${RecommendAmountArea} {
+    animation: petSlideIn 0.38s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  }
+
+  @keyframes petSlideIn {
+    0% {
+      opacity: 0;
+      transform: translateX(18px) scale(0.97);
+      filter: blur(4px);
+    }
+
+    70% {
+      opacity: 1;
+      transform: translateX(-2px) scale(1.01);
+      filter: blur(0);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      filter: blur(0);
+    }
+  }
+`;
+
+const RecommendActionButton = styled.button`
+  min-width: 138px;
+  height: 38px;
+  padding: 0 16px;
+
+  border: 0;
+  border-radius: 999px;
+  background-color: #66a8ff;
+  color: var(--color-white);
+
+  font-size: 13px;
+  font-weight: 900;
+  cursor: pointer;
+
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(102, 168, 255, 0.28);
   }
 `;
 
@@ -2020,6 +2445,17 @@ const BottomCartButton = styled.button`
   font-size: 14px;
   font-weight: 900;
   cursor: pointer;
+
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    background-color: #f0fff8;
+    box-shadow: 0 8px 18px rgba(0, 174, 142, 0.12);
+  }
 `;
 
 const BottomBuyButton = styled.button`
@@ -2033,6 +2469,17 @@ const BottomBuyButton = styled.button`
   font-size: 14px;
   font-weight: 900;
   cursor: pointer;
+
+  transition:
+    transform 0.16s ease,
+    box-shadow 0.16s ease,
+    filter 0.16s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+    box-shadow: 0 10px 22px rgba(0, 174, 142, 0.2);
+  }
 `;
 
 const MessageBox = styled.div`

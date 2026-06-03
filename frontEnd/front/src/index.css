@@ -118,7 +118,8 @@
 
   /* Layout */
   --layout-width: 1920px;
-  --layout-padding-x: 56px;
+  --layout-max-width: 1920px;
+  --layout-padding-x: clamp(20px, 3vw, 56px);
 
   /* Common Size */
   --header-height: 50px;

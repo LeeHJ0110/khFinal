@@ -1,14 +1,17 @@
 package com.kh.app.store.service;
 
 import com.kh.app.aws.service.S3Service;
+import com.kh.app.common.entity.DelYn;
+import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.member.repository.MemberRepository;
+import com.kh.app.pet.entity.PetEntity;
+import com.kh.app.pet.entity.PetType;
+import com.kh.app.pet.repository.PetRepository;
 import com.kh.app.store.dto.request.StoreFeedingGuideInsertReqDto;
 import com.kh.app.store.dto.request.StoreInsertReqDto;
 import com.kh.app.store.dto.request.StoreNutritionInsertReqDto;
 import com.kh.app.store.dto.request.StoreUpdateReqDto;
-import com.kh.app.store.dto.response.StoreProductAdminDetailResDto;
-import com.kh.app.store.dto.response.StoreProductAdminListResDto;
-import com.kh.app.store.dto.response.StoreProductDetailResDto;
-import com.kh.app.store.dto.response.StoreProductListResDto;
+import com.kh.app.store.dto.response.*;
 import com.kh.app.store.entity.*;
 import com.kh.app.store.repository.StoreProductFeedingGuideRepository;
 import com.kh.app.store.repository.StoreProductImageRepository;
@@ -25,6 +28,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+
+import java.math.BigDecimal;
+import java.util.Comparator;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -39,6 +46,8 @@ public class StoreProductService {
     private final StoreProductNutritionRepository storeProductNutritionRepository;
     private final StoreProductFeedingGuideRepository storeProductFeedingGuideRepository;
     private final StoreProductImageRepository storeProductImageRepository;
+    private final MemberRepository memberRepository;
+    private final PetRepository petRepository;
 
     private final S3Service s3Service;
 
@@ -203,7 +212,7 @@ public class StoreProductService {
     }
 
     @Transactional
-    public StoreProductDetailResDto getProductDetail(Long productId) {
+    public StoreProductDetailResDto getProductDetail(Long productId, String username) {
 
         StoreProductEntity productEntity = storeProductRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
@@ -212,7 +221,7 @@ public class StoreProductService {
             throw new IllegalStateException("판매중지된 상품입니다.");
         }
 
-        //조회수 증가
+        // 조회수 증가
         productEntity.increaseViewCount();
 
         StoreProductNutritionEntity nutritionEntity =
@@ -228,13 +237,17 @@ public class StoreProductService {
         String mainImageUrl = getMainImageUrl(imageList);
         List<String> subImageUrls = getSubImageUrls(imageList);
 
-        return StoreProductDetailResDto.from(
+        StoreProductDetailResDto result = StoreProductDetailResDto.from(
                 productEntity,
                 nutritionEntity,
                 feedingGuideList,
                 mainImageUrl,
                 subImageUrls
         );
+
+        applyFeedingRecommend(result, productEntity, feedingGuideList, username);
+
+        return result;
     }
 
     @Transactional
@@ -614,5 +627,156 @@ public class StoreProductService {
         if (!second.getFeedingMaxWeight().equals(third.getFeedingMinWeight())) {
             throw new IllegalArgumentException("2번 최대 체중과 3번 최소 체중이 같아야 합니다.");
         }
+    }
+
+    private void applyFeedingRecommend(
+            StoreProductDetailResDto result,
+            StoreProductEntity productEntity,
+            List<StoreProductFeedingGuideEntity> feedingGuideList,
+            String username
+    ) {
+        // 1. 비로그인
+        if (username == null || username.isBlank() || "anonymousUser".equals(username)) {
+            result.setFeedingRecommendStatus("NEED_LOGIN");
+            result.setFeedingRecommendMessage("로그인 후 맞춤 급여 정보를 확인할 수 있습니다.");
+            result.setRecommendPetList(List.of());
+            return;
+        }
+
+        // 2. 로그인 회원 조회
+        // 상품 상세는 공개 페이지이므로 회원 조회 실패 시 상세 전체를 터뜨리지 않음
+        MemberEntity memberEntity = memberRepository
+                .findByUsernameAndDelYn(username, DelYn.N)
+                .orElse(null);
+
+        if (memberEntity == null) {
+            result.setFeedingRecommendStatus("NEED_LOGIN");
+            result.setFeedingRecommendMessage("로그인 후 맞춤 급여 정보를 확인할 수 있습니다.");
+            result.setRecommendPetList(List.of());
+            return;
+        }
+
+        // 3. 회원의 반려동물 전체 조회
+        List<PetEntity> allPetList =
+                petRepository.findAllByMember_IdAndDelYn(memberEntity.getId(), DelYn.N);
+
+        // 4. 등록된 반려동물이 아예 없는 경우
+        if (allPetList.isEmpty()) {
+            result.setFeedingRecommendStatus("NEED_PET_REGISTER");
+            result.setFeedingRecommendMessage("등록된 반려동물이 없습니다. 반려동물을 등록하고 맞춤 급여량을 확인해보세요.");
+            result.setRecommendPetList(List.of());
+            return;
+        }
+
+        // 5. 상품 대상동물 타입을 PetType으로 변환
+        PetType targetPetType = convertToPetType(productEntity.getProductTargetPetType());
+
+        // 6. 상품 대상동물과 같은 반려동물만 필터링
+        //    최신순은 id가 큰 순서로 처리
+        List<PetEntity> matchedPetList = allPetList.stream()
+                .filter(pet -> pet.getBreed() != null)
+                .filter(pet -> pet.getBreed().getPetType() == targetPetType)
+                .sorted(Comparator.comparing(PetEntity::getId).reversed())
+                .toList();
+
+        // 7. 반려동물은 있지만 이 상품 타입에 맞는 동물이 없는 경우
+        if (matchedPetList.isEmpty()) {
+            result.setFeedingRecommendStatus("NO_MATCHED_PET");
+            result.setFeedingRecommendMessage("이 상품에 맞는 반려동물이 등록되어 있지 않습니다.");
+            result.setRecommendPetList(List.of());
+            return;
+        }
+
+        // 8. 반려동물별 추천 급여량 만들기
+        List<StorePetFeedingRecommendResDto> recommendPetList = matchedPetList.stream()
+                .map(pet -> toPetFeedingRecommendDto(pet, feedingGuideList))
+                .toList();
+
+        result.setFeedingRecommendStatus("SUCCESS");
+        result.setFeedingRecommendMessage("맞춤 급여량 조회 성공");
+        result.setRecommendPetList(recommendPetList);
+    }
+
+    private PetType convertToPetType(String productTargetPetType) {
+        if (productTargetPetType == null || productTargetPetType.isBlank()) {
+            throw new IllegalArgumentException("상품 대상동물 타입이 없습니다.");
+        }
+
+        return PetType.valueOf(productTargetPetType.trim().toUpperCase());
+    }
+
+    private StorePetFeedingRecommendResDto toPetFeedingRecommendDto(
+            PetEntity pet,
+            List<StoreProductFeedingGuideEntity> feedingGuideList
+    ) {
+        StoreProductFeedingGuideEntity matchedGuide =
+                findMatchedGuide(pet.getWeight(), feedingGuideList);
+
+        StoreFeedingGuideResDto matchedGuideDto =
+                matchedGuide == null ? null : StoreFeedingGuideResDto.from(matchedGuide);
+
+        String dailyAmountText = null;
+
+        if (matchedGuide != null) {
+            String unit = matchedGuide.getFeedingUnit() == null
+                    ? "g"
+                    : matchedGuide.getFeedingUnit();
+
+            dailyAmountText = "1일 " + matchedGuide.getFeedingDailyAmount() + unit;
+        }
+
+        return StorePetFeedingRecommendResDto.builder()
+                .petId(pet.getId())
+                .petName(pet.getName())
+                .petType(
+                        pet.getBreed() == null || pet.getBreed().getPetType() == null
+                                ? null
+                                : pet.getBreed().getPetType().name()
+                )
+                .breedName(
+                        pet.getBreed() == null
+                                ? null
+                                : pet.getBreed().getName()
+                )
+                .petWeight(pet.getWeight())
+
+                // 현재 PetEntity에는 이미지 필드가 없으므로 일단 null
+                // 나중에 펫 담당자가 이미지 URL을 만들면 여기만 수정하면 됨
+                .petImageUrl(null)
+
+                .matchedFeedingGuide(matchedGuideDto)
+                .dailyAmountText(dailyAmountText)
+                .build();
+    }
+
+    private StoreProductFeedingGuideEntity findMatchedGuide(
+            BigDecimal petWeight,
+            List<StoreProductFeedingGuideEntity> feedingGuideList
+    ) {
+        if (petWeight == null || feedingGuideList == null || feedingGuideList.isEmpty()) {
+            return null;
+        }
+
+        for (StoreProductFeedingGuideEntity guide : feedingGuideList) {
+            Long minWeight = guide.getFeedingMinWeight();
+            Long maxWeight = guide.getFeedingMaxWeight();
+
+            boolean minOk = true;
+            boolean maxOk = true;
+
+            if (minWeight != null) {
+                minOk = petWeight.compareTo(BigDecimal.valueOf(minWeight)) >= 0;
+            }
+
+            if (maxWeight != null) {
+                maxOk = petWeight.compareTo(BigDecimal.valueOf(maxWeight)) < 0;
+            }
+
+            if (minOk && maxOk) {
+                return guide;
+            }
+        }
+
+        return null;
     }
 }

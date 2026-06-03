@@ -1,15 +1,11 @@
 /* ================================
    Common Nav
-   - Header 아래 공통 서브 네비게이션
-   - 1920px 고정 레이아웃
-   - 좌우 여백은 index.css의 --layout-padding-x 기준
 ================================ */
 
 .common-nav {
-  /* Nav Layout */
   --common-nav-height: 40px;
   --common-nav-item-width: 126px;
-  --common-nav-edge-correction: 20px;
+  --common-nav-edge-correction: 0px;
 
   width: 100%;
   height: var(--common-nav-height);
@@ -19,13 +15,15 @@
 
 /* Nav Inner */
 .common-nav-inner {
-  width: var(--layout-width);
+  width: 100%;
+  max-width: var(--layout-max-width);
   height: 100%;
   margin: 0 auto;
   padding: 0 var(--layout-padding-x);
 
   display: flex;
   align-items: center;
+  min-width: 0;
 }
 
 /* Nav Group */
@@ -44,6 +42,7 @@
 .common-nav-right {
   margin-left: auto;
   margin-right: var(--common-nav-edge-correction);
+  flex-shrink: 0;
 }
 
 /* Nav Item */
@@ -140,4 +139,16 @@
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
+}
+
+@media (max-width: 1440px) {
+  .common-nav {
+    --common-nav-item-width: 118px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .common-nav {
+    --common-nav-item-width: 104px;
+  }
 }
