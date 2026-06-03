@@ -12,6 +12,7 @@ import BoardSubNavbar from "./components/BoardSubNavbar";
 
 export default function BoardListPage() {
   const navigate = useNavigate();
+  const loginMember = JSON.parse(localStorage.getItem("loginMember"));
 
   // 카테고리별 메타 정보
   const boardMeta = {
@@ -149,7 +150,7 @@ export default function BoardListPage() {
               <BoardSubtitle>{boardMeta[activeTab].subtitle}</BoardSubtitle>
             </BoardTitleInfo>
 
-            {activeTab !== "FAQ" && activeTab !== "NEWS" && (
+            {(activeTab !== "FAQ" && activeTab !== "NEWS" || loginMember?.role === "ADMIN") && (
               <WriteButton
                 onClick={() => {
                   const accessToken = localStorage.getItem("accessToken");

@@ -92,11 +92,16 @@ public class BoardController {
     @Operation(summary = "게시글 삭제", description = "게시글의 DelYn을 Y처리 해서 조회 못하게 변경")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "게시글 삭제성공 ~~~"),
+            @ApiResponse(responseCode = "401", description = "인증 정보 없음"),
+            @ApiResponse(responseCode = "403", description = "삭제 권한 없음")
     })
     @DeleteMapping
-    public ResponseEntity<Object> delete(@RequestParam Long id){
-        System.out.println("삭제 요청 들어온 boardId = " + id);
-        boardService.delete(id);
+    public ResponseEntity<Object> delete(
+            @RequestParam Long id,
+            @AuthenticationPrincipal String username
+    ){
+        System.out.println("삭제 요청 들어온 boardId = " + id + ", username = " + username);
+        boardService.delete(id, username);
         return ResponseEntity.ok().build();
     }
 
