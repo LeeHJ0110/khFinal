@@ -23,8 +23,8 @@ export default function BoardWritePage() {
 
   // 사용자 로그인 권한 체크 및 리다이렉트
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) {
+    const loginMember = localStorage.getItem("loginMember");
+    if (!loginMember) {
       alert("로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.");
       navigate("/member/login");
     }
