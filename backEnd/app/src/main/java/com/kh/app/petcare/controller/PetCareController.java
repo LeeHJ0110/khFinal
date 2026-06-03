@@ -95,4 +95,14 @@ public class PetCareController {
                 petCareService.getDiagnosisDetail(diagnosisReqId)
         );
     }
+    // 건강진단 완료 처리
+    @PatchMapping("/diagnosis/{diagnosisReqId}/complete")
+    public ResponseEntity<Object> completeDiagnosis(
+            @PathVariable Long diagnosisReqId
+    ) {
+
+        petCareService.completeDiagnosis(diagnosisReqId);
+
+        return ResponseEntity.ok().build();
+    }
 }

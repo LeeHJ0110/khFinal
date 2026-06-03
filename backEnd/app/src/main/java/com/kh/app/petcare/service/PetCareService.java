@@ -1,6 +1,7 @@
 package com.kh.app.petcare.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kh.app.aws.service.S3Service;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.pet.dto.response.PetMyPageResDto;
@@ -32,6 +33,7 @@ import java.io.IOException;
 import java.util.List;
 import com.kh.app.common.entity.DelYn;
 
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -43,6 +45,7 @@ public class PetCareService {
     private final ImageRepository imageRepository;
     private final PetRepository petRepository;
     private final MemberRepository memberRepository;
+    private final S3Service s3Service;
 
 
     @Transactional
@@ -100,6 +103,8 @@ public class PetCareService {
 
         diagnosisReqRepository.save(diagnosisReq);
 
+
+
         // 사용자가 작성한 문진 답변 저장
         for (DiagnosisAnswerDto answerDto : reqDto.getAnswerList()) {
 
@@ -148,12 +153,26 @@ public class PetCareService {
                 diagnosisReq.getDiagnosisReqId()
         );
     }
+    // 건강진단 완료 처리
+    @Transactional
+    public void completeDiagnosis(Long diagnosisReqId) {
 
+        DiagnosisReqEntity diagnosisReq =
+                diagnosisReqRepository.findById(diagnosisReqId)
+                        .orElseThrow(() ->
+                                new IllegalArgumentException(
+                                        "진단 신청이 없습니다."
+                                )
+                        );
+
+        diagnosisReq.completeDiagnosis();
+    }
+//s3저장
     private void saveImages(
             List<MultipartFile> files,
             DiagnosisReqEntity diagnosisReq,
             ImgCategory category
-    ) {
+    ) throws IOException {
 
         if (files == null || files.isEmpty()) {
             return;
@@ -161,12 +180,26 @@ public class PetCareService {
 
         for (MultipartFile file : files) {
 
+            if (file == null || file.isEmpty()) {
+                continue;
+            }
+
+            // S3에 업로드하고 저장 경로 반환
+            String s3Key = s3Service.upload(
+                    file,
+                    "diagnosis/" + category.name().toLowerCase()
+            );
+
             ImgUrlEntity image =
                     ImgUrlEntity.builder()
                             .diagnosisReq(diagnosisReq)
                             .imgCategory(category)
+
+                            // 사용자가 올린 실제 파일명
                             .imageOriginName(file.getOriginalFilename())
-                            .imageChangedName(file.getOriginalFilename())
+
+                            // S3 저장 경로
+                            .imageChangedName(s3Key)
                             .build();
 
             imageRepository.save(image);
@@ -183,8 +216,12 @@ public Page<DiagnosisResDto> requestDiagnosisList(int pno) {
                     Sort.Order.asc("diagnosisReqId")
             )
     );
-
-    return diagnosisReqRepository.findAll(pageable)
+//신청중만 보임
+    return diagnosisReqRepository
+            .findAllByDiagnosisReqStatus(
+                    DelYn.Y,
+                    pageable
+            )
             .map(DiagnosisResDto::from);
 }
     //상세보기
@@ -208,19 +245,25 @@ public Page<DiagnosisResDto> requestDiagnosisList(int pno) {
                             dto.setQuestionContent(
                                     answer.getQuestion().getQuestionContent()
                             );
-                            dto.setQuestionContent(
-                                    answer.getQuestion().getQuestionContent()
-                            );
                             dto.setAnswerValue(answer.getAnswerValue());
 
                             return dto;
                         })
                         .toList();
-
+// 해당 진단 신청에 저장된 이미지 목록 조회
         List<ImgUrlResDto> fileList =
                 imageRepository.findByDiagnosisReq(diagnosisReq)
+                        // 조회 결과를 하나씩 꺼내서 DTO로 변환
                         .stream()
-                        .map(ImgUrlResDto::from)
+                        .map(image ->
+                                ImgUrlResDto.from(
+                                        image,
+                                        // DB에 저장된 S3 Key를 실제 접근 가능한 이미지 URL로 변환
+                                        s3Service.getFileUrl(
+                                                image.getImageChangedName()
+                                        )
+                                )
+                        )
                         .toList();
 
 
@@ -253,7 +296,12 @@ public Page<DiagnosisResDto> requestDiagnosisList(int pno) {
                      new IllegalArgumentException("회원 없음")
              );
 
-     return petRepository.findAllByMember_Id(member.getId())
+     // 삭제되지 않은 반려동물만 조회
+     return petRepository
+             .findAllByMember_IdAndDelYn(
+                     member.getId(),
+                     DelYn.N
+             )
              .stream()
              .map(pet -> {
 
@@ -270,4 +318,5 @@ public Page<DiagnosisResDto> requestDiagnosisList(int pno) {
                  );
              })
              .toList();
- }}
+ }
+    }
