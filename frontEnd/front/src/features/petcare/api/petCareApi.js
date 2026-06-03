@@ -34,6 +34,13 @@ export async function requestDiagnosis({
 
   return await api.post("/petcare/diagnosis", fd);
 }
+
+// 건강진단 완료 처리
+export async function completeDiagnosis(diagnosisReqId) {
+  return await api.patch(
+    `petcare/diagnosis/${diagnosisReqId}/complete`,
+  );
+}
 //펫몸무게 수정 요청 백엔드 구현예정 
 export async function updatePetWeight(pet, weight) {
   return await api.put(`/pet/${pet.petId}`, {

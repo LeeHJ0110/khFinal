@@ -52,47 +52,54 @@ function getProfileImageUrl(petInfo) {
   );
 }
 
-function PreviewSection() {
+function PreviewSection({
+  selectedPet,
+  onChangeSelectedPet,
+}) {
   const navigate = useNavigate();
 
   const [petList, setPetList] = useState([]);
-  const [petInfo, setPetInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPetMenuOpen, setIsPetMenuOpen] = useState(false);
+
+  // 부모에서 관리하는 선택된 펫 사용
+  const petInfo = selectedPet;
 
   useEffect(() => {
     async function loadPetInfo() {
       try {
         const res = await fetchMyPetList();
 
-        console.log("반려동물 목록:", res.data);
-        //조회한 펫 목록도 저장
-        const fetchedPetList = Array.isArray(res.data) ? res.data : [];
+        const fetchedPetList =
+          Array.isArray(res.data) ? res.data : [];
 
         setPetList(fetchedPetList);
 
-        //신청상태 y인 펫 선택 없으면 다음 펫선택
+        // 대표 펫이 있으면 대표 펫, 없으면 첫 번째 펫 선택
         const representPet =
-          fetchedPetList.find((pet) => pet.representYn === "Y") ??
-          fetchedPetList[0];
+          fetchedPetList.find(
+            (pet) => pet.representYn === "Y",
+          ) ?? fetchedPetList[0];
 
-        setPetInfo(representPet ?? null);
+        onChangeSelectedPet(representPet ?? null);
       } catch (err) {
         console.error("반려동물 정보 조회 실패:", err);
 
-        setPetInfo(null);
+        onChangeSelectedPet(null);
       } finally {
         setIsLoading(false);
       }
     }
 
     loadPetInfo();
-  }, []);
+  }, [onChangeSelectedPet]);
 
   if (isLoading) {
     return (
       <PreviewWrapper>
-        <LoadingText>반려동물 정보를 불러오는 중입니다.</LoadingText>
+        <LoadingText>
+          반려동물 정보를 불러오는 중입니다.
+        </LoadingText>
       </PreviewWrapper>
     );
   }
@@ -100,20 +107,19 @@ function PreviewSection() {
   const profileImageUrl = getProfileImageUrl(petInfo);
   const age = calculateAge(petInfo?.birthDate);
 
-  // 건강진단 신청 진행 여부
-  const isApplying = petInfo?.diagnosisInProgress === true;
+  // 현재 선택된 펫의 건강진단 진행 여부
+  const isApplying =
+    petInfo?.diagnosisInProgress === true;
 
-  //펫 선택 함수 추가
+  // 선택한 펫을 부모 상태에 저장
   const handleSelectPet = (pet) => {
-    setPetInfo(pet);
+    onChangeSelectedPet(pet);
     setIsPetMenuOpen(false);
   };
 
   return (
     <PreviewWrapper>
-      {/* =====================================
-          1. 로그인한 회원의 반려동물 정보
-      ===================================== */}
+      {/* 로그인한 회원의 반려동물 정보 */}
       <PetProfileArea>
         {petInfo ? (
           <>
@@ -124,18 +130,24 @@ function PreviewSection() {
                   alt={`${petInfo.name ?? "반려동물"} 프로필`}
                 />
               ) : (
-                <NoProfileImage>이미지 없음</NoProfileImage>
+                <NoProfileImage>
+                  이미지 없음
+                </NoProfileImage>
               )}
             </ProfileImageBox>
 
             <ProfileContent>
               <ProfileHeader>
-                <PetName>{petInfo.name ?? "이름 정보 없음"}</PetName>
+                <PetName>
+                  {petInfo.name ?? "이름 정보 없음"}
+                </PetName>
 
                 <PetChangeArea>
                   <ChangePetButton
                     type="button"
-                    onClick={() => setIsPetMenuOpen((prev) => !prev)}
+                    onClick={() =>
+                      setIsPetMenuOpen((prev) => !prev)
+                    }
                   >
                     펫 바꾸기
                   </ChangePetButton>
@@ -146,15 +158,20 @@ function PreviewSection() {
                         <PetSelectItem
                           key={pet.petId}
                           type="button"
-                          $selected={pet.petId === petInfo.petId}
-                          onClick={() => handleSelectPet(pet)}
+                          $selected={
+                            pet.petId === petInfo.petId
+                          }
+                          onClick={() =>
+                            handleSelectPet(pet)
+                          }
                         >
                           <PetSelectName>
                             {pet.name ?? "이름 없음"}
                           </PetSelectName>
 
                           <PetSelectBreed>
-                            {pet.breedName ?? "품종 정보 없음"}
+                            {pet.breedName ??
+                              "품종 정보 없음"}
                           </PetSelectBreed>
                         </PetSelectItem>
                       ))}
@@ -163,16 +180,22 @@ function PreviewSection() {
                 </PetChangeArea>
               </ProfileHeader>
 
-              <PetBreed>{petInfo.breedName ?? "품종 정보 없음"}</PetBreed>
+              <PetBreed>
+                {petInfo.breedName ?? "품종 정보 없음"}
+              </PetBreed>
 
               <PetInfoList>
                 <PetInfoBadge>
-                  💚 {age !== null ? `${age}살` : "나이 정보 없음"}
+                  💚{" "}
+                  {age !== null
+                    ? `${age}살`
+                    : "나이 정보 없음"}
                 </PetInfoBadge>
 
                 <PetInfoBadge>
                   ⚖️{" "}
-                  {petInfo.weight !== null && petInfo.weight !== undefined
+                  {petInfo.weight !== null &&
+                  petInfo.weight !== undefined
                     ? `${petInfo.weight}kg`
                     : "체중 정보 없음"}
                 </PetInfoBadge>
@@ -190,14 +213,17 @@ function PreviewSection() {
                 <PointIcon>P</PointIcon>
 
                 <PointText>
-                  건강 진단 신청 시 <strong>2,000P</strong>가 차감됩니다.
+                  건강 진단 신청 시{" "}
+                  <strong>2,000P</strong>가 차감됩니다.
                 </PointText>
               </PointNotice>
 
               <ProfileButtonGroup>
                 <SubButton
                   type="button"
-                  onClick={() => navigate("/healthcare/history")}
+                  onClick={() =>
+                    navigate("/healthcare/history")
+                  }
                 >
                   지난 기록 보기
                 </SubButton>
@@ -218,11 +244,15 @@ function PreviewSection() {
           </>
         ) : (
           <EmptyPetArea>
-            <EmptyPetText>등록된 반려동물이 없습니다.</EmptyPetText>
+            <EmptyPetText>
+              등록된 반려동물이 없습니다.
+            </EmptyPetText>
 
             <RegisterButton
               type="button"
-              onClick={() => navigate("/mypage/pet-manage")}
+              onClick={() =>
+                navigate("/mypage/pet-manage")
+              }
             >
               반려동물 등록하기
             </RegisterButton>
@@ -230,15 +260,15 @@ function PreviewSection() {
         )}
       </PetProfileArea>
 
-      {/* =====================================
-          2. 진단이 필요한 경우
-      ===================================== */}
+      {/* 진단이 필요한 경우 안내 */}
       <NeedDiagnosisArea>
         <NeedTextArea>
           <TitleRow>
             <BellIcon src={bell} alt="알림" />
 
-            <NeedTitle>진단이 필요한 경우</NeedTitle>
+            <NeedTitle>
+              진단이 필요한 경우
+            </NeedTitle>
           </TitleRow>
 
           <NeedList>
@@ -280,14 +310,8 @@ export default PreviewSection;
 ===================================== */
 
 const PreviewWrapper = styled.aside`
-  /*
-   * 오른쪽 카드 묶음 전체를 왼쪽으로 55px 이동
-   * 줄어든 오른쪽 너비도 함께 보충
-   */
   width: 100%;
   height: 100%;
-  //margin-left: -55px;
-  //justify-self: start;
 
   display: flex;
   flex-direction: column;
@@ -303,6 +327,7 @@ const PreviewWrapper = styled.aside`
 const PetProfileArea = styled.section`
   min-height: 300px;
   margin-top: 57px;
+
   display: flex;
   align-items: center;
   gap: 20px;
@@ -406,6 +431,12 @@ const PetName = styled.h2`
   }
 `;
 
+const PetChangeArea = styled.div`
+  position: relative;
+
+  flex-shrink: 0;
+`;
+
 const ChangePetButton = styled.button`
   flex-shrink: 0;
 
@@ -434,6 +465,68 @@ const ChangePetButton = styled.button`
 
     transform: translateY(-1px);
   }
+`;
+
+const PetSelectMenu = styled.div`
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  z-index: 20;
+
+  width: 170px;
+  padding: 6px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  border: 1px solid rgba(0, 169, 123, 0.22);
+  border-radius: 9px;
+
+  background: var(--color-white);
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+`;
+
+const PetSelectItem = styled.button`
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+
+  padding: 9px 10px;
+
+  border: none;
+  border-radius: 6px;
+
+  background: ${({ $selected }) =>
+    $selected
+      ? "rgba(0, 169, 123, 0.1)"
+      : "var(--color-white)"};
+
+  cursor: pointer;
+
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 169, 123, 0.08);
+  }
+`;
+
+const PetSelectName = styled.span`
+  color: var(--text-main);
+
+  font-size: 13px;
+  font-weight: 800;
+`;
+
+const PetSelectBreed = styled.span`
+  color: var(--text-sub);
+
+  font-size: 11px;
+  font-weight: 500;
 `;
 
 const PetBreed = styled.p`
@@ -482,7 +575,7 @@ const PetInfoBadge = styled.span`
 `;
 
 /* =====================================
-   포인트 차감 안내
+   포인트 안내
 ===================================== */
 
 const PointNotice = styled.div`
@@ -585,7 +678,7 @@ const ApplyButton = styled.button`
 `;
 
 /* =====================================
-   반려동물을 등록하지 않은 경우
+   등록된 반려동물이 없는 경우
 ===================================== */
 
 const EmptyPetArea = styled.div`
@@ -624,7 +717,7 @@ const RegisterButton = styled.button`
 `;
 
 /* =====================================
-   진단이 필요한 경우
+   진단 안내
 ===================================== */
 
 const NeedDiagnosisArea = styled.section`
@@ -638,13 +731,18 @@ const NeedDiagnosisArea = styled.section`
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+
   padding: 20px 24px;
 
   box-sizing: border-box;
 
   border-radius: 11px;
 
-  background: color-mix(in srgb, var(--color-bg-soft) 55%, var(--color-white));
+  background: color-mix(
+    in srgb,
+    var(--color-bg-soft) 55%,
+    var(--color-white)
+  );
 `;
 
 const NeedTextArea = styled.div`
@@ -728,10 +826,6 @@ const NeedImage = styled.img`
   object-fit: contain;
 `;
 
-/* =====================================
-   로딩 문구
-===================================== */
-
 const LoadingText = styled.p`
   margin: 0;
   padding: 26px;
@@ -740,69 +834,4 @@ const LoadingText = styled.p`
 
   font-size: 14px;
   font-weight: 600;
-`;
-const PetChangeArea = styled.div`
-  position: relative;
-
-  flex-shrink: 0;
-`;
-
-const PetSelectMenu = styled.div`
-  position: absolute;
-  top: calc(100% + 7px);
-  right: 0;
-  z-index: 20;
-
-  width: 170px;
-  padding: 6px;
-
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-
-  border: 1px solid rgba(0, 169, 123, 0.22);
-  border-radius: 9px;
-
-  background: var(--color-white);
-
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-`;
-
-const PetSelectItem = styled.button`
-  width: 100%;
-
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-
-  padding: 9px 10px;
-
-  border: none;
-  border-radius: 6px;
-
-  background: ${({ $selected }) =>
-    $selected ? "rgba(0, 169, 123, 0.1)" : "var(--color-white)"};
-
-  cursor: pointer;
-
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background: rgba(0, 169, 123, 0.08);
-  }
-`;
-
-const PetSelectName = styled.span`
-  color: var(--text-main);
-
-  font-size: 13px;
-  font-weight: 800;
-`;
-
-const PetSelectBreed = styled.span`
-  color: var(--text-sub);
-
-  font-size: 11px;
-  font-weight: 500;
 `;

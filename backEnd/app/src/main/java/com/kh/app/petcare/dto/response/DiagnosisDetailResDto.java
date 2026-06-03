@@ -19,6 +19,8 @@ public class DiagnosisDetailResDto {
 
     private Long diagnosisReqId;
 
+    // 신청자 닉네임
+    private String memberNickname;
     private Long petId;
 
     private String petName;
@@ -45,6 +47,12 @@ public class DiagnosisDetailResDto {
 
         return DiagnosisDetailResDto.builder()
                 .diagnosisReqId(diagnosisReq.getDiagnosisReqId())
+                .memberNickname(
+                        pet.getMember() != null
+                                ? pet.getMember().getNickname()
+                                : null
+                )
+
                 .petId(pet.getId())
                 .petName(pet.getName())
                 .petType(pet.getBreed() != null ? pet.getBreed().getPetType().name() : null)
