@@ -52,6 +52,7 @@ import CommunityHistoryPage from "./pages/mypage/CommunityHistoryPage";
 import BoardHome from "./pages/board/BoardHome";
 import BoardDetailPage from "./pages/board/BoardDetailPage";
 import DeliveryManagePage from "./pages/mypage/DeliveryManagePage";
+import HealthCareHome from "./pages/petcare/HealthCareHome";
 
 function App() {
   return (
@@ -73,6 +74,7 @@ function App() {
           <Route path="home" element={<HomePage />} />
           {/* 헬스케어 */}
           <Route path="healthcare">
+            <Route index element={<HealthCareHome />} />
             {/* 스케줄 */}
             <Route path="schedule" element={<ScheduleMainPage />} />
 
