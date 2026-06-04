@@ -29,6 +29,13 @@ export async function fetchBoardList(category, page = 0, searchCondition = {}) {
 }
 
 export const fetchBoardDetail = async (boardId) => {
-  const response = await api.get(`/api/board/${boardId}`);
+  const response = await api.get(`/board/detail/${boardId}`);
   return response.data;
+};
+
+export const deleteBoardApi = async (BoardId) => {
+  const resp = await api.delete(`/board`, {
+    params: { id: BoardId },
+  });
+  return resp.data;
 };

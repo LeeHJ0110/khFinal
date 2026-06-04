@@ -150,7 +150,8 @@ export default function BoardListPage() {
               <BoardSubtitle>{boardMeta[activeTab].subtitle}</BoardSubtitle>
             </BoardTitleInfo>
 
-            {(activeTab !== "FAQ" && activeTab !== "NEWS" || loginMember?.role === "ADMIN") && (
+            {((activeTab !== "FAQ" && activeTab !== "NEWS") ||
+              loginMember?.role === "ADMIN") && (
               <WriteButton
                 onClick={() => {
                   if (!loginMember) {
