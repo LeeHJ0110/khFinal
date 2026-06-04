@@ -30,7 +30,6 @@ export default function useKarte() {
     setLoading(true);
     const resp = await fetchKarteDetail(id);
     setData(resp.data);
-    console.log(resp);
 
     setLoading(false);
   }
