@@ -71,20 +71,6 @@ export default function HealthCareHome() {
             <p>등록된 반려동물이 없습니다</p>
           )}
         </PetCard>
-        <div
-          onClick={() => {
-            navigate(`/healthCare/requestHome`);
-          }}
-        >
-          신청 홈
-        </div>
-        <div
-          onClick={() => {
-            navigate(`/healthCare/schedule`);
-          }}
-        >
-          스케줄
-        </div>
       </Wrapper>
     </>
   );

@@ -9,7 +9,7 @@ import AdminMenu from "./AdminMenu";
 
 const mainMenus = [
   { label: "HOME", path: "/home" },
-  { label: "건강관리", path: "/health" },
+  { label: "건강관리", path: "/healthCare" },
   { label: "커뮤니티", path: "/community" },
   { label: "스토어", path: "/store" },
 ];
