@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 import useFormData from "../../shared/hooks/useFormData";
@@ -18,15 +18,19 @@ export default function MemberLoginPage() {
 
   const token = useSelector((state) => state.member.token);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const { formData, handleChange } = useFormData(initState);
   const { handleLogin, error } = useMemberLogin();
 
+  const redirectParam = searchParams.get("redirect");
+  const redirectUrl = getSafeRedirectUrl(redirectParam);
+
   useEffect(() => {
     if (token) {
-      navigate("/");
+      navigate(redirectUrl, { replace: true });
     }
-  }, [token, navigate]);
+  }, [token, navigate, redirectUrl]);
 
   if (token) {
     return null;
@@ -38,7 +42,7 @@ export default function MemberLoginPage() {
     const isSuccess = await handleLogin(formData);
 
     if (isSuccess) {
-      navigate("/");
+      navigate(redirectUrl, { replace: true });
     }
   }
 
@@ -132,4 +136,28 @@ export default function MemberLoginPage() {
       </section>
     </main>
   );
+}
+
+function getSafeRedirectUrl(redirectParam) {
+  if (!redirectParam) {
+    return "/home";
+  }
+
+  if (!redirectParam.startsWith("/")) {
+    return "/home";
+  }
+
+  if (redirectParam.startsWith("//")) {
+    return "/home";
+  }
+
+  if (redirectParam.startsWith("/member/login")) {
+    return "/home";
+  }
+
+  if (redirectParam.startsWith("/member/join")) {
+    return "/home";
+  }
+
+  return redirectParam;
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreProductDetail from "../../features/petStore/hooks/usePetStoreProudctDetail";
 
@@ -24,6 +24,7 @@ export default function PetStoreProductDetailPage() {
   const detailRef = useRef(null);
   const reviewRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const imageList = useMemo(() => {
     if (!product) {
@@ -136,7 +137,9 @@ export default function PetStoreProductDetailPage() {
 
   function handleRecommendActionClick() {
     if (recommendStatus === "NEED_LOGIN") {
-      navigate("/member/login");
+      const currentPath = location.pathname + location.search + location.hash;
+
+      navigate(`/member/login?redirect=${encodeURIComponent(currentPath)}`);
       return;
     }
 
@@ -610,40 +613,48 @@ export default function PetStoreProductDetailPage() {
                       </RecommendSlideContent>
                     ) : (
                       <>
-                        <RecommendPetInfoBox>
-                          <RecommendCardLabel>
-                            우리 아이 추천 급여량
-                          </RecommendCardLabel>
+                        <RecommendDisabledContent>
+                          <RecommendPetInfoBox>
+                            <RecommendCardLabel>
+                              우리 아이 추천 급여량
+                            </RecommendCardLabel>
 
-                          <RecommendPetMain>
-                            <RecommendPetImageBox>
-                              {product.productTargetPetType === "D"
-                                ? "🐶"
-                                : "🐱"}
-                            </RecommendPetImageBox>
+                            <RecommendPetMain>
+                              <RecommendPetImageBox>
+                                {product.productTargetPetType === "D"
+                                  ? "🐶"
+                                  : "🐱"}
+                              </RecommendPetImageBox>
 
-                            <RecommendPetTextBox>
-                              <RecommendPetName>
-                                맞춤 급여 정보
-                              </RecommendPetName>
-                              <RecommendPetMeta>
-                                {recommendMessage}
-                              </RecommendPetMeta>
-                            </RecommendPetTextBox>
-                          </RecommendPetMain>
-                        </RecommendPetInfoBox>
+                              <RecommendPetTextBox>
+                                <RecommendPetName>깨깨</RecommendPetName>
+                                <RecommendPetMeta>
+                                  비숑 프리제 · 5살 · 7kg
+                                </RecommendPetMeta>
+                              </RecommendPetTextBox>
+                            </RecommendPetMain>
+                          </RecommendPetInfoBox>
 
-                        <RecommendAmountArea>
-                          <span>맞춤 급여량 확인</span>
+                          <RecommendAmountArea>
+                            <span>1일 권장 급여량</span>
+                            <strong>1일 80g</strong>
+                          </RecommendAmountArea>
+                        </RecommendDisabledContent>
+
+                        <RecommendLockOverlay>
+                          <RecommendLockTitle>
+                            {getRecommendOverlayTitle(recommendStatus)}
+                          </RecommendLockTitle>
+                          <RecommendLockDesc>
+                            맞춤형 추천 급여량을 확인하세요!
+                          </RecommendLockDesc>
                           <RecommendActionButton
                             type="button"
                             onClick={handleRecommendActionClick}
                           >
-                            {recommendStatus === "NEED_LOGIN"
-                              ? "로그인 하러가기"
-                              : "반려동물 등록하기"}
+                            {getRecommendActionText(recommendStatus)}
                           </RecommendActionButton>
-                        </RecommendAmountArea>
+                        </RecommendLockOverlay>
                       </>
                     )}
 
@@ -883,6 +894,22 @@ function getRecommendAmountText(pet) {
   }
 
   return `1일 ${guide.feedingDailyAmount}${guide.feedingUnit ?? "g"}`;
+}
+
+function getRecommendOverlayTitle(status) {
+  if (status === "NEED_LOGIN") {
+    return "로그인 하고";
+  }
+
+  return "반려동물을 등록하고";
+}
+
+function getRecommendActionText(status) {
+  if (status === "NEED_LOGIN") {
+    return "로그인/회원가입";
+  }
+
+  return "반려동물 등록";
 }
 
 function getCategoryLabel(category) {
@@ -1641,7 +1668,7 @@ const FeedingRecommendLayout = styled.div`
 
 const FeedingGuideCard = styled.article`
   height: 170px;
-  padding: 20px 22px;
+  padding: 18px 22px;
 
   display: grid;
   grid-template-columns: 250px 1fr;
@@ -1656,24 +1683,23 @@ const FeedingGuideCard = styled.article`
 const FeedingGuideLeft = styled.div`
   padding-right: 22px;
 
-  display: grid;
-  grid-template-rows: 28px 1fr;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
 
   border-right: 1px solid #e2ebe7;
 `;
 
 const FeedingGuideTitle = styled.p`
-  height: 26px;
-  margin: 0 0 16px;
+  height: 28px;
+  margin: 0 0 12px;
 
   display: flex;
   align-items: center;
 
   color: var(--color-main);
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: -0.2px;
+  font-size: 15px;
+  font-weight: 950;
+  letter-spacing: -0.35px;
 `;
 
 const FeedingMethodContent = styled.div`
@@ -1787,7 +1813,7 @@ const FeedingEmptyText = styled.div`
 const PetRecommendCard = styled.article`
   position: relative;
   height: 170px;
-  padding: 20px 70px 20px 72px;
+  padding: 18px 70px 18px 72px;
 
   display: grid;
   grid-template-columns: minmax(0, 1fr) 180px;
@@ -1796,11 +1822,9 @@ const PetRecommendCard = styled.article`
 
   border: 1px solid #d5e0dc;
   border-radius: 14px;
-  background-color: ${(props) =>
-    props.$disabled ? "#f3f3f3" : "var(--color-white)"};
+  background-color: var(--color-white);
 
   box-shadow: 0 8px 24px rgba(18, 45, 46, 0.035);
-  filter: ${(props) => (props.$disabled ? "grayscale(0.35)" : "none")};
   overflow: hidden;
 `;
 
@@ -1844,16 +1868,16 @@ const RecommendPetInfoBox = styled.div`
 `;
 
 const RecommendCardLabel = styled.p`
-  height: 26px;
-  margin: 0 0 16px;
+  height: 28px;
+  margin: 0 0 12px;
 
   display: flex;
   align-items: center;
 
   color: var(--color-main);
-  font-size: 13px;
-  font-weight: 900;
-  letter-spacing: -0.2px;
+  font-size: 15px;
+  font-weight: 950;
+  letter-spacing: -0.35px;
 `;
 
 const RecommendPetMain = styled.div`
@@ -1915,7 +1939,7 @@ const RecommendPetMeta = styled.p`
 
   color: var(--text-desc);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
 `;
 
 const RecommendAmountArea = styled.div`
@@ -1978,28 +2002,78 @@ const RecommendSlideContent = styled.div`
   }
 `;
 
+const RecommendDisabledContent = styled.div`
+  display: contents;
+
+  ${RecommendPetInfoBox},
+  ${RecommendAmountArea} {
+    opacity: 0.9;
+    filter: grayscale(1) blur(2px);
+    transform: scale(0.995);
+  }
+`;
+
+const RecommendLockOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  padding-top: 4px;
+
+  background-color: rgba(32, 32, 32, 0.62);
+  backdrop-filter: blur(2.5px);
+
+  text-align: center;
+`;
+
+const RecommendLockTitle = styled.p`
+  margin: 0 0 3px;
+
+  color: var(--color-white);
+  font-size: 15px;
+  font-weight: 950;
+  letter-spacing: -0.25px;
+`;
+
+const RecommendLockDesc = styled.p`
+  margin: 0 0 12px;
+
+  color: var(--color-white);
+  font-size: 15px;
+  font-weight: 950;
+  letter-spacing: -0.35px;
+`;
+
 const RecommendActionButton = styled.button`
   min-width: 138px;
-  height: 38px;
-  padding: 0 16px;
+  height: 34px;
+  padding: 0 20px;
 
   border: 0;
   border-radius: 999px;
-  background-color: #66a8ff;
+  background-color: var(--color-main);
   color: var(--color-white);
 
   font-size: 13px;
   font-weight: 900;
   cursor: pointer;
 
+  box-shadow: 0 8px 18px rgba(0, 174, 142, 0.24);
+
   transition:
     transform 0.16s ease,
     box-shadow 0.16s ease,
-    background-color 0.16s ease;
+    filter 0.16s ease;
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 14px rgba(102, 168, 255, 0.28);
+    filter: brightness(1.03);
+    box-shadow: 0 10px 22px rgba(0, 174, 142, 0.32);
   }
 `;
 
