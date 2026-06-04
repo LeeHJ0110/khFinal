@@ -30,7 +30,6 @@ public class BoardEntity extends BaseEntity {
     @Column(length = 100, nullable = false)
     private String title;
 
-    @Lob // react-quill-new 를 사용하여 이미지를 받아오게 되면 글자가 말도안되게 길음 그래서 그냥 텍스트를 숫자로 처리
     @Column(name = "CONTENT", nullable = false, columnDefinition = "TEXT") // DB에 TEXT 타입으로 지정
     private String content;
 

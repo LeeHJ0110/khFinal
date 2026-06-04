@@ -13,6 +13,7 @@ import com.kh.app.board.repository.BoardRepository;
 import com.kh.app.common.entity.DelYn;
 import com.kh.app.common.exception.CustomException;
 import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.member.entity.MemberRole;
 import com.kh.app.aws.service.S3Service;
 import com.kh.app.member.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -76,6 +77,16 @@ public class BoardService {
                 .findByUsernameAndDelYn(username, DelYn.N)
                 .orElseThrow(() -> new EntityNotFoundException("MEMBER NOT FOUND ........"));
 
+        com.kh.app.board.entity.BoardCategory categoryEnum = (reqDto.getBoardCategory() != null)
+                ? com.kh.app.board.entity.BoardCategory.valueOf(reqDto.getBoardCategory())
+                : com.kh.app.board.entity.BoardCategory.FREE;
+
+        if (categoryEnum == com.kh.app.board.entity.BoardCategory.FAQ) {
+            if (memberEntity.getRole() != MemberRole.A) {
+                throw new IllegalStateException("Only ADMIN can create FAQ posts.");
+            }
+        }
+
         BoardEntity boardEntity = reqDto.toEntity(memberEntity);
         boardRepository.save(boardEntity);
 
@@ -89,34 +100,39 @@ public class BoardService {
         BoardEntity boardEntity = boardRepository.findById(boardId)
                 .orElseThrow(() -> new EntityNotFoundException("BOARD NOT FOUND ........"));
 
-        // 작성자 본인 검증
-        if (!boardEntity.getWriter().getUsername().equals(username)) {
-            throw new IllegalStateException("NO PERMISSION TO UPDATE BOARD ........");
-        }
+        MemberEntity memberEntity = memberRepository
+                .findByUsernameAndDelYn(username, DelYn.N)
+                .orElseThrow(() -> new EntityNotFoundException("MEMBER NOT FOUND ........"));
 
-        // 제목 업데이트
-        boardEntity.setTitle(reqDto.getTitle());
-
-        // 카테고리 업데이트
         com.kh.app.board.entity.BoardCategory categoryEnum = (reqDto.getBoardCategory() != null)
                 ? com.kh.app.board.entity.BoardCategory.valueOf(reqDto.getBoardCategory())
                 : com.kh.app.board.entity.BoardCategory.FREE;
+
+        if (boardEntity.getCategory() == com.kh.app.board.entity.BoardCategory.FAQ ||
+            categoryEnum == com.kh.app.board.entity.BoardCategory.FAQ) {
+            if (memberEntity.getRole() != MemberRole.A) {
+                throw new IllegalStateException("Only ADMIN can manage FAQ posts.");
+            }
+        }
+
+        if (!boardEntity.getWriter().getUsername().equals(username) && memberEntity.getRole() != MemberRole.A) {
+            throw new IllegalStateException("NO PERMISSION TO UPDATE BOARD ........");
+        }
+
+        boardEntity.setTitle(reqDto.getTitle());
         boardEntity.setCategory(categoryEnum);
 
-        // 서브카테고리 업데이트
         com.kh.app.board.entity.BoardSubCategory subCategoryEnum = (reqDto.getBoardSubCategory() != null)
                 ? com.kh.app.board.entity.BoardSubCategory.valueOf(reqDto.getBoardSubCategory())
                 : null;
         boardEntity.setSubCategory(subCategoryEnum);
 
-        // 평점 설정 (후기게시판 전용)
         if ("PRODUCT_REVIEW".equals(categoryEnum.name()) || "FAC_REVIEW".equals(categoryEnum.name())) {
             boardEntity.setStars(reqDto.getBoardStars() != null ? reqDto.getBoardStars() : 5L);
         } else {
             boardEntity.setStars(5L);
         }
 
-        // 새 이미지 파싱 및 S3 업로드 적용
         String updatedContent = processImagesAndFiles(boardEntity, reqDto.getContent(), fileList);
         boardEntity.setContent(updatedContent);
         log.info("[S3 업로드 및 수정 완료] boardId : {}", boardEntity.getId());
@@ -232,9 +248,23 @@ public class BoardService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(Long id, String username) {
         BoardEntity boardEntity = boardRepository.findById(id)
                 .orElseThrow(()-> new EntityNotFoundException("Board Not Found......"));
+
+        MemberEntity memberEntity = memberRepository
+                .findByUsernameAndDelYn(username, DelYn.N)
+                .orElseThrow(() -> new EntityNotFoundException("MEMBER NOT FOUND ........"));
+
+        if (boardEntity.getCategory() == com.kh.app.board.entity.BoardCategory.FAQ) {
+            if (memberEntity.getRole() != MemberRole.A) {
+                throw new IllegalStateException("Only ADMIN can delete FAQ posts.");
+            }
+        } else {
+            if (!boardEntity.getWriter().getUsername().equals(username) && memberEntity.getRole() != MemberRole.A) {
+                throw new IllegalStateException("NO PERMISSION TO DELETE BOARD ........");
+            }
+        }
 
         boardEntity.delete();
 
