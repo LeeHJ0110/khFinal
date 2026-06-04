@@ -19,6 +19,8 @@ export default function Header({ activeMenu = "" }) {
 
   const loginMember = JSON.parse(localStorage.getItem("loginMember"));
 
+  const currentPath = location.pathname + location.search + location.hash;
+
   function isMenuActive(menu) {
     if (activeMenu) {
       return activeMenu === menu.label;
@@ -32,7 +34,7 @@ export default function Header({ activeMenu = "" }) {
 
   function renderHeaderActions() {
     if (!loginMember) {
-      return <GuestMenu />;
+      return <GuestMenu currentPath={currentPath} />;
     }
 
     if (loginMember.role === "ADMIN") {
@@ -45,12 +47,10 @@ export default function Header({ activeMenu = "" }) {
   return (
     <header className="header">
       <div className="header-inner">
-        {/* 로고 영역 */}
         <Link to="/home" className="header-logo">
           <img src={logoImg} alt="PET & FOR 로고" />
         </Link>
 
-        {/* 메인 메뉴 영역 */}
         <nav className="header-menu">
           {mainMenus.map((menu) => (
             <Link
@@ -63,7 +63,6 @@ export default function Header({ activeMenu = "" }) {
           ))}
         </nav>
 
-        {/* 우측 영역 */}
         <div
           className={
             loginMember ? "header-right is-login" : "header-right is-guest"

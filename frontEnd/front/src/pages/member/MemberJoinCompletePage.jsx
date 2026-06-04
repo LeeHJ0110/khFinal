@@ -1,10 +1,13 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import "./MemberJoinPage.css";
 import logo from "../../assets/images/login_logo2.png";
 
 export default function MemberJoinCompletePage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const redirectParam = searchParams.get("redirect");
 
   return (
     <main className="join-page">
@@ -30,7 +33,19 @@ export default function MemberJoinCompletePage() {
         <div className="complete-buttons">
           <button onClick={() => navigate("/")}>홈으로 가기</button>
 
-          <button onClick={() => navigate("/member/login")}>로그인 하기</button>
+          <button
+            onClick={() =>
+              navigate(
+                `/member/login${
+                  redirectParam
+                    ? `?redirect=${encodeURIComponent(redirectParam)}`
+                    : ""
+                }`,
+              )
+            }
+          >
+            로그인 하기
+          </button>
         </div>
       </section>
     </main>
