@@ -134,8 +134,8 @@ export default function KarteDetailPage() {
               <Area
                 type="monotone"
                 dataKey="score"
-                stroke="#8884d8"
-                fill="#8884d8"
+                stroke="#5EC8A7"
+                fill="#5EC8A7"
               />
             </AreaChart>
             <PetScoreChart petData={data} listArr={listArr} />
