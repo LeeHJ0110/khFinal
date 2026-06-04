@@ -97,7 +97,10 @@ export default function FreeBoardList({
                 {firstImg ? (
                   <img src={firstImg} alt="Thumbnail" />
                 ) : (
-                  <SvgPawPlaceholder />
+                  <img
+                    src="https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/%EC%82%AC%EC%A7%84%EC%97%86%EC%9D%84%EB%95%8C%EA%B8%B0%EB%B3%B8.png"
+                    alt="Default Thumbnail"
+                  />
                 )}
               </ItemThumbnail>
 
