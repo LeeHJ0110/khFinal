@@ -50,11 +50,14 @@ export default function MemberLoginPage() {
     const clientId = import.meta.env.VITE_KAKAO_REST_API_KEY;
     const redirectUri = import.meta.env.VITE_KAKAO_REDIRECT_URI;
 
+    const state = encodeURIComponent(redirectUrl);
+
     const kakaoAuthUrl =
       `https://kauth.kakao.com/oauth/authorize` +
       `?response_type=code` +
       `&client_id=${clientId}` +
-      `&redirect_uri=${redirectUri}`;
+      `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+      `&state=${state}`;
 
     window.location.href = kakaoAuthUrl;
   }
@@ -129,7 +132,15 @@ export default function MemberLoginPage() {
         <button
           type="button"
           className="join-btn"
-          onClick={() => navigate("/member/join")}
+          onClick={() =>
+            navigate(
+              `/member/join${
+                redirectParam
+                  ? `?redirect=${encodeURIComponent(redirectParam)}`
+                  : ""
+              }`,
+            )
+          }
         >
           회원가입
         </button>

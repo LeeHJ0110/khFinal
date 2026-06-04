@@ -12,6 +12,7 @@ import MemberKakaoJoinPage from "./pages/member/MemberKakaoJoinPage";
 import MemberKakaoCallbackPage from "./pages/member/MemberKakaoCallbackPage";
 
 // healthcare
+import HealthCareHome from "./pages/petcare/HealthCareHome";
 import ScheduleMainPage from "./pages/schedule/ScheduleMainPage";
 import KarteListPage from "./pages/karte/KarteListPage";
 import KarteDetailPage from "./pages/karte/KarteDetailPage";
@@ -34,6 +35,7 @@ import PetStoreCatSnackProductListPage from "./pages/petStore/PetStoreCatSnackPr
 import PetStoreCatSupplementProductListPage from "./pages/petStore/PetStoreCatSupplementProductListPage";
 import PetStoreCatToiletProductListPage from "./pages/petStore/PetStoreCatToiletProductListPage";
 import PetStoreProductDetailPage from "./pages/petStore/PetStoreProductDetailPage";
+import PetStoreCartListPage from "./pages/petStore/PetStoreCartListPage";
 
 // mypage
 import MyPageHomePage from "./pages/mypage/MyPageHomePage";
@@ -52,7 +54,6 @@ import CommunityHistoryPage from "./pages/mypage/CommunityHistoryPage";
 import BoardHome from "./pages/board/BoardHome";
 import BoardDetailPage from "./pages/board/BoardDetailPage";
 import DeliveryManagePage from "./pages/mypage/DeliveryManagePage";
-import PetStoreCartListPage from "./pages/petStore/PetStoreCartListPage";
 
 function App() {
   return (
@@ -74,6 +75,7 @@ function App() {
           <Route path="home" element={<HomePage />} />
           {/* 헬스케어 */}
           <Route path="healthcare">
+            <Route index element={<HealthCareHome />} />
             {/* 스케줄 */}
             <Route path="schedule" element={<ScheduleMainPage />} />
 

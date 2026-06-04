@@ -53,9 +53,10 @@ export default function BoardHome() {
 
   return (
     <Container>
-      {/* 상단 서브 내비게이션 바 */}
+      {/* 상단 서브 내비게이션 바 (포털 우회하여 인라인 렌더링) */}
       <BoardSubNavbar
         activeTab="HOME"
+        bypassPortal={true}
         onTabChange={(tab) => {
           if (tab === "HOME") {
             navigate(`/community`);

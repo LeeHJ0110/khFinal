@@ -14,6 +14,7 @@ export default function MemberKakaoCallbackPage() {
     async function processKakaoLogin() {
       const params = new URLSearchParams(location.search);
       const code = params.get("code");
+      const state = params.get("state") || "/home";
 
       if (!code) {
         alert("카카오 인가코드가 없습니다.");
@@ -27,16 +28,19 @@ export default function MemberKakaoCallbackPage() {
 
         if (data.result === "LOGIN") {
           dispatch(login(data.token));
-          navigate("/");
+          navigate(state, { replace: true });
           return;
         }
 
         if (data.result === "NEED_JOIN") {
-          navigate("/member/join?type=kakao", {
-            state: {
-              socialId: data.socialId,
+          navigate(
+            `/member/join?type=kakao&redirect=${encodeURIComponent(state)}`,
+            {
+              state: {
+                socialId: data.socialId,
+              },
             },
-          });
+          );
           return;
         }
 
