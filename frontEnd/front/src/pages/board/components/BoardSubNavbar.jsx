@@ -1,7 +1,7 @@
 import ReactDOM from "react-dom";
 import styled from "styled-components";
 
-export default function BoardSubNavbar({ activeTab, onTabChange }) {
+export default function BoardSubNavbar({ activeTab, onTabChange, bypassPortal }) {
   const menuItems = [
     { key: "HOME", label: "커뮤니티홈" },
     { key: "FREE", label: "자유게시판" },
@@ -29,7 +29,7 @@ export default function BoardSubNavbar({ activeTab, onTabChange }) {
     </SubNavbar>
   );
 
-  const portalRoot = document.getElementById("board-subnavbar-portal");
+  const portalRoot = !bypassPortal ? document.getElementById("board-subnavbar-portal") : null;
   if (portalRoot) {
     return ReactDOM.createPortal(content, portalRoot);
   }

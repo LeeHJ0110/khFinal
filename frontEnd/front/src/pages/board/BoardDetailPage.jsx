@@ -17,6 +17,11 @@ export default function BoardDetailPage() {
     state.member.accessToken ? state.member : null,
   );
 
+  console.log("=== Board Detail Auth Debug ===");
+  console.log("loginMember (Redux):", loginMember);
+  console.log("detail (Backend):", detail);
+  console.log("hasEditPermission:", loginMember?.username === detail?.writerUsername);
+
   //카테고리별 메타 정보
   const boardMeta = {
     FREE: {
@@ -148,18 +153,19 @@ export default function BoardDetailPage() {
     );
   }
 
-  //본인글 또는 관리자 권한 확인 (백엔드 아직 미구현)
-  const hasEditPermission = loginMember?.username === detail.writerNickname;
+  //본인글 또는 관리자 권한 확인 (백엔드 추가 연동 완료)
+  const hasEditPermission = loginMember?.username === detail.writerUsername;
   const hasDeletepermission =
-    loginMember?.username === detail.writerNickname ||
+    loginMember?.username === detail.writerUsername ||
     (loginMember &&
       JSON.parse(localStorage.getItem("loginMember"))?.role == "ADMIN");
 
   return (
     <Container>
-      {/* 상단 서브 네브바*/}
+      {/* 상단 서브 네브바 (포털 우회하여 인라인 렌더링) */}
       <BoardSubNavbar
         activeTab={activeCategory}
+        bypassPortal={true}
         onTabChange={(tab) => {
           if (tab === "HOME") {
             navigate("/community");
@@ -168,7 +174,6 @@ export default function BoardDetailPage() {
           }
         }}
       />
-      <div id="board-subnavbar-protal" style={{ width: "100%" }}></div>
 
       <ContentWrapper>
         {/* 게시판 타이틀 및 설명 헤더 */}

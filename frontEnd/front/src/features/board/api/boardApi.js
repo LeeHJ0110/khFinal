@@ -33,9 +33,9 @@ export const fetchBoardDetail = async (boardId) => {
   return response.data;
 };
 
-export const deleteBoardApi = async (BoardId) => {
+export const deleteBoardApi = async (boardId) => {
   const resp = await api.delete(`/board`, {
-    params: { id: BoardId },
+    params: { id: boardId },
   });
   return resp.data;
 };
