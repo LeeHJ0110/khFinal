@@ -165,13 +165,6 @@ export default function PetStoreHomePage() {
                           <ReviewStar>★</ReviewStar>
                           {tempReview.rating} ({tempReview.count})
                         </ProductReviewInfo>
-
-                        <CartButton
-                          type="button"
-                          aria-label={`${product.productName} 장바구니 담기`}
-                        >
-                          🛒
-                        </CartButton>
                       </ProductBottom>
                     </ProductInfo>
                   </BestProductCard>
@@ -552,27 +545,6 @@ const ReviewStar = styled.span`
   color: #ffc400;
   font-size: 15px;
   line-height: 1;
-`;
-
-const CartButton = styled.button`
-  width: 26px;
-  height: 26px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: 0;
-  border-radius: 50%;
-  background-color: #e9f3ed;
-  color: var(--color-main);
-
-  font-size: 13px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #d8eee4;
-  }
 `;
 
 const HealthBanner = styled.section`

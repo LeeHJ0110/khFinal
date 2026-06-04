@@ -38,11 +38,19 @@ public class StoreCartItemEntity extends BaseEntity {
     @Builder.Default
     private Integer cartItemQty = 1;
 
-    public void updateQty(Integer cartItemQty) {
-        this.cartItemQty = cartItemQty;
+    public void increaseQty(Integer qty) {
+        if (qty == null || qty < 1) {
+            throw new IllegalArgumentException("수량은 1개 이상이어야 합니다.");
+        }
+
+        this.cartItemQty += qty;
     }
 
-    public void increaseQty(Integer qty) {
-        this.cartItemQty += qty;
+    public void updateQty(Integer cartItemQty) {
+        if (cartItemQty == null || cartItemQty < 1) {
+            throw new IllegalArgumentException("수량은 1개 이상이어야 합니다.");
+        }
+
+        this.cartItemQty = cartItemQty;
     }
 }
