@@ -27,4 +27,6 @@ public class ScoreEntity {
 
     @Column(nullable = false)
     private Long score;
+
+
 }

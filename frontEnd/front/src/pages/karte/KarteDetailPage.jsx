@@ -2,21 +2,47 @@ import styled from "styled-components";
 import useKarte from "../../features/karte/hooks/useKarte";
 import { useEffect } from "react";
 import { useParams } from "react-router-dom";
+import useScore from "../../features/karte/hooks/useScore";
 import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
   PolarAngleAxis,
   PolarGrid,
   PolarRadiusAxis,
   Radar,
   RadarChart,
+  Tooltip,
+  XAxis,
+  YAxis,
 } from "recharts";
+import PetScoreChart from "../../features/karte/components/ScoreAvgChart";
 
 export default function KarteDetailPage() {
   const { isLoading, data, asyncFetchKarteDetail } = useKarte();
+  const {
+    isLoading: scoreLoaing,
+    listArr,
+    listHis,
+    asyncFetchScore,
+    asyncFetchScoreAvg,
+    asyncFetchScoreHistory,
+  } = useScore();
   const { id } = useParams();
 
   useEffect(() => {
     asyncFetchKarteDetail(id);
   }, [id]);
+
+  useEffect(() => {
+    if (data?.pet?.breed) {
+      asyncFetchScoreAvg(data.pet.breed.id, data.pet.breed.petType);
+      asyncFetchScoreHistory(data.pet?.id);
+    }
+  }, [data]);
 
   const formatDate = (dateString) => {
     if (!dateString) return "";
@@ -82,6 +108,7 @@ export default function KarteDetailPage() {
               <PolarGrid />
               <PolarAngleAxis dataKey="category" />
               <PolarRadiusAxis angle={90} domain={[0, 100]} />
+              <Tooltip />
               <Radar
                 dataKey="score"
                 stroke="#5EC8A7"
@@ -89,8 +116,34 @@ export default function KarteDetailPage() {
                 fillOpacity={0.6}
               />
             </RadarChart>
+            <AreaChart
+              style={{
+                width: "100%",
+                maxWidth: "700px",
+                maxHeight: "70vh",
+                aspectRatio: 2,
+              }}
+              responsive
+              data={listHis}
+              onContextMenu={(_, e) => e.preventDefault()}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="createdAt" niceTicks="snap125" />
+              <YAxis width="auto" niceTicks="snap125" />
+              <Tooltip />
+              <Area
+                type="monotone"
+                dataKey="score"
+                stroke="#8884d8"
+                fill="#8884d8"
+              />
+            </AreaChart>
+            <PetScoreChart petData={data} listArr={listArr} />
           </div>
-          <div>의사소견</div>
+          <OpinionContainer>
+            <OpinionHeader>의사소견</OpinionHeader>
+            <OpinionContent>{data.opinion}</OpinionContent>
+          </OpinionContainer>
         </>
       )}
     </Wrapper>
@@ -193,7 +246,6 @@ const OpinionHeader = styled.div`
   color: #333;
   position: absolute;
   top: -24px; /* 박스 위로 살짝 걸치게 */
-  left: 20px;
 `;
 
 const OpinionContent = styled.div`
