@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import "./MemberJoinPage.css";
 
@@ -13,6 +13,8 @@ export default function MemberJoinTermsPage() {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const joinType = params.get("type"); // kakao or null
+  const [searchParams] = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
 
   const [agreements, setAgreements] = useState({
     service: false,
@@ -81,10 +83,16 @@ export default function MemberJoinTermsPage() {
       return;
     }
 
+    const redirectParam = searchParams.get("redirect");
+
     const nextPath =
       joinType === "kakao" ? "/member/kakao/join" : "/member/join/info";
 
-    navigate(nextPath, {
+    const nextUrl = `${nextPath}${
+      redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : ""
+    }`;
+
+    navigate(nextUrl, {
       state: {
         ...location.state,
         marketingAgreeYn: agreements.marketing ? "Y" : "N",
