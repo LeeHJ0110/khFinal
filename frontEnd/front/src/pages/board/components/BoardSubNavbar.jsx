@@ -1,7 +1,7 @@
 import ReactDOM from "react-dom";
 import styled from "styled-components";
 
-export default function BoardSubNavbar({ activeTab, onTabChange }) {
+export default function BoardSubNavbar({ activeTab, onTabChange, bypassPortal }) {
   const menuItems = [
     { key: "HOME", label: "커뮤니티홈" },
     { key: "FREE", label: "자유게시판" },
@@ -29,7 +29,7 @@ export default function BoardSubNavbar({ activeTab, onTabChange }) {
     </SubNavbar>
   );
 
-  const portalRoot = document.getElementById("board-subnavbar-portal");
+  const portalRoot = !bypassPortal ? document.getElementById("board-subnavbar-portal") : null;
   if (portalRoot) {
     return ReactDOM.createPortal(content, portalRoot);
   }
@@ -39,9 +39,9 @@ export default function BoardSubNavbar({ activeTab, onTabChange }) {
 
 const SubNavbar = styled.div`
   width: 100%;
-  height: 48px;
+  height: 40px;
   background-color: #ffffff;
-  border-bottom: 1px solid #eef1f2;
+  border-bottom: 1px solid var(--color-bg-soft);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -52,20 +52,22 @@ const SubNavbar = styled.div`
 `;
 
 const SubNavInner = styled.div`
-  width: 1400px;
+  width: 100%;
+  max-width: var(--layout-max-width);
   height: 100%;
+  margin: 0 auto;
+  padding: 0 var(--layout-padding-x);
   display: flex;
   align-items: center;
   gap: 32px;
-  padding: 0 20px;
 `;
 
 const SubNavItem = styled.button`
   height: 100%;
   background: none;
   border: none;
-  font-size: 14px;
-  font-weight: ${(props) => (props.active ? "700" : "500")};
+  font-size: 13px;
+  font-weight: ${(props) => (props.$active ? "800" : "600")};
   color: ${(props) => (props.$active ? "var(--color-main)" : "#555555")};
   position: relative;
   cursor: pointer;

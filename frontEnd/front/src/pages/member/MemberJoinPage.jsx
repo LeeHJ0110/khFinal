@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import useMemberJoinForm from "../../features/member/hooks/useMemberJoinForm";
 
 import "./MemberJoinPage.css";
@@ -11,7 +11,8 @@ export default function MemberJoinPage() {
   const location = useLocation();
   const [isAddressModalOpen, setAddressModalOpen] = useState(false);
   const marketingAgreeYn = location.state?.marketingAgreeYn || "N";
-
+  const [searchParams] = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
   const {
     formData,
     handleChange,
@@ -27,9 +28,13 @@ export default function MemberJoinPage() {
 
   useEffect(() => {
     if (isSuccess) {
-      navigate("/member/join/complete");
+      navigate(
+        `/member/join/complete${
+          redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : ""
+        }`,
+      );
     }
-  }, [isSuccess, navigate]);
+  }, [isSuccess, navigate, redirectParam]);
 
   return (
     <main className="join-page">

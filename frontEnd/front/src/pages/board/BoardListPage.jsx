@@ -94,9 +94,13 @@ export default function BoardListPage() {
   };
 
   useEffect(() => {
+    if (activeTab === "HOME") {
+      navigate("/community");
+      return;
+    }
     const condition = buildSearchCondition();
     asyncFetchBoardList(activeTab, currentPage, condition);
-  }, [currentPage, activeTab]);
+  }, [currentPage, activeTab, navigate]);
 
   // 카테고리 탭 스위칭 핸들러
   const handleTabChange = (tabKey) => {
@@ -146,11 +150,12 @@ export default function BoardListPage() {
           {/* 게시판 타이틀 및 글쓰기 버튼 */}
           <BoardHeader>
             <BoardTitleInfo>
-              <BoardTitle>{boardMeta[activeTab].title}</BoardTitle>
-              <BoardSubtitle>{boardMeta[activeTab].subtitle}</BoardSubtitle>
+              <BoardTitle>{boardMeta[activeTab]?.title || "게시판"}</BoardTitle>
+              <BoardSubtitle>{boardMeta[activeTab]?.subtitle || ""}</BoardSubtitle>
             </BoardTitleInfo>
 
-            {(activeTab !== "FAQ" && activeTab !== "NEWS" || loginMember?.role === "ADMIN") && (
+            {((activeTab !== "FAQ" && activeTab !== "NEWS") ||
+              loginMember?.role === "ADMIN") && (
               <WriteButton
                 onClick={() => {
                   if (!loginMember) {

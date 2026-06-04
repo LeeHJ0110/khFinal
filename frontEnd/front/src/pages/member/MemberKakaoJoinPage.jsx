@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import useMemberKakaoJoinForm from "../../features/member/hooks/useMemberKakaoJoinForm";
 
@@ -14,6 +14,8 @@ export default function MemberKakaoJoinPage() {
 
   const marketingAgreeYn = location.state?.marketingAgreeYn || "N";
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectParam = searchParams.get("redirect");
   const [isAddressModalOpen, setAddressModalOpen] = useState(false);
   const {
     formData,
@@ -27,9 +29,13 @@ export default function MemberKakaoJoinPage() {
 
   useEffect(() => {
     if (isSuccess) {
-      navigate("/member/join/complete");
+      navigate(
+        `/member/join/complete${
+          redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : ""
+        }`,
+      );
     }
-  }, [isSuccess, navigate]);
+  }, [isSuccess, navigate, redirectParam]);
 
   return (
     <main className="join-page">
@@ -159,7 +165,15 @@ export default function MemberKakaoJoinPage() {
           <button
             type="button"
             className="prev-link"
-            onClick={() => navigate("/member/login")}
+            onClick={() =>
+              navigate(
+                `/member/login${
+                  redirectParam
+                    ? `?redirect=${encodeURIComponent(redirectParam)}`
+                    : ""
+                }`,
+              )
+            }
           >
             ← 로그인으로 돌아가기
           </button>

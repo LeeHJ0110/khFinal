@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.security.core.Authentication;
 
 @Tag(name = "펫 보험", description = "펫 보험 관련 API")
 @RestController
@@ -48,9 +49,8 @@ public class PetInsuranceController {
     // 보험 가입 신청
     @PostMapping("/application")
     public ResponseEntity<Object> applyInsurance(
-            @RequestParam("data") String data,
-            @RequestParam("medicalCertificate")
-            MultipartFile medicalCertificate,
+            @RequestPart("data") String data,
+            @RequestPart("medicalCertificate") MultipartFile medicalCertificate,
             @AuthenticationPrincipal String username
     ) throws Exception {
 
