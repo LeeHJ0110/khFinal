@@ -1,5 +1,7 @@
 package com.kh.app.petinsurance.controller;
 
+import com.kh.app.petinsurance.dto.request.PetInsuranceCalculateReqDto;
+import com.kh.app.petinsurance.dto.response.PetInsuranceCalculateResDto;
 import com.kh.app.petinsurance.kakao.dto.KakaoPayApproveRespDto;
 import com.kh.app.petinsurance.kakao.dto.KakaoPayReadyRespDto;
 import com.kh.app.petinsurance.service.PetInsuranceService;
@@ -12,7 +14,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "펫 보험", description = "펫보험 관련 API")
+@Tag(name = "펫 보험", description = "펫 보험 관련 API")
 @RestController
 @RequestMapping("/api/petinsurance")
 @RequiredArgsConstructor
@@ -20,6 +22,28 @@ import org.springframework.web.multipart.MultipartFile;
 public class PetInsuranceController {
 
     private final PetInsuranceService petInsuranceService;
+
+    // 보험 상품 목록 조회
+    @GetMapping("/products")
+    public ResponseEntity<Object> getProductList() {
+
+        return ResponseEntity.ok(
+                petInsuranceService.getProductList()
+        );
+    }
+
+    // 생년월일과 선택한 상품을 기준으로 예상 보험료 계산
+    @PostMapping("/calculate")
+    public ResponseEntity<PetInsuranceCalculateResDto>
+    calculateMonthlyPrice(
+            @RequestBody PetInsuranceCalculateReqDto dto
+    ) {
+
+        return ResponseEntity.ok(
+                petInsuranceService
+                        .calculateMonthlyPrice(dto)
+        );
+    }
 
     // 보험 가입 신청
     @PostMapping("/application")
@@ -47,7 +71,8 @@ public class PetInsuranceController {
             @PathVariable Long applicationId
     ) {
 
-        petInsuranceService.approveApplication(applicationId);
+        petInsuranceService
+                .approveApplication(applicationId);
 
         return ResponseEntity.ok().build();
     }
@@ -91,6 +116,7 @@ public class PetInsuranceController {
     // 사용자가 결제창에서 취소
     @GetMapping("/payment/cancel")
     public ResponseEntity<String> paymentCancel() {
+
         return ResponseEntity.ok(
                 "카카오페이 결제가 취소되었습니다."
         );
@@ -99,6 +125,7 @@ public class PetInsuranceController {
     // 결제 실패
     @GetMapping("/payment/fail")
     public ResponseEntity<String> paymentFail() {
+
         return ResponseEntity.ok(
                 "카카오페이 결제에 실패했습니다."
         );
