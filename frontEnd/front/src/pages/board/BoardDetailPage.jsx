@@ -20,7 +20,10 @@ export default function BoardDetailPage() {
   console.log("=== Board Detail Auth Debug ===");
   console.log("loginMember (Redux):", loginMember);
   console.log("detail (Backend):", detail);
-  console.log("hasEditPermission:", loginMember?.username === detail?.writerUsername);
+  console.log(
+    "hasEditPermission:",
+    loginMember?.username === detail?.writerUsername,
+  );
 
   //카테고리별 메타 정보
   const boardMeta = {

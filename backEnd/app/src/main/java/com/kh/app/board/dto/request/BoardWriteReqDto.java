@@ -29,8 +29,8 @@ public class BoardWriteReqDto {
                 : null;
 
         return BoardEntity.builder()
-                .category(categoryEnum)     // 💡 String이 아닌 Enum 객체 그대로 주입!
-                .subCategory(subCategoryEnum) // 💡 String이 아닌 Enum 객체 그대로 주입!
+                .category(categoryEnum)
+                .subCategory(subCategoryEnum)
                 .title(title)
                 .content(content)
                 .stars(boardStars)
