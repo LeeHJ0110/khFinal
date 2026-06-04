@@ -22,7 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
-//<clear>
+//<완료>
 //관리자 : 상품 등록 (기본정보/ 이미지/ 급여기준/ 영양성분)
 //관리자 : 상품 목록 조회
 //관리자 : 상품 수정
@@ -32,10 +32,10 @@ import java.util.List;
 //사용자 : 상품 상세 조회
 //사용자 : 상품 목록 조회
 //사용자 : 베스트 상품 4개 목록 조회 (공통홈/ 강아지 홈/ 고양이 홈)
+// 이미지 추가 등 s3관련 부분
 
 
-//<Not Yet>
-
+//<미완성>
 //최근 본 상품 등록/조회
 //관심상품 등록
 //관심상품 목록 조회
@@ -43,7 +43,6 @@ import java.util.List;
 
 //<etc>
 // 현재 관리자와 사용자 권한 등 디테일이 안들어가있음 (api손보고 권한 추가해야함)
-// 이미지 추가 등 s3관련 부분 손봐야함
 
 
 @Tag(name = "스토어상품", description = "스토어상품 관련 API")

@@ -52,6 +52,7 @@ import CommunityHistoryPage from "./pages/mypage/CommunityHistoryPage";
 import BoardHome from "./pages/board/BoardHome";
 import BoardDetailPage from "./pages/board/BoardDetailPage";
 import DeliveryManagePage from "./pages/mypage/DeliveryManagePage";
+import PetStoreCartListPage from "./pages/petStore/PetStoreCartListPage";
 
 function App() {
   return (
@@ -99,6 +100,9 @@ function App() {
               path="product/admin"
               element={<PetStoreAdminProductListPage />}
             />
+
+            {/* 장바구니 */}
+            <Route path="cart/list" element={<PetStoreCartListPage />} />
 
             {/* 강아지 스토어 계열 - 임시로 홈 연결 */}
             <Route path="dog" element={<PetStoreDogHomePage />} />
