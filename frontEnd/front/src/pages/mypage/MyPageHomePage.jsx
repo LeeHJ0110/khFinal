@@ -88,14 +88,24 @@ export default function MyPageHomePage() {
                   <strong>{selectedPet.birthDate}</strong>
                 </InfoRow>
 
-                <PetButton>반려동물 정보관리</PetButton>
+                <PetButt
+                  ontype="button"
+                  onClick={() => navigate("/mypage/pet-manage")}
+                >
+                  반려동물 정보관리
+                </PetButt>
               </PetInfo>
             </>
           ) : (
             <EmptyPetBox>
               <h3>등록된 반려동물이 없습니다</h3>
 
-              <AddPetButton>반려동물 등록하기</AddPetButton>
+              <AddPetButton
+                ontype="button"
+                onClick={() => navigate("/mypage/pet-manage")}
+              >
+                반려동물 등록하기
+              </AddPetButton>
             </EmptyPetBox>
           )}
         </PetCard>
@@ -125,10 +135,14 @@ export default function MyPageHomePage() {
 
           <div>
             <p>쪽지함</p>
-            <h2>미확인 쪽지 {unreadMessageCount}개</h2>
+
+            <h2>
+              {unreadMessageCount > 0
+                ? `미확인 쪽지 ${unreadMessageCount}개`
+                : "확인하지 않은 쪽지가 없습니다."}
+            </h2>
           </div>
         </SummaryCard>
-
         <SummaryCard>
           <IconCircle>+</IconCircle>
 
