@@ -1,12 +1,21 @@
 import styled from "styled-components";
-import useKarte from "../../features/karte/hooks/useKarte";
 import { useEffect, useState } from "react";
 import usePet from "../../features/mypage/pet/hooks/usePet";
 import PetCareNav from "../../features/petcare/components/petcarehome/PetCareNav";
 import { useNavigate } from "react-router-dom";
+import useScore from "../../features/karte/hooks/useScore";
+
 // 필요정보 :펫리스트, 건강점수 평균, 일정표,
 export default function HealthCareHome() {
-  const { isLoading, data: karteData, asyncFetchKarteDetail } = useKarte();
+  const {
+    isLoading: scoreLoaing,
+    data,
+    listArr,
+    listHis,
+    asyncFetchScore,
+    asyncFetchScoreAvg,
+    asyncFetchScoreHistory,
+  } = useScore();
   const { petList, loading, fetchMyPetList } = usePet();
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigate = useNavigate();
@@ -23,6 +32,12 @@ export default function HealthCareHome() {
     const representIndex = petList.findIndex((pet) => pet.representYn === "Y");
     setCurrentIndex(representIndex >= 0 ? representIndex : 0);
   }, [petList]);
+
+  useEffect(() => {
+    asyncFetchScore();
+    asyncFetchScoreAvg();
+    asyncFetchScoreHistory();
+  }, [currentIndex]);
 
   //넘기기 버튼
   const handlePrev = () => {
@@ -68,7 +83,13 @@ export default function HealthCareHome() {
               </div>
             </PetInfo>
           ) : (
-            <p>등록된 반려동물이 없습니다</p>
+            <button
+              onClick={() => {
+                navigate("/mypage/pet-manage");
+              }}
+            >
+              반려동물 등록하기
+            </button>
           )}
         </PetCard>
       </Wrapper>
@@ -80,7 +101,7 @@ const Wrapper = styled.main`
   width: min(1180px, calc(100% - 48px));
 
   margin: 0 auto;
-  padding: 52px 0 88px;
+  padding: 0 88px;
 
   box-sizing: border-box;
   background-color: gray;
