@@ -10,7 +10,7 @@
   --header-menu-item-width: 126px;
 
   --header-search-width: 320px;
-  --header-alarm-width: 32px;
+  --header-alarm-width: 34px;
   --header-user-width: 180px;
   --header-action-width: 104px;
   --header-user-name-width: 112px;
@@ -19,9 +19,15 @@
   height: var(--header-height);
   background-color: var(--color-main);
   color: var(--color-white);
+
+  position: relative;
+  z-index: 900;
 }
 
-/* Header Inner */
+/* ================================
+   Header Inner
+================================ */
+
 .header-inner {
   width: 100%;
   max-width: var(--layout-max-width);
@@ -34,7 +40,10 @@
   min-width: 0;
 }
 
-/* Logo */
+/* ================================
+   Logo
+================================ */
+
 .header-logo {
   width: var(--header-logo-area-width);
   height: 100%;
@@ -56,7 +65,10 @@
   transform: translateX(20px);
 }
 
-/* Main Menu */
+/* ================================
+   Main Menu
+================================ */
+
 .header-menu {
   height: 100%;
   margin-left: 0;
@@ -80,6 +92,7 @@
 
   border-radius: 4px;
   color: var(--color-white);
+  text-decoration: none;
 
   font-size: 14px;
   font-weight: 700;
@@ -101,50 +114,122 @@
   transform: translateY(1px);
 }
 
-/* Right Area */
+/* ================================
+   Right Area
+   구조:
+   [검색창] [게스트/유저/관리자 메뉴]
+================================ */
+
 .header-right {
   height: 100%;
   margin-left: auto;
   margin-right: var(--header-edge-correction);
 
   display: grid;
+  grid-template-columns: minmax(180px, var(--header-search-width)) auto;
   align-items: center;
   column-gap: 14px;
 
   min-width: 0;
 }
 
-/* 로그인: 검색 / 알림 / 유저 / 로그아웃 */
-.header-right.is-login {
-  grid-template-columns:
-    minmax(180px, var(--header-search-width))
-    var(--header-alarm-width)
-    minmax(120px, var(--header-user-width))
-    var(--header-action-width);
-}
-
-/* 비로그인: 검색 / 로그인 / 회원가입 */
+.header-right.is-login,
 .header-right.is-guest {
-  grid-template-columns:
-    minmax(180px, var(--header-search-width))
-    72px
-    var(--header-action-width);
+  grid-template-columns: minmax(180px, var(--header-search-width)) auto;
 }
 
-/* 분리된 메뉴 컴포넌트가 grid 칸을 깨지 않도록 처리 */
-.header-action-area,
+.header-action-area {
+  height: 100%;
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* ================================
+   Search
+================================ */
+
+.header-search {
+  width: 100%;
+  height: 31px;
+
+  display: flex;
+  align-items: center;
+
+  border-radius: 999px;
+  background-color: var(--color-main-soft);
+  overflow: hidden;
+}
+
+.header-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 12px 0 15px;
+
+  border: none;
+  outline: none;
+  background: transparent;
+
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.header-search input::placeholder {
+  color: #7c9a8f;
+  font-weight: 500;
+}
+
+.header-search button {
+  width: 38px;
+  height: 100%;
+  flex-shrink: 0;
+
+  border: none;
+  background: transparent;
+
+  color: var(--color-main);
+  font-size: 14px;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-search button:hover {
+  background-color: rgba(0, 169, 123, 0.08);
+}
+
+/* ================================
+   Menu Wrappers
+================================ */
+
 .guest-menu,
 .user-menu,
 .admin-menu {
-  display: contents;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+
+  position: relative;
+  white-space: nowrap;
 }
 
-/* Guest Button */
+/* ================================
+   Guest Buttons
+================================ */
+
 .header-login-btn,
 .header-join-btn {
-  width: 100%;
   height: 31px;
-  padding: 0;
+  padding: 0 16px;
   margin: 0;
 
   display: flex;
@@ -156,10 +241,13 @@
   font-size: 13px;
   font-weight: 800;
   white-space: nowrap;
+  text-decoration: none;
 
   transition:
     background-color 0.18s ease,
-    opacity 0.18s ease;
+    color 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
 
 .header-login-btn {
@@ -171,6 +259,7 @@
 }
 
 .header-join-btn {
+  min-width: var(--header-action-width);
   background-color: var(--color-white);
   color: var(--color-main);
 }
@@ -179,6 +268,271 @@
   background-color: var(--color-bg-light);
 }
 
+.header-login-btn:active,
+.header-join-btn:active {
+  transform: translateY(1px);
+}
+
+/* ================================
+   User / Admin Common
+================================ */
+
+.header-alarm {
+  position: relative;
+  width: var(--header-alarm-width);
+  height: 34px;
+
+  border: none;
+  background: transparent;
+  color: var(--color-white);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+}
+
+.header-alarm-icon {
+  font-size: 21px;
+  line-height: 1;
+}
+
+.alarm-badge {
+  position: absolute;
+  right: -2px;
+  top: 0;
+
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 999px;
+  background-color: #ff4d5a;
+  color: var(--color-white);
+
+  font-size: 10px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+/* ================================
+   Profile Button
+================================ */
+
+.header-user {
+  width: var(--header-user-width);
+  height: 38px;
+  padding: 0;
+
+  border: none;
+  background: transparent;
+  color: var(--color-white);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  cursor: pointer;
+}
+
+.header-user:hover .header-user-name {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.header-profile-img {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.38),
+      rgba(255, 255, 255, 0.12)
+    ),
+    var(--color-bg-soft);
+
+  border: 1px solid rgba(255, 255, 255, 0.55);
+}
+
+.header-profile-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.header-profile-placeholder {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.header-user-name {
+  max-width: var(--header-user-name-width);
+
+  color: var(--color-white);
+  font-size: 15px;
+  font-weight: 900;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-arrow {
+  color: var(--color-white);
+  font-size: 17px;
+  font-weight: 900;
+  line-height: 1;
+
+  transform: translateY(-1px);
+  transition: transform 0.18s ease;
+}
+
+.user-arrow.is-open {
+  transform: rotate(180deg) translateY(1px);
+}
+
+/* ================================
+   Logout Button
+================================ */
+
+.header-logout-btn {
+  width: var(--header-action-width);
+  height: 31px;
+  padding: 0;
+  margin: 0;
+
+  border: none;
+  border-radius: 4px;
+  background-color: var(--color-white);
+  color: var(--color-main);
+
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+  cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    opacity 0.18s ease,
+    transform 0.18s ease;
+}
+
+.header-logout-btn:hover {
+  background-color: var(--color-bg-light);
+}
+
+.header-logout-btn:active {
+  transform: translateY(1px);
+}
+
+/* ================================
+   Dropdown
+================================ */
+
+.header-dropdown {
+  position: absolute;
+  top: calc(100% + 0px);
+
+  /*
+    user-menu 구조:
+    [알림] [프로필/닉네임] [로그아웃]
+
+    드롭다운은 프로필/닉네임 버튼 아래에 떠야 하므로
+    오른쪽 로그아웃 버튼 너비만큼 왼쪽으로 당긴다.
+  */
+  right: calc(var(--header-action-width) + 14px);
+
+  z-index: 2000;
+
+  width: 148px;
+  padding: 8px 0;
+
+  border: 1px solid #d6d6d6;
+  background-color: var(--color-white);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.08);
+
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+
+  animation: headerDropdownIn 0.16s ease both;
+}
+
+.admin-dropdown {
+  right: calc(var(--header-action-width) + 14px);
+}
+
+.header-dropdown::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+
+  width: 14px;
+  height: 14px;
+
+  background-color: var(--color-white);
+  border-left: 1px solid #d6d6d6;
+  border-top: 1px solid #d6d6d6;
+
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.header-dropdown button {
+  width: 100%;
+  height: 54px;
+  padding: 0;
+
+  border: none;
+  background-color: var(--color-white);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: var(--text-sub);
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.header-dropdown button:hover {
+  background-color: var(--color-bg-light);
+  color: var(--color-main);
+}
+
+@keyframes headerDropdownIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================================
+   Responsive
+================================ */
+
 /* 노트북 폭 대응 */
 @media (max-width: 1440px) {
   .header {
@@ -186,10 +540,32 @@
     --header-menu-item-width: 118px;
     --header-search-width: 260px;
     --header-action-width: 96px;
+    --header-user-width: 164px;
+    --header-user-name-width: 98px;
   }
 
   .header-menu a {
     font-size: 13px;
+  }
+
+  .guest-menu,
+  .user-menu,
+  .admin-menu {
+    gap: 10px;
+  }
+
+  .header-login-btn,
+  .header-join-btn,
+  .header-logout-btn {
+    font-size: 12px;
+  }
+
+  .header-user-name {
+    font-size: 14px;
+  }
+
+  .header-dropdown {
+    right: calc(var(--header-action-width) + 10px);
   }
 }
 
@@ -200,6 +576,8 @@
     --header-menu-item-width: 104px;
     --header-search-width: 220px;
     --header-action-width: 88px;
+    --header-user-width: 150px;
+    --header-user-name-width: 84px;
   }
 
   .header-right {
@@ -208,5 +586,23 @@
 
   .header-logo img {
     transform: translateX(10px);
+  }
+
+  .header-menu a {
+    font-size: 12px;
+  }
+
+  .header-search input {
+    font-size: 12px;
+  }
+
+  .guest-menu,
+  .user-menu,
+  .admin-menu {
+    gap: 8px;
+  }
+
+  .header-dropdown {
+    right: calc(var(--header-action-width) + 8px);
   }
 }
