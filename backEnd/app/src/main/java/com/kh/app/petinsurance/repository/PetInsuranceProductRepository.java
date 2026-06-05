@@ -1,5 +1,6 @@
 package com.kh.app.petinsurance.repository;
 
+import com.kh.app.common.entity.DelYn;
 import com.kh.app.petinsurance.entity.PetInsuranceProductEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -9,5 +10,8 @@ import java.util.List;
 public interface PetInsuranceProductRepository
         extends JpaRepository<PetInsuranceProductEntity, Long> {
 
-    List<PetInsuranceProductEntity> findAllByDelYn(String delYn);
+
+    List<PetInsuranceProductEntity> findAllByDelYn(
+            DelYn delYn
+    );
 }
