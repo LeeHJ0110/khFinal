@@ -1,18 +1,16 @@
 package com.kh.app.store.service;
 
 import com.kh.app.common.entity.DelYn;
+import com.kh.app.delivery.entity.DeliveryAddressEntity;
+import com.kh.app.delivery.repository.DeliveryAddressRepository;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.store.dto.request.StoreCartInsertReqDto;
 import com.kh.app.store.dto.request.StoreCartQtyUpdateReqDto;
-import com.kh.app.store.dto.response.StoreCartItemResDto;
-import com.kh.app.store.dto.response.StoreCartListResDto;
-import com.kh.app.store.entity.StoreCartItemEntity;
-import com.kh.app.store.entity.StoreProductEntity;
-import com.kh.app.store.entity.StoreProductImageEntity;
-import com.kh.app.store.repository.StoreCartItemRepository;
-import com.kh.app.store.repository.StoreProductImageRepository;
-import com.kh.app.store.repository.StoreProductRepository;
+import com.kh.app.store.dto.request.StorePayReadyReqDto;
+import com.kh.app.store.dto.response.*;
+import com.kh.app.store.entity.*;
+import com.kh.app.store.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +38,12 @@ public class StoreOrderService {
     private final StoreProductRepository storeProductRepository;
     private final MemberRepository memberRepository;
     private final StoreProductImageRepository storeProductImageRepository;
+    private final DeliveryAddressRepository deliveryAddressRepository;
+
+    private final StoreOrderRepository storeOrderRepository;
+    private final StoreOrderItemRepository storeOrderItemRepository;
+    private final StorePaymentRepository storePaymentRepository;
+    private final StoreKakaoPayService storeKakaoPayService;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
@@ -277,6 +281,176 @@ public class StoreOrderService {
                 cartItem.getCartItemId(),
                 cartItem.getProduct().getProductId(),
                 reqDto.getQty()
+        );
+    }
+
+
+    //카카오 결제
+    @Transactional
+    public StorePayReadyResDto payReady(StorePayReadyReqDto reqDto, String username) {
+
+        if (isNotLogin(username)) {
+            throw new IllegalStateException("로그인 후 결제를 진행할 수 있습니다.");
+        }
+
+        MemberEntity member = getLoginMember(username);
+
+        //배송지 검증
+
+        if (reqDto.getDeliveryAddressId() == null) {
+            throw new IllegalArgumentException("배송지를 선택해주세요.");
+        }
+
+        DeliveryAddressEntity deliveryAddress =
+                deliveryAddressRepository.findByIdAndMember(
+                        reqDto.getDeliveryAddressId(),
+                        member
+                ).orElseThrow(() ->
+                        new IllegalStateException("배송지 정보가 존재하지 않습니다.")
+                );
+
+        List<StoreCartItemEntity> cartItems =
+                storeCartItemRepository.findByMemberOrderByCartItemIdDesc(member);
+
+        if (cartItems.isEmpty()) {
+            throw new IllegalStateException("장바구니가 비어 있습니다.");
+        }
+
+        Long totalProductAmount = cartItems.stream()
+                .mapToLong(cartItem ->
+                        cartItem.getProduct().getProductPrice() * cartItem.getCartItemQty()
+                )
+                .sum();
+
+        Long deliveryFee = calculateDeliveryFee(totalProductAmount);
+        Long finalAmount = totalProductAmount + deliveryFee;
+
+        String deliveryRequest = reqDto.getDeliveryRequest();
+
+        StoreOrderEntity order = StoreOrderEntity.builder()
+                .member(member)
+                .orderDeliveryFee(deliveryFee)
+                .orderUsedPoint(0L)
+                .orderFinalAmount(finalAmount)
+                .deliveryAddressId(deliveryAddress.getId())
+                .orderReceiverName(deliveryAddress.getReceiverName())
+                .orderReceiverPhone(deliveryAddress.getPhone())
+                .orderZipCode(deliveryAddress.getZipCode())
+                .orderAddress(deliveryAddress.getAddress())
+                .orderAddressDetail(deliveryAddress.getAddressDetail())
+                .orderDeliveryRequest(
+                        deliveryRequest == null || deliveryRequest.isBlank()
+                                ? null
+                                : deliveryRequest
+                )
+                .build();
+
+        storeOrderRepository.save(order);
+
+        for (StoreCartItemEntity cartItem : cartItems) {
+            StoreOrderItemEntity orderItem = StoreOrderItemEntity.from(
+                    order,
+                    cartItem.getProduct(),
+                    cartItem.getCartItemQty()
+            );
+
+            storeOrderItemRepository.save(orderItem);
+        }
+
+        String partnerOrderId = "STORE_ORDER_" + order.getOrderId();
+        String partnerUserId = "MEMBER_" + member.getId();
+
+        String itemName = makeKakaoItemName(cartItems);
+        Integer quantity = cartItems.stream()
+                .mapToInt(StoreCartItemEntity::getCartItemQty)
+                .sum();
+
+        StorePaymentEntity payment = StorePaymentEntity.builder()
+                .order(order)
+                .member(member)
+                .paymentMethod(StorePaymentMethod.KAKAO_PAY)
+                .paymentAmount(finalAmount)
+                .partnerOrderId(partnerOrderId)
+                .partnerUserId(partnerUserId)
+                .build();
+
+        storePaymentRepository.save(payment);
+
+        StoreKakaoPayReadyResDto kakaoReadyRes = storeKakaoPayService.ready(
+                partnerOrderId,
+                partnerUserId,
+                itemName,
+                quantity,
+                finalAmount,
+                order.getOrderId()
+        );
+
+        if (kakaoReadyRes == null || kakaoReadyRes.getTid() == null) {
+            throw new IllegalStateException("카카오페이 결제 준비에 실패했습니다.");
+        }
+
+        payment.ready(kakaoReadyRes.getTid());
+
+        return StorePayReadyResDto.builder()
+                .orderId(order.getOrderId())
+                .partnerOrderId(partnerOrderId)
+                .nextRedirectPcUrl(kakaoReadyRes.getNextRedirectPcUrl())
+                .build();
+    }
+
+    private String makeKakaoItemName(List<StoreCartItemEntity> cartItems) {
+        String firstProductName = cartItems.get(0).getProduct().getProductName();
+
+        if (cartItems.size() == 1) {
+            return firstProductName;
+        }
+
+        return firstProductName + " 외 " + (cartItems.size() - 1) + "건";
+    }
+
+    @Transactional
+    public void payApprove(Long orderId, String pgToken) {
+
+        StoreOrderEntity order = storeOrderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("주문을 찾을 수 없습니다."));
+
+        StorePaymentEntity payment = storePaymentRepository.findByOrder(order)
+                .orElseThrow(() -> new EntityNotFoundException("결제 정보를 찾을 수 없습니다."));
+
+        if (payment.isPaid()) {
+            throw new IllegalStateException("이미 결제 완료된 주문입니다.");
+        }
+
+        if (order.isCanceled()) {
+            throw new IllegalStateException("취소된 주문은 결제할 수 없습니다.");
+        }
+
+        StoreKakaoPayApproveResDto approveRes = storeKakaoPayService.approve(
+                payment.getPaymentKakaoTid(),
+                payment.getPartnerOrderId(),
+                payment.getPartnerUserId(),
+                pgToken,
+                payment.getPaymentAmount()
+        );
+
+        if (approveRes == null || approveRes.getTid() == null) {
+            payment.fail();
+            throw new IllegalStateException("카카오페이 결제 승인에 실패했습니다.");
+        }
+
+        order.paid();
+
+        payment.approve(
+                approveRes.getTid(),
+                java.time.LocalDateTime.now()
+        );
+
+        storeCartItemRepository.deleteByMember(order.getMember());
+
+        log.info("[스토어 결제 완료] orderId={}, paymentId={}, amount={}",
+                order.getOrderId(),
+                payment.getPaymentId(),
+                payment.getPaymentAmount()
         );
     }
 }

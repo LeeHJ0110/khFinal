@@ -16,4 +16,6 @@ public interface StoreCartItemRepository extends JpaRepository<StoreCartItemEnti
     );
 
     List<StoreCartItemEntity> findByMemberOrderByCartItemIdDesc(MemberEntity member);
+
+    void deleteByMember(MemberEntity member);
 }

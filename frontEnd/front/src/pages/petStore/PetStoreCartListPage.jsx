@@ -98,19 +98,13 @@ export default function PetStoreCartListPage() {
     setSelectedCartItemIds([]);
   }
 
-  function handleOrderClick() {
-    if (selectedCartItemIds.length === 0) {
-      alert("주문할 상품을 선택해주세요.");
+  function handleGoOrderPage() {
+    if (!cart || !cart.cartItemList || cart.cartItemList.length === 0) {
+      alert("장바구니가 비어 있습니다.");
       return;
     }
 
-    // 나중에 주문서 페이지 만들면 여기서 선택한 cartItemId들을 넘기면 됩니다.
-    // 예: navigate("/store/order/checkout", { state: { cartItemIds: selectedCartItemIds } });
-    navigate("/store/order/checkout", {
-      state: {
-        cartItemIds: selectedCartItemIds,
-      },
-    });
+    navigate("/store/order");
   }
 
   function handleGoProductDetail(productId) {
@@ -344,7 +338,7 @@ export default function PetStoreCartListPage() {
 
             <Divider />
 
-            <OrderButton type="button" onClick={handleOrderClick}>
+            <OrderButton type="button" onClick={handleGoOrderPage}>
               주문하기
             </OrderButton>
 
