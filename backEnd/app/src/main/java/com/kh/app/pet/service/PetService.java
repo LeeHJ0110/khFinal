@@ -1,5 +1,6 @@
 package com.kh.app.pet.service;
 
+import com.kh.app.aws.service.S3Service;
 import com.kh.app.common.entity.DelYn;
 import com.kh.app.pet.dto.request.PetUpdateReqDto;
 import com.kh.app.pet.dto.response.BreedListResDto;
@@ -12,12 +13,13 @@ import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.pet.dto.request.PetCreateReqDto;
 import com.kh.app.pet.dto.response.PetMyPageResDto;
 import com.kh.app.pet.entity.PetEntity;
-import com.kh.app.pet.repository.BreedRepository;
 import com.kh.app.pet.repository.PetRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -28,6 +30,7 @@ public class PetService {
     private final PetRepository petRepository;
     private final MemberRepository memberRepository;
     private final BreedRepository breedRepository;
+    private final S3Service s3Service;
 
     public Long create(PetCreateReqDto request, String loginKey) {
 
@@ -60,7 +63,10 @@ public class PetService {
 
         return petRepository.findAllByMember_IdAndDelYn(member.getId(), DelYn.N)
                 .stream()
-                .map(PetMyPageResDto::from)
+                .map(pet -> PetMyPageResDto.from(
+                        pet,
+                        s3Service.getFileUrl(pet.getImageUrl())
+                ))
                 .toList();
     }
 
@@ -155,5 +161,37 @@ public class PetService {
         }
 
         targetPet.changeRepresentYn(PetRepresentYn.Y);
+    }
+
+    @Transactional
+    public String uploadPetImage(
+            Long petId,
+            String loginKey,
+            MultipartFile file
+    ) throws IOException {
+
+        MemberEntity member = memberRepository.findByUsername(loginKey)
+                .or(() -> memberRepository.findBySocialId(loginKey))
+                .orElseThrow(() ->
+                        new IllegalStateException("회원 정보가 존재하지 않습니다.")
+                );
+
+        PetEntity pet = petRepository.findById(petId)
+                .orElseThrow(() ->
+                        new IllegalStateException("펫 정보가 존재하지 않습니다.")
+                );
+
+        if (!pet.getMember().getId().equals(member.getId())) {
+            throw new IllegalStateException("본인 펫 사진만 변경할 수 있습니다.");
+        }
+
+        String s3Key = s3Service.upload(
+                file,
+                "pet/profile"
+        );
+
+        pet.updateImageUrl(s3Key);
+
+        return s3Service.getFileUrl(s3Key);
     }
 }

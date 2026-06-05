@@ -1,5 +1,6 @@
 package com.kh.app.member.service;
 
+import com.kh.app.aws.service.S3Service;
 import com.kh.app.common.exception.CustomException;
 import com.kh.app.delivery.service.DeliveryAddressService;
 import com.kh.app.member.dto.request.MemberJoinReqDto;
@@ -22,6 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +38,7 @@ public class MemberService {
     private final KakaoClient kakaoClient;
     private final JwtUtil jwtUtil;
     private final DeliveryAddressService deliveryAddressService;
+    private final S3Service s3Service;
 
     @Transactional
     public void join(MemberJoinReqDto dto) {
@@ -145,7 +150,13 @@ public class MemberService {
     public MemberMyPageResDto getMyInfo(String loginKey) {
         MemberEntity member = getLoginMember(loginKey);
 
-        return MemberMyPageResDto.from(member);
+        String profileImageUrl =
+                s3Service.getFileUrl(member.getProfileImageUrl());
+
+        return MemberMyPageResDto.from(
+                member,
+                profileImageUrl
+        );
     }
 
     @Transactional
@@ -162,6 +173,23 @@ public class MemberService {
                 request.getAddress(),
                 request.getAddressDetail()
         );
+    }
+
+    @Transactional
+    public String uploadProfileImage(
+            String loginKey,
+            MultipartFile file
+    ) throws IOException {
+        MemberEntity member = getLoginMember(loginKey);
+
+        String s3Key = s3Service.upload(
+                file,
+                "member/profile"
+        );
+
+        member.updateProfileImageUrl(s3Key);
+
+        return s3Service.getFileUrl(s3Key);
     }
 
     private MemberEntity getLoginMember(String loginKey) {
