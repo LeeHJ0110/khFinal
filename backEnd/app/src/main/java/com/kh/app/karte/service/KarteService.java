@@ -59,7 +59,7 @@ public class KarteService {
         MemberEntity memberEntity = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("맴버 없음"));
         PageRequest pageRequest = PageRequest.of(pno, 10);
-        return karteRepository.findKarteList(pageRequest, memberEntity);
+        return karteRepository.findKarteList(pageRequest, memberEntity); //TODO 조회여부 정렬, 특정 반려동물만 필터링
     }
 
     public KarteResDto selectOne(Long id) {

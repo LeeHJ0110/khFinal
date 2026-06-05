@@ -73,7 +73,7 @@ export default function KarteListPage() {
           </table>
         )}
         {/* 하단 페이지네이션 */}
-        {totalPages > 1 && (
+        {/* {totalPages > 1 && (
           <PaginationWrapper>
             <PageArrowButton
               onClick={() => setCurrentPage((p) => p - 1)}
@@ -99,10 +99,91 @@ export default function KarteListPage() {
               <SvgChevronRight />
             </PageArrowButton>
           </PaginationWrapper>
-        )}
+        )} */}
       </div>
     </Wrapper>
   );
 }
 
-const Wrapper = styled.div``;
+const Wrapper = styled.div`
+  width: 100%;
+  padding: 24px;
+
+  table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 12px;
+  }
+
+  thead th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    border-bottom: 2px solid #f0f0f0;
+  }
+
+  tbody tr {
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  tbody tr:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  }
+
+  tbody td {
+    padding: 18px 16px;
+    font-size: 14px;
+    color: #333;
+    background: #fff;
+  }
+
+  tbody td:first-child {
+    border-radius: 12px 0 0 12px;
+    font-weight: 600;
+    color: #888;
+  }
+
+  tbody td:last-child {
+    border-radius: 0 12px 12px 0;
+  }
+
+  tbody tr td:nth-child(2) {
+    font-weight: 600;
+    color: #222;
+  }
+
+  tbody tr td[colspan] {
+    text-align: center;
+    padding: 40px;
+    background: #fafafa;
+    border-radius: 12px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 16px;
+
+    thead {
+      display: none;
+    }
+
+    tbody tr {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 12px;
+    }
+
+    tbody td {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-radius: 0 !important;
+    }
+  }
+`;

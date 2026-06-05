@@ -51,9 +51,5 @@ public class BoardFileEntity extends BaseEntity {
                 .build();
     }
 
-    public Object getFilePath() {
-        return null;
-    }
-
 
 }

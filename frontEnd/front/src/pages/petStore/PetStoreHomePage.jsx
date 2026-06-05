@@ -4,14 +4,15 @@ import PetStoreUserNav from "./PetStoreUserNav";
 import RoundedButton from "../../shared/components/button/RoundedButton";
 import usePetStoreBestProductList from "../../features/petStore/hooks/usePetStoreBestProductList";
 
+import petStoreHomeBanner from "../../assets/images/petStore/스토어홈배너2.png";
+import dogStoreCard from "../../assets/images/petStore/강아지스토어카드.png";
+import catStoreCard from "../../assets/images/petStore/고양이스토어카드.png";
+import storeHealthCareCard from "../../assets/images/petStore/스토어건강관리카드.png";
+
 //!! 리뷰 기능 완성되면!!
-// // 1. 이 함수 삭제
-// function getTempReviewInfo(index) { ... }
-
-// // 2. 이 부분 변경
-// {tempReview.rating} ({tempReview.count})
-
-// // 실제 리뷰 데이터로 변경
+// 1. getTempReviewInfo 함수 삭제
+// 2. tempReview.rating / tempReview.count 부분을 실제 리뷰 데이터로 변경
+// 예시:
 // {product.reviewRatingAvg?.toFixed(1) ?? "0.0"} ({product.reviewCount ?? 0})
 
 const shortcutList = [
@@ -20,22 +21,19 @@ const shortcutList = [
     title: "강아지 스토어",
     desc: "사료부터 영양제까지 강아지에게 필요한 모든 것",
     buttonText: "강아지 스토어 바로가기",
-    imageText: "강아지 카드 이미지 영역",
     path: "/store/dog",
+    image: dogStoreCard,
   },
   {
     id: "cat",
     title: "고양이 스토어",
     desc: "사료부터 영양제까지 고양이에게 필요한 모든 것",
     buttonText: "고양이 스토어 바로가기",
-    imageText: "고양이 카드 이미지 영역",
     path: "/store/cat",
+    image: catStoreCard,
   },
 ];
 
-/*
-  임시 리뷰 표시용 데이터.
-*/
 function getTempReviewInfo(index) {
   const tempReviewList = [
     { rating: "4.9", count: 128 },
@@ -56,33 +54,37 @@ export default function PetStoreHomePage() {
       <PetStoreUserNav />
 
       <Wrapper>
-        <HeroBanner>
+        <HeroBanner $bannerImage={petStoreHomeBanner}>
           <HeroTextBox>
             <HeroTitle>
               PET CARE
               <br />
               PREMIUM STORE
             </HeroTitle>
+
             <HeroDesc>
               For Better Pet Life
               <br />
               우리 아이의 건강한 선택
             </HeroDesc>
           </HeroTextBox>
-
-          <HeroImageText>스토어 메인 배너 이미지 영역</HeroImageText>
         </HeroBanner>
 
         <ContentInner>
           <StoreShortcutGrid>
             {shortcutList.map((shortcut) => (
-              <StoreShortcutCard key={shortcut.id}>
+              <StoreShortcutCard
+                key={shortcut.id}
+                $cardImage={shortcut.image}
+                onClick={() => navigate(shortcut.path)}
+              >
                 <StoreShortcutText>
                   <StoreShortcutEyebrow>
                     건강한 반려 생활의 시작
                   </StoreShortcutEyebrow>
 
                   <StoreShortcutTitle>{shortcut.title}</StoreShortcutTitle>
+
                   <StoreShortcutDesc>{shortcut.desc}</StoreShortcutDesc>
 
                   <RoundedButton
@@ -92,25 +94,25 @@ export default function PetStoreHomePage() {
                     fontWeight="700"
                     gap="12px"
                     rightIcon="→"
-                    onClick={() => navigate(shortcut.path)}
+                    onClick={(evt) => {
+                      evt.stopPropagation();
+                      navigate(shortcut.path);
+                    }}
                   >
                     {shortcut.buttonText}
                   </RoundedButton>
                 </StoreShortcutText>
 
-                <ShortcutPaw>●</ShortcutPaw>
-
                 <ShortcutArrowButton
                   type="button"
                   aria-label={`${shortcut.title} 이동`}
-                  onClick={() => navigate(shortcut.path)}
+                  onClick={(evt) => {
+                    evt.stopPropagation();
+                    navigate(shortcut.path);
+                  }}
                 >
                   ›
                 </ShortcutArrowButton>
-
-                <ShortcutImageBox>
-                  <VisualPlaceholder>{shortcut.imageText}</VisualPlaceholder>
-                </ShortcutImageBox>
               </StoreShortcutCard>
             ))}
           </StoreShortcutGrid>
@@ -166,12 +168,16 @@ export default function PetStoreHomePage() {
                           {tempReview.rating} ({tempReview.count})
                         </ProductReviewInfo>
 
-                        <CartButton
+                        <CartMiniButton
                           type="button"
-                          aria-label={`${product.productName} 장바구니 담기`}
+                          aria-label="장바구니 담기"
+                          onClick={(evt) => {
+                            evt.stopPropagation();
+                            // 나중에 insertCartProduct({ productId: product.productId, qty: 1 }) 연결
+                          }}
                         >
                           🛒
-                        </CartButton>
+                        </CartMiniButton>
                       </ProductBottom>
                     </ProductInfo>
                   </BestProductCard>
@@ -180,13 +186,12 @@ export default function PetStoreHomePage() {
             )}
           </BestProductGrid>
 
-          <HealthBanner>
-            <HealthIconCircle>🐾</HealthIconCircle>
-
+          <HealthBanner $cardImage={storeHealthCareCard}>
             <HealthTextBox>
               <HealthTitle>
                 우리 아이 건강관리, <strong>지금 시작해보세요!</strong>
               </HealthTitle>
+
               <HealthDesc>
                 간편한 건강진단부터 맞춤관리까지, PET&I FOR와 함께라면 더
                 쉬워집니다.
@@ -200,14 +205,11 @@ export default function PetStoreHomePage() {
                 fontSize="15px"
                 fontWeight="800"
                 rightIcon=">"
+                onClick={() => navigate("/healthCare")}
               >
                 건강관리 시작하기
               </RoundedButton>
             </HealthButtonWrap>
-
-            <HealthImageBox>
-              <VisualPlaceholder>건강관리 배너 이미지 영역</VisualPlaceholder>
-            </HealthImageBox>
           </HealthBanner>
         </ContentInner>
       </Wrapper>
@@ -223,53 +225,55 @@ const Wrapper = styled.main`
 const HeroBanner = styled.section`
   position: relative;
   width: 100%;
-  height: 310px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 315px;
 
   overflow: hidden;
-  background: linear-gradient(90deg, #dff2e9 0%, #eefaf4 48%, #dff2e9 100%);
+
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+
+  background-image: url(${({ $bannerImage }) => $bannerImage});
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
 `;
 
 const HeroTextBox = styled.div`
   position: relative;
   z-index: 2;
+
+  width: 100%;
+  padding-top: 62px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
   text-align: center;
+  pointer-events: none;
 `;
 
 const HeroTitle = styled.h1`
-  margin: 0 0 30px;
+  margin: 0;
 
-  color: #232323;
-  font-size: 50px;
+  color: #222222;
+  font-size: 56px;
   font-weight: 900;
-  line-height: 0.95;
-  letter-spacing: -2px;
+  line-height: 0.92;
+  letter-spacing: -2.8px;
+
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.18);
 `;
 
 const HeroDesc = styled.p`
-  margin: 0;
+  margin: 42px 0 0;
 
-  color: #4f5756;
-  font-size: 16px;
+  color: #4d5352;
+  font-size: 20px;
   font-weight: 600;
-  line-height: 1.55;
-`;
-
-const HeroImageText = styled.div`
-  position: absolute;
-  inset: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  color: rgba(0, 0, 0, 0.28);
-  font-size: 18px;
-  font-weight: 800;
-  pointer-events: none;
+  line-height: 1.45;
+  letter-spacing: -0.7px;
 `;
 
 const ContentInner = styled.div`
@@ -296,6 +300,21 @@ const StoreShortcutCard = styled.article`
 
   border-radius: 16px;
   background-color: #e8f2ed;
+  background-image: url(${({ $cardImage }) => $cardImage});
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(18, 45, 46, 0.14);
+  }
 `;
 
 const StoreShortcutText = styled.div`
@@ -330,34 +349,11 @@ const StoreShortcutDesc = styled.p`
   font-weight: 500;
 `;
 
-const ShortcutImageBox = styled.div`
-  position: absolute;
-  right: 95px;
-  bottom: 0;
-
-  width: 190px;
-  height: 135px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const ShortcutPaw = styled.div`
-  position: absolute;
-  right: 230px;
-  bottom: 22px;
-
-  color: var(--color-main);
-  font-size: 54px;
-  line-height: 1;
-  opacity: 0.9;
-`;
-
 const ShortcutArrowButton = styled.button`
   position: absolute;
   right: 38px;
   top: 50%;
+  z-index: 4;
   transform: translateY(-50%);
 
   width: 58px;
@@ -376,6 +372,19 @@ const ShortcutArrowButton = styled.button`
   font-weight: 200;
   line-height: 0.7;
   cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+
+  &:hover {
+    transform: translateY(-50%) scale(1.04);
+    border-color: var(--color-main);
+    color: var(--color-main);
+    background-color: rgba(255, 255, 255, 0.38);
+  }
 `;
 
 const SectionTitleArea = styled.section`
@@ -554,24 +563,29 @@ const ReviewStar = styled.span`
   line-height: 1;
 `;
 
-const CartButton = styled.button`
-  width: 26px;
-  height: 26px;
+const CartMiniButton = styled.button`
+  width: 24px;
+  height: 24px;
+
+  border: none;
+  border-radius: 50%;
+  background-color: #d9f0e7;
+  color: var(--color-main);
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  border: 0;
-  border-radius: 50%;
-  background-color: #e9f3ed;
-  color: var(--color-main);
-
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
 
+  transition:
+    transform 0.16s ease,
+    background-color 0.16s ease;
+
   &:hover {
-    background-color: #d8eee4;
+    transform: scale(1.08);
+    background-color: var(--color-bg-light);
   }
 `;
 
@@ -588,29 +602,18 @@ const HealthBanner = styled.section`
 
   border-radius: 16px;
   background-color: #dff2e7;
-`;
-
-const HealthIconCircle = styled.div`
-  width: 62px;
-  height: 62px;
-  margin-right: 28px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-  background-color: #075348;
-  color: #33d6a0;
-
-  font-size: 28px;
-  flex-shrink: 0;
+  background-image: url(${({ $cardImage }) => $cardImage});
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
 `;
 
 const HealthTextBox = styled.div`
   position: relative;
   z-index: 2;
   flex-shrink: 0;
+
+  margin-left: 96px;
 `;
 
 const HealthTitle = styled.h2`
@@ -638,35 +641,6 @@ const HealthButtonWrap = styled.div`
   margin-left: 58px;
   position: relative;
   z-index: 3;
-`;
-
-const HealthImageBox = styled.div`
-  position: absolute;
-  right: 36px;
-  bottom: 0;
-
-  width: 300px;
-  height: 130px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const VisualPlaceholder = styled.div`
-  width: 100%;
-  height: 86%;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 12px;
-  background-color: rgba(255, 255, 255, 0.45);
-  color: var(--text-desc);
-
-  font-size: 12px;
-  font-weight: 700;
 `;
 
 const BestProductEmpty = styled.div`

@@ -192,13 +192,6 @@ export default function PetStoreCatHomePage() {
                         <ProductPrice>
                           {product.productPrice?.toLocaleString()}원
                         </ProductPrice>
-
-                        <CartButton
-                          type="button"
-                          aria-label={`${product.productName} 장바구니 담기`}
-                        >
-                          🛒
-                        </CartButton>
                       </ProductBottom>
                     </BestProductCard>
                   );
@@ -701,23 +694,6 @@ const ProductPrice = styled.p`
   font-size: 21px;
   font-weight: 900;
   letter-spacing: -0.8px;
-`;
-
-const CartButton = styled.button`
-  width: 24px;
-  height: 24px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: 0;
-  border-radius: 50%;
-  background-color: var(--color-main);
-  color: var(--color-white);
-
-  font-size: 12px;
-  cursor: pointer;
 `;
 
 const BestProductEmpty = styled.div`

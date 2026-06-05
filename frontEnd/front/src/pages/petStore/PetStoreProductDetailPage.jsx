@@ -3,6 +3,12 @@ import styled from "styled-components";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreProductDetail from "../../features/petStore/hooks/usePetStoreProudctDetail";
+import { insertCartProduct } from "../../features/petStore/api/petStoreOrderApi";
+
+import foodImg from "../../assets/images/petStore/사료홍보.png";
+import snackImg from "../../assets/images/petStore/간식홍보.png";
+import supplementImg from "../../assets/images/petStore/영양제홍보.png";
+import toiletImg from "../../assets/images/petStore/배변홍보.png";
 
 export default function PetStoreProductDetailPage() {
   const { productId } = useParams();
@@ -16,6 +22,8 @@ export default function PetStoreProductDetailPage() {
   const [isBottomOrderOpen, setIsBottomOrderOpen] = useState(false);
   const [bottomOffset, setBottomOffset] = useState(0);
   const [quantity, setQuantity] = useState(1);
+  const [isCartSubmitting, setIsCartSubmitting] = useState(false);
+  const [showCartBubble, setShowCartBubble] = useState(false);
   const [isTabFixed, setIsTabFixed] = useState(false);
   const [recommendPetIndex, setRecommendPetIndex] = useState(0);
 
@@ -183,6 +191,52 @@ export default function PetStoreProductDetailPage() {
     setQuantity((prev) => prev + 1);
   }
 
+  async function handleAddCart() {
+    if (!product?.productId) {
+      alert("상품 정보를 찾을 수 없습니다.");
+      return;
+    }
+
+    if (quantity < 1) {
+      alert("수량은 1개 이상이어야 합니다.");
+      return;
+    }
+
+    try {
+      setIsCartSubmitting(true);
+
+      await insertCartProduct({
+        productId: product.productId,
+        qty: quantity,
+      });
+
+      setShowCartBubble(true);
+    } catch (error) {
+      console.error("장바구니 담기 실패", error);
+
+      const status = error?.response?.status;
+
+      if (status === 401 || status === 403) {
+        const currentPath = location.pathname + location.search + location.hash;
+        alert("로그인 후 장바구니를 이용할 수 있습니다.");
+        navigate(`/member/login?redirect=${encodeURIComponent(currentPath)}`);
+        return;
+      }
+
+      alert("장바구니 담기에 실패했습니다.");
+    } finally {
+      setIsCartSubmitting(false);
+    }
+  }
+
+  function handleCloseCartBubble() {
+    setShowCartBubble(false);
+  }
+
+  function handleGoCart() {
+    navigate("/store/cart/list");
+  }
+
   function handleSelectImage(url) {
     if (selectedImageUrl === url) {
       return;
@@ -261,6 +315,7 @@ export default function PetStoreProductDetailPage() {
   const tagInfo = getTagInfo(product.productCategory, product.tagName);
   const totalPrice = (product.productPrice ?? 0) * quantity;
   const bottomToggleText = "구매하기";
+  const promoImage = getPromoImageByCategory(product.productCategory);
 
   const showNutritionAndFeeding = isNutritionAndFeedingCategory(
     product.productCategory,
@@ -366,7 +421,41 @@ export default function PetStoreProductDetailPage() {
 
               <ButtonRow>
                 <WishButton type="button">♡</WishButton>
-                <CartButton type="button">장바구니</CartButton>
+
+                <CartButtonWrap>
+                  {showCartBubble && (
+                    <CartBubble>
+                      <CartBubbleMessage>
+                        장바구니에 상품이 담겼습니다.
+                      </CartBubbleMessage>
+
+                      <CartBubbleButtonRow>
+                        <CartBubbleSubButton
+                          type="button"
+                          onClick={handleCloseCartBubble}
+                        >
+                          쇼핑 계속하기
+                        </CartBubbleSubButton>
+
+                        <CartBubbleMainButton
+                          type="button"
+                          onClick={handleGoCart}
+                        >
+                          장바구니 가기 ›
+                        </CartBubbleMainButton>
+                      </CartBubbleButtonRow>
+                    </CartBubble>
+                  )}
+
+                  <CartButton
+                    type="button"
+                    onClick={handleAddCart}
+                    disabled={isCartSubmitting}
+                  >
+                    {isCartSubmitting ? "담는 중..." : "장바구니"}
+                  </CartButton>
+                </CartButtonWrap>
+
                 <BuyButton type="button">바로 구매하기</BuyButton>
               </ButtonRow>
             </InfoSection>
@@ -674,20 +763,10 @@ export default function PetStoreProductDetailPage() {
 
           <DetailContentSection ref={detailRef} data-reveal>
             <PromoLongImageBox>
-              <PromoPlaceholder>
-                <PromoPlaceholderTitle>
-                  {categoryLabel} 상세 홍보 이미지 영역
-                </PromoPlaceholderTitle>
-
-                <PromoPlaceholderDesc>
-                  카테고리별 세로형 상세 이미지를 이 영역에 넣으면 됩니다.
-                </PromoPlaceholderDesc>
-
-                <PromoPlaceholderHint>
-                  예: foodDetail.png / snackDetail.png / supplementDetail.png /
-                  toiletDetail.png
-                </PromoPlaceholderHint>
-              </PromoPlaceholder>
+              <PromoLongImage
+                src={promoImage}
+                alt={`${categoryLabel} 상세 홍보 이미지`}
+              />
             </PromoLongImageBox>
 
             <ProductInfoBlock>
@@ -823,8 +902,12 @@ export default function PetStoreProductDetailPage() {
                     </BottomTotalRow>
 
                     <BottomButtonRow>
-                      <BottomCartButton type="button">
-                        장바구니
+                      <BottomCartButton
+                        type="button"
+                        onClick={handleAddCart}
+                        disabled={isCartSubmitting}
+                      >
+                        {isCartSubmitting ? "담는 중..." : "장바구니"}
                       </BottomCartButton>
                       <BottomBuyButton type="button">
                         바로 구매하기
@@ -921,6 +1004,17 @@ function getCategoryLabel(category) {
   };
 
   return map[category] ?? category;
+}
+
+function getPromoImageByCategory(category) {
+  const imageMap = {
+    FOOD: foodImg,
+    SNACK: snackImg,
+    SUPPLEMENT: supplementImg,
+    TOILET: toiletImg,
+  };
+
+  return imageMap[category] ?? foodImg;
 }
 
 function isNutritionAndFeedingCategory(category) {
@@ -1346,12 +1440,16 @@ const TopTotalRow = styled.div`
 `;
 
 const ButtonRow = styled.div`
+  position: relative;
+
   display: grid;
-  grid-template-columns: 144px 170px 1fr;
+  grid-template-columns: 116px 1fr 1fr;
   gap: 12px;
+  align-items: stretch;
 `;
 
 const WishButton = styled.button`
+  width: 116px;
   height: 56px;
 
   display: flex;
@@ -1363,7 +1461,7 @@ const WishButton = styled.button`
   background-color: var(--color-white);
   color: var(--text-main);
 
-  font-size: 36px;
+  font-size: 31px;
   line-height: 1;
   cursor: pointer;
 
@@ -1371,18 +1469,25 @@ const WishButton = styled.button`
     transform 0.16s ease,
     box-shadow 0.16s ease,
     border-color 0.16s ease,
-    color 0.16s ease;
+    color 0.16s ease,
+    background-color 0.16s ease;
 
   &:hover {
     transform: translateY(-1px);
     border-color: var(--color-main);
     color: var(--color-main);
+    background-color: #f8fffc;
     box-shadow: 0 8px 18px rgba(18, 45, 46, 0.08);
   }
 `;
 
 const CartButton = styled.button`
+  width: 100%;
   height: 56px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   border: 2px solid var(--color-main);
   border-radius: 4px;
@@ -1391,22 +1496,41 @@ const CartButton = styled.button`
 
   font-size: 17px;
   font-weight: 900;
+  letter-spacing: -0.3px;
   cursor: pointer;
 
   transition:
     transform 0.16s ease,
     box-shadow 0.16s ease,
-    background-color 0.16s ease;
+    background-color 0.16s ease,
+    color 0.16s ease;
 
   &:hover {
     transform: translateY(-1px);
     background-color: #f0fff8;
     box-shadow: 0 8px 18px rgba(0, 174, 142, 0.12);
   }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
 `;
 
 const BuyButton = styled.button`
+  width: 100%;
   height: 56px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   border: 0;
   border-radius: 4px;
@@ -1415,6 +1539,7 @@ const BuyButton = styled.button`
 
   font-size: 17px;
   font-weight: 900;
+  letter-spacing: -0.3px;
   cursor: pointer;
 
   transition:
@@ -1426,6 +1551,110 @@ const BuyButton = styled.button`
     transform: translateY(-1px);
     filter: brightness(1.02);
     box-shadow: 0 10px 22px rgba(0, 174, 142, 0.2);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: none;
+  }
+`;
+
+const CartButtonWrap = styled.div`
+  position: relative;
+  width: 100%;
+  height: 56px;
+`;
+
+const CartBubble = styled.div`
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 18px);
+  transform: translateX(-50%);
+
+  width: 270px;
+  padding: 18px 18px 16px;
+
+  border: 1px solid rgba(0, 174, 142, 0.35);
+  border-radius: 10px;
+  background-color: #ffffff;
+  box-shadow: 0 12px 28px rgba(18, 45, 46, 0.14);
+
+  z-index: 20;
+  text-align: center;
+
+  animation: cartBubbleIn 0.22s ease both;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -9px;
+
+    width: 16px;
+    height: 16px;
+
+    transform: translateX(-50%) rotate(45deg);
+
+    border-right: 1px solid rgba(0, 174, 142, 0.35);
+    border-bottom: 1px solid rgba(0, 174, 142, 0.35);
+    background-color: #ffffff;
+  }
+
+  @keyframes cartBubbleIn {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+`;
+
+const CartBubbleMessage = styled.p`
+  margin: 0 0 14px;
+  color: var(--text-main);
+  font-size: 14px;
+  font-weight: 800;
+`;
+
+const CartBubbleButtonRow = styled.div`
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+`;
+
+const CartBubbleSubButton = styled.button`
+  height: 32px;
+  padding: 0 13px;
+  border: 1px solid var(--color-main);
+  border-radius: 999px;
+  background-color: #ffffff;
+  color: var(--color-main);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f0fff8;
+  }
+`;
+
+const CartBubbleMainButton = styled.button`
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid var(--color-main);
+  border-radius: 999px;
+  background-color: var(--color-main);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:hover {
+    filter: brightness(0.98);
   }
 `;
 
@@ -2083,43 +2312,21 @@ const DetailContentSection = styled.section`
 
 const PromoLongImageBox = styled.section`
   width: 100%;
-  min-height: 1120px;
   margin-bottom: 42px;
 
   display: flex;
-  align-items: center;
   justify-content: center;
 
+  overflow: hidden;
   border: 1px solid #dce7e2;
-  background: linear-gradient(180deg, #effaf5 0%, #fffaf2 100%);
+  border-radius: 2px;
+  background-color: #f7faf7;
 `;
 
-const PromoPlaceholder = styled.div`
-  text-align: center;
-`;
-
-const PromoPlaceholderTitle = styled.h2`
-  margin: 0 0 12px;
-
-  color: #005d4a;
-  font-size: 34px;
-  font-weight: 900;
-`;
-
-const PromoPlaceholderDesc = styled.p`
-  margin: 0 0 8px;
-
-  color: var(--text-sub);
-  font-size: 15px;
-  font-weight: 700;
-`;
-
-const PromoPlaceholderHint = styled.p`
-  margin: 0;
-
-  color: var(--text-desc);
-  font-size: 12px;
-  font-weight: 700;
+const PromoLongImage = styled.img`
+  width: 100%;
+  display: block;
+  object-fit: cover;
 `;
 
 const ProductInfoBlock = styled.section`
@@ -2530,8 +2737,14 @@ const BottomCartButton = styled.button`
     background-color: #f0fff8;
     box-shadow: 0 8px 18px rgba(0, 174, 142, 0.12);
   }
-`;
 
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+`;
 const BottomBuyButton = styled.button`
   height: 44px;
 

@@ -1,6 +1,7 @@
 import "./Header.css";
 import logoImg from "../../../assets/images/bgrmlogo.png";
 import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 import HeaderSearch from "./HeaderSearch";
 import GuestMenu from "./GuestMenu";
@@ -9,17 +10,92 @@ import AdminMenu from "./AdminMenu";
 
 const mainMenus = [
   { label: "HOME", path: "/home" },
-  { label: "건강관리", path: "/health" },
+  { label: "건강관리", path: "/healthCare" },
   { label: "커뮤니티", path: "/community" },
   { label: "스토어", path: "/store" },
 ];
 
+function decodeJwtPayload(token) {
+  try {
+    if (!token) {
+      return null;
+    }
+
+    const payload = token.split(".")[1];
+
+    if (!payload) {
+      return null;
+    }
+
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const decodedPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((char) => {
+          return `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`;
+        })
+        .join(""),
+    );
+
+    return JSON.parse(decodedPayload);
+  } catch (error) {
+    console.error("토큰 디코딩 실패", error);
+    return null;
+  }
+}
+
+function getLoginMemberFromToken() {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    return null;
+  }
+
+  const payload = decodeJwtPayload(token);
+
+  if (!payload) {
+    return null;
+  }
+
+  return {
+    username: payload.username,
+    nickname: payload.nickname,
+    role: payload.role,
+  };
+}
+
+function isAdminMember(loginMember) {
+  return ["ADMIN", "DOCTOR", "STORE", "BOARD", "A", "D", "S", "B"].includes(
+    loginMember?.role,
+  );
+}
+
 export default function Header({ activeMenu = "" }) {
   const location = useLocation();
 
-  const loginMember = JSON.parse(localStorage.getItem("loginMember"));
+  const [loginMember, setLoginMember] = useState(() =>
+    getLoginMemberFromToken(),
+  );
 
   const currentPath = location.pathname + location.search + location.hash;
+
+  useEffect(() => {
+    setLoginMember(getLoginMemberFromToken());
+  }, [location.pathname]);
+
+  useEffect(() => {
+    function handleAuthChange() {
+      setLoginMember(getLoginMemberFromToken());
+    }
+
+    window.addEventListener("storage", handleAuthChange);
+    window.addEventListener("auth-change", handleAuthChange);
+
+    return () => {
+      window.removeEventListener("storage", handleAuthChange);
+      window.removeEventListener("auth-change", handleAuthChange);
+    };
+  }, []);
 
   function isMenuActive(menu) {
     if (activeMenu) {
@@ -37,7 +113,7 @@ export default function Header({ activeMenu = "" }) {
       return <GuestMenu currentPath={currentPath} />;
     }
 
-    if (loginMember.role === "ADMIN") {
+    if (isAdminMember(loginMember)) {
       return <AdminMenu loginMember={loginMember} />;
     }
 

@@ -184,13 +184,6 @@ export default function PetStoreCatFoodProductListPage() {
                           <ProductPrice>
                             {product.productPrice?.toLocaleString()}원
                           </ProductPrice>
-
-                          <CartButton
-                            type="button"
-                            aria-label={`${product.productName} 장바구니 담기`}
-                          >
-                            🛒
-                          </CartButton>
                         </ProductBottom>
                       </ProductCard>
                     );

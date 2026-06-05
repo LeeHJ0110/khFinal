@@ -21,6 +21,8 @@ public class BoardDetailResDto {
     private String title;
     private String content;
     private String writerNickname;
+    private String writerUsername;
+    private String writerProfileImageUrl;
     private Long writerLevel;
     private Long hits;
     private Long stars;
@@ -37,6 +39,8 @@ public class BoardDetailResDto {
                 .title(entity.getTitle())
                 .content(entity.getContent())
                 .writerNickname(entity.getWriter().getNickname())
+                .writerUsername(entity.getWriter().getUsername())
+                .writerProfileImageUrl(entity.getWriter().getProfileImageUrl())
                 .writerLevel(entity.getWriter().getLevelExp())
                 .hits(entity.getHits())
                 .stars(entity.getStars())
