@@ -9,6 +9,7 @@ import useScheduleDetail from "../hooks/useScheduleDetail";
 import useTrainingList from "../hooks/useTrainingList";
 import TrainingDiaryModal from "./TrainingDiaryModal";
 
+//TODO 작은버전 클릭시 스케줄 url로 이동
 export default function ScheduleMain({ onOpenModal, detailOpen }) {
   const scheduleInit = {
     id: "",
