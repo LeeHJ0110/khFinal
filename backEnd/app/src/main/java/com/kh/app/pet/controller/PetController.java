@@ -10,7 +10,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Tag(name = "펫", description = "펫 관련 API")
@@ -89,5 +91,21 @@ public class PetController {
         petService.changeRepresentPet(petId, loginKey);
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/{petId}/image")
+    public ResponseEntity<String> uploadPetImage(
+            @PathVariable Long petId,
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication
+    ) throws IOException {
+
+        String imageUrl = petService.uploadPetImage(
+                petId,
+                authentication.getName(),
+                file
+        );
+
+        return ResponseEntity.ok(imageUrl);
     }
 }

@@ -6,6 +6,7 @@ import {
   getMyPetList,
   updatePet,
   changeRepresentPet,
+  uploadPetImage,
 } from "../api/petApi";
 export default function usePet() {
   const [petList, setPetList] = useState([]);
@@ -134,6 +135,19 @@ export default function usePet() {
     }
   }
 
+  async function handleUploadPetImage(petId, file) {
+    try {
+      await uploadPetImage(petId, file);
+
+      await fetchMyPetList();
+
+      return true;
+    } catch (err) {
+      console.error(err);
+      return false;
+    }
+  }
+
   return {
     petList,
     breedList,
@@ -151,5 +165,6 @@ export default function usePet() {
     handleUpdatePet,
     handleDeletePet,
     handleRepresentPet,
+    handleUploadPetImage,
   };
 }

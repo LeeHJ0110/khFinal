@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import usePetStoreCartList from "../../features/petStore/hooks/usePetStoreCartList";
 import PetStoreUserNav from "./PetStoreUserNav";
+import StorePaymentSummaryCard from "../../features/petStore/components/PetStorePaymentSummaryCard";
 
 export default function PetStoreCartListPage() {
   const navigate = useNavigate();
@@ -98,19 +99,13 @@ export default function PetStoreCartListPage() {
     setSelectedCartItemIds([]);
   }
 
-  function handleOrderClick() {
-    if (selectedCartItemIds.length === 0) {
-      alert("주문할 상품을 선택해주세요.");
+  function handleGoOrderPage() {
+    if (!cart || !cart.cartItemList || cart.cartItemList.length === 0) {
+      alert("장바구니가 비어 있습니다.");
       return;
     }
 
-    // 나중에 주문서 페이지 만들면 여기서 선택한 cartItemId들을 넘기면 됩니다.
-    // 예: navigate("/store/order/checkout", { state: { cartItemIds: selectedCartItemIds } });
-    navigate("/store/order/checkout", {
-      state: {
-        cartItemIds: selectedCartItemIds,
-      },
-    });
+    navigate("/store/order");
   }
 
   function handleGoProductDetail(productId) {
@@ -312,46 +307,16 @@ export default function PetStoreCartListPage() {
             </RecommendSection>
           </LeftArea>
 
-          <SummaryCard>
-            <SummaryTitle>결제금액 요약</SummaryTitle>
-
-            <SummaryRow>
-              <SummaryLabel>주문 금액</SummaryLabel>
-              <SummaryValue>{formatPrice(totalProductAmount)}</SummaryValue>
-            </SummaryRow>
-
-            <SummaryRow>
-              <SummaryLabel>
-                배송비 <HelpIcon>?</HelpIcon>
-              </SummaryLabel>
-              <SummaryValue>{formatPrice(orderDeliveryFee)}</SummaryValue>
-            </SummaryRow>
-
-            <PointRow>
-              <SummaryLabel>사용 포인트</SummaryLabel>
-              <PointInputWrap>
-                <PointInput value="0" readOnly />
-                <PointSubText>현재 보유 포인트 : 0P</PointSubText>
-              </PointInputWrap>
-            </PointRow>
-
-            <Divider />
-
-            <FinalRow>
-              <FinalLabel>최종 결제 금액</FinalLabel>
-              <FinalValue>{formatPrice(finalOrderAmount)}</FinalValue>
-            </FinalRow>
-
-            <Divider />
-
-            <OrderButton type="button" onClick={handleOrderClick}>
-              주문하기
-            </OrderButton>
-
-            <ContinueButton type="button" onClick={() => navigate("/store")}>
-              쇼핑 계속하기
-            </ContinueButton>
-          </SummaryCard>
+          <StorePaymentSummaryCard
+            totalProductAmount={totalProductAmount}
+            orderDeliveryFee={orderDeliveryFee}
+            finalOrderAmount={finalOrderAmount}
+            primaryButtonText="주문하기"
+            secondaryButtonText="쇼핑 계속하기"
+            onPrimaryClick={handleGoOrderPage}
+            onSecondaryClick={() => navigate("/store")}
+            primaryDisabled={cartItemList.length === 0}
+          />
         </ContentLayout>
       </Inner>
     </Wrapper>
@@ -625,142 +590,6 @@ const DeleteOneButton = styled.button`
   &:hover {
     border-color: #05a77b;
     color: #05a77b;
-  }
-`;
-
-const SummaryCard = styled.aside`
-  border: 1px solid #d8d8d8;
-  border-radius: 4px;
-  background-color: #fff;
-  padding: 26px 30px 28px;
-  position: sticky;
-  top: 120px;
-`;
-
-const SummaryTitle = styled.h2`
-  margin: 0 0 28px;
-  font-size: 20px;
-  font-weight: 800;
-  color: #222;
-`;
-
-const SummaryRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 26px;
-`;
-
-const SummaryLabel = styled.div`
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-`;
-
-const SummaryValue = styled.div`
-  font-size: 17px;
-  font-weight: 500;
-  color: #111;
-`;
-
-const HelpIcon = styled.span`
-  width: 14px;
-  height: 14px;
-  border: 1px solid #aaa;
-  border-radius: 50%;
-  color: #777;
-  font-size: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const PointRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 22px;
-`;
-
-const PointInputWrap = styled.div`
-  width: 150px;
-  text-align: right;
-`;
-
-const PointInput = styled.input`
-  width: 100%;
-  height: 22px;
-  border: 1px solid #d7d7d7;
-  text-align: right;
-  padding: 0 8px;
-  font-size: 14px;
-  color: #222;
-`;
-
-const PointSubText = styled.div`
-  margin-top: 6px;
-  font-size: 11px;
-  color: #05a77b;
-`;
-
-const Divider = styled.div`
-  height: 1px;
-  background-color: #d8d8d8;
-  margin: 22px 0;
-`;
-
-const FinalRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const FinalLabel = styled.div`
-  font-size: 17px;
-  font-weight: 700;
-  color: #111;
-`;
-
-const FinalValue = styled.div`
-  font-size: 28px;
-  font-weight: 900;
-  color: #05a77b;
-  letter-spacing: -1px;
-`;
-
-const OrderButton = styled.button`
-  width: 100%;
-  height: 52px;
-  border: none;
-  border-radius: 8px;
-  background-color: #05a77b;
-  color: #fff;
-  font-size: 17px;
-  font-weight: 800;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #04966f;
-  }
-`;
-
-const ContinueButton = styled.button`
-  width: 100%;
-  height: 52px;
-  border: 1px solid #d8d8d8;
-  border-radius: 8px;
-  background-color: #fff;
-  color: #333;
-  font-size: 16px;
-  font-weight: 700;
-  margin-top: 12px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #f8f8f8;
   }
 `;
 

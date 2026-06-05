@@ -23,6 +23,21 @@ export default function useMemberJoinForm(marketingAgreeYn = "N") {
 
   const [isUsernameChecked, setUsernameChecked] = useState(false);
   const [isNicknameChecked, setNicknameChecked] = useState(false);
+  const [emailMessage, setEmailMessage] = useState("");
+
+  function validateEmail(email) {
+    const regex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+    if (!email) {
+      return "";
+    }
+
+    if (!regex.test(email)) {
+      return "이메일 형식이 올바르지 않습니다.";
+    }
+
+    return "올바른 이메일 형식입니다.";
+  }
 
   function formatPhoneNumber(value) {
     const numbers = value.replace(/[^0-9]/g, "");
@@ -102,6 +117,10 @@ export default function useMemberJoinForm(marketingAgreeYn = "N") {
     if (name === "nickname") {
       setNicknameChecked(false);
       setNicknameMessage("");
+    }
+
+    if (name === "email") {
+      setEmailMessage(validateEmail(nextValue));
     }
   }
 
@@ -192,6 +211,12 @@ export default function useMemberJoinForm(marketingAgreeYn = "N") {
       alert("전화번호는 010으로 시작하는 11자리 숫자여야 합니다.");
       return;
     }
+    if (
+      !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(formData.email)
+    ) {
+      alert("이메일 형식이 올바르지 않습니다.");
+      return;
+    }
 
     const requestData = {
       ...formData,
@@ -217,5 +242,6 @@ export default function useMemberJoinForm(marketingAgreeYn = "N") {
     nicknameMessage,
     passwordMessage,
     phoneMessage,
+    emailMessage,
   };
 }

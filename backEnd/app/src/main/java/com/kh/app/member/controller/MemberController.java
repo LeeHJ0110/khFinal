@@ -18,6 +18,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @Tag(name = "회원", description = "회원 관련 API")
 @RestController
@@ -94,5 +97,19 @@ public class MemberController {
         memberService.updateMyInfo(loginKey, request);
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/me/profile-image")
+    public ResponseEntity<String> uploadProfileImage(
+            Authentication authentication,
+            @RequestParam("file") MultipartFile file
+    ) throws IOException {
+
+        String imageUrl = memberService.uploadProfileImage(
+                authentication.getName(),
+                file
+        );
+
+        return ResponseEntity.ok(imageUrl);
     }
 }

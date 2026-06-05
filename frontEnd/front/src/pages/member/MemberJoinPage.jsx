@@ -24,6 +24,7 @@ export default function MemberJoinPage() {
     passwordMessage,
     phoneMessage,
     isSuccess,
+    emailMessage,
   } = useMemberJoinForm(marketingAgreeYn);
 
   useEffect(() => {
@@ -148,6 +149,7 @@ export default function MemberJoinPage() {
               onChange={handleChange}
               value={formData.email}
             />
+            <p className="form-message">{emailMessage}</p>
           </div>
 
           <div className="form-field full">

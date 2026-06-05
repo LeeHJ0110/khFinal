@@ -33,7 +33,9 @@ public class PetMyPageResDto {
 
     private String petType;
 
-    public static PetMyPageResDto from(PetEntity pet) {
+    private String imageUrl;
+
+    public static PetMyPageResDto from(PetEntity pet, String imageUrl) {
 
         return PetMyPageResDto.builder()
                 .petId(pet.getId())
@@ -66,7 +68,7 @@ public class PetMyPageResDto {
                                 ? pet.getRepresentYn().name()
                                 : null
                 )
-
+                .imageUrl(imageUrl)
                 .build();
     }
 }

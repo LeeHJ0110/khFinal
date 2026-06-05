@@ -38,6 +38,27 @@ public class StoreOrderEntity extends BaseEntity {
     @Column(name = "ORDER_FINAL_AMOUNT", nullable = false)
     private Long orderFinalAmount;
 
+    @Column(name = "DELIVERY_ADDRESS_ID")
+    private Long deliveryAddressId;
+
+    @Column(name = "ORDER_RECEIVER_NAME", length = 30)
+    private String orderReceiverName;
+
+    @Column(name = "ORDER_RECEIVER_PHONE", length = 20)
+    private String orderReceiverPhone;
+
+    @Column(name = "ORDER_ZIP_CODE", length = 20)
+    private String orderZipCode;
+
+    @Column(name = "ORDER_ADDRESS", length = 100)
+    private String orderAddress;
+
+    @Column(name = "ORDER_ADDRESS_DETAIL", length = 100)
+    private String orderAddressDetail;
+
+    @Column(name = "ORDER_DELIVERY_REQUEST", length = 200)
+    private String orderDeliveryRequest;
+
     public void paid() {
         this.orderStatus = StoreOrderStatus.PAID;
     }

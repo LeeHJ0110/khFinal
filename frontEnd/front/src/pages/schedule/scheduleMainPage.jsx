@@ -15,7 +15,7 @@ export default function ScheduleMainPage() {
     trainingPetList: [],
     isEdit: false,
   };
-  const { checkToday, isDuple } = useTraining();
+  const { checkToday, isSuccess, isDuple } = useTraining();
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [modalType, setModalType] = useState(null);
@@ -33,8 +33,6 @@ export default function ScheduleMainPage() {
   };
 
   useEffect(() => {
-    console.log(isDuple);
-
     if (isDuple) {
       handleOpenModal({ type: "training", data: trainingInit });
     }
@@ -48,8 +46,11 @@ export default function ScheduleMainPage() {
     <Wrapper>
       <button onClick={handleTraininClick}>훈련일기작성</button>
       <ScheduleMain onOpenModal={handleOpenModal} detailOpen={detailOpen} />
-      <ScheduleMain onOpenModal={handleOpenModal} detailOpen={detailOpen} />
-      <ScheduleMain />
+      <ScheduleMain
+        onOpenModal={handleOpenModal}
+        detailOpen={detailOpen}
+        small={true}
+      />
       {modalType === "schedule" && (
         <ScheduleModal
           open={detailOpen}

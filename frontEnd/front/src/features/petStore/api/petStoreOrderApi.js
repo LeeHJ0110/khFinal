@@ -29,3 +29,21 @@ export async function updateCartProductQty({ cartItemId, qty }) {
     qty,
   });
 }
+
+// 5. 사용자 : 내 배송지 목록 조회
+// 마이페이지 배송지 API 재사용
+export async function fetchMyDeliveryAddressList() {
+  return await api.get(`/mypage/delivery`);
+}
+
+// 6. 사용자 : 카카오페이 결제 준비
+// 선택한 배송지 기준으로 주문 생성 + 카카오페이 결제 URL 발급
+export async function readyStoreKakaoPay({
+  deliveryAddressId,
+  deliveryRequest = "",
+}) {
+  return await api.post(`/store/order/checkout/ready`, {
+    deliveryAddressId,
+    deliveryRequest,
+  });
+}
