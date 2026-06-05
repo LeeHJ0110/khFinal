@@ -1,51 +1,96 @@
+import { useRef } from "react";
 import styled from "styled-components";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import useMypageMember from "../../../features/mypage/member/hooks/useMypageMember";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { logout } from "../../../features/member/store/memberSlice";
+
 export default function MyPageSidebar() {
-  const { member, loading } = useMypageMember();
+  const { member, loading, handleUploadProfileImage } = useMypageMember();
+
+  const fileInputRef = useRef(null);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   function handleLogout() {
     localStorage.removeItem("accessToken");
-
     dispatch(logout());
-
     navigate("/member/login");
   }
+
+  function handleClickCamera() {
+    fileInputRef.current?.click();
+  }
+
+  async function handleChangeProfileImage(evt) {
+    const file = evt.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      alert("이미지 파일만 업로드할 수 있습니다.");
+      return;
+    }
+
+    await handleUploadProfileImage(file);
+
+    evt.target.value = "";
+  }
+
   return (
     <SideBar>
       <ProfileBox>
-        <ProfileImg />
-        <CameraBtn>📷</CameraBtn>
+        <ProfileImg>
+          {member?.profileImageUrl ? (
+            <img src={member.profileImageUrl} alt="프로필 이미지" />
+          ) : (
+            <DefaultProfile>🐾</DefaultProfile>
+          )}
+        </ProfileImg>
+
+        <CameraBtn type="button" onClick={handleClickCamera}>
+          📷
+        </CameraBtn>
+
+        <HiddenFileInput
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleChangeProfileImage}
+        />
+
         <ProfileName>
           {loading ? "로딩중..." : member?.nickname || "회원"}
         </ProfileName>
       </ProfileBox>
 
-      <MenuList>
-        <MenuItem to="/mypage" end>
-          마이페이지 홈
-        </MenuItem>
+      <MenuArea>
+        <MenuList>
+          <MenuItem to="/mypage" end>
+            마이페이지 홈
+          </MenuItem>
 
-        <MenuItem to="/mypage/member-edit">회원 정보 수정</MenuItem>
+          <MenuItem to="/mypage/member-edit">회원 정보 수정</MenuItem>
 
-        <MenuItem to="/mypage/pet-manage">반려동물 정보 관리</MenuItem>
+          <MenuItem to="/mypage/pet-manage">반려동물 정보 관리</MenuItem>
 
-        <MenuItem to="/mypage/message">쪽지함</MenuItem>
+          <MenuItem to="/mypage/message">쪽지함</MenuItem>
 
-        <MenuItem to="/mypage/community">커뮤니티 이력</MenuItem>
+          <MenuItem to="/mypage/community">커뮤니티 이력</MenuItem>
 
-        <MenuItem to="/mypage/delivery">배송지 관리</MenuItem>
+          <MenuItem to="/mypage/delivery">배송지 관리</MenuItem>
 
-        <MenuItem to="/mypage/orders">주문 내역</MenuItem>
+          <MenuItem to="/mypage/orders">주문 내역</MenuItem>
 
-        <MenuItem to="/mypage/points">포인트 내역</MenuItem>
-      </MenuList>
-      <LogoutButton onClick={handleLogout}>로그아웃</LogoutButton>
+          <MenuItem to="/mypage/points">포인트 내역</MenuItem>
+        </MenuList>
+      </MenuArea>
+
+      <LogoutButton type="button" onClick={handleLogout}>
+        로그아웃
+      </LogoutButton>
     </SideBar>
   );
 }
@@ -74,6 +119,21 @@ const ProfileImg = styled.div`
   background: #d9d9d9;
   border: 4px solid white;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const DefaultProfile = styled.div`
+  font-size: 42px;
 `;
 
 const CameraBtn = styled.button`
@@ -91,9 +151,17 @@ const CameraBtn = styled.button`
   cursor: pointer;
 `;
 
+const HiddenFileInput = styled.input`
+  display: none;
+`;
+
 const ProfileName = styled.h2`
   font-size: 21px;
   font-weight: 800;
+`;
+
+const MenuArea = styled.div`
+  flex: 1;
 `;
 
 const MenuList = styled.nav`
@@ -116,9 +184,6 @@ const MenuItem = styled(NavLink)`
   &:hover {
     background: #d5f5ea;
   }
-`;
-const MenuArea = styled.div`
-  flex: 1;
 `;
 
 const LogoutButton = styled.button`

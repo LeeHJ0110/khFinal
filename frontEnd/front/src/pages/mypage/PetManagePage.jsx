@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import MyPageLayout from "./components/MyPageLayout";
 import usePet from "../../features/mypage/pet/hooks/usePet";
@@ -18,6 +18,7 @@ export default function PetManagePage() {
     handleUpdatePet,
     handleDeletePet,
     handleRepresentPet,
+    handleUploadPetImage,
   } = usePet();
 
   const emptyForm = {
@@ -32,7 +33,7 @@ export default function PetManagePage() {
   const [isDetailOpen, setDetailOpen] = useState(false);
   const [isCreateMode, setCreateMode] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
-
+  const fileInputRef = useRef(null);
   const insuranceList = [];
 
   useEffect(() => {
@@ -143,6 +144,29 @@ export default function PetManagePage() {
       alert("수정되었습니다.");
     }
   }
+  function handleImageClick() {
+    fileInputRef.current?.click();
+  }
+  async function handleImageChange(evt) {
+    const file = evt.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!selectedPet) {
+      alert("반려동물을 먼저 선택해주세요.");
+      return;
+    }
+
+    const result = await handleUploadPetImage(selectedPet.petId, file);
+
+    if (result) {
+      alert("사진이 변경되었습니다.");
+    }
+
+    evt.target.value = "";
+  }
 
   return (
     <MyPageLayout>
@@ -159,7 +183,13 @@ export default function PetManagePage() {
                 $active={!isCreateMode && selectedPetIndex === index}
                 onClick={() => handleSelectPet(index)}
               >
-                <PetThumb />
+                <PetThumb>
+                  {pet.imageUrl ? (
+                    <img src={pet.imageUrl} alt={pet.name} />
+                  ) : (
+                    <span>🐾</span>
+                  )}
+                </PetThumb>
                 <PetName>{pet.name}</PetName>
                 {pet.representYn === "Y" && <RepresentBadge>♥</RepresentBadge>}
               </PetTab>
@@ -181,6 +211,28 @@ export default function PetManagePage() {
                 <SectionTitle>
                   {isCreateMode ? "반려동물 등록" : "반려동물 수정"}
                 </SectionTitle>
+                <PetProfileArea>
+                  <PetProfileImage>
+                    {!isCreateMode && selectedPet?.imageUrl ? (
+                      <img src={selectedPet.imageUrl} alt={selectedPet.name} />
+                    ) : (
+                      <span>🐶</span>
+                    )}
+                  </PetProfileImage>
+
+                  {!isCreateMode && (
+                    <ImageButton type="button" onClick={handleImageClick}>
+                      사진 변경
+                    </ImageButton>
+                  )}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={handleImageChange}
+                  />
+                </PetProfileArea>
 
                 <InfoRow>
                   <span>이름</span>
@@ -329,6 +381,21 @@ const PetThumb = styled.div`
   border-radius: 50%;
   margin: 12px auto 10px;
   background: #ddd;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  span {
+    font-size: 30px;
+  }
 `;
 
 const PetName = styled.div`
@@ -368,7 +435,7 @@ const NextBtn = styled.button`
 
 const DetailGrid = styled.div`
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 60% 40%;
   gap: 24px;
 `;
 
@@ -403,20 +470,24 @@ const InfoRow = styled.div`
 `;
 
 const Input = styled.input`
-  flex: 1;
-  height: 34px;
+  width: 420px;
+  height: 38px;
+
   border: none;
   border-radius: 999px;
+
   background: #d9f2e7;
   padding: 0 18px;
   outline: none;
 `;
 
 const Select = styled.select`
-  flex: 1;
-  height: 34px;
+  width: 420px;
+  height: 38px;
+
   border: none;
   border-radius: 999px;
+
   background: #d9f2e7;
   padding: 0 18px;
   outline: none;
@@ -446,4 +517,47 @@ const EmptyInsurance = styled.div`
   justify-content: center;
   color: #777;
   font-weight: 700;
+`;
+const PetProfileArea = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 28px;
+`;
+const PetProfileImage = styled.div`
+  width: 130px;
+  height: 130px;
+
+  border-radius: 50%;
+  background: #ddd;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  span {
+    font-size: 42px;
+  }
+`;
+const ImageButton = styled.button`
+  height: 40px;
+
+  padding: 0 18px;
+
+  border: none;
+  border-radius: 999px;
+
+  background: white;
+  color: #00a982;
+
+  font-weight: 700;
+  cursor: pointer;
 `;

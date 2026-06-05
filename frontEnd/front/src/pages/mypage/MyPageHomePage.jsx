@@ -68,7 +68,13 @@ export default function MyPageHomePage() {
             <LoadingBox>로딩중...</LoadingBox>
           ) : hasPet ? (
             <>
-              <PetImage />
+              <PetImage>
+                {selectedPet?.imageUrl ? (
+                  <img src={selectedPet.imageUrl} alt={selectedPet.name} />
+                ) : (
+                  <span>🐾</span>
+                )}
+              </PetImage>
 
               <PetInfo>
                 <PetName>{selectedPet.name}</PetName>
@@ -210,6 +216,21 @@ const PetImage = styled.div`
   height: 160px;
   border-radius: 50%;
   background: #ddd;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  span {
+    font-size: 46px;
+  }
 `;
 
 const PetInfo = styled.div`
