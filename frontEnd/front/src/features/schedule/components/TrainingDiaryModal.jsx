@@ -104,6 +104,7 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
                 <p>로딩중</p>
               ) : (
                 <>
+                  {console.log(formData)}
                   {petList.map((pet) => (
                     <label key={pet.petId}>
                       <input

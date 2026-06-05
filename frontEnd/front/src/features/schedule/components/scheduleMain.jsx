@@ -36,6 +36,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen }) {
     isLoading: sLoading,
     asyncFetchScheduleList,
   } = useScheduleList();
+
   const {
     trainingList,
     isLoading: tLoading,
@@ -114,6 +115,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen }) {
             content: info.event.extendedProps?.content,
             trainingTime: info.event.extendedProps?.trainingTime,
             createdAt: info.event.extendedProps?.createdAt,
+            trainingPetList: info.event.extendedProps?.trainingPetList,
           },
         });
       } else {

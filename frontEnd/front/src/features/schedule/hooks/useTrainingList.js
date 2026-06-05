@@ -8,6 +8,7 @@ export default function useTrainingList() {
   async function fetchDiaryList() {
     setLoading(true);
     const resp = await fetchTrainingList();
+    console.log(resp.data);
 
     const parsedList = resp.data.map((item) => ({
       title: "training",
@@ -18,6 +19,7 @@ export default function useTrainingList() {
         content: item.content,
         trainingTime: item.trainingTime,
         createdAt: item.createdAt,
+        trainingPetList: item.petList ? item.petList.map((pet) => pet.id) : [],
       },
     }));
 
