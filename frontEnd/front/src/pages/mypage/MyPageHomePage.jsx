@@ -88,12 +88,12 @@ export default function MyPageHomePage() {
                   <strong>{selectedPet.birthDate}</strong>
                 </InfoRow>
 
-                <PetButt
+                <PetButton
                   ontype="button"
                   onClick={() => navigate("/mypage/pet-manage")}
                 >
                   반려동물 정보관리
-                </PetButt>
+                </PetButton>
               </PetInfo>
             </>
           ) : (

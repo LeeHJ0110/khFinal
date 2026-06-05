@@ -5,31 +5,36 @@ export default function useScore() {
   const [data, setData] = useState({});
   const [listArr, setListArr] = useState([]);
   const [listHis, setListHis] = useState([]);
-  const [isLoading, setLoading] = useState(false);
+
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
+  const [isScoreLoading, setIsScoreLoading] = useState(false);
+  const [isAvgLoading, setIsAvgLoading] = useState(false);
 
   async function asyncFetchScoreHistory(petId) {
-    setLoading(true);
+    setIsHistoryLoading(true);
     const resp = await fetchScoreHistory(petId);
     setListHis(resp.data);
 
-    setLoading(false);
+    setIsHistoryLoading(false);
   }
 
   async function asyncFetchScore(petId, category) {
-    setLoading(true);
+    setIsScoreLoading(true);
     const resp = await fetchScore(petId, category);
     setData(resp.data);
 
-    setLoading(false);
+    setIsScoreLoading(false);
   }
 
-  async function asyncFetchScoreAvg(breedId, petType) {
-    setLoading(true);
-    const resp = await fetchScoreAvg(breedId, petType);
+  async function asyncFetchScoreAvg(petId) {
+    setIsAvgLoading(true);
+    const resp = await fetchScoreAvg(petId);
     setListArr(resp.data);
 
-    setLoading(false);
+    setIsAvgLoading(false);
   }
+
+  const isLoading = isHistoryLoading || isScoreLoading || isAvgLoading;
 
   return {
     isLoading,

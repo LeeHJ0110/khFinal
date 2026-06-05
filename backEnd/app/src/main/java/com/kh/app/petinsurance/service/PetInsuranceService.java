@@ -1,11 +1,16 @@
 package com.kh.app.petinsurance.service;
 
 import com.kh.app.aws.service.S3Service;
+import com.kh.app.common.entity.DelYn;
+import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.pet.entity.PetEntity;
 import com.kh.app.pet.repository.PetRepository;
 import com.kh.app.petinsurance.dto.request.PetInsuranceApplicationReqDto;
 import com.kh.app.petinsurance.dto.request.PetInsuranceCalculateReqDto;
+import com.kh.app.petinsurance.dto.response.PetInsuranceApplicationResDto;
 import com.kh.app.petinsurance.dto.response.PetInsuranceCalculateResDto;
+import com.kh.app.petinsurance.dto.response.PetInsurancePetResDto;
 import com.kh.app.petinsurance.entity.PetInsuranceApplicationEntity;
 import com.kh.app.petinsurance.entity.PetInsuranceApproveStatus;
 import com.kh.app.petinsurance.entity.PetInsurancePaymentEntity;
@@ -38,6 +43,7 @@ import java.util.Objects;
 public class PetInsuranceService {
 
     private final ObjectMapper objectMapper;
+    private final MemberRepository memberRepository;
     private final PetRepository petRepository;
     private final PetInsuranceProductRepository petInsuranceProductRepository;
     private final PetInsuranceApplicationRepository petInsuranceApplicationRepository;
@@ -51,7 +57,8 @@ public class PetInsuranceService {
     @Transactional(readOnly = true)
     public List<PetInsuranceProductEntity> getProductList() {
 
-        return petInsuranceProductRepository.findAllByDelYn("N");
+        return petInsuranceProductRepository
+                .findAllByDelYn(String.valueOf(DelYn.N));
     }
 
     // =========================================================
@@ -63,14 +70,18 @@ public class PetInsuranceService {
             PetInsuranceCalculateReqDto dto
     ) {
 
-        // 상품 선택 여부 확인
+        if (dto == null) {
+            throw new IllegalArgumentException(
+                    "보험료 계산 요청 정보가 없습니다."
+            );
+        }
+
         if (dto.getProductId() == null) {
             throw new IllegalArgumentException(
                     "보험 상품을 선택해 주세요."
             );
         }
 
-        // 생년월일 입력 여부 확인
         if (dto.getBirthDate() == null
                 || dto.getBirthDate().isBlank()) {
 
@@ -79,7 +90,6 @@ public class PetInsuranceService {
             );
         }
 
-        // 선택한 상품 조회
         PetInsuranceProductEntity product =
                 petInsuranceProductRepository
                         .findById(dto.getProductId())
@@ -89,11 +99,17 @@ public class PetInsuranceService {
                                 )
                         );
 
+        if (product.getDelYn() == DelYn.Y) {
+            throw new IllegalStateException(
+                    "현재 가입할 수 없는 보험 상품입니다."
+            );
+        }
+
         LocalDate birthDate;
 
         try {
-            // yyyy-MM-dd 형식으로 입력받음
-            birthDate = LocalDate.parse(dto.getBirthDate());
+            birthDate =
+                    LocalDate.parse(dto.getBirthDate());
 
         } catch (DateTimeParseException e) {
 
@@ -102,34 +118,32 @@ public class PetInsuranceService {
             );
         }
 
-        LocalDate today = LocalDate.now();
+        LocalDate today =
+                LocalDate.now();
 
-        // 미래 날짜 입력 방지
         if (birthDate.isAfter(today)) {
             throw new IllegalArgumentException(
                     "생년월일은 오늘 이후 날짜로 입력할 수 없습니다."
             );
         }
 
-        // 현재 날짜 기준 만 나이 계산
-        int age = Period.between(
-                birthDate,
-                today
-        ).getYears();
+        int age =
+                Period.between(
+                        birthDate,
+                        today
+                ).getYears();
 
-        // 상품 테이블에 저장된 기본 보험료
         Long baseMonthlyPrice =
                 product.getProductMonthly();
 
-        // 만 3세부터 한 살마다 10,000원씩 증가
         Long additionalPrice = 0L;
 
+        // 만 3세부터 한 살마다 10,000원씩 증가
         if (age >= 3) {
             additionalPrice =
                     (long) (age - 2) * 10000L;
         }
 
-        // 최종 예상 월 보험료
         Long monthlyPrice =
                 baseMonthlyPrice + additionalPrice;
 
@@ -145,40 +159,107 @@ public class PetInsuranceService {
     }
 
     // =========================================================
+    // 보험 가입 신청 화면용 내 반려동물 목록 조회
+    // 펫 한 마리당 보험 상품 3개 중 하나만 신청 가능
+    // =========================================================
+    @Transactional(readOnly = true)
+    public List<PetInsurancePetResDto> getMyPetListForInsurance(
+            String username
+    ) {
+
+        MemberEntity member =
+                findMemberByLoginId(username);
+
+        return petRepository
+                .findAllByMember_IdAndDelYn(
+                        member.getId(),
+                        DelYn.N
+                )
+                .stream()
+                .map(pet -> {
+
+                    boolean insuranceInProgress =
+                            petInsuranceApplicationRepository
+                                    .existsByPet_IdAndApproveStatusInAndDelYn(
+                                            pet.getId(),
+                                            List.of(
+                                                    PetInsuranceApproveStatus.WAITING,
+                                                    PetInsuranceApproveStatus.APPROVED
+                                            ),
+                                            DelYn.N
+                                    );
+
+                    return PetInsurancePetResDto.from(
+                            pet,
+                            insuranceInProgress
+                    );
+                })
+                .toList();
+    }
+
+    // =========================================================
     // 보험 가입 신청
+    // 펫 한 마리당 보험 상품 3개 중 하나만 신청 가능
     // =========================================================
     @Transactional
-    public void applyInsurance(
+    public PetInsuranceApplicationResDto applyInsurance(
             String data,
             MultipartFile medicalCertificate,
             String username
     ) throws IOException {
 
-        validateUsername(username);
+        MemberEntity loginMember =
+                findMemberByLoginId(username);
 
-        // 프론트에서 받은 JSON 문자열을 DTO로 변환
         PetInsuranceApplicationReqDto dto =
                 objectMapper.readValue(
                         data,
                         PetInsuranceApplicationReqDto.class
                 );
 
-        // 가입 대상 반려동물 조회
+        if (dto.getPetId() == null) {
+            throw new IllegalArgumentException(
+                    "가입할 반려동물을 선택해 주세요."
+            );
+        }
+
+        if (dto.getProductId() == null) {
+            throw new IllegalArgumentException(
+                    "보험 상품을 선택해 주세요."
+            );
+        }
+
         PetEntity pet =
-                petRepository.findById(dto.getPetId())
+                petRepository
+                        .findById(dto.getPetId())
                         .orElseThrow(() ->
                                 new IllegalArgumentException(
                                         "반려동물을 찾을 수 없습니다."
                                 )
                         );
 
-        // 로그인한 사용자가 해당 반려동물의 보호자인지 확인
         validatePetOwner(
                 pet,
-                username
+                loginMember
         );
 
-        // 보험 상품 조회
+        boolean alreadyApplied =
+                petInsuranceApplicationRepository
+                        .existsByPet_IdAndApproveStatusInAndDelYn(
+                                pet.getId(),
+                                List.of(
+                                        PetInsuranceApproveStatus.WAITING,
+                                        PetInsuranceApproveStatus.APPROVED
+                                ),
+                                DelYn.N
+                        );
+
+        if (alreadyApplied) {
+            throw new IllegalStateException(
+                    "해당 반려동물은 이미 보험을 신청했거나 가입이 완료된 상태입니다."
+            );
+        }
+
         PetInsuranceProductEntity product =
                 petInsuranceProductRepository
                         .findById(dto.getProductId())
@@ -188,7 +269,12 @@ public class PetInsuranceService {
                                 )
                         );
 
-        // 진료확인서 첨부 여부 확인
+        if (product.getDelYn() == DelYn.Y) {
+            throw new IllegalStateException(
+                    "현재 가입할 수 없는 보험 상품입니다."
+            );
+        }
+
         if (medicalCertificate == null
                 || medicalCertificate.isEmpty()) {
 
@@ -197,14 +283,12 @@ public class PetInsuranceService {
             );
         }
 
-        // 진료확인서 S3 업로드
         String s3Key =
                 s3Service.upload(
                         medicalCertificate,
                         "insurance/medical-certificate"
                 );
 
-        // 보험 가입 신청 저장
         PetInsuranceApplicationEntity application =
                 PetInsuranceApplicationEntity.builder()
                         .pet(pet)
@@ -218,14 +302,24 @@ public class PetInsuranceService {
                         .imageChangedName(s3Key)
                         .build();
 
-        petInsuranceApplicationRepository.save(application);
+        PetInsuranceApplicationEntity savedApplication =
+                petInsuranceApplicationRepository.save(
+                        application
+                );
 
         log.info(
-                "펫 보험 가입 신청 완료 username = {}, petId = {}, productId = {}",
+                "펫 보험 가입 신청 완료 username = {}, petId = {}, productId = {}, applicationId = {}",
                 username,
                 dto.getPetId(),
-                dto.getProductId()
+                dto.getProductId(),
+                savedApplication.getApplicationId()
         );
+
+        return PetInsuranceApplicationResDto.builder()
+                .applicationId(
+                        savedApplication.getApplicationId()
+                )
+                .build();
     }
 
     // =========================================================
@@ -239,19 +333,16 @@ public class PetInsuranceService {
             String username
     ) {
 
-        validateUsername(username);
+        MemberEntity loginMember =
+                findMemberByLoginId(username);
 
-        // 보험 가입 신청 조회
         PetInsuranceApplicationEntity application =
-                petInsuranceApplicationRepository
-                        .findById(applicationId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "보험 가입 신청을 찾을 수 없습니다."
-                                )
-                        );
+                findApplicationById(applicationId);
 
-        // 심사 대기 중인 신청만 결제수단 등록 가능
+        validateActiveApplication(
+                application
+        );
+
         if (application.getApproveStatus()
                 != PetInsuranceApproveStatus.WAITING) {
 
@@ -260,13 +351,11 @@ public class PetInsuranceService {
             );
         }
 
-        // 로그인한 사용자의 보험 신청인지 확인
         validatePetOwner(
                 application.getPet(),
-                username
+                loginMember
         );
 
-        // 이미 SID가 있으면 중복 등록 차단
         if (application.getKakaoPaySid() != null
                 && !application.getKakaoPaySid().isBlank()) {
 
@@ -275,7 +364,6 @@ public class PetInsuranceService {
             );
         }
 
-        // 0원 결제수단 등록 준비 요청
         KakaoPayReadyRespDto response =
                 kakaoPayClient.readySubscription(
                         applicationId,
@@ -295,7 +383,6 @@ public class PetInsuranceService {
             );
         }
 
-        // 승인 단계에서 사용할 TID 임시 저장
         application.updateKakaoPayTid(
                 response.getTid()
         );
@@ -311,7 +398,6 @@ public class PetInsuranceService {
 
     // =========================================================
     // 카카오페이 정기결제 수단 등록 승인
-    // 카카오페이 결제창에서 돌아온 pg_token 사용
     // SID만 저장하고 결제 이력은 저장하지 않음
     // =========================================================
     @Transactional
@@ -320,17 +406,13 @@ public class PetInsuranceService {
             String pgToken
     ) {
 
-        // 보험 가입 신청 조회
         PetInsuranceApplicationEntity application =
-                petInsuranceApplicationRepository
-                        .findById(applicationId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "보험 가입 신청을 찾을 수 없습니다."
-                                )
-                        );
+                findApplicationById(applicationId);
 
-        // 심사 대기 중인 신청만 결제수단 등록 가능
+        validateActiveApplication(
+                application
+        );
+
         if (application.getApproveStatus()
                 != PetInsuranceApproveStatus.WAITING) {
 
@@ -339,7 +421,6 @@ public class PetInsuranceService {
             );
         }
 
-        // ready 단계에서 저장한 TID 확인
         if (application.getKakaoPayTid() == null
                 || application.getKakaoPayTid().isBlank()) {
 
@@ -348,7 +429,6 @@ public class PetInsuranceService {
             );
         }
 
-        // 중복 승인 차단
         if (application.getKakaoPaySid() != null
                 && !application.getKakaoPaySid().isBlank()) {
 
@@ -357,7 +437,6 @@ public class PetInsuranceService {
             );
         }
 
-        // 카카오페이가 전달한 승인 토큰 확인
         if (pgToken == null
                 || pgToken.isBlank()) {
 
@@ -371,7 +450,6 @@ public class PetInsuranceService {
                         .getMember()
                         .getUsername();
 
-        // 최초 0원 등록 승인 요청
         KakaoPayApproveRespDto response =
                 kakaoPayClient.approveSubscription(
                         applicationId,
@@ -391,7 +469,6 @@ public class PetInsuranceService {
             );
         }
 
-        // 이후 정기결제에 사용할 SID 저장
         application.updateKakaoPaySid(
                 response.getSid()
         );
@@ -407,23 +484,66 @@ public class PetInsuranceService {
     }
 
     // =========================================================
-    // 관리자 가입 신청 승인 + 최초 월 보험료 결제
-    // SID 기반 정기결제 성공 후 APPROVED로 상태 변경
+    // 보험 신청 취소 또는 가입 완료 보험 해지
+    // SID가 있으면 카카오페이 정기결제를 먼저 비활성화
+    // 이후 DEL_YN을 Y로 변경
     // =========================================================
     @Transactional
-    public void approveApplication(Long applicationId) {
+    public void cancelInsurance(
+            Long applicationId,
+            String username
+    ) {
 
-        // 보험 가입 신청 조회
+        MemberEntity loginMember =
+                findMemberByLoginId(username);
+
         PetInsuranceApplicationEntity application =
-                petInsuranceApplicationRepository
-                        .findById(applicationId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "보험 가입 신청을 찾을 수 없습니다."
-                                )
-                        );
+                findApplicationById(applicationId);
 
-        // 심사 대기 중인 신청만 승인 가능
+        validatePetOwner(
+                application.getPet(),
+                loginMember
+        );
+
+        validateActiveApplication(
+                application
+        );
+
+        String sid =
+                application.getKakaoPaySid();
+
+        if (sid != null
+                && !sid.isBlank()) {
+
+            kakaoPayClient.inactivateSubscription(
+                    sid
+            );
+        }
+
+        application.delete();
+
+        log.info(
+                "펫 보험 신청 취소 또는 해지 완료 applicationId = {}, username = {}",
+                applicationId,
+                username
+        );
+    }
+
+    // =========================================================
+    // 관리자 가입 신청 승인 + 최초 월 보험료 결제
+    // =========================================================
+    @Transactional
+    public void approveApplication(
+            Long applicationId
+    ) {
+
+        PetInsuranceApplicationEntity application =
+                findApplicationById(applicationId);
+
+        validateActiveApplication(
+                application
+        );
+
         if (application.getApproveStatus()
                 != PetInsuranceApproveStatus.WAITING) {
 
@@ -432,7 +552,6 @@ public class PetInsuranceService {
             );
         }
 
-        // 사용자가 결제수단을 먼저 등록했는지 확인
         if (application.getKakaoPaySid() == null
                 || application.getKakaoPaySid().isBlank()) {
 
@@ -450,7 +569,6 @@ public class PetInsuranceService {
                 application.getProduct()
                         .getProductMonthly();
 
-        // SID 기반 최초 월 보험료 결제 요청
         KakaoPaySubscriptionRespDto response =
                 kakaoPayClient.requestSubscriptionPayment(
                         applicationId,
@@ -470,10 +588,8 @@ public class PetInsuranceService {
             );
         }
 
-        // 결제 성공 후 상태 변경
         application.approve();
 
-        // 결제 이력 저장
         PetInsurancePaymentEntity payment =
                 PetInsurancePaymentEntity.builder()
                         .application(application)
@@ -488,7 +604,9 @@ public class PetInsuranceService {
                         )
                         .build();
 
-        petInsurancePaymentRepository.save(payment);
+        petInsurancePaymentRepository.save(
+                payment
+        );
 
         log.info(
                 "펫 보험 가입 승인 및 최초 보험료 결제 완료 applicationId = {}, tid = {}, amount = {}",
@@ -499,9 +617,57 @@ public class PetInsuranceService {
     }
 
     // =========================================================
+    // 일반 로그인 또는 소셜 로그인 회원 조회
+    // =========================================================
+    private MemberEntity findMemberByLoginId(
+            String username
+    ) {
+
+        validateUsername(
+                username
+        );
+
+        return memberRepository
+                .findByUsername(username)
+                .or(() ->
+                        memberRepository
+                                .findBySocialId(username)
+                )
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "회원을 찾을 수 없습니다."
+                        )
+                );
+    }
+
+    // =========================================================
+    // 보험 신청 조회
+    // =========================================================
+    private PetInsuranceApplicationEntity findApplicationById(
+            Long applicationId
+    ) {
+
+        if (applicationId == null) {
+            throw new IllegalArgumentException(
+                    "보험 가입 신청 번호가 없습니다."
+            );
+        }
+
+        return petInsuranceApplicationRepository
+                .findById(applicationId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "보험 가입 신청을 찾을 수 없습니다."
+                        )
+                );
+    }
+
+    // =========================================================
     // 로그인 정보 검증
     // =========================================================
-    private void validateUsername(String username) {
+    private void validateUsername(
+            String username
+    ) {
 
         if (username == null
                 || username.isBlank()
@@ -515,30 +681,50 @@ public class PetInsuranceService {
 
     // =========================================================
     // 로그인한 회원의 반려동물인지 검증
+    // username 또는 socialId 여부와 관계없이 회원 PK로 비교
     // =========================================================
     private void validatePetOwner(
             PetEntity pet,
-            String username
+            MemberEntity loginMember
     ) {
 
-        String petOwnerUsername =
+        Long petOwnerId =
                 pet.getMember() != null
-                        ? pet.getMember().getUsername()
+                        ? pet.getMember().getId()
+                        : null;
+
+        Long loginMemberId =
+                loginMember != null
+                        ? loginMember.getId()
                         : null;
 
         log.info(
-                "펫보험 소유자 검증 petOwnerUsername = {}, loginUsername = {}",
-                petOwnerUsername,
-                username
+                "펫보험 소유자 검증 petOwnerId = {}, loginMemberId = {}",
+                petOwnerId,
+                loginMemberId
         );
 
         if (!Objects.equals(
-                petOwnerUsername,
-                username
+                petOwnerId,
+                loginMemberId
         )) {
 
             throw new IllegalArgumentException(
                     "본인의 반려동물만 보험을 신청할 수 있습니다."
+            );
+        }
+    }
+
+    // =========================================================
+    // 취소 또는 해지된 보험 신청인지 검증
+    // =========================================================
+    private void validateActiveApplication(
+            PetInsuranceApplicationEntity application
+    ) {
+
+        if (application.getDelYn() == DelYn.Y) {
+            throw new IllegalStateException(
+                    "이미 취소 또는 해지된 보험입니다."
             );
         }
     }

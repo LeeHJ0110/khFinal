@@ -30,22 +30,31 @@ public class MessageController {
         );
     }
 
+
     @PutMapping("/{messageId}/read")
     public ResponseEntity<Void> read(
-            @PathVariable Long messageId
+            @PathVariable Long messageId,
+            Authentication authentication
     ) {
 
-        messageService.read(messageId);
+        messageService.read(
+                messageId,
+                authentication.getName()
+        );
 
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{messageId}")
     public ResponseEntity<Void> delete(
-            @PathVariable Long messageId
+            @PathVariable Long messageId,
+            Authentication authentication
     ) {
 
-        messageService.delete(messageId);
+        messageService.delete(
+                messageId,
+                authentication.getName()
+        );
 
         return ResponseEntity.ok().build();
     }

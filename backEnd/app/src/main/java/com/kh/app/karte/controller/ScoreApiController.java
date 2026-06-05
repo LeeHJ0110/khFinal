@@ -26,10 +26,9 @@ public class ScoreApiController {
     //전체 품종 **점수 평균
     @GetMapping("avg")
     public ResponseEntity<ScoreAvgCominedResDto> getAvg(
-            @RequestParam Long breedId,
-            @RequestParam PetType petType
+            @RequestParam Long petId
     ){
-        return ResponseEntity.ok(scoreService.getAvg(breedId, petType));
+        return ResponseEntity.ok(scoreService.getAvg(petId));
     }
     //해당 pet의 total점수 최근 n개 가져오기
     @GetMapping("history")
