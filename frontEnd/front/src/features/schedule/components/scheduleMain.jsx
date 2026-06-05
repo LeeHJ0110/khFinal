@@ -2,16 +2,18 @@ import styled from "styled-components";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import useScheduleList from "../hooks/useScheduleList";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
-import ScheduleModal from "./scheduleModal";
 import useScheduleDetail from "../hooks/useScheduleDetail";
 import useTrainingList from "../hooks/useTrainingList";
-import TrainingDiaryModal from "./TrainingDiaryModal";
 import pawPrint from "../../petcare/img/pawprint 18.png";
+import { useNavigate } from "react-router-dom";
 
-//TODO 작은버전 클릭시 스케줄 url로 이동
+const LONG_PRESS_DURATION = 500;
+
 export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
+  const navigate = useNavigate();
+
   const scheduleInit = {
     id: "",
     title: "",
@@ -31,7 +33,6 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
     isEdit: true,
   };
 
-  // 켈린더 이벤트 호출
   const {
     scheduleList,
     isLoading: sLoading,
@@ -44,127 +45,197 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
     fetchDiaryList,
   } = useTrainingList();
 
-  // 상세 조회용 모달 오픈 여부
-
   useEffect(() => {
     asyncFetchScheduleList();
     fetchDiaryList();
   }, [detailOpen]);
 
-  const mergedEvents = [...scheduleList, ...trainingList];
+  const mergedEvents = scheduleList;
 
-  //날짜 숫자만 표시
-  const renderDayCell = (info) => {
-    return <div>{info.dayNumberText.replace("일", "")}</div>;
+  // ── Long Press 상태 ───────────────────────────────────────────────
+  const longPressTimer = useRef(null);
+  const isLongPress = useRef(false);
+  const [isLongPressing, setIsLongPressing] = useState(false);
+
+  const getDateStr = (date) => date.toLocaleDateString("sv-SE");
+
+  const handleCellMouseDown = () => {
+    console.log("누름");
+
+    isLongPress.current = false;
+    longPressTimer.current = setTimeout(() => {
+      isLongPress.current = true;
+      setIsLongPressing(true);
+    }, LONG_PRESS_DURATION);
   };
 
-  //일정 정보바
-  const renderEventContent = (info) => {
-    if (info.event.extendedProps?.type === "training") {
-      return <Stamp src={pawPrint} />; //absolute로 스탬프형식으로 바꾸기
+  const handleCellMouseUp = () => {
+    clearTimeout(longPressTimer.current);
+    setIsLongPressing(false);
+  };
+
+  const handleCellMouseLeave = () => {
+    if (!isLongPress.current) {
+      clearTimeout(longPressTimer.current);
+      setIsLongPressing(false);
     }
+  };
+
+  // FullCalendar select: long press일 때만 생성 모달 오픈
+  const onSelect = (info) => {
+    if (!isLongPress.current) return;
+    isLongPress.current = false;
+    setIsLongPressing(false);
+    onOpenModal({
+      type: "schedule",
+      data: {
+        ...scheduleInit,
+        startDate: info.startStr,
+        endDate: info.endStr,
+      },
+    });
+  };
+
+  // ── dayCellContent ─────────────────────────────────────────────────
+  const renderDayCell = (info) => {
+    const localDateStr = getDateStr(info.date);
+
+    const trainingData = trainingList.find((item) => {
+      return getDateStr(new Date(item.start)) === localDateStr;
+    });
+    const hasTraining = !!trainingData;
+
+    const handleTrainingClick = (e) => {
+      if (isLongPress.current) return; // long press 중이면 무시
+      e.stopPropagation();
+      onOpenModal({
+        type: "training",
+        data: {
+          ...trainingInit,
+          id: trainingData.id,
+          content: trainingData.extendedProps?.content,
+          trainingTime: trainingData.extendedProps?.trainingTime,
+          createdAt: trainingData.extendedProps?.createdAt,
+          trainingPetList: trainingData.extendedProps?.trainingPetList,
+        },
+      });
+    };
+
     return (
-      <>
-        <div
+      <CellWrapper
+        $isLongPressing={isLongPressing}
+        onMouseDown={handleCellMouseDown}
+        onMouseUp={handleCellMouseUp}
+        onMouseLeave={handleCellMouseLeave}
+        onClick={hasTraining ? handleTrainingClick : undefined}
+      >
+        {hasTraining && (
+          <img
+            src={pawPrint}
+            alt="stamp"
+            style={{
+              position: "absolute",
+              width: "28px",
+              height: "28px",
+              opacity: 0.4,
+              zIndex: 1,
+              pointerEvents: "none",
+            }}
+          />
+        )}
+        <span
           style={{
-            backgroundColor: info.event.backgroundColor || "#3788d8",
-            height: "8px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            position: "absolute",
+            zIndex: 2,
+            fontWeight: "bold",
+            fontSize: "14px",
+            color: "#222",
+            pointerEvents: "none",
           }}
         >
-          <span
-            style={{
-              fontSize: "8px",
-              fontWeight: "bolder",
-              lineHeight: "1",
-              whiteSpace: "nowrap", // 줄바꿈 방지
-              pointerEvents: "none", // 클릭 이벤트 방해 방지
-              textOverflow: "ellipsis",
-            }}
-          >
-            {info.event.title}
-          </span>
-        </div>
-      </>
+          {info.dayNumberText.replace("일", "")}
+        </span>
+      </CellWrapper>
     );
   };
 
-  const onEventClick = (info) => {
-    if (!info.event) {
-      onOpenModal({
-        type: "schedule",
-        data: {
-          ...scheduleInit,
-          startDate: info.startStr,
-          endDate: info.endStr,
-        },
-      });
-    } else {
-      if (info.event.extendedProps?.type === "training") {
-        onOpenModal({
-          type: "training",
-          data: {
-            ...trainingInit,
-            id: info.event.id,
-            content: info.event.extendedProps?.content,
-            trainingTime: info.event.extendedProps?.trainingTime,
-            createdAt: info.event.extendedProps?.createdAt,
-            trainingPetList: info.event.extendedProps?.trainingPetList,
-          },
-        });
-      } else {
-        console.log(info);
+  // ── eventContent ───────────────────────────────────────────────────
+  const renderEventContent = (info) => {
+    return (
+      <div
+        style={{
+          backgroundColor: info.event.backgroundColor || "#3788d8",
+          height: "8px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <span
+          style={{
+            fontSize: "8px",
+            fontWeight: "bolder",
+            lineHeight: "1",
+            whiteSpace: "nowrap",
+            pointerEvents: "none",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {info.event.title}
+        </span>
+      </div>
+    );
+  };
 
-        onOpenModal({
-          type: "schedule",
-          data: {
-            ...scheduleInit,
-            id: info.event.id,
-            title: info.event.title,
-            content: info.event.extendedProps?.content,
-            at: info.event.extendedProps?.at,
-            startDate: info.event.startStr,
-            endDate: info.event.endStr,
-            isEdit: true,
-          },
-        });
-      }
-    }
+  // ── eventClick (일반 일정 조회) ────────────────────────────────────
+  const onEventClick = (info) => {
+    onOpenModal({
+      type: "schedule",
+      data: {
+        ...scheduleInit,
+        id: info.event.id,
+        title: info.event.title,
+        content: info.event.extendedProps?.content,
+        at: info.event.extendedProps?.at,
+        startDate: info.event.startStr,
+        endDate: info.event.endStr,
+        isEdit: true,
+      },
+    });
   };
 
   return (
-    <Wrapper>
+    <Wrapper
+      onClick={
+        small
+          ? () => {
+              navigate("/healthCare/schedule"); //TODO 날짜는 넘길 수 있게 해주기
+            }
+          : undefined
+      }
+    >
       {sLoading || tLoading ? (
         <p>불러오는 중...</p>
       ) : (
-        <>
-          <FullCalendar
-            plugins={[dayGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            locale="ko"
-            height={500}
-            events={mergedEvents}
-            // 헤더 최소화
-            headerToolbar={{
-              left: "prev",
-              center: "title",
-              right: "next",
-            }}
-            dayMaxEvents={2} // TODO 큰버전은 5개 까지
-            moreLinkContent={(args) => {
-              return `+${args.num}`;
-            }}
-            selectable={true}
-            select={onEventClick}
-            dayCellContent={renderDayCell} // 날짜 커스텀
-            eventContent={renderEventContent} // 이벤트 커스텀
-            eventClick={onEventClick}
-            // contentHeight={280}
-            // fixedWeekCount={false} // 해당 월의 주차만큼만 표시
-          />
-        </>
+        <FullCalendar
+          plugins={[dayGridPlugin, interactionPlugin]}
+          initialView="dayGridMonth"
+          locale="ko"
+          height={500}
+          events={mergedEvents}
+          headerToolbar={{
+            left: "prev",
+            center: "title",
+            right: "next",
+          }}
+          dayMaxEvents={2}
+          moreLinkContent={(args) => `+${args.num}`}
+          selectable={true}
+          select={onSelect}
+          dayCellContent={renderDayCell}
+          eventContent={renderEventContent}
+          eventClick={onEventClick}
+        />
       )}
     </Wrapper>
   );
@@ -175,19 +246,26 @@ const Wrapper = styled.div`
   .fc-daygrid-day-number {
     width: 32px;
     height: 32px;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     padding: 0 !important;
-
     font-size: 14px;
     font-weight: 500;
     color: #222;
-
     transition: 0.2s;
   }
+`;
+
+const CellWrapper = styled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: ${({ $isLongPressing }) => ($isLongPressing ? "copy" : "default")};
+  user-select: none;
 `;
 
 const Stamp = styled.img`

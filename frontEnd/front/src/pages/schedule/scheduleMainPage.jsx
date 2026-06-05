@@ -46,7 +46,11 @@ export default function ScheduleMainPage() {
     <Wrapper>
       <button onClick={handleTraininClick}>훈련일기작성</button>
       <ScheduleMain onOpenModal={handleOpenModal} detailOpen={detailOpen} />
-      <ScheduleMain onOpenModal={handleOpenModal} detailOpen={detailOpen} />
+      <ScheduleMain
+        onOpenModal={handleOpenModal}
+        detailOpen={detailOpen}
+        small={true}
+      />
       {modalType === "schedule" && (
         <ScheduleModal
           open={detailOpen}
