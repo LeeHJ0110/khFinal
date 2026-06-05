@@ -36,8 +36,6 @@ public class TrainingController {
             @RequestBody TrainReqDto reqDto,
             @AuthenticationPrincipal String username
     ){
-        log.info(reqDto.getContent());
-        log.info(reqDto.getTrainingTime().toString());
         trainingService.write(reqDto, username);
         return ResponseEntity
                 .status(HttpStatus.CREATED)

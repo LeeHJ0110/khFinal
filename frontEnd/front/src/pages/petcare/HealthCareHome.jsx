@@ -16,7 +16,7 @@ import {
 import ActionCardGroup from "../../features/petcare/components/healthCareHome/ActionCardGroup";
 import ScheduleMain from "../../features/schedule/components/scheduleMain";
 
-//TODO 세부 조정 하기
+//TODO 디자인 세부 조정 하기
 import insurance from "../../features/petcare/img/preInsurance.png";
 import PetScoreChart from "../../features/karte/components/ScoreAvgChart";
 
@@ -179,7 +179,7 @@ export default function HealthCareHome() {
           </ComparisonCard>
 
           <CalendarCard>
-            <ScheduleMain />
+            <ScheduleMain small={true} />
           </CalendarCard>
 
           <BannerCard>
