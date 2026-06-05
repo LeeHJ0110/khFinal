@@ -57,6 +57,7 @@ const CATEGORY_CONFIG = {
   TEETH: { name: "치아상태", color: "#2D31FA" }, // 남색
 };
 
+//TODO 소형 적용 가능하도록 구성하기
 export default function PetScoreChart({ petData, listArr }) {
   // 2. 체크박스로 켜고 닫을 나머지 9개 카테고리의 상태 관리 (초기값은 모두 false)
   const [activeCategories, setActiveCategories] = useState({

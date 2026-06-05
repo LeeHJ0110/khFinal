@@ -8,11 +8,10 @@ export async function fetchScore(petId, category) {
     },
   });
 }
-export async function fetchScoreAvg(breedId, petType) {
+export async function fetchScoreAvg(petId) {
   return await api.get(`/score/avg`, {
     params: {
-      breedId: breedId,
-      petType: petType,
+      petId: petId,
     },
   });
 }
