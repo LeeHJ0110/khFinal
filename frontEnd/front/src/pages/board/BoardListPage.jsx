@@ -12,7 +12,33 @@ import BoardSubNavbar from "./components/BoardSubNavbar";
 
 export default function BoardListPage() {
   const navigate = useNavigate();
-  const loginMember = JSON.parse(localStorage.getItem("loginMember"));
+
+  const getLoginMember = () => {
+    const saved = localStorage.getItem("loginMember");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error("loginMember parse error", e);
+      }
+    }
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        return {
+          username: payload.username || payload.sub,
+          nickname: payload.nickname || payload.username || payload.sub,
+          role: payload.role || "USER",
+        };
+      } catch (e) {
+        console.error("Token decode error", e);
+      }
+    }
+    return null;
+  };
+
+  const loginMember = getLoginMember();
 
   // 카테고리별 메타 정보
   const boardMeta = {
