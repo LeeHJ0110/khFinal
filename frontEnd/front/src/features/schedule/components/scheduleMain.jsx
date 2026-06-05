@@ -8,9 +8,10 @@ import ScheduleModal from "./scheduleModal";
 import useScheduleDetail from "../hooks/useScheduleDetail";
 import useTrainingList from "../hooks/useTrainingList";
 import TrainingDiaryModal from "./TrainingDiaryModal";
+import pawPrint from "../../petcare/img/pawprint 18.png";
 
 //TODO 작은버전 클릭시 스케줄 url로 이동
-export default function ScheduleMain({ onOpenModal, detailOpen }) {
+export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
   const scheduleInit = {
     id: "",
     title: "",
@@ -54,22 +55,17 @@ export default function ScheduleMain({ onOpenModal, detailOpen }) {
 
   //날짜 숫자만 표시
   const renderDayCell = (info) => {
-    return (
-      <div className="mini-day-number">
-        {info.dayNumberText.replace("일", "")}
-      </div>
-    );
+    return <div>{info.dayNumberText.replace("일", "")}</div>;
   };
 
   //일정 정보바
   const renderEventContent = (info) => {
     if (info.event.extendedProps?.type === "training") {
-      return <div className="training-stamp">훈련</div>;
+      return <Stamp src={pawPrint} />; //absolute로 스탬프형식으로 바꾸기
     }
     return (
       <>
         <div
-          className="mini-event-bar"
           style={{
             backgroundColor: info.event.backgroundColor || "#3788d8",
             height: "8px",
@@ -192,4 +188,11 @@ const Wrapper = styled.div`
 
     transition: 0.2s;
   }
+`;
+
+const Stamp = styled.img`
+  position: absolute;
+  opacity: 0.3;
+  width: 20px;
+  height: 20px;
 `;
