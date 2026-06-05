@@ -21,11 +21,12 @@ public class MessageEntity extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "SENDER_ID", nullable = false)
+    private MemberEntity sender;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "RECEIVER_ID", nullable = false)
     private MemberEntity receiver;
-
-    @Column(name = "SENDER_NICKNAME", length = 30, nullable = false)
-    private String senderNickname;
 
     @Column(name = "TITLE", length = 100, nullable = false)
     private String title;
@@ -44,12 +45,8 @@ public class MessageEntity extends BaseEntity {
     @Column(name = "READ_AT")
     private LocalDateTime readAt;
 
-
-
     public void read() {
         this.readYn = MessageReadYn.Y;
         this.readAt = LocalDateTime.now();
     }
-
-
 }
