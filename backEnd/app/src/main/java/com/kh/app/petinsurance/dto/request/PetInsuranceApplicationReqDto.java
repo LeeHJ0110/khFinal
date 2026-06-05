@@ -1,4 +1,4 @@
-package com.kh.app.petinsurance.dto;
+package com.kh.app.petinsurance.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -6,7 +6,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PetInsuranceApplicationReqDto {
-
     // 가입할 반려동물
     private Long petId;
 
