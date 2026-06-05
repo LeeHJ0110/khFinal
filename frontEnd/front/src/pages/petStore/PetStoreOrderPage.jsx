@@ -6,6 +6,8 @@ import {
   fetchMyDeliveryAddressList,
   readyStoreKakaoPay,
 } from "../../features/petStore/api/petStoreOrderApi";
+import PetStoreUserNav from "./PetStoreUserNav";
+import StorePaymentSummaryCard from "../../features/petStore/components/PetStorePaymentSummaryCard";
 
 export default function PetStoreOrderPage() {
   const navigate = useNavigate();
@@ -13,7 +15,9 @@ export default function PetStoreOrderPage() {
   const [cart, setCart] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
-  const [usedPoint, setUsedPoint] = useState(0);
+
+  const [ordererName, setOrdererName] = useState("회원");
+
   const [deliveryAddressList, setDeliveryAddressList] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [deliveryRequest, setDeliveryRequest] = useState("");
@@ -27,11 +31,28 @@ export default function PetStoreOrderPage() {
   const totalProductAmount = cart?.totalProductAmount ?? 0;
   const orderDeliveryFee = cart?.orderDeliveryFee ?? 0;
 
+  // 포인트는 아직 백엔드 결제금액에 반영되지 않으므로 cart 응답 금액 기준으로 고정
   const finalOrderAmount = useMemo(() => {
-    const amount =
-      totalProductAmount + orderDeliveryFee - Number(usedPoint || 0);
-    return amount < 0 ? 0 : amount;
-  }, [totalProductAmount, orderDeliveryFee, usedPoint]);
+    return cart?.finalOrderAmount ?? totalProductAmount + orderDeliveryFee;
+  }, [cart?.finalOrderAmount, totalProductAmount, orderDeliveryFee]);
+
+  function loadOrdererNameFromToken() {
+    const accessToken = localStorage.getItem("accessToken");
+
+    if (!accessToken) {
+      setOrdererName("회원");
+      return;
+    }
+
+    try {
+      const payload = JSON.parse(atob(accessToken.split(".")[1]));
+
+      setOrdererName(payload.nickname || payload.username || "회원");
+    } catch (error) {
+      console.error("accessToken 파싱 실패:", error);
+      setOrdererName("회원");
+    }
+  }
 
   async function loadCartList() {
     setIsLoading(true);
@@ -75,7 +96,7 @@ export default function PetStoreOrderPage() {
 
     if (!cartItemList.length) {
       alert("주문할 상품이 없습니다.");
-      navigate("/store/cart");
+      navigate("/store/cart/list");
       return;
     }
 
@@ -109,15 +130,17 @@ export default function PetStoreOrderPage() {
   }
 
   useEffect(() => {
+    loadOrdererNameFromToken();
     loadCartList();
     loadDeliveryAddressList();
   }, []);
 
-  if (isLoading) {
+  if (isLoading && !cart) {
     return (
       <Wrapper>
         <PageInner>
-          <LoadingBox>주문 정보를 불러오는 중입니다...</LoadingBox>
+          <PageTitle>주문/결제</PageTitle>
+          <LoadingBox>주문 정보를 불러오는 중입니다.</LoadingBox>
         </PageInner>
       </Wrapper>
     );
@@ -125,6 +148,7 @@ export default function PetStoreOrderPage() {
 
   return (
     <Wrapper>
+      <PetStoreUserNav />
       <PageInner>
         <PageTitle>주문/결제</PageTitle>
 
@@ -133,22 +157,10 @@ export default function PetStoreOrderPage() {
             <SectionCard>
               <SectionTitle>주문자 정보</SectionTitle>
 
-              <InfoRowGroup>
-                <InfoItem>
-                  <InfoLabel>이름</InfoLabel>
-                  <InfoValue>order01 님</InfoValue>
-                </InfoItem>
-
-                <InfoItem>
-                  <InfoLabel>연락처</InfoLabel>
-                  <InfoValue>010-1234-5678</InfoValue>
-                </InfoItem>
-
-                <InfoItem>
-                  <InfoLabel>이메일</InfoLabel>
-                  <InfoValue>order01@petandifor.com</InfoValue>
-                </InfoItem>
-              </InfoRowGroup>
+              <OrdererBox>
+                <OrdererLabel>이름</OrdererLabel>
+                <OrdererValue>{ordererName} 님</OrdererValue>
+              </OrdererBox>
             </SectionCard>
 
             <DeliveryCard>
@@ -159,7 +171,14 @@ export default function PetStoreOrderPage() {
                 )}
               </SectionTitle>
 
-              {selectedAddress ? (
+              {deliveryAddressList.length === 0 ? (
+                <EmptyDeliveryBox>
+                  등록된 배송지가 없습니다. 마이페이지에서 배송지를
+                  등록해주세요.
+                </EmptyDeliveryBox>
+              ) : !selectedAddress ? (
+                <EmptyDeliveryBox>배송지를 선택해주세요.</EmptyDeliveryBox>
+              ) : (
                 <>
                   <DeliveryInfoGrid>
                     <DeliveryLabel>받으시는 분</DeliveryLabel>
@@ -201,9 +220,10 @@ export default function PetStoreOrderPage() {
                         }
                       >
                         <DeliveryCardTop>
-                          <strong>{address.name}</strong>
+                          <DeliveryCardName>{address.name}</DeliveryCardName>
+
                           {address.defaultYn === "Y" && (
-                            <DefaultBadge>기본 배송지</DefaultBadge>
+                            <SmallDefaultBadge>기본</SmallDefaultBadge>
                           )}
                         </DeliveryCardTop>
 
@@ -219,11 +239,6 @@ export default function PetStoreOrderPage() {
                     ))}
                   </DeliveryCardList>
                 </>
-              ) : (
-                <EmptyDeliveryBox>
-                  등록된 배송지가 없습니다. 마이페이지에서 배송지를
-                  등록해주세요.
-                </EmptyDeliveryBox>
               )}
             </DeliveryCard>
 
@@ -248,23 +263,27 @@ export default function PetStoreOrderPage() {
                     cartItemList.map((item) => (
                       <tr key={item.cartItemId}>
                         <ProductCell>
-                          <ProductImageBox>
-                            {item.mainImageUrl ? (
-                              <ProductImage
-                                src={item.mainImageUrl}
-                                alt={item.productName}
-                              />
-                            ) : (
-                              <NoImage>이미지</NoImage>
-                            )}
-                          </ProductImageBox>
+                          <ProductCellInner>
+                            <ProductImageBox>
+                              {item.mainImageUrl ? (
+                                <ProductImage
+                                  src={item.mainImageUrl}
+                                  alt={item.productName}
+                                />
+                              ) : (
+                                <NoImage>이미지</NoImage>
+                              )}
+                            </ProductImageBox>
 
-                          <ProductName>{item.productName}</ProductName>
+                            <ProductName>{item.productName}</ProductName>
+                          </ProductCellInner>
                         </ProductCell>
 
-                        <td>{item.cartItemQty}개</td>
+                        <QtyCell>{item.cartItemQty}개</QtyCell>
 
-                        <td>{formatPrice(item.cartItemTotalPrice)}원</td>
+                        <PriceCell>
+                          {formatPrice(item.cartItemTotalPrice)}원
+                        </PriceCell>
                       </tr>
                     ))
                   )}
@@ -276,16 +295,16 @@ export default function PetStoreOrderPage() {
               <SectionTitle>결제수단</SectionTitle>
 
               <PaymentMethodGrid>
-                <PaymentMethodCard $active>
+                <PaymentMethodCard type="button" $active>
                   <KakaoBadge>pay</KakaoBadge>
                   <span>카카오페이 결제</span>
                 </PaymentMethodCard>
 
-                <PaymentMethodCard>
+                <PaymentMethodCard type="button">
                   <span>신용/체크카드</span>
                 </PaymentMethodCard>
 
-                <PaymentMethodCard>
+                <PaymentMethodCard type="button">
                   <span>무통장 입금</span>
                 </PaymentMethodCard>
               </PaymentMethodGrid>
@@ -293,48 +312,19 @@ export default function PetStoreOrderPage() {
           </LeftArea>
 
           <RightArea>
-            <SummaryCard>
-              <SummaryTitle>결제금액 요약</SummaryTitle>
-
-              <SummaryRow>
-                <span>주문 금액</span>
-                <strong>{formatPrice(totalProductAmount)}원</strong>
-              </SummaryRow>
-
-              <SummaryRow>
-                <span>배송비</span>
-                <strong>{formatPrice(orderDeliveryFee)}원</strong>
-              </SummaryRow>
-
-              <PointRow>
-                <span>사용 포인트</span>
-                <PointInput
-                  type="number"
-                  min="0"
-                  value={usedPoint}
-                  onChange={(event) => setUsedPoint(event.target.value)}
-                />
-              </PointRow>
-
-              <Divider />
-
-              <FinalRow>
-                <span>최종 결제 금액</span>
-                <strong>{formatPrice(finalOrderAmount)}원</strong>
-              </FinalRow>
-
-              <PayButton
-                type="button"
-                onClick={handlePayClick}
-                disabled={isPaying || cartItemList.length === 0}
-              >
-                {isPaying ? "결제 준비 중..." : "결제하기"}
-              </PayButton>
-
-              <SubButton type="button" onClick={() => navigate("/store/cart")}>
-                장바구니로 돌아가기
-              </SubButton>
-            </SummaryCard>
+            <StorePaymentSummaryCard
+              totalProductAmount={totalProductAmount}
+              orderDeliveryFee={orderDeliveryFee}
+              finalOrderAmount={finalOrderAmount}
+              primaryButtonText="결제하기"
+              secondaryButtonText="장바구니로 돌아가기"
+              onPrimaryClick={handlePayClick}
+              onSecondaryClick={() => navigate("/store/cart/list")}
+              primaryDisabled={
+                cartItemList.length === 0 || deliveryAddressList.length === 0
+              }
+              isProcessing={isPaying}
+            />
           </RightArea>
         </ContentGrid>
       </PageInner>
@@ -371,26 +361,28 @@ const Wrapper = styled.main`
 `;
 
 const PageInner = styled.div`
-  width: 1200px;
+  width: 1360px;
   margin: 0 auto;
-  padding: 54px 0 80px;
+  padding: 44px 0 80px;
 `;
 
 const PageTitle = styled.h1`
-  margin: 0 0 28px;
+  margin: 0 0 24px;
   font-size: 34px;
   font-weight: 800;
   color: #111111;
+  letter-spacing: -1.2px;
 `;
 
 const ContentGrid = styled.div`
   display: grid;
-  grid-template-columns: minmax(0, 820px) 360px;
+  grid-template-columns: minmax(0, 1fr) 400px;
   gap: 32px;
   align-items: start;
 `;
 
 const LeftArea = styled.div`
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -398,14 +390,16 @@ const LeftArea = styled.div`
 
 const RightArea = styled.aside`
   position: sticky;
-  top: 110px;
+  top: 120px;
 `;
 
 const SectionCard = styled.section`
+  box-sizing: border-box;
+  width: 100%;
   border: 1px solid #d8d8d8;
-  border-radius: 4px;
+  border-radius: 6px;
   background: #ffffff;
-  padding: 22px 28px;
+  padding: 24px 30px;
 `;
 
 const DeliveryCard = styled(SectionCard)`
@@ -416,78 +410,196 @@ const DeliveryCard = styled(SectionCard)`
 const SectionTitle = styled.h2`
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 0 0 20px;
-  font-size: 18px;
+  gap: 10px;
+  height: 24px;
+  margin: 0 0 22px;
+  font-size: 19px;
   font-weight: 800;
   color: #111111;
+`;
+
+const OrdererBox = styled.div`
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: center;
+  column-gap: 12px;
+  height: 28px;
+`;
+
+const OrdererLabel = styled.span`
+  font-size: 14px;
+  font-weight: 800;
+  color: #222222;
+  white-space: nowrap;
+`;
+
+const OrdererValue = styled.span`
+  min-width: 0;
+  font-size: 15px;
+  color: #333333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 `;
 
 const DefaultBadge = styled.span`
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   height: 22px;
   padding: 0 9px;
   border: 1px solid #08aa7c;
   border-radius: 4px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   color: #08aa7c;
   background: #ffffff;
+  white-space: nowrap;
 `;
 
-const InfoRowGroup = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1.3fr 1.8fr;
-  gap: 22px;
-`;
-
-const InfoItem = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 18px;
-`;
-
-const InfoLabel = styled.span`
-  flex-shrink: 0;
-  font-size: 14px;
-  font-weight: 800;
-  color: #222222;
-`;
-
-const InfoValue = styled.span`
-  font-size: 15px;
-  color: #444444;
+const SmallDefaultBadge = styled(DefaultBadge)`
+  height: 20px;
+  padding: 0 7px;
+  font-size: 11px;
 `;
 
 const DeliveryInfoGrid = styled.div`
   display: grid;
-  grid-template-columns: 100px 1fr;
+  grid-template-columns: 112px minmax(0, 1fr);
   row-gap: 14px;
-  column-gap: 24px;
+  column-gap: 22px;
+  align-items: center;
 `;
 
 const DeliveryLabel = styled.div`
   font-size: 14px;
   font-weight: 800;
   color: #222222;
+  white-space: nowrap;
 `;
 
 const DeliveryValue = styled.div`
+  min-width: 0;
   font-size: 15px;
+  line-height: 1.5;
   color: #333333;
+`;
+
+const DeliveryRequestInput = styled.input`
+  box-sizing: border-box;
+  width: 100%;
+  height: 38px;
+  border: 1px solid #cfd8d5;
+  border-radius: 5px;
+  padding: 0 12px;
+  background: #ffffff;
+  font-size: 14px;
+  color: #333333;
+
+  &:focus {
+    outline: none;
+    border-color: #00a878;
+  }
+`;
+
+const DeliveryCardList = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+`;
+
+const DeliverySelectCard = styled.button`
+  box-sizing: border-box;
+  width: 100%;
+  height: 104px;
+  border: 1px solid ${({ $active }) => ($active ? "#00a878" : "#d8d8d8")};
+  border-radius: 8px;
+  background: ${({ $active }) => ($active ? "#f8fffc" : "#ffffff")};
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  box-shadow: ${({ $active }) =>
+    $active ? "inset 0 0 0 1px rgba(0, 168, 120, 0.3)" : "none"};
+
+  &:hover {
+    border-color: #00a878;
+    background: #f8fffc;
+  }
+
+  &:focus {
+    outline: none;
+  }
+`;
+
+const DeliveryCardTop = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-bottom: 8px;
+`;
+
+const DeliveryCardName = styled.strong`
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: #222222;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const DeliveryCardReceiver = styled.div`
+  margin-bottom: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #333333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const DeliveryCardAddress = styled.div`
+  font-size: 12px;
+  line-height: 1.4;
+  color: #666666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const EmptyDeliveryBox = styled.div`
+  min-height: 122px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed #bdebd9;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #777777;
+  text-align: center;
 `;
 
 const OrderTable = styled.table`
   width: 100%;
   border-collapse: collapse;
+  table-layout: fixed;
 
   thead {
     background: #e4f7f1;
   }
 
   th {
-    height: 36px;
+    height: 38px;
     text-align: left;
     font-size: 14px;
     font-weight: 800;
@@ -498,16 +610,23 @@ const OrderTable = styled.table`
     padding-left: 14px;
   }
 
-  th:nth-child(2),
-  th:nth-child(3) {
+  th:nth-child(2) {
     width: 160px;
+    text-align: center;
+  }
+
+  th:nth-child(3) {
+    width: 180px;
+    text-align: right;
+    padding-right: 18px;
   }
 
   td {
-    height: 56px;
+    height: 62px;
     border-bottom: 1px solid #eeeeee;
     font-size: 14px;
     color: #222222;
+    vertical-align: middle;
   }
 
   tbody tr:last-child td {
@@ -516,17 +635,21 @@ const OrderTable = styled.table`
 `;
 
 const ProductCell = styled.td`
-  display: flex;
-  align-items: center;
-  gap: 14px;
   padding-left: 14px;
 `;
 
+const ProductCellInner = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+`;
+
 const ProductImageBox = styled.div`
-  width: 38px;
-  height: 38px;
+  width: 42px;
+  height: 42px;
   border: 1px solid #eeeeee;
-  border-radius: 4px;
+  border-radius: 5px;
   overflow: hidden;
   background: #f7f7f7;
   flex-shrink: 0;
@@ -548,12 +671,23 @@ const NoImage = styled.div`
 `;
 
 const ProductName = styled.div`
-  max-width: 430px;
+  min-width: 0;
+  max-width: 560px;
   font-size: 14px;
   color: #333333;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+`;
+
+const QtyCell = styled.td`
+  text-align: center;
+`;
+
+const PriceCell = styled.td`
+  text-align: right;
+  padding-right: 18px;
+  font-weight: 700;
 `;
 
 const EmptyCell = styled.td`
@@ -564,23 +698,29 @@ const EmptyCell = styled.td`
 
 const PaymentMethodGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 `;
 
 const PaymentMethodCard = styled.button`
-  height: 54px;
+  box-sizing: border-box;
+  height: 56px;
   border: 1px solid ${({ $active }) => ($active ? "#00a878" : "#d4d4d4")};
-  border-radius: 5px;
+  border-radius: 6px;
   background: ${({ $active }) => ($active ? "#eafff7" : "#ffffff")};
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
   color: #444444;
   cursor: pointer;
+  outline: none;
+
+  &:focus {
+    outline: none;
+  }
 `;
 
 const KakaoBadge = styled.span`
@@ -596,197 +736,12 @@ const KakaoBadge = styled.span`
   color: #111111;
 `;
 
-const SummaryCard = styled.section`
-  border: 1px solid #d8d8d8;
-  border-radius: 5px;
-  background: #ffffff;
-  padding: 28px 30px;
-`;
-
-const SummaryTitle = styled.h2`
-  margin: 0 0 28px;
-  font-size: 22px;
-  font-weight: 800;
-  color: #111111;
-`;
-
-const SummaryRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-  font-size: 15px;
-  color: #222222;
-
-  strong {
-    font-size: 16px;
-    font-weight: 800;
-  }
-`;
-
-const PointRow = styled.div`
-  display: grid;
-  grid-template-columns: 100px 1fr;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 26px;
-  font-size: 15px;
-  color: #222222;
-`;
-
-const PointInput = styled.input`
-  height: 30px;
-  border: 1px solid #d4d4d4;
-  padding: 0 10px;
-  text-align: right;
-  font-size: 14px;
-
-  &:focus {
-    outline: none;
-    border-color: #00a878;
-  }
-`;
-
-const Divider = styled.div`
-  height: 1px;
-  background: #dddddd;
-  margin: 26px 0 24px;
-`;
-
-const FinalRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 28px;
-
-  span {
-    font-size: 17px;
-    font-weight: 800;
-    color: #111111;
-  }
-
-  strong {
-    font-size: 30px;
-    font-weight: 900;
-    color: #00a878;
-  }
-`;
-
-const PayButton = styled.button`
-  width: 100%;
-  height: 54px;
-  border: 0;
-  border-radius: 7px;
-  background: #00a878;
-  color: #ffffff;
-  font-size: 18px;
-  font-weight: 800;
-  cursor: pointer;
-
-  &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
-`;
-
-const SubButton = styled.button`
-  width: 100%;
-  height: 48px;
-  margin-top: 12px;
-  border: 1px solid #d4d4d4;
-  border-radius: 7px;
-  background: #ffffff;
-  color: #333333;
-  font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-`;
-
 const LoadingBox = styled.div`
   height: 300px;
   display: grid;
   place-items: center;
-  border: 1px solid #eeeeee;
-  border-radius: 8px;
-  font-size: 18px;
-  color: #666666;
-`;
-
-const DeliveryRequestInput = styled.input`
-  width: 100%;
-  height: 34px;
-  border: 1px solid #cfd8d5;
-  border-radius: 4px;
-  padding: 0 12px;
-  background: #ffffff;
-  font-size: 14px;
-  color: #333333;
-
-  &:focus {
-    outline: none;
-    border-color: #00a878;
-  }
-`;
-
-const DeliveryCardList = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  margin-top: 22px;
-`;
-
-const DeliverySelectCard = styled.button`
-  min-height: 88px;
-  border: 1px solid ${({ $active }) => ($active ? "#00a878" : "#d8d8d8")};
+  border: 1px solid #d8d8d8;
   border-radius: 6px;
-  background: ${({ $active }) => ($active ? "#ffffff" : "#ffffff")};
-  padding: 14px 16px;
-  text-align: left;
-  cursor: pointer;
-  box-shadow: ${({ $active }) =>
-    $active ? "0 0 0 2px rgba(0, 168, 120, 0.08)" : "none"};
-
-  &:hover {
-    border-color: #00a878;
-  }
-`;
-
-const DeliveryCardTop = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-
-  strong {
-    font-size: 14px;
-    font-weight: 800;
-    color: #222222;
-  }
-`;
-
-const DeliveryCardReceiver = styled.div`
-  margin-bottom: 4px;
-  font-size: 13px;
-  font-weight: 700;
-  color: #333333;
-`;
-
-const DeliveryCardAddress = styled.div`
-  font-size: 12px;
-  line-height: 1.4;
-  color: #666666;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-const EmptyDeliveryBox = styled.div`
-  min-height: 120px;
-  display: grid;
-  place-items: center;
-  border: 1px dashed #bdebd9;
-  border-radius: 6px;
-  background: #ffffff;
-  font-size: 14px;
+  font-size: 16px;
   color: #777777;
 `;
