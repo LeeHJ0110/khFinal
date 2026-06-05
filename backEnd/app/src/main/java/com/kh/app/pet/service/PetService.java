@@ -61,7 +61,7 @@ public class PetService {
                         new IllegalStateException("회원 정보가 존재하지 않습니다.")
                 );
 
-        return petRepository.findAllByMember_IdAndDelYn(member.getId(), DelYn.N)
+        return petRepository.findAllByMember_IdAndDelYnOrderByRepresentYnDesc(member.getId(), DelYn.N)
                 .stream()
                 .map(pet -> PetMyPageResDto.from(
                         pet,
