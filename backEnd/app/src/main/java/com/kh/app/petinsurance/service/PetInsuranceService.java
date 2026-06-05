@@ -58,7 +58,7 @@ public class PetInsuranceService {
     public List<PetInsuranceProductEntity> getProductList() {
 
         return petInsuranceProductRepository
-                .findAllByDelYn(String.valueOf(DelYn.N));
+                .findAllByDelYn(DelYn.N);
     }
 
     // =========================================================

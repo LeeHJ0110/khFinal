@@ -20,6 +20,7 @@ import DiagnosisRequestHomePage from "./pages/petcare/DiagnosisRequestHomePage";
 import DiagnosisRequestPage from "./pages/petcare/DiagnosisRequestPage";
 import DiagnosisManagePage from "./pages/petcare/DiagnosisManagePage";
 import DiagnosisDetailPage from "./pages/petcare/DiagnosisDetailPage";
+import PetInsuranceMain from "./pages/petinsurance/PetInsuranceMain";
 
 // store
 import PetStoreAdminProductListPage from "./pages/petStore/PetStoreAdminProductListPage";
@@ -95,6 +96,9 @@ function App() {
             {/* vet/admin */}
             <Route path="manage" element={<DiagnosisManagePage />} />
             <Route path="manage/:id" element={<DiagnosisDetailPage />} />
+
+            {/* 펫보험 */}
+            <Route path="petinsurance" element={<PetInsuranceMain />} />
           </Route>
 
           {/* 스토어 */}
