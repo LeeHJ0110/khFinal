@@ -1,0 +1,26 @@
+package com.kh.app.store.dto.response;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@ToString
+public class StoreKakaoPayReadyResDto {
+
+    private String tid;
+
+    @JsonProperty("next_redirect_app_url")
+    private String nextRedirectAppUrl;
+
+    @JsonProperty("next_redirect_mobile_url")
+    private String nextRedirectMobileUrl;
+
+    @JsonProperty("next_redirect_pc_url")
+    private String nextRedirectPcUrl;
+
+    @JsonProperty("created_at")
+    private String createdAt;
+}

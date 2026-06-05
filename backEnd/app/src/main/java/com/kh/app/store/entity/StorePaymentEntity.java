@@ -77,4 +77,9 @@ public class StorePaymentEntity extends BaseEntity {
     public boolean isFailed() {
         return this.paymentStatus == StorePaymentStatus.FAILED;
     }
+
+    public void ready(String paymentKakaoTid) {
+        this.paymentKakaoTid = paymentKakaoTid;
+        this.paymentStatus = StorePaymentStatus.READY;
+    }
 }

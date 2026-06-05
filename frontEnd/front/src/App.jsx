@@ -36,6 +36,7 @@ import PetStoreCatSupplementProductListPage from "./pages/petStore/PetStoreCatSu
 import PetStoreCatToiletProductListPage from "./pages/petStore/PetStoreCatToiletProductListPage";
 import PetStoreProductDetailPage from "./pages/petStore/PetStoreProductDetailPage";
 import PetStoreCartListPage from "./pages/petStore/PetStoreCartListPage";
+import PetStoreOrderPage from "./pages/petStore/PetStoreOrderPage";
 
 // mypage
 import MyPageHomePage from "./pages/mypage/MyPageHomePage";
@@ -54,6 +55,7 @@ import CommunityHistoryPage from "./pages/mypage/CommunityHistoryPage";
 import BoardHome from "./pages/board/BoardHome";
 import BoardDetailPage from "./pages/board/BoardDetailPage";
 import DeliveryManagePage from "./pages/mypage/DeliveryManagePage";
+import PetStoreOrderCompletePage from "./pages/petStore/PetStoreOrderCompletePage";
 
 function App() {
   return (
@@ -106,6 +108,13 @@ function App() {
             {/* 장바구니 */}
             <Route path="cart/list" element={<PetStoreCartListPage />} />
 
+            {/* 주문페이지 */}
+            <Route path="order" element={<PetStoreOrderPage />} />
+            <Route
+              path="order/complete"
+              element={<PetStoreOrderCompletePage />}
+            />
+
             {/* 강아지 스토어 계열 - 임시로 홈 연결 */}
             <Route path="dog" element={<PetStoreDogHomePage />} />
             <Route
@@ -148,8 +157,6 @@ function App() {
               path="product/:productId"
               element={<PetStoreProductDetailPage />}
             />
-
-            {/* 사용자 보조 메뉴 */}
           </Route>
 
           {/* 마이페이지 */}
