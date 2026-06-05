@@ -52,6 +52,9 @@ import CommunityHistoryPage from "./pages/mypage/CommunityHistoryPage";
 import BoardHome from "./pages/board/BoardHome";
 import BoardDetailPage from "./pages/board/BoardDetailPage";
 import DeliveryManagePage from "./pages/mypage/DeliveryManagePage";
+import AdminMemberPage from "./pages/admin/member/AdminMemberPage";
+import AdminMessageSendPage from "./pages/admin/message/AdminMessageSendPage";
+import AdminSentMessagePage from "./pages/admin/message/AdminSentMessagePage";
 
 function App() {
   return (
@@ -156,6 +159,11 @@ function App() {
             <Route path="message" element={<MessageBoxPage />} />
             <Route path="community" element={<CommunityHistoryPage />} />
             <Route path="delivery" element={<DeliveryManagePage />} />
+          </Route>
+          <Route path="admin">
+            <Route path="member" element={<AdminMemberPage />} />
+            <Route path="message/send" element={<AdminMessageSendPage />} />
+            <Route path="message/sent" element={<AdminSentMessagePage />} />
           </Route>
 
           {/* 공용페이지 (route path 수정해야함)*/}

@@ -19,4 +19,9 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
             MessageReadYn readYn,
             DelYn delYn
     );
+
+    List<MessageEntity> findAllBySender_IdAndDelYnOrderByCreatedAtDesc(
+            Long senderId,
+            DelYn delYn
+    );
 }

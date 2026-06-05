@@ -6,8 +6,6 @@ import com.kh.app.message.entity.MessageReasonType;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Builder
 public class MessageListResDto {
@@ -15,6 +13,8 @@ public class MessageListResDto {
     private Long id;
 
     private String senderNickname;
+
+    private String receiverNickname;
 
     private String title;
 
@@ -29,7 +29,8 @@ public class MessageListResDto {
     public static MessageListResDto from(MessageEntity message) {
         return MessageListResDto.builder()
                 .id(message.getId())
-                .senderNickname(message.getSenderNickname())
+                .senderNickname(message.getSender().getNickname())
+                .receiverNickname(message.getReceiver().getNickname())
                 .title(message.getTitle())
                 .content(message.getContent())
                 .reasonType(message.getReasonType())

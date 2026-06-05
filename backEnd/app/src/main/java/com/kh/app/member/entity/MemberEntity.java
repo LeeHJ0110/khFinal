@@ -94,5 +94,16 @@ public class MemberEntity extends BaseEntity {
         this.address = address;
         this.addressDetail = addressDetail;
     }
+    public void changeStatus(MemberStatus status) {
+        this.status = status;
+    }
+
+    public void changeRole(MemberRole role) {
+        this.role = role;
+    }
+
+    public void changeNickname(String nickname) {
+        this.nickname = nickname;
+    }
 
 }
