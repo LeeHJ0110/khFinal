@@ -21,6 +21,7 @@ import DiagnosisRequestPage from "./pages/petcare/DiagnosisRequestPage";
 import DiagnosisManagePage from "./pages/petcare/DiagnosisManagePage";
 import DiagnosisDetailPage from "./pages/petcare/DiagnosisDetailPage";
 import PetInsuranceMain from "./pages/petinsurance/PetInsuranceMain";
+import InsuranceAdminApplicationPage from "./pages/petinsurance/InsuranceAdminApplicationPage";
 
 // store
 import PetStoreAdminProductListPage from "./pages/petStore/PetStoreAdminProductListPage";
@@ -61,6 +62,7 @@ import AdminMemberPage from "./pages/admin/member/AdminMemberPage";
 import AdminMessageSendPage from "./pages/admin/message/AdminMessageSendPage";
 import AdminSentMessagePage from "./pages/admin/message/AdminSentMessagePage";
 
+
 function App() {
   return (
     <>
@@ -99,6 +101,7 @@ function App() {
 
             {/* 펫보험 */}
             <Route path="petinsurance" element={<PetInsuranceMain />} />
+            <Route path="petinsurance/admin" element={<InsuranceAdminApplicationPage/>} />
           </Route>
 
           {/* 스토어 */}

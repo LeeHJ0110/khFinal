@@ -1,8 +1,7 @@
 package com.kh.app.petinsurance.controller;
 
 import com.kh.app.petinsurance.dto.request.PetInsuranceCalculateReqDto;
-import com.kh.app.petinsurance.dto.response.PetInsuranceCalculateResDto;
-import com.kh.app.petinsurance.dto.response.PetInsurancePetResDto;
+import com.kh.app.petinsurance.dto.response.*;
 import com.kh.app.petinsurance.kakao.dto.KakaoPayApproveRespDto;
 import com.kh.app.petinsurance.kakao.dto.KakaoPayReadyRespDto;
 import com.kh.app.petinsurance.service.PetInsuranceService;
@@ -15,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import com.kh.app.petinsurance.dto.response.PetInsuranceApplicationResDto;
 
 import java.io.IOException;
 import java.util.List;
@@ -47,6 +45,10 @@ public class PetInsuranceController {
     // 생년월일과 선택한 상품을 기준으로 예상 보험료 계산
     // 계산 결과는 저장하지 않고 화면에 반환만 함
     // =========================================================
+// =========================================================
+// 저장된 생년월일과 선택 상품 기준 예상 보험료 계산
+// 화면 표시용이며 DB에는 저장하지 않음
+// =========================================================
     @PostMapping("/calculate")
     public ResponseEntity<PetInsuranceCalculateResDto>
     calculateMonthlyPrice(
@@ -194,6 +196,33 @@ public class PetInsuranceController {
 
         return ResponseEntity.ok(
                 "카카오페이 결제에 실패했습니다."
+        );
+    }
+    // =========================================================
+// =========================================================
+// 관리자용 보험 가입 신청 목록 조회
+// 카드 등록을 완료한 대기 상태 신청만 조회
+// =========================================================
+    @GetMapping("/admin/applications")
+    public ResponseEntity<List<PetInsuranceAdminApplicationResDto>>
+    getWaitingApplicationList() {
+
+        return ResponseEntity.ok(
+                petInsuranceService.getWaitingApplicationList()
+        );
+    }
+    // =========================================================
+// 사용자 본인의 펫 보험 결제 내역 조회
+// =========================================================
+    @GetMapping("/payment/history")
+    public ResponseEntity<List<PetInsurancePaymentHistoryResDto>>
+    getMyPaymentHistory(
+            @AuthenticationPrincipal String username
+    ) {
+
+        return ResponseEntity.ok(
+                petInsuranceService
+                        .getMyPaymentHistory(username)
         );
     }
 }

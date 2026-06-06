@@ -1,195 +1,323 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import styled from "styled-components";
 
-import petModel from "../../features/petInsurance/img/펫모델.png";
-
 import {
-  fetchInsuranceProductList,
-  calculateInsurancePrice,
+  fetchMyInsurancePaymentHistory,
 } from "../../features/petInsurance/api/petInsuranceApi";
 
 function InsuranceEstimateSection() {
-  const [productList, setProductList] = useState([]);
-  const [selectedProductId, setSelectedProductId] = useState("");
-  const [birthDate, setBirthDate] = useState("");
+  const [paymentHistoryList, setPaymentHistoryList] = useState([]);
 
-  const [estimateResult, setEstimateResult] = useState(null);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [errorMessage, setErrorMessage] = useState("");
+
   // =========================================================
-  // 보험 상품 목록 조회
+  // 모달이 열려 있는 동안 배경 스크롤 방지
   // =========================================================
   useEffect(() => {
-    fetchProductList();
-  }, []);
+    if (!isModalOpen) {
+      return undefined;
+    }
 
-  async function fetchProductList() {
+    const previousOverflow =
+      document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow =
+        previousOverflow;
+    };
+  }, [isModalOpen]);
+
+  // =========================================================
+  // 정기결제 내역 조회 후 모달 열기
+  // =========================================================
+  async function handleOpenPaymentHistory() {
     try {
+      setIsLoading(true);
       setErrorMessage("");
 
-      const response = await fetchInsuranceProductList();
-
-      console.log("보험 상품 목록 응답:", response.data);
+      const response =
+        await fetchMyInsurancePaymentHistory();
 
       const data = response.data;
 
       if (!Array.isArray(data)) {
-        throw new Error("보험 상품 목록 응답 형식이 올바르지 않습니다.");
+        throw new Error(
+          "정기결제 내역 응답 형식이 올바르지 않습니다.",
+        );
       }
 
-      setProductList(data);
-
-      // 상품이 있으면 첫 번째 상품을 기본 선택
-      if (data.length > 0) {
-        setSelectedProductId(String(data[0].productId));
-      }
+      setPaymentHistoryList(data);
+      setIsModalOpen(true);
     } catch (error) {
-      console.error("보험 상품 목록 조회 실패:", error);
-
-      setErrorMessage(
-        error.response?.data?.message ||
-          "보험 상품 목록을 불러오지 못했습니다.",
+      console.error(
+        "펫 보험 정기결제 내역 조회 실패:",
+        error,
       );
-    }
-  }
-
-  // =========================================================
-  // 예상 보험료 계산
-  // =========================================================
-  async function handleCalculate() {
-    setErrorMessage("");
-    setEstimateResult(null);
-
-    if (!selectedProductId) {
-      setErrorMessage("보험 상품을 선택해 주세요.");
-
-      return;
-    }
-
-    if (!birthDate) {
-      setErrorMessage("반려동물의 생년월일을 입력해 주세요.");
-
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-
-      const response = await calculateInsurancePrice({
-        productId: Number(selectedProductId),
-        birthDate,
-      });
-
-      setEstimateResult(response.data);
-    } catch (error) {
-      console.error("예상 보험료 계산 실패:", error);
 
       setErrorMessage(
-        getErrorMessage(error, "예상 보험료 계산에 실패했습니다."),
+        getErrorMessage(
+          error,
+          "정기결제 내역을 불러오지 못했습니다.",
+        ),
       );
     } finally {
       setIsLoading(false);
     }
   }
 
+  // =========================================================
+  // 모달 닫기
+  // =========================================================
+  function handleCloseModal() {
+    if (isLoading) {
+      return;
+    }
+
+    setIsModalOpen(false);
+  }
+
   return (
-    <EstimateSection>
-      <Title>보험료 확인하기</Title>
+    <>
+      <GuideSection>
+        <GuideBadge>
+          펫 보험 이용 안내
+        </GuideBadge>
 
-      <Description>
-        우리 아이의 생년월일과 보험 상품을 선택하면 예상 월 보험료를 확인할 수
-        있습니다.
-      </Description>
+        <Title>
+          우리 아이의 보험을
+          <br />
+          편리하게 관리해 보세요
+        </Title>
 
-      <Divider />
+        <Description>
+          가입 신청부터 결제 내역 확인까지
+          <br />
+          한 화면에서 간편하게 관리할 수 있습니다.
+        </Description>
 
-      <InputGroup>
-        <Label htmlFor="insurance-product">보험 상품</Label>
-
-        <Select
-          id="insurance-product"
-          value={selectedProductId}
-          onChange={(event) => {
-            console.log("선택한 상품 번호:", event.target.value);
-
-            setSelectedProductId(event.target.value);
-
-            setEstimateResult(null);
-          }}
-          disabled={productList.length === 0}
-        >
-          <option value="">
-            {productList.length === 0
-              ? "조회된 보험 상품이 없습니다"
-              : "보험 상품을 선택해 주세요"}
-          </option>
-
-          {productList.map((product) => (
-            <option key={product.productId} value={String(product.productId)}>
-              {product.productName}
-            </option>
-          ))}
-        </Select>
-      </InputGroup>
-
-      <InputGroup>
-        <Label htmlFor="pet-birth-date">반려동물 생년월일</Label>
-
-        <Input
-          id="pet-birth-date"
-          type="date"
-          value={birthDate}
-          max={getToday()}
-          onChange={(event) => {
-            setBirthDate(event.target.value);
-
-            setEstimateResult(null);
-          }}
-        />
-      </InputGroup>
-
-      <CalculateButton
-        type="button"
-        onClick={handleCalculate}
-        disabled={isLoading}
-      >
-        {isLoading ? "계산 중..." : "예상 보험료 확인하기"}
-      </CalculateButton>
-
-      {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
-
-      {estimateResult && (
-        <ResultBox>
-          <ResultLabel>예상 월 보험료</ResultLabel>
-
-          <ResultPrice>
-            {formatPrice(estimateResult.monthlyPrice)}
-
-            <ResultUnit>원</ResultUnit>
-          </ResultPrice>
-
-          <ResultDetail>
-            {estimateResult.productName}
-            {" · "}만 {estimateResult.age}세 기준
-          </ResultDetail>
-        </ResultBox>
-      )}
-
-      <GuideBox>
-        <GuideTitle>보험 가입 전 확인 안내</GuideTitle>
+        <Divider />
 
         <GuideList>
-          <li>입력한 생년월일을 기준으로 만 나이를 계산합니다.</li>
+          <GuideItem>
+            <GuideNumber>
+              1
+            </GuideNumber>
 
-          <li>만 3세부터 한 살마다 월 보험료가 10,000원씩 증가합니다.</li>
+            <GuideContent>
+              <GuideItemTitle>
+                반려동물을 선택해 주세요
+              </GuideItemTitle>
 
-          <li>실제 가입 시 심사 결과에 따라 가입이 제한될 수 있습니다.</li>
+              <GuideItemDescription>
+                등록된 반려동물의 정보를 기준으로
+                월 보험료가 자동 계산됩니다.
+              </GuideItemDescription>
+            </GuideContent>
+          </GuideItem>
+
+          <GuideItem>
+            <GuideNumber>
+              2
+            </GuideNumber>
+
+            <GuideContent>
+              <GuideItemTitle>
+                가입 신청을 진행해 주세요
+              </GuideItemTitle>
+
+              <GuideItemDescription>
+                진료확인서를 첨부하고 카카오페이
+                결제 수단을 등록해 주세요.
+              </GuideItemDescription>
+            </GuideContent>
+          </GuideItem>
+
+          <GuideItem>
+            <GuideNumber>
+              3
+            </GuideNumber>
+
+            <GuideContent>
+              <GuideItemTitle>
+                승인 후 가입이 완료됩니다
+              </GuideItemTitle>
+
+              <GuideItemDescription>
+                관리자 승인 이후 등록한 결제 수단으로
+                최초 보험료가 결제됩니다.
+              </GuideItemDescription>
+            </GuideContent>
+          </GuideItem>
         </GuideList>
-      </GuideBox>
 
-      <PetModelImage src={petModel} alt="펫 보험 안내 캐릭터" />
-    </EstimateSection>
+        <HistoryButton
+          type="button"
+          onClick={handleOpenPaymentHistory}
+          disabled={isLoading}
+        >
+          <ReceiptIcon>
+            ₩
+          </ReceiptIcon>
+
+          {isLoading
+            ? "결제 내역 불러오는 중..."
+            : "정기결제 내역 확인하기"}
+
+          {!isLoading && (
+            <ArrowIcon>
+              ›
+            </ArrowIcon>
+          )}
+        </HistoryButton>
+
+        {errorMessage && (
+          <ErrorMessage>
+            {errorMessage}
+          </ErrorMessage>
+        )}
+      </GuideSection>
+
+      {isModalOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <ModalOverlay
+            onClick={handleCloseModal}
+            role="presentation"
+          >
+            <ModalBox
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="payment-history-modal-title"
+              onClick={(event) =>
+                event.stopPropagation()
+              }
+            >
+              <ModalHeader>
+                <div>
+                  <ModalBadge>
+                    보험료 결제 내역
+                  </ModalBadge>
+
+                  <ModalTitle id="payment-history-modal-title">
+                    펫 보험 정기결제 내역
+                  </ModalTitle>
+
+                  <ModalDescription>
+                    최초 보험료 결제와 이후 정기결제 내역을
+                    확인할 수 있습니다.
+                  </ModalDescription>
+                </div>
+
+                <CloseButton
+                  type="button"
+                  aria-label="정기결제 내역 모달 닫기"
+                  onClick={handleCloseModal}
+                >
+                  ×
+                </CloseButton>
+              </ModalHeader>
+
+              <ModalBody>
+                {paymentHistoryList.length === 0 ? (
+                  <EmptyHistory>
+                    <EmptyIcon>
+                      ₩
+                    </EmptyIcon>
+
+                    <EmptyTitle>
+                      아직 결제된 보험료가 없습니다
+                    </EmptyTitle>
+
+                    <EmptyDescription>
+                      보험 가입 승인 후 결제가 완료되면
+                      이곳에서 내역을 확인할 수 있습니다.
+                    </EmptyDescription>
+                  </EmptyHistory>
+                ) : (
+                  <PaymentHistoryList>
+                    {paymentHistoryList.map(
+                      (payment) => (
+                        <PaymentHistoryItem
+                          key={payment.paymentId}
+                        >
+                          <PaymentTopRow>
+                            <PaymentDate>
+                              {formatDateTime(
+                                payment.paidAt,
+                              )}
+                            </PaymentDate>
+
+                            <PaymentStatus
+                              $status={
+                                payment.paymentStatus
+                              }
+                            >
+                              {getPaymentStatusLabel(
+                                payment.paymentStatus,
+                              )}
+                            </PaymentStatus>
+                          </PaymentTopRow>
+
+                          <PaymentDivider />
+
+                          <PaymentInfoRow>
+                            <PaymentLabel>
+                              반려동물
+                            </PaymentLabel>
+
+                            <PaymentValue>
+                              {payment.petName || "-"}
+                            </PaymentValue>
+                          </PaymentInfoRow>
+
+                          <PaymentInfoRow>
+                            <PaymentLabel>
+                              보험 상품
+                            </PaymentLabel>
+
+                            <PaymentValue>
+                              {payment.productName || "-"}
+                            </PaymentValue>
+                          </PaymentInfoRow>
+
+                          <PaymentInfoRow>
+                            <PaymentLabel>
+                              결제 금액
+                            </PaymentLabel>
+
+                            <PaymentPrice>
+                              {formatPrice(
+                                payment.paymentAmount,
+                              )}
+                              원
+                            </PaymentPrice>
+                          </PaymentInfoRow>
+                        </PaymentHistoryItem>
+                      ),
+                    )}
+                  </PaymentHistoryList>
+                )}
+              </ModalBody>
+
+              <ModalFooter>
+                <ConfirmButton
+                  type="button"
+                  onClick={handleCloseModal}
+                >
+                  확인
+                </ConfirmButton>
+              </ModalFooter>
+            </ModalBox>
+          </ModalOverlay>,
+          document.body,
+        )}
+    </>
   );
 }
 
@@ -198,242 +326,518 @@ export default InsuranceEstimateSection;
 // =========================================================
 // 유틸 함수
 // =========================================================
-
 function getErrorMessage(error, defaultMessage) {
   return (
     error.response?.data?.message ||
     error.response?.data?.error ||
+    error.message ||
     defaultMessage
   );
 }
 
 function formatPrice(price) {
-  return Number(price).toLocaleString("ko-KR");
+  return Number(price || 0).toLocaleString(
+    "ko-KR",
+  );
 }
 
-function getToday() {
-  return new Date().toISOString().slice(0, 10);
+function formatDateTime(dateTimeValue) {
+  if (!dateTimeValue) {
+    return "-";
+  }
+
+  return new Date(
+    dateTimeValue,
+  ).toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function getPaymentStatusLabel(status) {
+  if (status === "SUCCESS") {
+    return "결제 완료";
+  }
+
+  if (status === "FAIL") {
+    return "결제 실패";
+  }
+
+  if (status === "CANCEL") {
+    return "결제 취소";
+  }
+
+  return status || "-";
 }
 
 // =========================================================
 // styled-components
 // =========================================================
-
-const EstimateSection = styled.section`
+const GuideSection = styled.section`
   position: relative;
 
   display: flex;
   flex-direction: column;
 
   width: 100%;
-  min-height: 700px;
-  padding: 30px 26px;
+  padding: 42px 26px;
 
   overflow: hidden;
 
-  border: 1px solid #dddddd;
+  border: 1px solid #dfe8e5;
   border-radius: 16px;
 
-  background: #ffffff;
+  background: linear-gradient(
+    145deg,
+    var(--color-white) 0%,
+    var(--color-white) 72%,
+    var(--color-bg-light) 100%
+  );
 
   box-sizing: border-box;
 `;
 
-const Title = styled.h2`
-  margin: 0;
+const GuideBadge = styled.span`
+  align-self: flex-start;
 
-  font-size: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 6px 10px;
+
+  border-radius: 999px;
+
+  background: var(--color-bg-light);
+
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: -0.5px;
-  color: #222222;
+  color: var(--color-main-dark);
+`;
+
+const Title = styled.h2`
+  margin: 15px 0 0;
+
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.7px;
+  color: var(--text-main);
 `;
 
 const Description = styled.p`
-  margin: 14px 0 0;
+  margin: 11px 0 0;
 
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.75;
-  color: #777777;
+  color: var(--text-desc);
 `;
 
 const Divider = styled.div`
   width: 100%;
   height: 1px;
-  margin: 22px 0;
 
-  background: #eeeeee;
+  margin: 19px 0;
+
+  background: #edf0ef;
 `;
 
-const InputGroup = styled.div`
+const GuideList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 9px;
-
-  margin-bottom: 18px;
+  gap: 15px;
 `;
 
-const Label = styled.label`
-  font-size: 14px;
-  font-weight: 700;
-  color: #444444;
+const GuideItem = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
 `;
 
-const Select = styled.select`
+const GuideNumber = styled.span`
+  flex-shrink: 0;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 23px;
+  height: 23px;
+
+  border-radius: 50%;
+
+  background: var(--color-bg-light);
+
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--color-main-dark);
+`;
+
+const GuideContent = styled.div`
+  min-width: 0;
+`;
+
+const GuideItemTitle = styled.p`
+  margin: 1px 0 0;
+
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-main);
+`;
+
+const GuideItemDescription = styled.p`
+  margin: 4px 0 0;
+
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-desc);
+`;
+
+const HistoryButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
   width: 100%;
-  height: 50px;
-  padding: 0 14px;
+  min-height: 44px;
 
-  border: 1px solid #dddddd;
+  margin-top: 21px;
+  padding: 0 13px;
+
+  border: 1px solid var(--color-mint);
   border-radius: 9px;
 
-  background: #ffffff;
+  background: var(--color-white);
 
-  font-size: 14px;
-  color: #444444;
-
-  outline: none;
-
-  &:focus {
-    border-color: #00ad83;
-  }
-
-  &:disabled {
-    background: #f7f7f7;
-    color: #999999;
-  }
-`;
-
-const Input = styled.input`
-  width: 100%;
-  height: 50px;
-  padding: 0 14px;
-
-  border: 1px solid #dddddd;
-  border-radius: 9px;
-
-  font-size: 14px;
-  color: #444444;
-
-  outline: none;
-
-  &:focus {
-    border-color: #00ad83;
-  }
-`;
-
-const CalculateButton = styled.button`
-  width: 100%;
-  height: 52px;
-  margin-top: 5px;
-
-  border: none;
-  border-radius: 9px;
-
-  background: #00ad83;
-
-  font-size: 15px;
-  font-weight: 700;
-  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-main-dark);
 
   cursor: pointer;
 
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease;
+
   &:hover {
-    background: #009b75;
+    border-color: var(--color-main);
+    background: var(--color-bg-light);
   }
 
   &:disabled {
-    background: #a7d9cd;
+    opacity: 0.65;
     cursor: default;
   }
 `;
 
-const ErrorMessage = styled.p`
-  margin: 14px 0 0;
+const ReceiptIcon = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 
-  font-size: 13px;
+  width: 23px;
+  height: 23px;
+
+  border-radius: 50%;
+
+  background: var(--color-bg-light);
+
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-main-dark);
+`;
+
+const ArrowIcon = styled.span`
+  margin-left: auto;
+
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--color-main-dark);
+`;
+
+const ErrorMessage = styled.p`
+  margin: 12px 0 0;
+
+  font-size: 12px;
   line-height: 1.55;
   color: #e74c3c;
 `;
 
-const ResultBox = styled.div`
-  margin-top: 20px;
-  padding: 20px 18px;
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
 
-  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  background: #effbf8;
+  padding: 20px;
+
+  background: rgba(0, 0, 0, 0.46);
 `;
 
-const ResultLabel = styled.p`
-  margin: 0;
-
-  font-size: 14px;
-  font-weight: 700;
-  color: #555555;
-`;
-
-const ResultPrice = styled.p`
-  margin: 8px 0 0;
-
-  font-size: 31px;
-  font-weight: 800;
-  color: #00ad83;
-`;
-
-const ResultUnit = styled.span`
-  margin-left: 3px;
-
-  font-size: 18px;
-  font-weight: 700;
-`;
-
-const ResultDetail = styled.p`
-  margin: 8px 0 0;
-
-  font-size: 13px;
-  color: #777777;
-`;
-
-const GuideBox = styled.div`
-  margin-top: auto;
-
-  padding-top: 30px;
-  padding-right: 95px;
-
-  position: relative;
-  z-index: 2;
-`;
-
-const GuideTitle = styled.h3`
-  margin: 0;
-
-  font-size: 16px;
-  font-weight: 800;
-  color: #333333;
-`;
-
-const GuideList = styled.ol`
+const ModalBox = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 10px;
 
-  margin: 14px 0 0;
-  padding-left: 20px;
+  width: min(560px, 100%);
+  max-height: 84vh;
 
-  font-size: 13px;
-  line-height: 1.65;
-  color: #666666;
+  overflow: hidden;
+
+  border-radius: 20px;
+
+  background: var(--color-white);
+
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
 `;
 
-const PetModelImage = styled.img`
-  position: absolute;
-  right: 18px;
-  bottom: 18px;
+const ModalHeader = styled.div`
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
 
-  z-index: 1;
+  padding: 24px 24px 18px;
 
-  width: 92px;
-  height: auto;
+  border-bottom: 1px solid #eeeeee;
+`;
 
-  object-fit: contain;
+const ModalBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 5px 10px;
+
+  border-radius: 999px;
+
+  background: var(--color-bg-light);
+
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-main-dark);
+`;
+
+const ModalTitle = styled.h2`
+  margin: 11px 0 0;
+
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--text-main);
+`;
+
+const ModalDescription = styled.p`
+  margin: 7px 0 0;
+
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-desc);
+`;
+
+const CloseButton = styled.button`
+  border: none;
+
+  background: transparent;
+
+  font-size: 27px;
+  line-height: 1;
+  color: var(--text-desc);
+
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-main);
+  }
+`;
+
+const ModalBody = styled.div`
+  overflow-y: auto;
+
+  padding: 20px 24px;
+`;
+
+const EmptyHistory = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  padding: 44px 20px;
+
+  border: 1px dashed #d8e5e1;
+  border-radius: 12px;
+
+  background: #fafdfc;
+
+  text-align: center;
+`;
+
+const EmptyIcon = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 42px;
+  height: 42px;
+
+  border-radius: 50%;
+
+  background: var(--color-bg-light);
+
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--color-main-dark);
+`;
+
+const EmptyTitle = styled.h3`
+  margin: 16px 0 0;
+
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-main);
+`;
+
+const EmptyDescription = styled.p`
+  max-width: 340px;
+
+  margin: 8px 0 0;
+
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--text-desc);
+`;
+
+const PaymentHistoryList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const PaymentHistoryItem = styled.article`
+  padding: 16px;
+
+  border: 1px solid #e7ecea;
+  border-radius: 12px;
+
+  background: var(--color-white);
+`;
+
+const PaymentTopRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+`;
+
+const PaymentDate = styled.span`
+  font-size: 12px;
+  color: var(--text-desc);
+`;
+
+const PaymentStatus = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 5px 9px;
+
+  border-radius: 999px;
+
+  background: ${({ $status }) => {
+    if ($status === "SUCCESS") {
+      return "var(--color-bg-light)";
+    }
+
+    if ($status === "FAIL") {
+      return "#fff3f1";
+    }
+
+    return "#f3f3f3";
+  }};
+
+  font-size: 11px;
+  font-weight: 700;
+
+  color: ${({ $status }) => {
+    if ($status === "SUCCESS") {
+      return "var(--color-main-dark)";
+    }
+
+    if ($status === "FAIL") {
+      return "#d45a4d";
+    }
+
+    return "var(--text-desc)";
+  }};
+`;
+
+const PaymentDivider = styled.div`
+  width: 100%;
+  height: 1px;
+
+  margin: 13px 0;
+
+  background: #eeeeee;
+`;
+
+const PaymentInfoRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  margin-top: 8px;
+`;
+
+const PaymentLabel = styled.span`
+  font-size: 12px;
+  color: var(--text-desc);
+`;
+
+const PaymentValue = styled.span`
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+`;
+
+const PaymentPrice = styled.span`
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-main-dark);
+`;
+
+const ModalFooter = styled.div`
+  display: flex;
+  justify-content: flex-end;
+
+  padding: 16px 24px 20px;
+
+  border-top: 1px solid #eeeeee;
+
+  background: var(--color-white);
+`;
+
+const ConfirmButton = styled.button`
+  min-width: 106px;
+  height: 42px;
+
+  border: none;
+  border-radius: 9px;
+
+  background: var(--color-main);
+
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--color-white);
+
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-main-dark);
+  }
 `;

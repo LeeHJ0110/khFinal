@@ -43,7 +43,6 @@ export async function requestInsurance({
   console.log("백엔드로 전송할 보험 가입 데이터:", data);
 
   fd.append("data", JSON.stringify(data));
-
   fd.append("medicalCertificate", medicalCertificate);
 
   return api.post("/petinsurance/application", fd);
@@ -59,6 +58,28 @@ export async function readySubscriptionPayment(applicationId) {
 // =========================================================
 // 보험 신청 취소 또는 가입 완료 보험 해지
 // =========================================================
-export async function cancelInsurance(applicationId) {
+export async function cancelInsuranceApplication(applicationId) {
   return api.patch(`/petinsurance/application/${applicationId}/cancel`);
+}
+
+// =========================================================
+// 관리자용 보험 가입 신청 목록 조회
+// SID 등록까지 완료된 WAITING 상태만 조회
+// =========================================================
+export async function fetchWaitingInsuranceApplicationList() {
+  return api.get("/petinsurance/admin/applications");
+}
+
+// =========================================================
+// 관리자 보험 가입 승인
+// 저장된 SID로 최초 월 보험료 결제 후 APPROVED 처리
+// =========================================================
+export async function approveInsuranceApplication(applicationId) {
+  return api.patch(`/petinsurance/application/${applicationId}/approve`);
+}
+// =========================================================
+// 사용자 본인의 펫 보험 정기결제 내역 조회
+// =========================================================
+export async function fetchMyInsurancePaymentHistory() {
+  return api.get("/petinsurance/payment/history");
 }
