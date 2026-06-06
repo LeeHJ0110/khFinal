@@ -30,8 +30,9 @@ public class BoardDetailResDto {
 
 
     private List<BoardFileResDto> fileList;
+    private List<BoardReplyResDto> replies;
 
-    public static BoardDetailResDto from(BoardEntity entity, List<BoardFileResDto> fileList) {
+    public static BoardDetailResDto from(BoardEntity entity, List<BoardFileResDto> fileList, List<BoardReplyResDto> replies, String writerProfileImageUrl) {
         return BoardDetailResDto.builder()
                 .boardId(entity.getId())
                 .boardCategory(entity.getCategory() != null ? entity.getCategory().toString() : null)
@@ -40,12 +41,13 @@ public class BoardDetailResDto {
                 .content(entity.getContent())
                 .writerNickname(entity.getWriter().getNickname())
                 .writerUsername(entity.getWriter().getUsername())
-                .writerProfileImageUrl(entity.getWriter().getProfileImageUrl())
+                .writerProfileImageUrl(writerProfileImageUrl)
                 .writerLevel(entity.getWriter().getLevelExp())
                 .hits(entity.getHits())
                 .stars(entity.getStars())
                 .createdAt(entity.getCreatedAt())
                 .fileList(fileList)
+                .replies(replies)
                 .build();
     }
 }

@@ -1,17 +1,18 @@
+import React, { useState, useEffect, Fragment } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
-import { useBoardDetail } from "../../features/board/hooks/useBoardDetail";
 import { useSelector } from "react-redux";
-import React, { useState, useEffect, Fragment } from "react";
-import { deleteBoardApi } from "../../features/board/api/boardApi";
-import BoardSubNavbar from "./components/BoardSubNavbar";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.bubble.css";
+
+import { useBoardDetail } from "../../features/board/hooks/useBoardDetail";
+import { deleteBoardApi, writeReplyApi, deleteReplyApi } from "../../features/board/api/boardApi";
+import BoardSubNavbar from "./components/BoardSubNavbar";
 
 export default function BoardDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { detail, isLoading, error } = useBoardDetail(id);
+  const { detail, isLoading, error, refetch } = useBoardDetail(id);
 
   const loginMember = useSelector((state) =>
     state.member.accessToken ? state.member : null,
@@ -68,41 +69,62 @@ export default function BoardDetailPage() {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
 
+  // 대댓글용 상태
+  const [activeReplyParentId, setActiveReplyParentId] = useState(null);
+  const [replyContent, setReplyContent] = useState("");
+
+  // 게시글 상세정보 수신 시 댓글 목록 동기화
+  useEffect(() => {
+    if (detail && detail.replies) {
+      setComments(detail.replies);
+    }
+  }, [detail]);
+
   //댓글 등록 핸들러
-  const handleCommentSubmit = (e) => {
+  const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!newComment.trim()) {
       return;
     }
 
-    const loggedInUser = loginMember;
+    try {
+      await writeReplyApi(id, newComment.trim());
+      setNewComment("");
+      refetch();
+    } catch (err) {
+      console.error("댓글 등록 실패:", err);
+      alert("댓글 등록에 실패했습니다.");
+    }
+  };
 
-    const newCommentObj = {
-      id: Date.now(),
-      writerNickname: loggedInUser?.nickname || "게스트",
-      writerLevel: loggedInUser?.levelExp || 1,
-      content: newComment.trim(),
-      createdAt:
-        new Date().toLocaleDateString("ko-KR", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-        }) +
-        " " +
-        new Date().toLocaleTimeString("ko-KR", {
-          hour12: false,
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-      profileImageUrl:
-        loggedInUser?.profileImageUrl ||
-        "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=120&q=80",
-      replies: [],
-    };
+  // 대댓글 등록 핸들러
+  const handleReplySubmit = async (e, parentId) => {
+    e.preventDefault();
+    if (!replyContent.trim()) {
+      return;
+    }
 
-    // 댓글 등록하면 등글 작성칸 비우기
-    setComments((prevComments) => [...prevComments, newCommentObj]);
-    setNewComment("");
+    try {
+      await writeReplyApi(id, replyContent.trim(), parentId);
+      setReplyContent("");
+      setActiveReplyParentId(null);
+      refetch();
+    } catch (err) {
+      console.error("답글 등록 실패:", err);
+      alert("답글 등록에 실패했습니다.");
+    }
+  };
+
+  // 댓글 삭제 핸들러
+  const handleCommentDelete = async (replyId) => {
+    if (!window.confirm("정말로 이 댓글을 삭제하시겠습니까?")) return;
+    try {
+      await deleteReplyApi(replyId);
+      refetch();
+    } catch (err) {
+      console.error("댓글 삭제 실패:", err);
+      alert("댓글 삭제에 실패했습니다.");
+    }
   };
 
   // 게시글 수정 이동 핸들러
@@ -324,18 +346,35 @@ export default function BoardDetailPage() {
                   {/* 메인 댓글 */}
                   <CommentItem>
                     <CommentAvatar
-                      src={comment.profileImageUrl}
+                      src={comment.profileImageUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=120&q=80"}
                       alt={comment.writerNickname}
                     />
 
                     <CommentContentBox>
                       <CommentMetaRow>
                         <LevelBadge>Lv.{comment.writerLevel}</LevelBadge>
-                        <CommentAuthor>Lv.{comment.writerLevel}</CommentAuthor>
+                        <CommentAuthor>{comment.writerNickname}</CommentAuthor>
+                        {comment.isAuthor && <AuthorBadge>작성자</AuthorBadge>}
                       </CommentMetaRow>
                       <CommentText>{comment.content}</CommentText>
                       <CommentFooterRow>
-                        <CommentActionLink>답글달기</CommentActionLink>
+                        {loginMember && (
+                          <CommentActionLink onClick={() => {
+                            if (activeReplyParentId === comment.id) {
+                              setActiveReplyParentId(null);
+                            } else {
+                              setActiveReplyParentId(comment.id);
+                              setReplyContent("");
+                            }
+                          }}>
+                            {activeReplyParentId === comment.id ? "취소" : "답글달기"}
+                          </CommentActionLink>
+                        )}
+                        {(loginMember?.nickname === comment.writerNickname || JSON.parse(localStorage.getItem("loginMember"))?.role === "ADMIN") && (
+                          <CommentReportLink style={{ color: "#ff6b6b" }} onClick={() => handleCommentDelete(comment.id)}>
+                            삭제
+                          </CommentReportLink>
+                        )}
                         <CommentReportLink
                           onClick={() => alert("신고되었습니다.")}
                         >
@@ -345,6 +384,18 @@ export default function BoardDetailPage() {
                     </CommentContentBox>
                   </CommentItem>
 
+                  {/* 대댓글 작성 창 */}
+                  {activeReplyParentId === comment.id && (
+                    <ReplyInputForm onSubmit={(e) => handleReplySubmit(e, comment.id)}>
+                      <ReplyTextarea
+                        placeholder="답글을 남겨보세요"
+                        value={replyContent}
+                        onChange={(e) => setReplyContent(e.target.value)}
+                      />
+                      <ReplySubmitButton type="submit">등록</ReplySubmitButton>
+                    </ReplyInputForm>
+                  )}
+
                   {/*대댓글 */}
                   {comment.replies &&
                     comment.replies.map((reply) => (
@@ -352,21 +403,26 @@ export default function BoardDetailPage() {
                         <ReplyIndentArrow>↳</ReplyIndentArrow>
                         <ReplyContentCard>
                           <CommentAvatar
-                            src={reply.profileImageUrl}
+                            src={reply.profileImageUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=120&q=80"}
                             alt={reply.writerNickname}
                           />
                           <CommentContentBox>
                             <CommentMetaRow>
-                              {reply.isAuthor && (
-                                <AuthorBadge>작성자</AuthorBadge>
-                              )}
                               <LevelBadge>Lv.{reply.writerLevel}</LevelBadge>
                               <CommentAuthor>
                                 {reply.writerNickname}
                               </CommentAuthor>
+                              {reply.isAuthor && (
+                                <AuthorBadge>작성자</AuthorBadge>
+                              )}
                             </CommentMetaRow>
                             <CommentText>{reply.content}</CommentText>
                             <CommentFooterRow>
+                              {(loginMember?.nickname === reply.writerNickname || JSON.parse(localStorage.getItem("loginMember"))?.role === "ADMIN") && (
+                                <CommentReportLink style={{ color: "#ff6b6b" }} onClick={() => handleCommentDelete(reply.id)}>
+                                  삭제
+                                </CommentReportLink>
+                              )}
                               <CommentReportLink
                                 onClick={() => alert("신고되었습니다")}
                               >
@@ -974,5 +1030,44 @@ const PageNumber = styled.button`
   &:hover:not([disabled]) {
     border-color: var(--color-main);
     color: ${(props) => (props.$active ? "#ffffff" : "var(--color-main)")};
+  }
+`;
+
+const ReplyInputForm = styled.form`
+  display: flex;
+  gap: 12px;
+  margin: 10px 0 10px 44px;
+`;
+
+const ReplyTextarea = styled.textarea`
+  flex: 1;
+  height: 50px;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  outline: none;
+  resize: none;
+  font-family: inherit;
+
+  &:focus {
+    border-color: var(--color-main);
+  }
+`;
+
+const ReplySubmitButton = styled.button`
+  width: 60px;
+  height: 50px;
+  background-color: var(--color-main);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: var(--color-main-dark);
   }
 `;

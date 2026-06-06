@@ -11,11 +11,14 @@ import {
   LatestNewsWidget,
 } from "./components/BoardHomeWidgets";
 
-const MAIN_BANNER_URL = "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/Group+306.png";
-const EVENT_BANNER_URL = "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/Group+305.png";
-const HEALTH_BANNER_URL = "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/Group+295.png";
-const SHORTCUTS_BANNER_URL = "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/Group+315.png";
-
+const MAIN_BANNER_URL =
+  "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/Group+306.png";
+const EVENT_BANNER_URL =
+  "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/Group+305.png";
+const HEALTH_BANNER_URL =
+  "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/Group+295.png";
+const SHORTCUTS_BANNER_URL =
+  "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/Group+315.png";
 
 export default function BoardHome() {
   const navigate = useNavigate();
@@ -183,7 +186,7 @@ const HomeContentWrapper = styled.div`
   padding: 40px var(--layout-padding-x) 80px var(--layout-padding-x);
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 60px;
 `;
 
 // ==========================================
@@ -192,7 +195,7 @@ const HomeContentWrapper = styled.div`
 
 const MainLayout = styled.div`
   display: flex;
-  gap: 30px;
+  gap: 15px;
   width: 100%;
   align-items: flex-start;
 `;
@@ -201,15 +204,15 @@ const LeftContent = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 15px;
   min-width: 0;
 `;
 
 const RightSidebar = styled.div`
-  width: 420px;
+  width: 504px;
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 15px;
   flex-shrink: 0;
 `;
 
@@ -218,8 +221,8 @@ const RightSidebar = styled.div`
 // ==========================================
 
 const HeroBanner = styled.div`
-  width: 100%;
-  height: 290px;
+  width: 1271px;
+  height: 361px;
   background: url(${MAIN_BANNER_URL}) no-repeat center/cover;
   border-radius: 16px;
   cursor: pointer;
@@ -237,8 +240,8 @@ const HeroBanner = styled.div`
 // ==========================================
 
 const EventCard = styled.div`
-  width: 100%;
-  height: 155px;
+  width: 504px;
+  height: 201px;
   background: url(${EVENT_BANNER_URL}) no-repeat center/cover;
   border-radius: 12px;
   cursor: pointer;
@@ -259,7 +262,8 @@ const ShortcutRow = styled.div`
 
 const ShortcutButton = styled.div`
   flex: 1;
-  height: 140px;
+  width: 244px;
+  height: 146px;
   background-image: url(${SHORTCUTS_BANNER_URL});
   background-repeat: no-repeat;
   background-size: 200% 100%;
@@ -277,8 +281,8 @@ const ShortcutButton = styled.div`
 `;
 
 const HealthCard = styled.div`
-  width: 100%;
-  height: 155px;
+  width: 504px;
+  height: 254px;
   background: url(${HEALTH_BANNER_URL}) no-repeat center/cover;
   border-radius: 12px;
   cursor: pointer;
@@ -298,12 +302,12 @@ const HealthCard = styled.div`
 const DashboardGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 30px;
-  width: 100%;
+  gap: 15px;
+  width: 1269px;
 `;
 
 const GridColumn = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 15px;
 `;

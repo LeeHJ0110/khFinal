@@ -39,3 +39,14 @@ export const deleteBoardApi = async (boardId) => {
   });
   return resp.data;
 };
+
+export async function writeReplyApi(boardId, content, parentId = null) {
+  return await api.post(`/board/${boardId}/reply`, {
+    content,
+    parentId,
+  });
+}
+
+export async function deleteReplyApi(replyId) {
+  return await api.delete(`/board/reply/${replyId}`);
+}
