@@ -39,6 +39,11 @@ public class BoardReplyService {
         if (reqDto.getParentId() != null) {
             BoardReplyEntity parent = boardReplyRepository.findById(reqDto.getParentId())
                     .orElseThrow(() -> new EntityNotFoundException("PARENT REPLY NOT FOUND"));
+            
+            // 대댓글에 다시 대댓글을 다는 경우(뎁스 3단계 이상) 제한
+            if (parent.getParent() != null) {
+                throw new IllegalStateException("대댓글에는 답글을 달 수 없습니다. 최대 2단계까지만 지원합니다.");
+            }
             builder.parent(parent);
         }
 
@@ -58,6 +63,6 @@ public class BoardReplyService {
             throw new IllegalStateException("NO PERMISSION TO DELETE REPLY");
         }
 
-        boardReplyRepository.delete(reply);
+        reply.delete();
     }
 }
