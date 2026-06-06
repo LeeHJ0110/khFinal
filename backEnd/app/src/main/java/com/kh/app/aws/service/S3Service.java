@@ -29,7 +29,7 @@ public class S3Service {
 
         s3Client.putObject(
                 PutObjectRequest.builder()
-                        .bucket(bucket)
+                        .bucket(bucket.trim())
                         .key(s3key)
                         .contentType(file.getContentType())
                         .contentLength(file.getSize())

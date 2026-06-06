@@ -16,6 +16,10 @@ import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.entity.MemberRole;
 import com.kh.app.aws.service.S3Service;
 import com.kh.app.member.repository.MemberRepository;
+import com.kh.app.board.dto.response.BoardReplyResDto;
+import com.kh.app.board.entity.BoardReplyEntity;
+import com.kh.app.board.repository.BoardReplyRepository;
+import java.time.format.DateTimeFormatter;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +45,7 @@ public class BoardService {
     private final BoardRepository boardRepository;
     private final MemberRepository memberRepository;
     private final BoardFileRepository boardFileRepository;
+    private final BoardReplyRepository boardReplyRepository;
     private final S3Service s3Service;
 
     @Value("${cloud.aws.s3.bucket}")
@@ -68,7 +73,63 @@ public class BoardService {
                 })
                 .toList();
 
-        return BoardDetailResDto.from(entity, fileList);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm");
+
+        // 1. 최상위 댓글 조회
+        List<BoardReplyEntity> rootReplies = boardReplyRepository.findByBoardAndParentIsNullOrderByCreatedAtAsc(entity);
+
+        // 2. DTO 변환 및 대댓글 매핑 (부모 댓글이 삭제되었고 대댓글 또한 삭제되었거나 존재하지 않는다면 필터링)
+        List<BoardReplyResDto> replyList = rootReplies.stream()
+                .filter(reply -> {
+                    // 부모 댓글이 삭제되지 않은 경우 노출
+                    if (reply.getDelYn() == DelYn.N) {
+                        return true;
+                    }
+                    // 부모 댓글이 삭제된 경우, 대댓글 중 삭제되지 않은 것이 하나라도 있으면 노출 (그렇지 않으면 완전히 숨김)
+                    return reply.getChildren().stream()
+                            .anyMatch(child -> child.getDelYn() == DelYn.N);
+                })
+                .map(reply -> {
+                    List<BoardReplyResDto> childReplies = reply.getChildren().stream()
+                            .map(child -> {
+                                String childContent = child.getDelYn() == DelYn.Y ? "삭제된 댓글입니다." : child.getContent();
+                                String childNickname = child.getDelYn() == DelYn.Y ? "" : child.getMember().getNickname();
+                                Long childLevel = child.getDelYn() == DelYn.Y ? 0L : child.getMember().getLevelExp();
+                                String childProfileUrl = child.getDelYn() == DelYn.Y ? "" : s3Service.getFileUrl(child.getMember().getProfileImageUrl());
+                                Boolean childIsAuthor = child.getDelYn() == DelYn.Y ? false : child.getMember().getId().equals(entity.getWriter().getId());
+
+                                return BoardReplyResDto.builder()
+                                        .id(child.getId())
+                                        .writerNickname(childNickname)
+                                        .writerLevel(childLevel)
+                                        .content(childContent)
+                                        .createdAt(child.getCreatedAt() != null ? child.getCreatedAt().format(formatter) : "")
+                                        .profileImageUrl(childProfileUrl)
+                                        .isAuthor(childIsAuthor)
+                                        .build();
+                            }).toList();
+
+                    String parentContent = reply.getDelYn() == DelYn.Y ? "삭제된 댓글입니다." : reply.getContent();
+                    String parentNickname = reply.getDelYn() == DelYn.Y ? "" : reply.getMember().getNickname();
+                    Long parentLevel = reply.getDelYn() == DelYn.Y ? 0L : reply.getMember().getLevelExp();
+                    String parentProfileUrl = reply.getDelYn() == DelYn.Y ? "" : s3Service.getFileUrl(reply.getMember().getProfileImageUrl());
+                    Boolean parentIsAuthor = reply.getDelYn() == DelYn.Y ? false : reply.getMember().getId().equals(entity.getWriter().getId());
+
+                    return BoardReplyResDto.builder()
+                            .id(reply.getId())
+                            .writerNickname(parentNickname)
+                            .writerLevel(parentLevel)
+                            .content(parentContent)
+                            .createdAt(reply.getCreatedAt() != null ? reply.getCreatedAt().format(formatter) : "")
+                            .profileImageUrl(parentProfileUrl)
+                            .isAuthor(parentIsAuthor)
+                            .replies(childReplies)
+                            .build();
+                }).toList();
+
+        String writerProfileUrl = s3Service.getFileUrl(entity.getWriter().getProfileImageUrl());
+
+        return BoardDetailResDto.from(entity, fileList, replyList, writerProfileUrl);
     }
 
     @Transactional
@@ -191,7 +252,7 @@ public class BoardService {
                         String savedFilename = s3Service.upload(multipartFile, "board");
 
                         String s3KeyPath = savedFilename.startsWith("board/") ? savedFilename : "board/" + savedFilename;
-                        String s3FullUrl = "https://" + bucketName + ".s3.ap-northeast-2.amazonaws.com/" + s3KeyPath;
+                        String s3FullUrl = "https://" + bucketName.trim() + ".s3.ap-northeast-2.amazonaws.com/" + s3KeyPath;
 
                         BoardFileEntity boardFile = BoardFileEntity.builder()
                                 .boardEntity(boardEntity)
@@ -223,7 +284,7 @@ public class BoardService {
                     String savedFilename = s3Service.upload(file, "board");
 
                     String s3KeyPath = savedFilename.startsWith("board/") ? savedFilename : "board/" + savedFilename;
-                    String s3FullUrl = "https://" + bucketName + ".s3.ap-northeast-2.amazonaws.com/" + s3KeyPath;
+                    String s3FullUrl = "https://" + bucketName.trim() + ".s3.ap-northeast-2.amazonaws.com/" + s3KeyPath;
 
                     BoardFileEntity boardFile = BoardFileEntity.builder()
                             .boardEntity(boardEntity)
