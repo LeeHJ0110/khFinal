@@ -45,7 +45,22 @@ export default function PetStoreOrderPage() {
     }
 
     try {
-      const payload = JSON.parse(atob(accessToken.split(".")[1]));
+      const payloadBase64Url = accessToken.split(".")[1];
+
+      const payloadBase64 = payloadBase64Url
+        .replace(/-/g, "+")
+        .replace(/_/g, "/");
+
+      const paddedPayloadBase64 =
+        payloadBase64 + "=".repeat((4 - (payloadBase64.length % 4)) % 4);
+
+      const binaryString = atob(paddedPayloadBase64);
+
+      const bytes = Uint8Array.from(binaryString, (char) => char.charCodeAt(0));
+
+      const decodedPayload = new TextDecoder("utf-8").decode(bytes);
+
+      const payload = JSON.parse(decodedPayload);
 
       setOrdererName(payload.nickname || payload.username || "회원");
     } catch (error) {
