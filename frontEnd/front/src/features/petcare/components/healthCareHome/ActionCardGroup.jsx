@@ -9,7 +9,7 @@ const CARDS = [
     title: "진단 신청하기",
     description: "전문 수의사에게\n글과 사진으로 건강상태를\n질문해 보세요",
     src: glassImg,
-    path: "/diagnosis/request",
+    path: "/healthCare/requesthome",
   },
   {
     id: "diagnosis-result",
@@ -17,7 +17,7 @@ const CARDS = [
     description:
       "수의사가 작성한 진단 결과를\n확인해 건강상태를\n확인해 보세요",
     src: pawprint,
-    path: "/diagnosis/result",
+    path: "/healthCare/result",
   },
 ];
 
