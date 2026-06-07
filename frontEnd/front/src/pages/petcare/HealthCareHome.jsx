@@ -204,47 +204,37 @@ const Wrapper = styled.main`
 
 const PetCard = styled.section`
   padding: 24px;
-
   border-radius: 12px;
-
   display: flex;
   gap: 20px;
 `;
+
 const PetImage = styled.div`
   width: 110px;
   height: 110px;
-
   flex-shrink: 0;
-
   border-radius: 50%;
-
   border: 3px solid white;
-
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 `;
 const PetInfo = styled.div`
   flex: 1;
 `;
+
 const PetName = styled.h2`
   margin: 0 0 16px;
-
   font-size: 30px;
   font-weight: 700;
 `;
 const InfoRow = styled.div`
   display: flex;
-
   gap: 12px;
-
   margin-bottom: 8px;
-
   font-size: 14px;
-
   span {
     width: 60px;
     color: #666;
   }
-
   strong {
     color: #333;
   }
