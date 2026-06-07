@@ -185,8 +185,8 @@ public class BoardService {
                 : com.kh.app.board.entity.BoardCategory.FREE;
 
         if (categoryEnum == com.kh.app.board.entity.BoardCategory.FAQ) {
-            if (memberEntity.getRole() != MemberRole.A) {
-                throw new IllegalStateException("Only ADMIN can create FAQ posts.");
+            if (memberEntity.getRole() != MemberRole.A && memberEntity.getRole() != MemberRole.B) {
+                throw new IllegalStateException("Only ADMIN or BOARD manager can create FAQ posts.");
             }
         }
 
@@ -213,12 +213,12 @@ public class BoardService {
 
         if (boardEntity.getCategory() == com.kh.app.board.entity.BoardCategory.FAQ ||
             categoryEnum == com.kh.app.board.entity.BoardCategory.FAQ) {
-            if (memberEntity.getRole() != MemberRole.A) {
-                throw new IllegalStateException("Only ADMIN can manage FAQ posts.");
+            if (memberEntity.getRole() != MemberRole.A && memberEntity.getRole() != MemberRole.B) {
+                throw new IllegalStateException("Only ADMIN or BOARD manager can manage FAQ posts.");
             }
         }
 
-        if (!boardEntity.getWriter().getUsername().equals(username) && memberEntity.getRole() != MemberRole.A) {
+        if (!boardEntity.getWriter().getUsername().equals(username) && memberEntity.getRole() != MemberRole.A && memberEntity.getRole() != MemberRole.B) {
             throw new IllegalStateException("NO PERMISSION TO UPDATE BOARD ........");
         }
 

@@ -68,7 +68,7 @@ public class BoardReplyService {
                 .orElseThrow(() -> new EntityNotFoundException("MEMBER NOT FOUND"));
 
         // 본인 글이거나 관리자일 때만 삭제 허용
-        if (!reply.getMember().getUsername().equals(username) && member.getRole() != MemberRole.A) {
+        if (!reply.getMember().getUsername().equals(username) && member.getRole() != MemberRole.A && member.getRole() != MemberRole.B) {
             throw new IllegalStateException("NO PERMISSION TO DELETE REPLY");
         }
 
