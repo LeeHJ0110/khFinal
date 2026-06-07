@@ -49,6 +49,15 @@ public class PetInsuranceApplicationEntity extends BaseEntity {
     @JoinColumn(name = "PET_ID", nullable = false)
     private PetEntity pet;
 
+    // 신청 당시 확정된 월 보험료
+    // 상품 기본 가격 + 나이별 추가 보험료
+    @Column(name = "MONTHLY_PRICE", nullable = false)
+    private Long monthlyPrice;
+
+    public void updateMonthlyPrice(Long monthlyPrice) {
+        this.monthlyPrice = monthlyPrice;
+    }
+
     public void updateKakaoPayTid(String kakaoPayTid) {
         this.kakaoPayTid = kakaoPayTid;
     }

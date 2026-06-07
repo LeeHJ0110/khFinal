@@ -1,35 +1,147 @@
 import React from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 
 import petModel1 from "../../features/petInsurance/img/보험모델.png";
+import petModel2 from "../../features/petInsurance/img/발자국.png";
 
 function InsuranceHeroSection() {
   return (
     <HeroWrapper>
-      <TextArea>
-        <BrandText>PET&I FOR</BrandText>
+      <DotPattern />
 
-        <Title>스마트 펫 보험</Title>
+      <HeroInner>
+        <TextArea>
+          <BrandText>PET&I FOR</BrandText>
 
-        <Description>
-          반려동물에게 꼭 필요한 보장을
-          <br />
-          간편하게 준비해 보세요.
-        </Description>
+          <Title>
+            우리 아이를 위한
+            <br />
+            <Highlight>스마트 펫 보험</Highlight>
+          </Title>
 
-        <Badge>우리 아이를 위한 든든한 선택</Badge>
-      </TextArea>
+          <Description>
+            꼭 필요한 보장만 간편하게 준비하고
+            <br />
+            정기결제 내역까지 한 번에 관리해 보세요.
+          </Description>
 
-      <ImageArea>
-        <HeroImage src={petModel1} alt="펫 보험 소개 이미지" />
-      </ImageArea>
+          <FeatureRow>
+            <FeatureChip>맞춤 보험료</FeatureChip>
+            <FeatureChip>간편 가입</FeatureChip>
+            <FeatureChip>정기결제 관리</FeatureChip>
+          </FeatureRow>
+        </TextArea>
 
-      <BackgroundCircle />
+       {/* 발자국 장식 영역 */}
+<PawDecorationArea>
+  <PawItem $left="4%" $top="66%" $delay="0s">
+    <PawImage
+      src={petModel2}
+      alt=""
+      $size="25px"
+      $rotate="-18deg"
+    />
+  </PawItem>
+
+  <PawItem $left="17%" $top="42%" $delay="0.45s">
+    <PawImage
+      src={petModel2}
+      alt=""
+      $size="30px"
+      $rotate="15deg"
+    />
+  </PawItem>
+
+  <PawItem $left="29%" $top="70%" $delay="0.9s">
+    <PawImage
+      src={petModel2}
+      alt=""
+      $size="27px"
+      $rotate="-12deg"
+    />
+  </PawItem>
+
+  <PawItem $left="42%" $top="36%" $delay="1.35s">
+    <PawImage
+      src={petModel2}
+      alt=""
+      $size="34px"
+      $rotate="18deg"
+    />
+  </PawItem>
+
+  <PawItem $left="55%" $top="62%" $delay="1.8s">
+    <PawImage
+      src={petModel2}
+      alt=""
+      $size="29px"
+      $rotate="-14deg"
+    />
+  </PawItem>
+
+  <PawItem $left="67%" $top="30%" $delay="2.25s">
+    <PawImage
+      src={petModel2}
+      alt=""
+      $size="32px"
+      $rotate="16deg"
+    />
+  </PawItem>
+
+  <PawItem $left="78%" $top="57%" $delay="2.7s">
+    <PawImage
+      src={petModel2}
+      alt=""
+      $size="26px"
+      $rotate="-12deg"
+    />
+  </PawItem>
+
+  <PawItem $left="89%" $top="38%" $delay="3.15s">
+    <PawImage
+      src={petModel2}
+      alt=""
+      $size="29px"
+      $rotate="14deg"
+    />
+  </PawItem>
+</PawDecorationArea>
+
+        {/* 오른쪽 펫 이미지 */}
+        <ImageArea>
+          <ImageHalo />
+          <HeroImage src={petModel1} alt="펫 보험 소개 이미지" />
+        </ImageArea>
+
+        <LargeCircle />
+        <SmallCircle />
+      </HeroInner>
     </HeroWrapper>
   );
 }
 
 export default InsuranceHeroSection;
+
+// =========================================================
+// animation
+// =========================================================
+
+const pawFloat = keyframes`
+  0% {
+    transform: translateY(0);
+    opacity: 0.14;
+  }
+
+  50% {
+    transform: translateY(-6px);
+    opacity: 0.28;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 0.14;
+  }
+`;
 
 // =========================================================
 // styled-components
@@ -39,113 +151,293 @@ const HeroWrapper = styled.section`
   position: relative;
 
   width: 100%;
-  height: 245px;
+  margin: 0;
+  padding: 0;
+
+  overflow: hidden;
+
+  background: linear-gradient(
+    120deg,
+    var(--color-bg-soft) 0%,
+    var(--color-bg-light) 58%,
+    #f7fffc 100%
+  );
+
+  box-sizing: border-box;
+`;
+
+const HeroInner = styled.div`
+  position: relative;
 
   display: flex;
   align-items: center;
   justify-content: space-between;
 
-  padding: 28px 36px;
+  width: min(
+    var(--layout-max-width),
+    calc(100% - (var(--layout-padding-x) * 2))
+  );
+
+  height: 230px;
+
+  margin: 0 auto;
+  padding: 26px 34px;
 
   overflow: hidden;
-
-  border-radius: 18px;
-
-  background: color-mix(in srgb, var(--color-bg-soft) 50%, var(--color-white));
 
   box-sizing: border-box;
 
   @media (max-width: 900px) {
-    height: 260px;
+    height: 220px;
+    padding: 24px 28px;
   }
 
   @media (max-width: 640px) {
-    height: 280px;
+    height: 205px;
+    padding: 20px;
   }
 `;
 
 const TextArea = styled.div`
   position: relative;
-  z-index: 2;
+  z-index: 6;
+
+  width: 320px;
+  flex-shrink: 0;
+
+  transform: translateX(60px);
+
+  @media (max-width: 900px) {
+    transform: translateX(-12px);
+  }
+
+  @media (max-width: 640px) {
+    transform: none;
+  }
 `;
 
 const BrandText = styled.p`
   margin: 0;
 
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 1.8px;
-  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 2px;
+
+  color: var(--color-main-dark);
 `;
 
 const Title = styled.h1`
   margin: 8px 0 0;
 
   font-size: 34px;
-  font-weight: 800;
-  letter-spacing: -1px;
-  color: var(--color-text-primary);
+  font-weight: 900;
+  line-height: 1.18;
+  letter-spacing: -1.4px;
+
+  color: var(--text-main);
+
+  @media (max-width: 640px) {
+    font-size: 27px;
+  }
+`;
+
+const Highlight = styled.span`
+  color: var(--color-main-dark);
 `;
 
 const Description = styled.p`
   margin: 12px 0 0;
 
   font-size: 14px;
-  line-height: 1.7;
-  color: var(--color-text-secondary);
+  line-height: 1.75;
+
+  color: var(--text-sub);
+
+  @media (max-width: 640px) {
+    font-size: 12px;
+  }
 `;
 
-const Badge = styled.span`
+const FeatureRow = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+
+  margin-top: 15px;
+
+  @media (max-width: 640px) {
+    display: none;
+  }
+`;
+
+const FeatureChip = styled.span`
   display: inline-flex;
   align-items: center;
+  justify-content: center;
 
-  margin-top: 16px;
-  padding: 7px 13px;
+  padding: 6px 10px;
 
-  border: 1px solid
-    color-mix(in srgb, var(--color-primary) 35%, var(--color-white));
+  border: 1px solid rgba(0, 169, 123, 0.2);
+  border-radius: 999px;
 
-  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.64);
 
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-  color: var(--color-primary);
+
+  color: var(--color-main-dark);
 `;
+
+/* =========================================================
+   발자국 영역
+========================================================= */
+
+const PawDecorationArea = styled.div`
+  position: absolute;
+
+  left: 390px;
+  right: clamp(245px, 17vw, 300px);
+  top: 0;
+  bottom: 0;
+
+  z-index: 3;
+
+  pointer-events: none;
+
+  @media (max-width: 1100px) {
+    left: 340px;
+    right: 235px;
+  }
+
+  @media (max-width: 760px) {
+    display: none;
+  }
+`;
+
+const PawItem = styled.div`
+  position: absolute;
+
+  left: ${({ $left }) => $left};
+  top: ${({ $top }) => $top};
+
+  animation: ${pawFloat} 3.8s ease-in-out infinite;
+  animation-delay: ${({ $delay }) => $delay};
+`;
+
+const PawImage = styled.img`
+  display: block;
+
+  width: ${({ $size }) => $size};
+  height: auto;
+
+  object-fit: contain;
+
+  transform: rotate(${({ $rotate }) => $rotate});
+`;
+
+/* =========================================================
+   펫 모델 영역
+   - 여기에는 애니메이션 없음
+========================================================= */
 
 const ImageArea = styled.div`
   position: absolute;
-  right: 150px;
+
+  right: clamp(10px, 5vw, 20px);
   bottom: 0;
 
-  z-index: 20;
+  z-index: 5;
 
   display: flex;
   align-items: flex-end;
   justify-content: center;
 
-  width: 320px;
+  width: clamp(235px, 22vw, 350px);
   height: 100%;
+
+  @media (max-width: 640px) {
+    right: -20px;
+    width: 205px;
+  }
 `;
 
-const HeroImage = styled.img`
-  display: block;
-
-  width: 100%;
-  max-height: 235px;
-
-  object-fit: contain;
-  object-position: center bottom;
-`;
-
-const BackgroundCircle = styled.div`
+const ImageHalo = styled.div`
   position: absolute;
-  right: -80px;
-  bottom: -140px;
 
-  width: 360px;
-  height: 360px;
+  left: 50%;
+  bottom: 8px;
+
+  width: 205px;
+  height: 205px;
 
   border-radius: 50%;
 
-  background: color-mix(in srgb, var(--color-white) 36%, transparent);
+  background: rgba(255, 255, 255, 0.56);
+
+  transform: translateX(-50%);
+`;
+
+const HeroImage = styled.img`
+  position: relative;
+  z-index: 2;
+  display: block;
+
+  width: 100%;
+  max-height: 250px;
+
+  object-fit: contain;
+  object-position: center bottom;
+
+  @media (max-width: 640px) {
+    max-height: 188px;
+  }
+`;
+
+const LargeCircle = styled.div`
+  position: absolute;
+
+  right: -100px;
+  bottom: -180px;
+
+  width: 430px;
+  height: 430px;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.34);
+`;
+
+const SmallCircle = styled.div`
+  position: absolute;
+
+  right: 300px;
+  top: -100px;
+
+  width: 230px;
+  height: 230px;
+
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.2);
+
+  @media (max-width: 700px) {
+    display: none;
+  }
+`;
+
+const DotPattern = styled.div`
+  position: absolute;
+  inset: 0;
+
+  opacity: 0.22;
+
+  background-image: radial-gradient(
+    rgba(0, 169, 123, 0.22) 1px,
+    transparent 1px
+  );
+
+  background-size: 18px 18px;
+
+  pointer-events: none;
 `;
