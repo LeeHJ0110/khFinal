@@ -40,9 +40,10 @@ public class DiagnosisReqEntity extends BaseEntity {
     )
     private List<SelfDiagnosisAnswerEntity> answerList;
 
-    // 진단 완료 처리
-    // 진행 중 상태(Y)를 완료 상태(N)로 변경
-    public void completeDiagnosis() {
+    // 진행 중 상태 해제
+    public void closeDiagnosis() {
         this.diagnosisReqStatus = DelYn.N;
     }
+
+
 }

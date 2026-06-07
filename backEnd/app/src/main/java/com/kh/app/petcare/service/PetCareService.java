@@ -165,7 +165,7 @@ public class PetCareService {
                                 )
                         );
 
-        diagnosisReq.completeDiagnosis();
+        diagnosisReq.closeDiagnosis();
     }
 //s3저장
     private void saveImages(
@@ -319,4 +319,34 @@ public Page<DiagnosisResDto> requestDiagnosisList(int pno) {
              })
              .toList();
  }
+    // =========================================================
+// 건강진단 신청 반려
+//
+// 현재 구조에서는 diagnosisReqStatus가
+// Y = 진행 중
+// N = 진행 종료
+//
+// 반려 시 N으로 변경하여
+// 사용자가 동일한 펫으로 다시 신청할 수 있도록 함
+// =========================================================
+    @Transactional
+    public void rejectDiagnosis(Long diagnosisReqId) {
+
+        DiagnosisReqEntity diagnosisReq =
+                diagnosisReqRepository.findById(diagnosisReqId)
+                        .orElseThrow(
+                                () -> new IllegalArgumentException(
+                                        "건강진단 신청 정보를 찾을 수 없습니다."
+                                )
+                        );
+
+        // 반려 시 진행 상태 해제
+        // 다시 건강진단 신청 가능
+        diagnosisReq.closeDiagnosis();
+
+        log.info(
+                "건강진단 신청 반려 처리 완료 - diagnosisReqId: {}",
+                diagnosisReqId
+        );
+    }
     }

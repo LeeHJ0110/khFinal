@@ -105,4 +105,20 @@ public class PetCareController {
 
         return ResponseEntity.ok().build();
     }
+    // =========================================================
+// 건강진단 신청 반려
+//
+// 제출 이미지가 부적절하거나 자료가 부족한 경우
+// 진행 상태를 해제하여 사용자가 다시 신청할 수 있도록 처리
+// =========================================================
+    @PatchMapping("/diagnosis/{id}/reject")
+    public ResponseEntity<Void> rejectDiagnosis(
+            @PathVariable Long id
+    ) {
+        petCareService.rejectDiagnosis(id);
+
+        return ResponseEntity
+                .noContent()
+                .build();
+    }
 }

@@ -1,7 +1,7 @@
 import React from "react";
 import styled, { keyframes } from "styled-components";
 
-import petModel1 from "../../features/petInsurance/img/보험모델.png";
+import petModel1 from "../../features/petInsurance/img/보험모뎅.png";
 import petModel2 from "../../features/petInsurance/img/발자국.png";
 
 function InsuranceHeroSection() {
@@ -10,6 +10,9 @@ function InsuranceHeroSection() {
       <DotPattern />
 
       <HeroInner>
+        {/* =====================================================
+            왼쪽 문구
+        ===================================================== */}
         <TextArea>
           <BrandText>PET&I FOR</BrandText>
 
@@ -32,85 +35,93 @@ function InsuranceHeroSection() {
           </FeatureRow>
         </TextArea>
 
-       {/* 발자국 장식 영역 */}
-<PawDecorationArea>
-  <PawItem $left="4%" $top="66%" $delay="0s">
-    <PawImage
-      src={petModel2}
-      alt=""
-      $size="25px"
-      $rotate="-18deg"
-    />
-  </PawItem>
+        {/* =====================================================
+            발자국 장식 영역
+        ===================================================== */}
+        <PawDecorationArea>
+          <PawItem $left="4%" $top="66%" $delay="0s">
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="25px"
+              $rotate="-18deg"
+            />
+          </PawItem>
 
-  <PawItem $left="17%" $top="42%" $delay="0.45s">
-    <PawImage
-      src={petModel2}
-      alt=""
-      $size="30px"
-      $rotate="15deg"
-    />
-  </PawItem>
+          <PawItem $left="17%" $top="42%" $delay="0.45s">
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="30px"
+              $rotate="15deg"
+            />
+          </PawItem>
 
-  <PawItem $left="29%" $top="70%" $delay="0.9s">
-    <PawImage
-      src={petModel2}
-      alt=""
-      $size="27px"
-      $rotate="-12deg"
-    />
-  </PawItem>
+          <PawItem $left="29%" $top="70%" $delay="0.9s">
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="27px"
+              $rotate="-12deg"
+            />
+          </PawItem>
 
-  <PawItem $left="42%" $top="36%" $delay="1.35s">
-    <PawImage
-      src={petModel2}
-      alt=""
-      $size="34px"
-      $rotate="18deg"
-    />
-  </PawItem>
+          <PawItem $left="42%" $top="36%" $delay="1.35s">
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="34px"
+              $rotate="18deg"
+            />
+          </PawItem>
 
-  <PawItem $left="55%" $top="62%" $delay="1.8s">
-    <PawImage
-      src={petModel2}
-      alt=""
-      $size="29px"
-      $rotate="-14deg"
-    />
-  </PawItem>
+          <PawItem $left="55%" $top="62%" $delay="1.8s">
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="29px"
+              $rotate="-14deg"
+            />
+          </PawItem>
 
-  <PawItem $left="67%" $top="30%" $delay="2.25s">
-    <PawImage
-      src={petModel2}
-      alt=""
-      $size="32px"
-      $rotate="16deg"
-    />
-  </PawItem>
+          <PawItem $left="67%" $top="30%" $delay="2.25s">
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="32px"
+              $rotate="16deg"
+            />
+          </PawItem>
 
-  <PawItem $left="78%" $top="57%" $delay="2.7s">
-    <PawImage
-      src={petModel2}
-      alt=""
-      $size="26px"
-      $rotate="-12deg"
-    />
-  </PawItem>
+          <PawItem $left="78%" $top="57%" $delay="2.7s">
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="26px"
+              $rotate="-12deg"
+            />
+          </PawItem>
 
-  <PawItem $left="89%" $top="38%" $delay="3.15s">
-    <PawImage
-      src={petModel2}
-      alt=""
-      $size="29px"
-      $rotate="14deg"
-    />
-  </PawItem>
-</PawDecorationArea>
+          <PawItem $left="89%" $top="38%" $delay="3.15s">
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="29px"
+              $rotate="14deg"
+            />
+          </PawItem>
+        </PawDecorationArea>
 
-        {/* 오른쪽 펫 이미지 */}
+        {/* =====================================================
+            오른쪽 펫 이미지
+        ===================================================== */}
         <ImageArea>
           <ImageHalo />
-          <HeroImage src={petModel1} alt="펫 보험 소개 이미지" />
+
+          <HeroImage
+            src={petModel1}
+            alt="펫 보험 소개 이미지"
+          />
         </ImageArea>
 
         <LargeCircle />
@@ -125,7 +136,6 @@ export default InsuranceHeroSection;
 // =========================================================
 // animation
 // =========================================================
-
 const pawFloat = keyframes`
   0% {
     transform: translateY(0);
@@ -146,7 +156,6 @@ const pawFloat = keyframes`
 // =========================================================
 // styled-components
 // =========================================================
-
 const HeroWrapper = styled.section`
   position: relative;
 
@@ -156,11 +165,10 @@ const HeroWrapper = styled.section`
 
   overflow: hidden;
 
-  background: linear-gradient(
-    120deg,
-    var(--color-bg-soft) 0%,
-    var(--color-bg-light) 58%,
-    #f7fffc 100%
+  background: color-mix(
+    in srgb,
+    var(--color-bg-soft) 40%,
+    var(--color-white)
   );
 
   box-sizing: border-box;
@@ -198,6 +206,9 @@ const HeroInner = styled.div`
   }
 `;
 
+// =========================================================
+// 왼쪽 문구 영역
+// =========================================================
 const TextArea = styled.div`
   position: relative;
   z-index: 6;
@@ -208,11 +219,7 @@ const TextArea = styled.div`
   transform: translateX(60px);
 
   @media (max-width: 900px) {
-    transform: translateX(-12px);
-  }
-
-  @media (max-width: 640px) {
-    transform: none;
+    transform: translateX(0);
   }
 `;
 
@@ -289,15 +296,14 @@ const FeatureChip = styled.span`
   color: var(--color-main-dark);
 `;
 
-/* =========================================================
-   발자국 영역
-========================================================= */
-
+// =========================================================
+// 발자국 영역
+// =========================================================
 const PawDecorationArea = styled.div`
   position: absolute;
 
   left: 390px;
-  right: clamp(245px, 17vw, 300px);
+  right: clamp(320px, 22vw, 400px);
   top: 0;
   bottom: 0;
 
@@ -307,7 +313,7 @@ const PawDecorationArea = styled.div`
 
   @media (max-width: 1100px) {
     left: 340px;
-    right: 235px;
+    right: 280px;
   }
 
   @media (max-width: 760px) {
@@ -336,15 +342,19 @@ const PawImage = styled.img`
   transform: rotate(${({ $rotate }) => $rotate});
 `;
 
-/* =========================================================
-   펫 모델 영역
-   - 여기에는 애니메이션 없음
-========================================================= */
-
+// =========================================================
+// 펫 모델 영역
+//
+// --pet-image-offset-x 값만 바꾸면 위치 조절 가능
+// 음수: 왼쪽 이동
+// 양수: 오른쪽 이동
+// =========================================================
 const ImageArea = styled.div`
+  --pet-image-offset-x: -85px;
+
   position: absolute;
 
-  right: clamp(10px, 5vw, 20px);
+  right: 0;
   bottom: 0;
 
   z-index: 5;
@@ -353,10 +363,22 @@ const ImageArea = styled.div`
   align-items: flex-end;
   justify-content: center;
 
-  width: clamp(235px, 22vw, 350px);
+  width: clamp(280px, 24vw, 390px);
   height: 100%;
 
+  transform: translateX(var(--pet-image-offset-x));
+
+  pointer-events: none;
+
+  @media (max-width: 900px) {
+    --pet-image-offset-x: -45px;
+
+    width: 300px;
+  }
+
   @media (max-width: 640px) {
+    --pet-image-offset-x: -18px;
+
     right: -20px;
     width: 205px;
   }
@@ -381,6 +403,7 @@ const ImageHalo = styled.div`
 const HeroImage = styled.img`
   position: relative;
   z-index: 2;
+
   display: block;
 
   width: 100%;
