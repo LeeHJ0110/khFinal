@@ -65,8 +65,8 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
                 .join(board.writer, member).fetchJoin()
                 .where(
                         categoryEq(category),
-                        titleContains(condition.getTitle()),
-                        contentContains(condition.getContent()),
+                        searchKeywordEq(condition),
+                        writerNicknameContains(condition.getWriter()),
                         subCategoryEq(condition.getBoardSubCategory()),
                         starsGoe(condition.getBoardStars()),
                         hitsGoe(condition.getBoardHits()),
@@ -80,10 +80,11 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
         Long total = queryFactory
                 .select(board.count())
                 .from(board)
+                .join(board.writer, member)
                 .where(
                         categoryEq(category),
-                        titleContains(condition.getTitle()),
-                        contentContains(condition.getContent()),
+                        searchKeywordEq(condition),
+                        writerNicknameContains(condition.getWriter()),
                         subCategoryEq(condition.getBoardSubCategory()),
                         starsGoe(condition.getBoardStars()),
                         hitsGoe(condition.getBoardHits()),
@@ -102,12 +103,30 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
         return StringUtils.hasText(category) ? QBoardEntity.boardEntity.category.stringValue().eq(category) : null;
     }
 
-    private BooleanExpression titleContains(String title) {
-        return StringUtils.hasText(title) ? QBoardEntity.boardEntity.title.contains(title) : null;
+    private BooleanExpression searchKeywordEq(BoardSearchCondition condition) {
+        if (condition == null) return null;
+        
+        // 1. 제목 + 내용 검색 (둘 다 존재하는 경우 OR)
+        if (StringUtils.hasText(condition.getTitle()) && StringUtils.hasText(condition.getContent())) {
+            return QBoardEntity.boardEntity.title.contains(condition.getTitle())
+                    .or(QBoardEntity.boardEntity.content.contains(condition.getContent()));
+        }
+        
+        // 2. 단일 제목 검색
+        if (StringUtils.hasText(condition.getTitle())) {
+            return QBoardEntity.boardEntity.title.contains(condition.getTitle());
+        }
+        
+        // 3. 단일 내용 검색
+        if (StringUtils.hasText(condition.getContent())) {
+            return QBoardEntity.boardEntity.content.contains(condition.getContent());
+        }
+        
+        return null;
     }
 
-    private BooleanExpression contentContains(String content) {
-        return StringUtils.hasText(content) ? QBoardEntity.boardEntity.content.contains(content) : null;
+    private BooleanExpression writerNicknameContains(String writer) {
+        return StringUtils.hasText(writer) ? QMemberEntity.memberEntity.nickname.contains(writer) : null;
     }
 
     private BooleanExpression subCategoryEq(String subCategory) {

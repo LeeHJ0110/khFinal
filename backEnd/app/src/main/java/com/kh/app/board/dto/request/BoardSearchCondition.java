@@ -16,4 +16,5 @@ public class BoardSearchCondition {
     private Long boardStars;
     private Long boardHits;
     private String sort;
+    private String writer;
 }

@@ -113,6 +113,8 @@ export default function BoardListPage() {
         condition.title = keyword.trim();
       } else if (type === "content") {
         condition.content = keyword.trim();
+      } else if (type === "writer") {
+        condition.writer = keyword.trim();
       } else if (type === "title_content") {
         condition.title = keyword.trim();
         condition.content = keyword.trim();
