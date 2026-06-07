@@ -230,7 +230,6 @@ const Wrapper = styled.main`
   max-width: 1800px;
   margin: 0 auto;
   padding: 20px;
-  font-family: "Pretendard", -apple-system, sans-serif;
   display: flex;
   flex-direction: column;
   gap: 20px;

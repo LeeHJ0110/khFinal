@@ -8,33 +8,71 @@ import bell from "../../img/알림.png";
 
 /* =====================================
    생년월일 → 만 나이 계산
-   API 형식: YYYYMMDD
+
+   지원 형식
+   - YYYYMMDD
+   - YYYY-MM-DD
 ===================================== */
 
-function calculateAge(birthDate) {
-  if (!birthDate || String(birthDate).length !== 8) {
+function calculateAge(birthDateValue) {
+  if (!birthDateValue) {
     return null;
   }
 
-  const dateText = String(birthDate);
+  const value = String(birthDateValue).trim();
 
-  const birthYear = Number(dateText.slice(0, 4));
-  const birthMonth = Number(dateText.slice(4, 6));
-  const birthDay = Number(dateText.slice(6, 8));
+  let birthYear;
+  let birthMonth;
+  let birthDay;
+
+  // 예: 20200101
+  if (/^\d{8}$/.test(value)) {
+    birthYear = Number(value.slice(0, 4));
+    birthMonth = Number(value.slice(4, 6));
+    birthDay = Number(value.slice(6, 8));
+  }
+
+  // 예: 2020-01-01
+  else if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const dateParts = value.split("-");
+
+    birthYear = Number(dateParts[0]);
+    birthMonth = Number(dateParts[1]);
+    birthDay = Number(dateParts[2]);
+  } else {
+    return null;
+  }
+
+  const birthDate = new Date(
+    birthYear,
+    birthMonth - 1,
+    birthDay,
+  );
+
+  // 잘못된 날짜 방어
+  // 예: 20201345
+  if (
+    birthDate.getFullYear() !== birthYear ||
+    birthDate.getMonth() !== birthMonth - 1 ||
+    birthDate.getDate() !== birthDay
+  ) {
+    return null;
+  }
 
   const today = new Date();
 
   let age = today.getFullYear() - birthYear;
 
   const birthdayPassed =
-    today.getMonth() + 1 > birthMonth ||
-    (today.getMonth() + 1 === birthMonth && today.getDate() >= birthDay);
+    today.getMonth() > birthMonth - 1 ||
+    (today.getMonth() === birthMonth - 1 &&
+      today.getDate() >= birthDay);
 
   if (!birthdayPassed) {
     age -= 1;
   }
 
-  return age;
+  return age >= 0 ? age : null;
 }
 
 /* =====================================
@@ -60,30 +98,38 @@ function PreviewSection({
 
   const [petList, setPetList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPetMenuOpen, setIsPetMenuOpen] = useState(false);
+  const [isPetMenuOpen, setIsPetMenuOpen] =
+    useState(false);
 
-  // 부모에서 관리하는 선택된 펫 사용
+  // 부모 컴포넌트에서 관리하는 선택 펫
   const petInfo = selectedPet;
 
   useEffect(() => {
     async function loadPetInfo() {
       try {
-        const res = await fetchMyPetList();
+        const response = await fetchMyPetList();
 
-        const fetchedPetList =
-          Array.isArray(res.data) ? res.data : [];
+        const fetchedPetList = Array.isArray(
+          response.data,
+        )
+          ? response.data
+          : [];
 
         setPetList(fetchedPetList);
 
-        // 대표 펫이 있으면 대표 펫, 없으면 첫 번째 펫 선택
+        // 대표 펫이 있으면 대표 펫 선택
+        // 없으면 목록의 첫 번째 펫 선택
         const representPet =
           fetchedPetList.find(
             (pet) => pet.representYn === "Y",
           ) ?? fetchedPetList[0];
 
         onChangeSelectedPet(representPet ?? null);
-      } catch (err) {
-        console.error("반려동물 정보 조회 실패:", err);
+      } catch (error) {
+        console.error(
+          "반려동물 정보 조회 실패:",
+          error,
+        );
 
         onChangeSelectedPet(null);
       } finally {
@@ -104,18 +150,23 @@ function PreviewSection({
     );
   }
 
-  const profileImageUrl = getProfileImageUrl(petInfo);
-  const age = calculateAge(petInfo?.birthDate);
+  // 현재 선택된 펫 정보
+  const profileImageUrl =
+    getProfileImageUrl(petInfo);
+
+  const age = calculateAge(
+    petInfo?.birthDate,
+  );
 
   // 현재 선택된 펫의 건강진단 진행 여부
   const isApplying =
     petInfo?.diagnosisInProgress === true;
 
-  // 선택한 펫을 부모 상태에 저장
-  const handleSelectPet = (pet) => {
+  // 선택한 펫 변경
+  function handleSelectPet(pet) {
     onChangeSelectedPet(pet);
     setIsPetMenuOpen(false);
-  };
+  }
 
   return (
     <PreviewWrapper>
@@ -139,14 +190,17 @@ function PreviewSection({
             <ProfileContent>
               <ProfileHeader>
                 <PetName>
-                  {petInfo.name ?? "이름 정보 없음"}
+                  {petInfo.name ??
+                    "이름 정보 없음"}
                 </PetName>
 
                 <PetChangeArea>
                   <ChangePetButton
                     type="button"
                     onClick={() =>
-                      setIsPetMenuOpen((prev) => !prev)
+                      setIsPetMenuOpen(
+                        (previous) => !previous,
+                      )
                     }
                   >
                     펫 바꾸기
@@ -159,14 +213,16 @@ function PreviewSection({
                           key={pet.petId}
                           type="button"
                           $selected={
-                            pet.petId === petInfo.petId
+                            pet.petId ===
+                            petInfo.petId
                           }
                           onClick={() =>
                             handleSelectPet(pet)
                           }
                         >
                           <PetSelectName>
-                            {pet.name ?? "이름 없음"}
+                            {pet.name ??
+                              "이름 없음"}
                           </PetSelectName>
 
                           <PetSelectBreed>
@@ -181,14 +237,15 @@ function PreviewSection({
               </ProfileHeader>
 
               <PetBreed>
-                {petInfo.breedName ?? "품종 정보 없음"}
+                {petInfo.breedName ??
+                  "품종 정보 없음"}
               </PetBreed>
 
               <PetInfoList>
                 <PetInfoBadge>
                   💚{" "}
                   {age !== null
-                    ? `${age}살`
+                    ? `만 ${age}세`
                     : "나이 정보 없음"}
                 </PetInfoBadge>
 
@@ -214,7 +271,8 @@ function PreviewSection({
 
                 <PointText>
                   건강 진단 신청 시{" "}
-                  <strong>2,000P</strong>가 차감됩니다.
+                  <strong>2,000P</strong>가
+                  차감됩니다.
                 </PointText>
               </PointNotice>
 
@@ -222,7 +280,9 @@ function PreviewSection({
                 <SubButton
                   type="button"
                   onClick={() =>
-                    navigate("/healthcare/history")
+                    navigate(
+                      "/healthcare/history",
+                    )
                   }
                 >
                   지난 기록 보기
@@ -233,11 +293,15 @@ function PreviewSection({
                   disabled={isApplying}
                   onClick={() => {
                     if (!isApplying) {
-                      navigate("/healthcare/request");
+                      navigate(
+                        "/healthcare/request",
+                      );
                     }
                   }}
                 >
-                  {isApplying ? "신청 중" : "신청 가능"}
+                  {isApplying
+                    ? "신청 중"
+                    : "신청 가능"}
                 </ApplyButton>
               </ProfileButtonGroup>
             </ProfileContent>
@@ -251,7 +315,9 @@ function PreviewSection({
             <RegisterButton
               type="button"
               onClick={() =>
-                navigate("/mypage/pet-manage")
+                navigate(
+                  "/mypage/pet-manage",
+                )
               }
             >
               반려동물 등록하기
@@ -264,7 +330,10 @@ function PreviewSection({
       <NeedDiagnosisArea>
         <NeedTextArea>
           <TitleRow>
-            <BellIcon src={bell} alt="알림" />
+            <BellIcon
+              src={bell}
+              alt="알림"
+            />
 
             <NeedTitle>
               진단이 필요한 경우
@@ -336,7 +405,9 @@ const PetProfileArea = styled.section`
 
   box-sizing: border-box;
 
-  border: 1px solid rgba(0, 169, 123, 0.2);
+  border: 1px solid
+    rgba(0, 169, 123, 0.2);
+
   border-radius: 12px;
 
   background: var(--color-white);
@@ -347,9 +418,12 @@ const PetProfileArea = styled.section`
     border-color 0.25s ease;
 
   &:hover {
-    border-color: rgba(0, 169, 123, 0.38);
+    border-color:
+      rgba(0, 169, 123, 0.38);
 
-    box-shadow: 0 10px 24px rgba(0, 169, 123, 0.1);
+    box-shadow:
+      0 10px 24px
+      rgba(0, 169, 123, 0.1);
 
     transform: translateY(-3px);
   }
@@ -376,7 +450,9 @@ const ProfileImageBox = styled.div`
     box-shadow 0.25s ease;
 
   ${PetProfileArea}:hover & {
-    box-shadow: 0 6px 16px rgba(0, 169, 123, 0.14);
+    box-shadow:
+      0 6px 16px
+      rgba(0, 169, 123, 0.14);
 
     transform: scale(1.04);
   }
@@ -388,7 +464,8 @@ const ProfileImage = styled.img`
 
   object-fit: cover;
 
-  transition: transform 0.3s ease;
+  transition:
+    transform 0.3s ease;
 
   ${PetProfileArea}:hover & {
     transform: scale(1.08);
@@ -424,7 +501,8 @@ const PetName = styled.h2`
   font-size: 27px;
   font-weight: 800;
 
-  transition: color 0.2s ease;
+  transition:
+    color 0.2s ease;
 
   ${PetProfileArea}:hover & {
     color: var(--color-main);
@@ -442,7 +520,9 @@ const ChangePetButton = styled.button`
 
   padding: 6px 10px;
 
-  border: 1px solid rgba(0, 169, 123, 0.34);
+  border: 1px solid
+    rgba(0, 169, 123, 0.34);
+
   border-radius: 7px;
 
   background: var(--color-white);
@@ -461,7 +541,8 @@ const ChangePetButton = styled.button`
   &:hover {
     border-color: var(--color-main);
 
-    background: var(--color-bg-light);
+    background:
+      var(--color-bg-light);
 
     transform: translateY(-1px);
   }
@@ -480,12 +561,16 @@ const PetSelectMenu = styled.div`
   flex-direction: column;
   gap: 4px;
 
-  border: 1px solid rgba(0, 169, 123, 0.22);
+  border: 1px solid
+    rgba(0, 169, 123, 0.22);
+
   border-radius: 9px;
 
   background: var(--color-white);
 
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 8px 20px
+    rgba(0, 0, 0, 0.1);
 `;
 
 const PetSelectItem = styled.button`
@@ -508,10 +593,12 @@ const PetSelectItem = styled.button`
 
   cursor: pointer;
 
-  transition: background-color 0.2s ease;
+  transition:
+    background-color 0.2s ease;
 
   &:hover {
-    background: rgba(0, 169, 123, 0.08);
+    background:
+      rgba(0, 169, 123, 0.08);
   }
 `;
 
@@ -549,7 +636,9 @@ const PetInfoList = styled.div`
 const PetInfoBadge = styled.span`
   padding: 5px 9px;
 
-  border: 1px solid rgba(0, 169, 123, 0.18);
+  border: 1px solid
+    rgba(0, 169, 123, 0.18);
+
   border-radius: 6px;
 
   background: var(--color-white);
@@ -564,9 +653,11 @@ const PetInfoBadge = styled.span`
     transform 0.2s ease;
 
   ${PetProfileArea}:hover & {
-    border-color: rgba(0, 169, 123, 0.3);
+    border-color:
+      rgba(0, 169, 123, 0.3);
 
-    background: var(--color-bg-light);
+    background:
+      var(--color-bg-light);
   }
 
   &:hover {
@@ -588,7 +679,8 @@ const PointNotice = styled.div`
 
   border-radius: 7px;
 
-  background: rgba(255, 184, 0, 0.1);
+  background:
+    rgba(255, 184, 0, 0.1);
 `;
 
 const PointIcon = styled.span`
@@ -635,7 +727,9 @@ const ProfileButtonGroup = styled.div`
 const SubButton = styled.button`
   height: 43px;
 
-  border: 1px solid var(--text-disabled);
+  border: 1px solid
+    var(--text-disabled);
+
   border-radius: 7px 0 0 7px;
 
   background: var(--color-white);
@@ -651,7 +745,9 @@ const SubButton = styled.button`
     color 0.2s ease;
 
   &:hover {
-    background: var(--color-bg-light);
+    background:
+      var(--color-bg-light);
+
     color: var(--color-main);
   }
 `;
@@ -662,8 +758,8 @@ const ApplyButton = styled.button`
   border: none;
   border-radius: 0 7px 7px 0;
 
-  background: #00a97b;
-  color: #ffffff;
+  background: var(--color-main);
+  color: var(--color-white);
 
   font-size: 14px;
   font-weight: 700;
@@ -704,7 +800,9 @@ const EmptyPetText = styled.p`
 const RegisterButton = styled.button`
   padding: 11px 17px;
 
-  border: 1px solid var(--color-main);
+  border: 1px solid
+    var(--color-main);
+
   border-radius: 8px;
 
   background: var(--color-white);

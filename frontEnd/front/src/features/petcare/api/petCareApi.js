@@ -41,6 +41,15 @@ export async function completeDiagnosis(diagnosisReqId) {
     `petcare/diagnosis/${diagnosisReqId}/complete`,
   );
 }
+
+// =========================================================
+// 건강진단 신청 반려
+// =========================================================
+export async function rejectDiagnosis(id) {
+  return await api.patch(
+    `/petcare/diagnosis/${id}/reject`,
+  );
+}
 //펫몸무게 수정 요청 백엔드 구현예정 
 export async function updatePetWeight(pet, weight) {
   return await api.put(`/pet/${pet.petId}`, {
