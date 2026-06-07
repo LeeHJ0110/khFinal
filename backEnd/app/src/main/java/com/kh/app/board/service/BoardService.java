@@ -55,7 +55,11 @@ public class BoardService {
         Pageable pageable = PageRequest.of(page, 10);
         System.out.println("BoardService.getList@@@@@servicedeee ");
         Page<BoardEntity> entityPage = boardRepository.getListByCategory(category, condition, pageable);
-        return entityPage.map(BoardResDto::from);
+        return entityPage.map(entity -> {
+            long replyCount = boardReplyRepository.countByBoardAndDelYn(entity, DelYn.N);
+            long likeCount = entity.getHits() != null ? Math.max(0, entity.getHits() / 18) : 0L;
+            return BoardResDto.from(entity, replyCount, likeCount);
+        });
     }
 
     @Transactional

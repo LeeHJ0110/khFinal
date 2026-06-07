@@ -32,26 +32,40 @@ function formatRelativeTime(dateString) {
 }
 
 // ==========================================
+// 태그 목록 및 헬퍼 함수
+// ==========================================
+const TAG_LIST = [
+  "성장", "체중관리", "피브", "소화", "치아",
+  "칼로리", "보상", "기호성", "관절", "면영",
+  "눈", "탈취", "흡수", "위생", "대용량"
+];
+
+function getMockTags(boardId) {
+  if (!boardId) return ["성장", "기호성"];
+  const idx1 = boardId % TAG_LIST.length;
+  const idx2 = (boardId * 3 + 2) % TAG_LIST.length;
+  return idx1 === idx2 ? [TAG_LIST[idx1]] : [TAG_LIST[idx1], TAG_LIST[idx2]];
+}
+
+// ==========================================
 // 1. 인기 게시글 TOP 5 위젯
 // ==========================================
-export function PopularPostsWidget({ list, onItemClick }) {
+export function PopularPostsWidget({ list, onItemClick, className }) {
   // 안전 장치: 리스트 가공 (최근 1주일 글 필터링은 백엔드에서 수행)
   // 인기 점수 공식: (조회수 * 1) + (좋아요 * 3) + (댓글 * 3)
   // 프론트엔드 연산 및 상위 5개 정렬 바인딩
   const computedList = [...list]
     .map((item) => {
-      const mockComments = item.hits
-        ? Math.max(1, Math.floor(item.hits / 12))
-        : 0;
-      const mockLikes = item.hits ? Math.max(0, Math.floor(item.hits / 18)) : 0;
-      const score = (item.hits || 0) * 1 + mockLikes * 3 + mockComments * 3;
+      const replyCount = item.replyCount || 0;
+      const likeCount = item.likeCount || 0;
+      const score = (item.hits || 0) * 1 + likeCount * 3 + replyCount * 3;
       return { ...item, score };
     })
     .sort((a, b) => b.score - a.score)
     .slice(0, 5);
 
   return (
-    <WidgetContainer>
+    <WidgetContainer className={className}>
       <WidgetHeader>
         <WidgetTitle>
           <SvgCrown /> 인기 게시글 TOP 5
@@ -76,10 +90,20 @@ export function PopularPostsWidget({ list, onItemClick }) {
                 <CategoryBadge $type={item.category}>
                   {categoryLabel}
                 </CategoryBadge>
-                <ViewsStat>
-                  <SvgEye />
-                  {item.hits ? item.hits.toLocaleString() : 0}
-                </ViewsStat>
+                <WidgetStats>
+                  <StatText title="조회수">
+                    <SvgEye />
+                    <span>{item.hits ? item.hits.toLocaleString() : 0}</span>
+                  </StatText>
+                  <StatText title="댓글수">
+                    <SvgComment />
+                    <span>{item.replyCount || 0}</span>
+                  </StatText>
+                  <StatText title="좋아요수">
+                    <SvgHeartSmall />
+                    <span>{item.likeCount || 0}</span>
+                  </StatText>
+                </WidgetStats>
               </PopularItem>
             );
           })
@@ -92,11 +116,11 @@ export function PopularPostsWidget({ list, onItemClick }) {
 // ==========================================
 // 2. 자유게시판 최신글 위젯
 // ==========================================
-export function LatestFreePostsWidget({ list, onItemClick, onMoreClick }) {
+export function LatestFreePostsWidget({ list, onItemClick, onMoreClick, className }) {
   const latestList = [...list].slice(0, 4);
 
   return (
-    <WidgetContainer>
+    <WidgetContainer className={className}>
       <WidgetHeader>
         <WidgetTitle>자유게시판 최신글</WidgetTitle>
         <MoreLink onClick={onMoreClick}>더보기 &gt;</MoreLink>
@@ -109,9 +133,6 @@ export function LatestFreePostsWidget({ list, onItemClick, onMoreClick }) {
             const firstImg =
               extractFirstImg(item.content) ||
               "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150&q=80";
-            const mockComments = item.hits
-              ? Math.max(1, Math.floor(item.hits / 12))
-              : 0;
 
             return (
               <LatestItem
@@ -129,10 +150,20 @@ export function LatestFreePostsWidget({ list, onItemClick, onMoreClick }) {
                     <span>{formatRelativeTime(item.createdAt)}</span>
                   </LatestMeta>
                 </LatestInfo>
-                <CommentsStat>
-                  <SvgComment />
-                  <span>{mockComments}</span>
-                </CommentsStat>
+                <WidgetStats>
+                  <StatText title="조회수">
+                    <SvgEye />
+                    <span>{item.hits ? item.hits.toLocaleString() : 0}</span>
+                  </StatText>
+                  <StatText title="댓글수">
+                    <SvgComment />
+                    <span>{item.replyCount || 0}</span>
+                  </StatText>
+                  <StatText title="좋아요수">
+                    <SvgHeartSmall />
+                    <span>{item.likeCount || 0}</span>
+                  </StatText>
+                </WidgetStats>
               </LatestItem>
             );
           })
@@ -186,8 +217,11 @@ export function BestFacilityReviewsWidget({ list, onItemClick, onMoreClick }) {
                 <CardBody>
                   <CardTitle>{item.title}</CardTitle>
                   <CardTagGroup>
-                    <CardTag $type="facility">#반려견동반</CardTag>
-                    <CardTag $type="location">#추천시설</CardTag>
+                    {getMockTags(item.boardId).map((tag, tIdx) => (
+                      <CardTag key={tIdx} $type="facility">
+                        #{tag}
+                      </CardTag>
+                    ))}
                   </CardTagGroup>
                 </CardBody>
               </ReviewCard>
@@ -243,8 +277,11 @@ export function BestProductReviewsWidget({ list, onItemClick, onMoreClick }) {
                 <CardBody>
                   <CardTitle>{item.title}</CardTitle>
                   <CardTagGroup>
-                    <CardTag $type="product">#유기농간식</CardTag>
-                    <CardTag $type="satisfaction">#강력추천</CardTag>
+                    {getMockTags(item.boardId).map((tag, tIdx) => (
+                      <CardTag key={tIdx} $type="product">
+                        #{tag}
+                      </CardTag>
+                    ))}
                   </CardTagGroup>
                 </CardBody>
               </ReviewCard>
@@ -346,6 +383,37 @@ const SvgComment = () => (
     <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
   </svg>
 );
+
+const SvgHeartSmall = () => (
+  <svg
+    viewBox="0 0 24 24"
+    width="12"
+    height="12"
+    fill="#adb5bd"
+  >
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+  </svg>
+);
+
+const WidgetStats = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+`;
+
+const StatText = styled.div`
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: #adb5bd;
+  gap: 3px;
+
+  svg {
+    fill: #adb5bd;
+  }
+`;
 
 // ==========================================
 // Styled Components
@@ -620,8 +688,9 @@ const CardTitle = styled.h4`
 `;
 
 const CardTagGroup = styled.div`
-  display: flex;
+  display: none; /* 일단 커뮤니티 홈에서는 안보이게 처리 */
   gap: 4px;
+  margin-top: 4px;
 `;
 
 const CardTag = styled.span`

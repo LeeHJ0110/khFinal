@@ -11,9 +11,11 @@ import com.kh.app.member.entity.MemberRole;
 import com.kh.app.member.repository.MemberRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -47,7 +49,14 @@ public class BoardReplyService {
             builder.parent(parent);
         }
 
-        boardReplyRepository.save(builder.build());
+        BoardReplyEntity savedReply = boardReplyRepository.save(builder.build());
+        log.info("[댓글 DB 저장 성공] ID: {}, 게시글ID: {}, 작성자닉네임: {}, 내용: {}, 부모댓글ID: {}",
+                savedReply.getId(),
+                board.getId(),
+                member.getNickname(),
+                savedReply.getContent(),
+                savedReply.getParent() != null ? savedReply.getParent().getId() : "없음"
+        );
     }
 
     @Transactional

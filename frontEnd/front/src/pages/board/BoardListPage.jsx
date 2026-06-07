@@ -101,9 +101,11 @@ export default function BoardListPage() {
     keyword = searchKeyword,
     type = searchType,
     sub = subCategory,
+    sortVal = activeSort,
   ) => {
     const condition = {
       boardSubCategory: sub && sub !== "ALL" ? sub : null,
+      sort: sortVal,
     };
 
     if (keyword.trim()) {
@@ -126,7 +128,7 @@ export default function BoardListPage() {
     }
     const condition = buildSearchCondition();
     asyncFetchBoardList(activeTab, currentPage, condition);
-  }, [currentPage, activeTab, navigate]);
+  }, [currentPage, activeTab, activeSort, navigate]);
 
   // 카테고리 탭 스위칭 핸들러
   const handleTabChange = (tabKey) => {
@@ -161,7 +163,7 @@ export default function BoardListPage() {
   const handleSortChange = (sortType) => {
     setActiveSort(sortType);
     setCurrentPage(0);
-    const condition = buildSearchCondition();
+    const condition = buildSearchCondition(searchKeyword, searchType, subCategory, sortType);
     asyncFetchBoardList(activeTab, 0, condition);
   };
 
