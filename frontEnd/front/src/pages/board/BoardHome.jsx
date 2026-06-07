@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import BoardSubNavbar from "./components/BoardSubNavbar";
-import { fetchBoardList } from "../../features/board/api/boardApi";
+import { fetchBoardList, fetchNaverNewsApi } from "../../features/board/api/boardApi";
 import {
   PopularPostsWidget,
   LatestFreePostsWidget,
@@ -28,6 +28,7 @@ export default function BoardHome() {
   const [freeList, setFreeList] = useState([]);
   const [facList, setFacList] = useState([]);
   const [prodList, setProdList] = useState([]);
+  const [newsList, setNewsList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // 백엔드 API로부터 실시간 데이터 일괄 Fetch
@@ -36,15 +37,17 @@ export default function BoardHome() {
       try {
         setIsLoading(true);
         // 병렬로 세 가지 카테고리 데이터 로드
-        const [freeRes, facRes, prodRes] = await Promise.all([
+        const [freeRes, facRes, prodRes, newsRes] = await Promise.all([
           fetchBoardList("FREE", 0),
           fetchBoardList("FAC_REVIEW", 0),
           fetchBoardList("PRODUCT_REVIEW", 0),
+          fetchNaverNewsApi(0, "반려동물"),
         ]);
 
         setFreeList(freeRes.data?.content || []);
         setFacList(facRes.data?.content || []);
         setProdList(prodRes.data?.content || []);
+        setNewsList(newsRes.data?.content || []);
       } catch (err) {
         console.error("커뮤니티 홈 데이터 페치 실패:", err);
       } finally {
@@ -151,6 +154,7 @@ export default function BoardHome() {
 
             {/* 4단: 반려 뉴스 */}
             <LatestNewsWidget
+              list={newsList}
               onMoreClick={() => navigate("/community/list?category=NEWS")}
             />
           </RightSidebar>

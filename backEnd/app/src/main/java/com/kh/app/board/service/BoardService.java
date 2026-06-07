@@ -19,6 +19,18 @@ import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.board.dto.response.BoardReplyResDto;
 import com.kh.app.board.entity.BoardReplyEntity;
 import com.kh.app.board.repository.BoardReplyRepository;
+import com.kh.app.board.entity.BoardLikeEntity;
+import com.kh.app.board.repository.BoardLikeRepository;
+import com.kh.app.board.dto.response.BoardLikeResDto;
+import com.kh.app.board.dto.response.NaverNewsResDto;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.*;
+import org.springframework.web.util.UriComponentsBuilder;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import java.util.ArrayList;
 import java.time.format.DateTimeFormatter;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -46,10 +58,17 @@ public class BoardService {
     private final MemberRepository memberRepository;
     private final BoardFileRepository boardFileRepository;
     private final BoardReplyRepository boardReplyRepository;
+    private final BoardLikeRepository boardLikeRepository;
     private final S3Service s3Service;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
+
+    @Value("${naver.client-id}")
+    private String naverClientId;
+
+    @Value("${naver.client-secret}")
+    private String naverClientSecret;
 
     public Page<BoardResDto> getList(String category, BoardSearchCondition condition, int page) {
         Pageable pageable = PageRequest.of(page, 10);
@@ -63,7 +82,7 @@ public class BoardService {
     }
 
     @Transactional
-    public BoardDetailResDto getBoardDetail(Long id) {
+    public BoardDetailResDto getBoardDetail(Long id, String username) {
         BoardEntity entity = boardRepository.findById(id)
                 .orElseThrow(() -> new CustomException(BoardErrorCode.BOARD_NOT_FOUND));
 
@@ -142,8 +161,18 @@ public class BoardService {
             writerProfileUrl = "/images/default-profile.png";
         }
 
-        return BoardDetailResDto.from(entity, fileList, replyList, writerProfileUrl);
+        long likeCount = boardLikeRepository.countByBoard(entity);
+        boolean isLiked = false;
+        if (username != null && !username.isBlank()) {
+            MemberEntity memberEntity = memberRepository.findByUsernameAndDelYn(username, DelYn.N).orElse(null);
+            if (memberEntity != null) {
+                isLiked = boardLikeRepository.existsByBoardAndMember(entity, memberEntity);
+            }
+        }
+
+        return BoardDetailResDto.from(entity, fileList, replyList, writerProfileUrl, likeCount, isLiked);
     }
+
 
     @Transactional
     public void write(BoardWriteReqDto reqDto, List<MultipartFile> fileList, String username) throws IOException {
@@ -343,5 +372,122 @@ public class BoardService {
         boardEntity.delete();
 
         log.info("[게시글 소프트 딜리트 완료] boardId : {}, 상태: {}", id, boardEntity.getDelYn());
+    }
+
+    @Transactional
+    public BoardLikeResDto toggleLike(Long boardId, String username) {
+        BoardEntity board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new CustomException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        MemberEntity member = memberRepository.findByUsernameAndDelYn(username, DelYn.N)
+                .orElseThrow(() -> new EntityNotFoundException("MEMBER NOT FOUND ........"));
+
+        java.util.Optional<BoardLikeEntity> boardLikeOpt = boardLikeRepository.findByBoardAndMember(board, member);
+        boolean isLiked;
+        if (boardLikeOpt.isPresent()) {
+            boardLikeRepository.delete(boardLikeOpt.get());
+            isLiked = false;
+        } else {
+            BoardLikeEntity boardLike = BoardLikeEntity.builder()
+                    .board(board)
+                    .member(member)
+                    .build();
+            boardLikeRepository.save(boardLike);
+            isLiked = true;
+        }
+
+        long likeCount = boardLikeRepository.countByBoard(board);
+        return BoardLikeResDto.builder()
+                .likeCount(likeCount)
+                .isLiked(isLiked)
+                .build();
+    }
+
+    public NaverNewsResDto getNaverNews(int page, String search) {
+        boolean isDefault = search == null || search.isBlank() || "반려동물".equals(search) || "동물".equals(search);
+
+        int display = 100;
+        int start = 1;
+
+        String queryStr = isDefault ? "반려동물" : search;
+
+        URI uri = UriComponentsBuilder
+                .fromUriString("https://openapi.naver.com")
+                .path("/v1/search/news.json")
+                .queryParam("query", queryStr)
+                .queryParam("display", display)
+                .queryParam("start", start)
+                .queryParam("sort", "sim")
+                .encode(StandardCharsets.UTF_8)
+                .build()
+                .toUri();
+
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-Naver-Client-Id", naverClientId.trim());
+        headers.set("X-Naver-Client-Secret", naverClientSecret.trim());
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(response.getBody());
+
+            JsonNode itemsNode = rootNode.path("items");
+
+            List<NaverNewsResDto.NewsItem> itemsList = new ArrayList<>();
+            if (itemsNode.isArray()) {
+                for (JsonNode item : itemsNode) {
+                    itemsList.add(NaverNewsResDto.NewsItem.builder()
+                            .title(item.path("title").asText(""))
+                            .link(item.path("link").asText(""))
+                            .description(item.path("description").asText(""))
+                            .pubDate(item.path("pubDate").asText(""))
+                            .build());
+                }
+            }
+
+            String targetKeyword = isDefault ? "반려동물" : search;
+
+            List<NaverNewsResDto.NewsItem> filteredList = itemsList.stream()
+                    .filter(item -> {
+                        String title = item.getTitle();
+                        if (title == null || title.isBlank()) {
+                            return false;
+                        }
+                        String plainTitle = title.replaceAll("<[^>]*>", "").replaceAll("&quot;", "\"");
+                        return plainTitle.toLowerCase().contains(targetKeyword.toLowerCase());
+                    })
+                    .toList();
+
+            int pageSize = 10;
+            int fromIndex = page * pageSize;
+            int toIndex = Math.min(fromIndex + pageSize, filteredList.size());
+
+            List<NaverNewsResDto.NewsItem> pagedList = new ArrayList<>();
+            if (fromIndex < filteredList.size()) {
+                pagedList = filteredList.subList(fromIndex, toIndex);
+            }
+
+            int totalPages = (int) Math.ceil((double) filteredList.size() / pageSize);
+            long totalElements = filteredList.size();
+
+            return NaverNewsResDto.builder()
+                    .content(pagedList)
+                    .totalPages(totalPages)
+                    .totalElements(totalElements)
+                    .build();
+
+        } catch (Exception e) {
+            log.error("Naver News API Call Failed: ", e);
+            return NaverNewsResDto.builder()
+                    .content(new ArrayList<>())
+                    .totalPages(0)
+                    .totalElements(0L)
+                    .build();
+        }
     }
 }

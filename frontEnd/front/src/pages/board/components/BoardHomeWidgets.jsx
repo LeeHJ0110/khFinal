@@ -133,8 +133,7 @@ export function LatestFreePostsWidget({ list, onItemClick, onMoreClick, classNam
         ) : (
           latestList.map((item) => {
             const firstImg =
-              extractFirstImg(item.content) ||
-              "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150&q=80";
+              extractFirstImg(item.content) || DEFAULT_NO_IMAGE;
 
             return (
               <LatestItem
@@ -279,31 +278,31 @@ export function BestProductReviewsWidget({ list, onItemClick, onMoreClick }) {
   );
 }
 
+// RFC 822 날짜 포맷팅 함수 (예: "Sun, 07 Jun 2026 16:00:00 +0900" -> "2026.06.07")
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    return `${yyyy}.${mm}.${dd}`;
+  } catch (e) {
+    return dateStr;
+  }
+}
+
 // ==========================================
-// 5. 반려 뉴스 Mock 위젯 (틀만 구성)
+// 5. 반려 뉴스 실시간 위젯 (최신 3개 글, 썸네일 생략)
 // ==========================================
-export function LatestNewsWidget({ onMoreClick }) {
-  // 시안 기반 뉴스 Mock 데이터 3선
-  const mockNewsData = [
-    {
-      id: "news-1",
-      title: "봄철 반려동물 알레르기, 이렇게 관리하세요!",
-      date: "2026.05.10",
-      img: "https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=150&q=80",
-    },
-    {
-      id: "news-2",
-      title: "강아지가 5성급 호텔 가고 저속노화 즐기는 시대",
-      date: "2026.05.09",
-      img: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=150&q=80",
-    },
-    {
-      id: "news-3",
-      title: "우리 고양이가 좋아하는 '이것' 알고 먹여야 더 건강합니다",
-      date: "2026.05.08",
-      img: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150&q=80",
-    },
-  ];
+export function LatestNewsWidget({ list = [], onMoreClick }) {
+  const latestNews = [...list].slice(0, 3);
+
+  const stripHtml = (html) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>/g, "").replaceAll("&quot;", "\"");
+  };
 
   return (
     <WidgetContainer>
@@ -312,20 +311,30 @@ export function LatestNewsWidget({ onMoreClick }) {
         <MoreLink onClick={onMoreClick}>더보기 &gt;</MoreLink>
       </WidgetHeader>
       <NewsList>
-        {mockNewsData.map((news) => (
-          <NewsItem
-            key={news.id}
-            onClick={() => alert("뉴스 기사는 현재 점검 준비 중입니다.")}
-          >
-            <NewsThumbnail>
-              <img src={news.img} alt={news.title} />
-            </NewsThumbnail>
-            <NewsInfo>
-              <NewsItemTitle>{news.title}</NewsItemTitle>
-              <NewsDate>{news.date}</NewsDate>
-            </NewsInfo>
-          </NewsItem>
-        ))}
+        {latestNews.length === 0 ? (
+          <EmptyText>최신 뉴스가 없습니다.</EmptyText>
+        ) : (
+          latestNews.map((news, idx) => {
+            const cleanTitle = stripHtml(news.title);
+            return (
+              <NewsItem
+                key={idx}
+                onClick={() => {
+                  if (news.link) {
+                    window.open(news.link, "_blank", "noopener,noreferrer");
+                  }
+                }}
+              >
+                <NewsInfo style={{ padding: "4px 0" }}>
+                  <NewsItemTitle style={{ fontSize: "13px", fontWeight: "700", color: "#343a40", lineHeight: "1.5" }}>
+                    {cleanTitle}
+                  </NewsItemTitle>
+                  <NewsDate style={{ marginTop: "4px" }}>{formatDate(news.pubDate)}</NewsDate>
+                </NewsInfo>
+              </NewsItem>
+            );
+          })
+        )}
       </NewsList>
     </WidgetContainer>
   );

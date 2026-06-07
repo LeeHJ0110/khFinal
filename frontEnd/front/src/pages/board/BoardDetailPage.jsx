@@ -10,6 +10,7 @@ import {
   deleteBoardApi,
   writeReplyApi,
   deleteReplyApi,
+  toggleLikeApi,
 } from "../../features/board/api/boardApi";
 import BoardSubNavbar from "./components/BoardSubNavbar";
 
@@ -59,16 +60,6 @@ export default function BoardDetailPage() {
   const [likesCount, setLikesCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
 
-  const handleLikeToggle = () => {
-    if (isLiked) {
-      setLikesCount(likesCount - 1);
-      setIsLiked(false);
-    } else {
-      setLikesCount(likesCount + 1);
-      setIsLiked(true);
-    }
-  };
-
   //댓글 상태 관리
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
@@ -77,12 +68,32 @@ export default function BoardDetailPage() {
   const [activeReplyParentId, setActiveReplyParentId] = useState(null);
   const [replyContent, setReplyContent] = useState("");
 
-  // 게시글 상세정보 수신 시 댓글 목록 동기화
+  // 게시글 상세정보 수신 시 댓글 목록 및 좋아요 상태 동기화
   useEffect(() => {
-    if (detail && detail.replies) {
-      setComments(detail.replies);
+    if (detail) {
+      if (detail.replies) {
+        setComments(detail.replies);
+      }
+      setLikesCount(detail.likeCount ?? 0);
+      setIsLiked(!!detail.isLiked);
     }
   }, [detail]);
+
+  const handleLikeToggle = async () => {
+    if (!loginMember) {
+      alert("로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.");
+      navigate("/member/login");
+      return;
+    }
+    try {
+      const resp = await toggleLikeApi(id);
+      setLikesCount(resp.data.likeCount);
+      setIsLiked(resp.data.isLiked);
+    } catch (err) {
+      console.error("좋아요 처리 실패:", err);
+      alert("좋아요 처리에 실패했습니다.");
+    }
+  };
 
   //댓글 등록 핸들러
   const handleCommentSubmit = async (e) => {

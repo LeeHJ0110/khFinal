@@ -4,6 +4,8 @@ import com.kh.app.board.dto.request.BoardSearchCondition;
 import com.kh.app.board.dto.request.BoardWriteReqDto;
 import com.kh.app.board.dto.response.BoardDetailResDto;
 import com.kh.app.board.dto.response.BoardResDto;
+import com.kh.app.board.dto.response.BoardLikeResDto;
+import com.kh.app.board.dto.response.NaverNewsResDto;
 import com.kh.app.board.service.BoardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -59,6 +61,16 @@ public class BoardController {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(summary = "네이버 뉴스 검색 조회", description = "네이버 뉴스 검색 API와 연계하여 최신 기사를 페이징 형태로 반환")
+    @GetMapping("/news")
+    public ResponseEntity<NaverNewsResDto> getNaverNews(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "search", defaultValue = "반려동물") String search
+    ) {
+        NaverNewsResDto result = boardService.getNaverNews(page, search);
+        return ResponseEntity.ok(result);
+    }
+
     @Operation(summary = "게시글 수정", description = "제목, 내용 + 토큰 으로 게시글 수정 ( + 파일)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "게시글 수정 성공"),
@@ -83,10 +95,26 @@ public class BoardController {
             @ApiResponse(responseCode = "200" , description = "게시글 상세조회 성공 ~~~") ,
     })
     @GetMapping("/detail/{id}")
-    public ResponseEntity<BoardDetailResDto> getBoardDetail(@PathVariable Long id){
+    public ResponseEntity<BoardDetailResDto> getBoardDetail(
+            @PathVariable Long id,
+            @AuthenticationPrincipal String username
+    ){
         System.out.println("id = " + id);
-        BoardDetailResDto dto = boardService.getBoardDetail(id);
+        BoardDetailResDto dto = boardService.getBoardDetail(id, username);
         return ResponseEntity.ok(dto);
+    }
+
+    @Operation(summary = "게시글 좋아요 토글", description = "로그인 유저가 좋아요를 누르지 않았다면 누름, 이미 눌렀다면 취소")
+    @PostMapping("/{boardId}/like")
+    public ResponseEntity<BoardLikeResDto> toggleLike(
+            @PathVariable Long boardId,
+            @AuthenticationPrincipal String username
+    ) {
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        BoardLikeResDto result = boardService.toggleLike(boardId, username);
+        return ResponseEntity.ok(result);
     }
 
     @Operation(summary = "게시글 삭제", description = "게시글의 DelYn을 Y처리 해서 조회 못하게 변경")
