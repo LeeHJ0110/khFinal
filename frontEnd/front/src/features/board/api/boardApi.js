@@ -55,3 +55,9 @@ export async function deleteReplyApi(replyId) {
 export async function toggleLikeApi(boardId) {
   return await api.post(`/board/${boardId}/like`);
 }
+
+export async function fetchNaverNewsApi(page = 0, search = "반려동물") {
+  return await api.get("/board/news", {
+    params: { page, search },
+  });
+}

@@ -140,6 +140,7 @@ export default function BoardListPage() {
       setSearchParams({ category: tabKey });
       setSubCategory("ALL");
       setSearchKeyword("");
+      setActiveSort("latest");
       setCurrentPage(0);
     }
   };
@@ -156,6 +157,10 @@ export default function BoardListPage() {
   // 검색 폼 서브밋 핸들러
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    if (activeTab === "NEWS" && searchType === "writer") {
+      alert("뉴스게시판에서는 작성자 검색을 지원하지 않습니다. 제목 또는 제목+내용을 이용해 주세요.");
+      return;
+    }
     setCurrentPage(0);
     const condition = buildSearchCondition();
     asyncFetchBoardList(activeTab, 0, condition);
@@ -168,6 +173,11 @@ export default function BoardListPage() {
     const condition = buildSearchCondition(searchKeyword, searchType, subCategory, sortType);
     asyncFetchBoardList(activeTab, 0, condition);
   };
+
+  const PAGE_GROUP_SIZE = 10;
+  const currentGroup = Math.floor(currentPage / PAGE_GROUP_SIZE);
+  const startPage = currentGroup * PAGE_GROUP_SIZE;
+  const endPage = Math.min(totalPages, startPage + PAGE_GROUP_SIZE);
 
   return (
     <Container>
@@ -206,56 +216,58 @@ export default function BoardListPage() {
             )}
           </BoardHeader>
 
-          <FilterBar>
-            <TextFilters>
-              <TextFilterItem
-                $active={activeSort === "latest"}
-                onClick={() => handleSortChange("latest")}
-              >
-                최신순
-              </TextFilterItem>
-              <FilterSeparator>|</FilterSeparator>
-              <TextFilterItem
-                $active={activeSort === "popular"}
-                onClick={() => handleSortChange("popular")}
-              >
-                인기순
-              </TextFilterItem>
-              <FilterSeparator>|</FilterSeparator>
-              <TextFilterItem
-                $active={activeSort === "comments"}
-                onClick={() => handleSortChange("comments")}
-              >
-                댓글순
-              </TextFilterItem>
-            </TextFilters>
-
-            {activeTab === "FREE" && (
-              <CategoryDropdownWrapper>
-                <CategoryDropdownButton
-                  $open={dropdownOpen}
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
+          {activeTab !== "NEWS" && (
+            <FilterBar>
+              <TextFilters>
+                <TextFilterItem
+                  $active={activeSort === "latest"}
+                  onClick={() => handleSortChange("latest")}
                 >
-                  카테고리 : {boardMeta.FREE.subCategoryLabels[subCategory]}
-                  <SvgChevronDown />
-                </CategoryDropdownButton>
+                  최신순
+                </TextFilterItem>
+                <FilterSeparator>|</FilterSeparator>
+                <TextFilterItem
+                  $active={activeSort === "popular"}
+                  onClick={() => handleSortChange("popular")}
+                >
+                  인기순
+                </TextFilterItem>
+                <FilterSeparator>|</FilterSeparator>
+                <TextFilterItem
+                  $active={activeSort === "comments"}
+                  onClick={() => handleSortChange("comments")}
+                >
+                  댓글순
+                </TextFilterItem>
+              </TextFilters>
 
-                {dropdownOpen && (
-                  <DropdownMenu>
-                    {boardMeta.FREE.subCategories.map((subKey) => (
-                      <DropdownItem
-                        key={subKey}
-                        $active={subCategory === subKey}
-                        onClick={() => handleSubCategorySelect(subKey)}
-                      >
-                        {boardMeta.FREE.subCategoryLabels[subKey]}
-                      </DropdownItem>
-                    ))}
-                  </DropdownMenu>
-                )}
-              </CategoryDropdownWrapper>
-            )}
-          </FilterBar>
+              {activeTab === "FREE" && (
+                <CategoryDropdownWrapper>
+                  <CategoryDropdownButton
+                    $open={dropdownOpen}
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                  >
+                    카테고리 : {boardMeta.FREE.subCategoryLabels[subCategory]}
+                    <SvgChevronDown />
+                  </CategoryDropdownButton>
+
+                  {dropdownOpen && (
+                    <DropdownMenu>
+                      {boardMeta.FREE.subCategories.map((subKey) => (
+                        <DropdownItem
+                          key={subKey}
+                          $active={subCategory === subKey}
+                          onClick={() => handleSubCategorySelect(subKey)}
+                        >
+                          {boardMeta.FREE.subCategoryLabels[subKey]}
+                        </DropdownItem>
+                      ))}
+                    </DropdownMenu>
+                  )}
+                </CategoryDropdownWrapper>
+              )}
+            </FilterBar>
+          )}
 
           {/* ========================================================= */}
           {/* [수정] 카테고리별 특화 리스트 컴포넌트 호출 실연동 */}
@@ -315,6 +327,15 @@ export default function BoardListPage() {
           {/* 하단 페이지네이션 */}
           {totalPages > 1 && (
             <PaginationWrapper>
+              {/* << (이전 10페이지 그룹 이동) */}
+              <PageArrowButton
+                onClick={() => setCurrentPage(startPage - 1)}
+                disabled={startPage === 0}
+              >
+                <SvgChevronsLeft />
+              </PageArrowButton>
+
+              {/* < (이전 1페이지 이동) */}
               <PageArrowButton
                 onClick={() => setCurrentPage((p) => p - 1)}
                 disabled={currentPage === 0}
@@ -322,21 +343,34 @@ export default function BoardListPage() {
                 <SvgChevronLeft />
               </PageArrowButton>
 
-              {Array.from({ length: totalPages }).map((_, idx) => (
-                <PageNumberButton
-                  key={idx}
-                  $active={currentPage === idx}
-                  onClick={() => setCurrentPage(idx)}
-                >
-                  {idx + 1}
-                </PageNumberButton>
-              ))}
+              {/* 페이지 번호 (최대 10개) */}
+              {Array.from({ length: endPage - startPage }).map((_, idx) => {
+                const pageNum = startPage + idx;
+                return (
+                  <PageNumberButton
+                    key={pageNum}
+                    $active={currentPage === pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
+                  >
+                    {pageNum + 1}
+                  </PageNumberButton>
+                );
+              })}
 
+              {/* > (다음 1페이지 이동) */}
               <PageArrowButton
                 onClick={() => setCurrentPage((p) => p + 1)}
                 disabled={currentPage === totalPages - 1}
               >
                 <SvgChevronRight />
+              </PageArrowButton>
+
+              {/* >> (다음 10페이지 그룹 이동) */}
+              <PageArrowButton
+                onClick={() => setCurrentPage(endPage)}
+                disabled={endPage >= totalPages}
+              >
+                <SvgChevronsRight />
               </PageArrowButton>
             </PaginationWrapper>
           )}
@@ -683,8 +717,8 @@ const PageNumberButton = styled.button`
   border: 1px solid
     ${(props) => (props.$active ? "var(--color-main)" : "#dee2e6")};
   background-color: ${(props) =>
-    props.active ? "var(--color-main)" : "#ffffff"};
-  color: ${(props) => (props.$active ? "#000000" : "#555555")};
+    props.$active ? "var(--color-main)" : "#ffffff"};
+  color: ${(props) => (props.$active ? "#ffffff" : "#555555")};
   font-weight: ${(props) => (props.$active ? "700" : "500")};
   font-size: 13px;
   display: flex;
@@ -823,5 +857,17 @@ const SvgChevronRight = () => (
 const SvgSearch = () => (
   <svg viewBox="0 0 24 24">
     <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+  </svg>
+);
+
+const SvgChevronsLeft = () => (
+  <svg viewBox="0 0 24 24">
+    <path d="M18.41 7.41L17 6l-6 6 6 6 1.41-1.41L13.83 12zm-7 0L10 6l-6 6 6 6 1.41-1.41L6.83 12z" />
+  </svg>
+);
+
+const SvgChevronsRight = () => (
+  <svg viewBox="0 0 24 24">
+    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6zm7 0l-1.41 1.41 4.58 4.59-4.58 4.59L17 18l6-6z" />
   </svg>
 );

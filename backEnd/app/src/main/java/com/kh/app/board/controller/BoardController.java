@@ -5,6 +5,7 @@ import com.kh.app.board.dto.request.BoardWriteReqDto;
 import com.kh.app.board.dto.response.BoardDetailResDto;
 import com.kh.app.board.dto.response.BoardResDto;
 import com.kh.app.board.dto.response.BoardLikeResDto;
+import com.kh.app.board.dto.response.NaverNewsResDto;
 import com.kh.app.board.service.BoardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -57,6 +58,16 @@ public class BoardController {
             @RequestParam(name = "page", defaultValue = "0") int page
             ){
         Page<BoardResDto> result = boardService.getList(category, condition, page);
+        return ResponseEntity.ok(result);
+    }
+
+    @Operation(summary = "네이버 뉴스 검색 조회", description = "네이버 뉴스 검색 API와 연계하여 최신 기사를 페이징 형태로 반환")
+    @GetMapping("/news")
+    public ResponseEntity<NaverNewsResDto> getNaverNews(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "search", defaultValue = "반려동물") String search
+    ) {
+        NaverNewsResDto result = boardService.getNaverNews(page, search);
         return ResponseEntity.ok(result);
     }
 
