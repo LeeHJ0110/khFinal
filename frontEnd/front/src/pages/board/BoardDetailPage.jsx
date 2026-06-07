@@ -221,13 +221,13 @@ export default function BoardDetailPage() {
           {/* 작성자 정보 및 메타데이터 행 */}
           <PostMetaRow>
             <MetaLeft>
-              <AuthorAvatar
-                src={
-                  detail.writerProfileImageUrl ||
-                  "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=120&q=80"
-                }
-                alt="작성자 프로필"
-              />
+              <AuthorAvatarWrapper>
+                {detail.writerProfileImageUrl && detail.writerProfileImageUrl !== "/images/default-profile.png" ? (
+                  <img src={detail.writerProfileImageUrl} alt="작성자 프로필" />
+                ) : (
+                  <DefaultAvatarChar>🐾</DefaultAvatarChar>
+                )}
+              </AuthorAvatarWrapper>
               <AuthorTextInfo>
                 <AuthorNameRow>
                   <LevelBadge>Lv.{detail.writerLevel || 1}</LevelBadge>
@@ -349,13 +349,13 @@ export default function BoardDetailPage() {
                 <Fragment key={comment.id}>
                   {/* 메인 댓글 */}
                   <CommentItem>
-                    <CommentAvatar
-                      src={
-                        comment.profileImageUrl ||
-                        "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=120&q=80"
-                      }
-                      alt={comment.writerNickname}
-                    />
+                    <CommentAvatarWrapper>
+                      {comment.profileImageUrl && comment.profileImageUrl !== "/images/default-profile.png" ? (
+                        <img src={comment.profileImageUrl} alt={comment.writerNickname} />
+                      ) : (
+                        <DefaultCommentAvatarChar>🐾</DefaultCommentAvatarChar>
+                      )}
+                    </CommentAvatarWrapper>
 
                     <CommentContentBox>
                       <CommentMetaRow>
@@ -420,13 +420,13 @@ export default function BoardDetailPage() {
                       <ReplyItem key={reply.id}>
                         <ReplyIndentArrow>↳</ReplyIndentArrow>
                         <ReplyContentCard>
-                          <CommentAvatar
-                            src={
-                              reply.profileImageUrl ||
-                              "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=120&q=80"
-                            }
-                            alt={reply.writerNickname}
-                          />
+                          <CommentAvatarWrapper>
+                            {reply.profileImageUrl && reply.profileImageUrl !== "/images/default-profile.png" ? (
+                              <img src={reply.profileImageUrl} alt={reply.writerNickname} />
+                            ) : (
+                              <DefaultCommentAvatarChar>🐾</DefaultCommentAvatarChar>
+                            )}
+                          </CommentAvatarWrapper>
                           <CommentContentBox>
                             <CommentMetaRow>
                               <LevelBadge>Lv.{reply.writerLevel}</LevelBadge>
@@ -616,12 +616,26 @@ const MetaLeft = styled.div`
   gap: 12px;
 `;
 
-const AuthorAvatar = styled.img`
+const AuthorAvatarWrapper = styled.div`
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  object-fit: cover;
+  overflow: hidden;
   background-color: #f1f3f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const DefaultAvatarChar = styled.span`
+  font-size: 20px;
 `;
 
 const AuthorTextInfo = styled.div`
@@ -903,13 +917,26 @@ const CommentItem = styled.div`
   border-bottom: 1px solid #f1f3f4;
 `;
 
-const CommentAvatar = styled.img`
+const CommentAvatarWrapper = styled.div`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  object-fit: cover;
+  overflow: hidden;
   background-color: #f1f3f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const DefaultCommentAvatarChar = styled.span`
+  font-size: 18px;
 `;
 
 const CommentContentBox = styled.div`

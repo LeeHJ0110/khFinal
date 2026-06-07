@@ -34,6 +34,8 @@ function formatRelativeTime(dateString) {
 // ==========================================
 // 태그 목록 및 헬퍼 함수
 // ==========================================
+const DEFAULT_NO_IMAGE = "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/%EC%82%AC%EC%A7%84%EC%97%86%EC%9D%84%EB%95%8C%EA%B8%B0%EB%B3%B8.png";
+
 const TAG_LIST = [
   "성장", "체중관리", "피브", "소화", "치아",
   "칼로리", "보상", "기호성", "관절", "면영",
@@ -182,14 +184,6 @@ export function BestFacilityReviewsWidget({ list, onItemClick, onMoreClick }) {
     .sort((a, b) => (b.stars || 5) - (a.stars || 5))
     .slice(0, 4);
 
-  // 시안의 4개 카드 플레이스홀더 매칭 데이터
-  const mockIcons = [
-    "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=300&q=80", // 동물병원
-    "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&q=80", // 애견카페
-    "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300&q=80", // 호텔
-    "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=300&q=80", // 펜션
-  ];
-
   return (
     <WidgetContainer>
       <WidgetHeader>
@@ -204,7 +198,7 @@ export function BestFacilityReviewsWidget({ list, onItemClick, onMoreClick }) {
         ) : (
           facilityReviews.map((item, idx) => {
             const firstImg =
-              extractFirstImg(item.content) || mockIcons[idx % 4];
+              extractFirstImg(item.content) || DEFAULT_NO_IMAGE;
             return (
               <ReviewCard
                 key={item.boardId}
@@ -242,14 +236,6 @@ export function BestProductReviewsWidget({ list, onItemClick, onMoreClick }) {
     .sort((a, b) => (b.stars || 5) - (a.stars || 5))
     .slice(0, 4);
 
-  // 시안 상품 이미지 플레이스홀더
-  const mockProducts = [
-    "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&q=80", // 사료 1
-    "https://images.unsplash.com/photo-1608454509000-19cfe9766647?w=300&q=80", // 영양제 2
-    "https://images.unsplash.com/photo-1583511655826-05700d52f4d9?w=300&q=80", // 간식 3
-    "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=300&q=80", // 샴푸 4
-  ];
-
   return (
     <WidgetContainer>
       <WidgetHeader>
@@ -264,7 +250,7 @@ export function BestProductReviewsWidget({ list, onItemClick, onMoreClick }) {
         ) : (
           productReviews.map((item, idx) => {
             const firstImg =
-              extractFirstImg(item.content) || mockProducts[idx % 4];
+              extractFirstImg(item.content) || DEFAULT_NO_IMAGE;
             return (
               <ReviewCard
                 key={item.boardId}
