@@ -46,11 +46,6 @@ export default function ScheduleMainPage() {
     <Wrapper>
       <button onClick={handleTraininClick}>훈련일기작성</button>
       <ScheduleMain onOpenModal={handleOpenModal} detailOpen={detailOpen} />
-      <ScheduleMain
-        onOpenModal={handleOpenModal}
-        detailOpen={detailOpen}
-        small={true}
-      />
       {modalType === "schedule" && (
         <ScheduleModal
           open={detailOpen}
@@ -69,4 +64,14 @@ export default function ScheduleMainPage() {
   );
 }
 
-const Wrapper = styled.div``;
+const Wrapper = styled.main`
+  width: 100%;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+  font-family:
+    "Pretendard",
+    -apple-system,
+    sans-serif;
+`;

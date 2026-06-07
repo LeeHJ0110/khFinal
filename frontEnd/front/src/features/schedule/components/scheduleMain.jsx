@@ -124,6 +124,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
     return (
       <CellWrapper
         $isLongPressing={isLongPressing}
+        $hasTraining={hasTraining}
         onMouseDown={handleCellMouseDown}
         onMouseUp={handleCellMouseUp}
         onMouseLeave={handleCellMouseLeave}
@@ -140,6 +141,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
               opacity: 0.4,
               zIndex: 1,
               pointerEvents: "none",
+              cursor: "pointer",
             }}
           />
         )}
@@ -165,15 +167,16 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
       <div
         style={{
           backgroundColor: info.event.backgroundColor || "#3788d8",
-          height: "8px",
+          height: small ? "8px" : "20px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          cursor: "pointer",
         }}
       >
         <span
           style={{
-            fontSize: "8px",
+            fontSize: small ? "8px" : "20px",
             fontWeight: "bolder",
             lineHeight: "1",
             whiteSpace: "nowrap",
@@ -204,45 +207,57 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
     });
   };
 
+  const handleCalendarBodyClick = (e) => {
+    if (!small) return;
+
+    // 만약 롱프레스 모달이나 기존 커스텀 클릭 이벤트가 동작 중이라면 이동을 막음
+    if (isLongPress.current) return;
+
+    // 더보기 버튼(+1, +2 등)을 누를 때는 이동하지 않도록 예외 처리
+    if (e.target.closest(".fc-more-link")) return;
+
+    // 요일 헤더(.fc-col-header)나 실제 날짜판(.fc-daygrid-body) 영역을 눌렀을 때만 이동
+    if (
+      e.target.closest(".fc-col-header") ||
+      e.target.closest(".fc-daygrid-body")
+    ) {
+      navigate("/healthCare/schedule"); // TODO 날짜는 넘길 수 있게 해주기
+    }
+  };
+
   return (
-    <Wrapper
-      onClick={
-        small
-          ? () => {
-              navigate("/healthCare/schedule"); //TODO 날짜는 넘길 수 있게 해주기
-            }
-          : undefined
-      }
-    >
+    <Wrapper $small={small}>
       {sLoading || tLoading ? (
         <p>불러오는 중...</p>
       ) : (
-        <FullCalendar
-          plugins={[dayGridPlugin, interactionPlugin]}
-          initialView="dayGridMonth"
-          locale="ko"
-          height={500}
-          events={mergedEvents}
-          headerToolbar={{
-            left: "prev",
-            center: "title",
-            right: "next",
-          }}
-          dayMaxEvents={2}
-          moreLinkContent={(args) => `+${args.num}`}
-          selectable={true}
-          select={onSelect}
-          dayCellContent={renderDayCell}
-          eventContent={renderEventContent}
-          eventClick={onEventClick}
-        />
+        <div onClick={handleCalendarBodyClick}>
+          <FullCalendar
+            plugins={[dayGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            locale="ko"
+            height={small ? 500 : 800}
+            events={mergedEvents}
+            headerToolbar={{
+              left: "prev",
+              center: "title",
+              right: "next",
+            }}
+            dayMaxEvents={small ? 2 : 5}
+            moreLinkContent={(args) => `+${args.num}`}
+            selectable={true}
+            select={onSelect}
+            dayCellContent={renderDayCell}
+            eventContent={renderEventContent}
+            eventClick={onEventClick}
+          />
+        </div>
       )}
     </Wrapper>
   );
 }
 
 const Wrapper = styled.div`
-  width: 300px;
+  width: ${({ $small }) => ($small ? "300px" : "1200px")};
   .fc-daygrid-day-number {
     width: 32px;
     height: 32px;
@@ -255,6 +270,26 @@ const Wrapper = styled.div`
     color: #222;
     transition: 0.2s;
   }
+  .fc-view-harness {
+    cursor: ${({ $small }) => ($small ? "pointer" : "default")};
+  }
+
+  /* 이전 / 다음 버튼 */
+  .fc .fc-button {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.07);
+    color: #444 !important;
+
+    width: 32px;
+    height: 32px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    transition: 0.2s;
+  }
 `;
 
 const CellWrapper = styled.div`
@@ -264,7 +299,8 @@ const CellWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: ${({ $isLongPressing }) => ($isLongPressing ? "copy" : "default")};
+  cursor: ${({ $isLongPressing, $hasTraining }) =>
+    $isLongPressing ? "copy" : $hasTraining ? "pointer" : "default"};
   user-select: none;
 `;
 
