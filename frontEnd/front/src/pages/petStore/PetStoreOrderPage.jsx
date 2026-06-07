@@ -9,7 +9,51 @@ import {
 import PetStoreUserNav from "./PetStoreUserNav";
 import StorePaymentSummaryCard from "../../features/petStore/components/PetStorePaymentSummaryCard";
 
+const deliveryRequestOptions = [
+  {
+    label: "배송 요청사항을 선택해주세요.",
+    value: "",
+  },
+  {
+    label: "문 앞에 놓아주세요.",
+    value: "문 앞에 놓아주세요.",
+  },
+  {
+    label: "부재 시 경비실에 맡겨주세요.",
+    value: "부재 시 경비실에 맡겨주세요.",
+  },
+  {
+    label: "배송 전 연락 부탁드립니다.",
+    value: "배송 전 연락 부탁드립니다.",
+  },
+  {
+    label: "직접 입력",
+    value: "DIRECT",
+  },
+];
 export default function PetStoreOrderPage() {
+  const deliveryRequestOptions = [
+    {
+      label: "배송 요청사항을 선택해주세요.",
+      value: "",
+    },
+    {
+      label: "문 앞에 놓아주세요.",
+      value: "문 앞에 놓아주세요.",
+    },
+    {
+      label: "부재 시 경비실에 맡겨주세요.",
+      value: "부재 시 경비실에 맡겨주세요.",
+    },
+    {
+      label: "배송 전 연락 부탁드립니다.",
+      value: "배송 전 연락 부탁드립니다.",
+    },
+    {
+      label: "직접 입력",
+      value: "DIRECT",
+    },
+  ];
   const navigate = useNavigate();
 
   const [cart, setCart] = useState(null);
@@ -21,6 +65,7 @@ export default function PetStoreOrderPage() {
   const [deliveryAddressList, setDeliveryAddressList] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [deliveryRequest, setDeliveryRequest] = useState("");
+  const [deliveryRequestOption, setDeliveryRequestOption] = useState("");
 
   const cartItemList = cart?.cartItemList ?? [];
 
@@ -147,6 +192,19 @@ export default function PetStoreOrderPage() {
     }
   }
 
+  function handleChangeDeliveryRequestOption(event) {
+    const selectedValue = event.target.value;
+
+    setDeliveryRequestOption(selectedValue);
+
+    if (selectedValue === "DIRECT") {
+      setDeliveryRequest("");
+      return;
+    }
+
+    setDeliveryRequest(selectedValue);
+  }
+
   useEffect(() => {
     loadOrdererNameFromToken();
     loadCartList();
@@ -219,13 +277,32 @@ export default function PetStoreOrderPage() {
                     </DeliveryValue>
 
                     <DeliveryLabel>요청사항</DeliveryLabel>
-                    <DeliveryRequestInput
-                      value={deliveryRequest}
-                      onChange={(event) =>
-                        setDeliveryRequest(event.target.value)
-                      }
-                      placeholder="배송 요청사항을 입력해주세요."
-                    />
+
+                    <DeliveryRequestBox>
+                      <DeliveryRequestSelect
+                        value={deliveryRequestOption}
+                        onChange={handleChangeDeliveryRequestOption}
+                      >
+                        {deliveryRequestOptions.map((option) => (
+                          <option
+                            key={option.value || "EMPTY"}
+                            value={option.value}
+                          >
+                            {option.label}
+                          </option>
+                        ))}
+                      </DeliveryRequestSelect>
+
+                      {deliveryRequestOption === "DIRECT" && (
+                        <DeliveryRequestInput
+                          value={deliveryRequest}
+                          onChange={(event) =>
+                            setDeliveryRequest(event.target.value)
+                          }
+                          placeholder="배송 요청사항을 직접 입력해주세요."
+                        />
+                      )}
+                    </DeliveryRequestBox>
                   </DeliveryInfoGrid>
 
                   <DeliveryCardList>
@@ -486,9 +563,9 @@ const OrdererLabel = styled.span`
 const OrdererValue = styled.span`
   min-width: 0;
 
-  color: #333333;
+  color: #222222;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 700;
 
   white-space: nowrap;
   overflow: hidden;
@@ -545,6 +622,36 @@ const DeliveryValue = styled.div`
   color: #333333;
   font-size: 15px;
   line-height: 1.45;
+`;
+
+const DeliveryRequestBox = styled.div`
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const DeliveryRequestSelect = styled.select`
+  box-sizing: border-box;
+  width: 100%;
+  height: 36px;
+
+  border: 1px solid #cfd8d5;
+  border-radius: 5px;
+  padding: 0 12px;
+  background: #ffffff;
+
+  color: #333333;
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: #00a878;
+  }
 `;
 
 const DeliveryRequestInput = styled.input`
@@ -618,7 +725,7 @@ const DeliveryCardName = styled.strong`
   min-width: 0;
 
   color: #222222;
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 800;
 
   white-space: nowrap;
@@ -631,7 +738,7 @@ const DeliveryCardReceiver = styled.div`
 
   color: #333333;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 600;
 
   white-space: nowrap;
   overflow: hidden;
@@ -683,7 +790,7 @@ const OrderTable = styled.table`
 
     color: #222222;
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 700;
   }
 
   th:nth-child(1) {
@@ -728,8 +835,8 @@ const ProductCellInner = styled.div`
 `;
 
 const ProductImageBox = styled.div`
-  width: 46px;
-  height: 46px;
+  width: 50px;
+  height: 50px;
 
   flex-shrink: 0;
   overflow: hidden;
@@ -774,8 +881,8 @@ const QtyCell = styled.td`
   text-align: center;
 
   color: #222222;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 500;
 `;
 
 const PriceCell = styled.td`
@@ -784,7 +891,7 @@ const PriceCell = styled.td`
 
   color: #111111;
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 600;
 `;
 
 const EmptyCell = styled.td`
@@ -818,7 +925,7 @@ const PaymentMethodCard = styled.button`
 
   color: #444444;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
 
   cursor: pointer;
   outline: none;

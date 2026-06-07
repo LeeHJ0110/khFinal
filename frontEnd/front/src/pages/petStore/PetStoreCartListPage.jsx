@@ -704,7 +704,7 @@ const ProductNameButton = styled.button`
 const ProductPrice = styled.div`
   margin-bottom: 13px;
 
-  color: #555555;
+  color: #222222;
   font-size: 20px;
   font-weight: 600;
   line-height: 1;
@@ -866,8 +866,8 @@ const RecommendCard = styled.article`
 `;
 
 const RecommendImageBox = styled.button`
-  width: 130px;
-  height: 130px;
+  width: 120px;
+  height: 120px;
   padding: 0;
 
   overflow: hidden;
@@ -884,8 +884,8 @@ const RecommendImageBox = styled.button`
 `;
 
 const RecommendImage = styled.img`
-  width: 100%;
-  height: 100%;
+  width: 80%;
+  height: 80%;
   padding: 8px;
   object-fit: contain;
 `;
@@ -921,8 +921,8 @@ const RecommendNameButton = styled.button`
   background: transparent;
 
   color: #222222;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 500;
   line-height: 1.35;
   letter-spacing: -0.25px;
   text-align: left;
@@ -939,8 +939,8 @@ const RecommendPrice = styled.div`
   margin-bottom: 12px;
 
   color: #333333;
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 600;
   line-height: 1;
   letter-spacing: -0.55px;
 `;
@@ -960,7 +960,7 @@ const WishButton = styled.button`
   background-color: #ffffff;
 
   color: #444444;
-  font-size: 22px;
+  font-size: 18px;
   line-height: 1;
   cursor: pointer;
 
@@ -979,8 +979,8 @@ const RecommendCartButton = styled.button`
   background-color: #ffffff;
 
   color: #05a77b;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
 

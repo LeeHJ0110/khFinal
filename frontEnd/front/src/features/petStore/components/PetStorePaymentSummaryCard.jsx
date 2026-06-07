@@ -157,7 +157,7 @@ const SummaryLabel = styled.div`
 
 const SummaryValue = styled.div`
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 600;
   color: #111111;
 `;
 
@@ -316,14 +316,14 @@ const FinalRow = styled.div`
 `;
 
 const FinalLabel = styled.div`
-  font-size: 17px;
-  font-weight: 800;
+  font-size: 16px;
+  font-weight: 600;
   color: #111111;
 `;
 
 const FinalValue = styled.div`
   font-size: 30px;
-  font-weight: 900;
+  font-weight: 700;
   color: #05a77b;
   letter-spacing: -1px;
 `;
@@ -336,7 +336,7 @@ const PrimaryButton = styled.button`
   background-color: #05a77b;
   color: #ffffff;
   font-size: 18px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 
   &:hover {
@@ -357,7 +357,7 @@ const SecondaryButton = styled.button`
   background-color: #ffffff;
   color: #333333;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 600;
   margin-top: 12px;
   cursor: pointer;
 

@@ -73,10 +73,6 @@ export default function PetStoreHomePage() {
                 onClick={() => navigate(shortcut.path)}
               >
                 <StoreShortcutText>
-                  <StoreShortcutEyebrow>
-                    건강한 반려 생활의 시작
-                  </StoreShortcutEyebrow>
-
                   <StoreShortcutTitle>{shortcut.title}</StoreShortcutTitle>
 
                   <StoreShortcutDesc>{shortcut.desc}</StoreShortcutDesc>
@@ -354,15 +350,6 @@ const StoreShortcutText = styled.div`
   position: relative;
   z-index: 3;
   transform: translateY(-1px);
-`;
-
-const StoreShortcutEyebrow = styled.p`
-  margin: 0 0 7px;
-
-  color: var(--color-main);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.35px;
 `;
 
 const StoreShortcutTitle = styled.h2`

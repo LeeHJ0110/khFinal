@@ -1,5 +1,100 @@
 import { useEffect, useMemo } from "react";
 
+function getImageUrl(image) {
+  if (!image) {
+    return "";
+  }
+
+  if (typeof image === "string") {
+    return image;
+  }
+
+  return (
+    image.imageUrl ||
+    image.thumbnailUrl ||
+    image.mainImageUrl ||
+    image.subImageUrl ||
+    image.productImageUrl ||
+    image.productThumbnailUrl ||
+    image.imageChangedName ||
+    image.changedName ||
+    image.savedName ||
+    image.fileUrl ||
+    image.url ||
+    ""
+  );
+}
+
+function isMainImage(image) {
+  if (!image || typeof image === "string") {
+    return false;
+  }
+
+  return (
+    image.imageRepresentYn === "Y" ||
+    image.representYn === "Y" ||
+    image.mainYn === "Y" ||
+    image.imageMainYn === "Y" ||
+    image.productImageRepresentYn === "Y" ||
+    image.isMain === true ||
+    image.isRepresentative === true
+  );
+}
+
+function getCurrentImageList(detailData) {
+  if (!detailData) {
+    return [];
+  }
+
+  const imageList =
+    detailData.imageList ||
+    detailData.images ||
+    detailData.productImageList ||
+    detailData.storeProductImageList ||
+    detailData.productImages ||
+    [];
+
+  if (Array.isArray(imageList) && imageList.length > 0) {
+    return imageList;
+  }
+
+  const fallbackList = [];
+
+  if (detailData.mainImageUrl) {
+    fallbackList.push({
+      imageUrl: detailData.mainImageUrl,
+      imageRepresentYn: "Y",
+    });
+  }
+
+  if (detailData.thumbnailUrl) {
+    fallbackList.push({
+      imageUrl: detailData.thumbnailUrl,
+      imageRepresentYn: "Y",
+    });
+  }
+
+  if (Array.isArray(detailData.subImageUrls)) {
+    detailData.subImageUrls.forEach((url) => {
+      fallbackList.push({
+        imageUrl: url,
+        imageRepresentYn: "N",
+      });
+    });
+  }
+
+  if (Array.isArray(detailData.subImages)) {
+    detailData.subImages.forEach((url) => {
+      fallbackList.push({
+        imageUrl: url,
+        imageRepresentYn: "N",
+      });
+    });
+  }
+
+  return fallbackList;
+}
+
 export default function PetStoreProductImageSection({
   mode,
   detailData,
@@ -13,21 +108,38 @@ export default function PetStoreProductImageSection({
   setSubImagePreviews,
 }) {
   const currentImageList = useMemo(() => {
-    return (
-      detailData?.imageList ||
-      detailData?.images ||
-      detailData?.productImageList ||
-      []
-    );
+    return getCurrentImageList(detailData);
   }, [detailData]);
 
-  const currentMainImage = currentImageList.find(
-    (image) => image.imageRepresentYn === "Y",
-  );
+  const currentMainImage = useMemo(() => {
+    const foundMain = currentImageList.find((image) => isMainImage(image));
 
-  const currentSubImages = currentImageList.filter(
-    (image) => image.imageRepresentYn === "N",
-  );
+    if (foundMain) {
+      return foundMain;
+    }
+
+    return currentImageList[0] ?? null;
+  }, [currentImageList]);
+
+  const currentSubImageUrls = useMemo(() => {
+    return currentImageList
+      .filter((image) => {
+        if (image === currentMainImage) {
+          return false;
+        }
+
+        if (isMainImage(image)) {
+          return false;
+        }
+
+        return true;
+      })
+      .map((image) => getImageUrl(image))
+      .filter(Boolean)
+      .slice(0, 3);
+  }, [currentImageList, currentMainImage]);
+
+  const currentMainImageUrl = getImageUrl(currentMainImage);
 
   useEffect(() => {
     return () => {
@@ -36,7 +148,9 @@ export default function PetStoreProductImageSection({
       }
 
       subImagePreviews.forEach((previewUrl) => {
-        URL.revokeObjectURL(previewUrl);
+        if (previewUrl) {
+          URL.revokeObjectURL(previewUrl);
+        }
       });
     };
   }, [mainImagePreview, subImagePreviews]);
@@ -48,6 +162,10 @@ export default function PetStoreProductImageSection({
       setMainImage(null);
       setMainImagePreview("");
       return;
+    }
+
+    if (mainImagePreview) {
+      URL.revokeObjectURL(mainImagePreview);
     }
 
     setMainImage(file);
@@ -100,6 +218,14 @@ export default function PetStoreProductImageSection({
     });
   }
 
+  function getMainDisplayUrl() {
+    return mainImagePreview || currentMainImageUrl;
+  }
+
+  function getSubDisplayUrl(index) {
+    return subImagePreviews[index] || currentSubImageUrls[index] || "";
+  }
+
   return (
     <section className="product-form-section">
       <h3>2. 이미지</h3>
@@ -109,37 +235,16 @@ export default function PetStoreProductImageSection({
           <p>현재 등록된 이미지</p>
 
           <div className="current-image-list">
-            {currentMainImage && (
+            {currentMainImageUrl && (
               <div className="current-image-card">
-                <img
-                  src={
-                    currentMainImage.imageUrl ||
-                    currentMainImage.thumbnailUrl ||
-                    currentMainImage.imageChangedName
-                  }
-                  alt="현재 대표 이미지"
-                />
+                <img src={currentMainImageUrl} alt="현재 대표 이미지" />
                 <span>대표</span>
               </div>
             )}
 
-            {currentSubImages.map((image) => (
-              <div
-                className="current-image-card"
-                key={
-                  image.imageId ||
-                  image.productImageId ||
-                  image.imageChangedName
-                }
-              >
-                <img
-                  src={
-                    image.imageUrl ||
-                    image.thumbnailUrl ||
-                    image.imageChangedName
-                  }
-                  alt="현재 추가 이미지"
-                />
+            {currentSubImageUrls.map((url, index) => (
+              <div className="current-image-card" key={`${url}-${index}`}>
+                <img src={url} alt={`현재 추가 이미지 ${index + 1}`} />
                 <span>추가</span>
               </div>
             ))}
@@ -158,8 +263,8 @@ export default function PetStoreProductImageSection({
           />
 
           <div className="upload-box upload-box-main">
-            {mainImagePreview ? (
-              <img src={mainImagePreview} alt="대표 이미지 미리보기" />
+            {getMainDisplayUrl() ? (
+              <img src={getMainDisplayUrl()} alt="대표 이미지 미리보기" />
             ) : (
               <>
                 <strong>↥</strong>
@@ -168,7 +273,11 @@ export default function PetStoreProductImageSection({
             )}
           </div>
 
-          {mainImage && <em>{mainImage.name}</em>}
+          {mainImage ? (
+            <em>{mainImage.name}</em>
+          ) : mode === "update" && currentMainImageUrl ? (
+            <em>기존 대표 이미지를 사용 중입니다.</em>
+          ) : null}
         </label>
 
         <div className="image-upload-sub-area">
@@ -177,41 +286,51 @@ export default function PetStoreProductImageSection({
           </span>
 
           <div className="image-upload-sub-list">
-            {[0, 1, 2].map((index) => (
-              <div className="image-upload-sub-slot" key={index}>
-                <label className="image-upload-sub">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(evt) => handleSubImageChange(evt, index)}
-                  />
+            {[0, 1, 2].map((index) => {
+              const displayUrl = getSubDisplayUrl(index);
+              const hasNewImage = !!subImagePreviews[index];
+              const hasCurrentImage = !!currentSubImageUrls[index];
 
-                  <div className="upload-box">
-                    {subImagePreviews[index] ? (
-                      <img
-                        src={subImagePreviews[index]}
-                        alt={`추가 이미지 ${index + 1}`}
-                      />
-                    ) : (
-                      <>
-                        <strong>+</strong>
-                        <p>추가 이미지</p>
-                      </>
-                    )}
-                  </div>
-                </label>
+              return (
+                <div className="image-upload-sub-slot" key={index}>
+                  <label className="image-upload-sub">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(evt) => handleSubImageChange(evt, index)}
+                    />
 
-                {subImagePreviews[index] && (
-                  <button
-                    type="button"
-                    className="sub-image-remove-button"
-                    onClick={() => handleRemoveSubImage(index)}
-                  >
-                    삭제
-                  </button>
-                )}
-              </div>
-            ))}
+                    <div className="upload-box">
+                      {displayUrl ? (
+                        <img
+                          src={displayUrl}
+                          alt={`추가 이미지 ${index + 1}`}
+                        />
+                      ) : (
+                        <>
+                          <strong>+</strong>
+                          <p>추가 이미지</p>
+                        </>
+                      )}
+                    </div>
+                  </label>
+
+                  {hasNewImage && (
+                    <button
+                      type="button"
+                      className="sub-image-remove-button"
+                      onClick={() => handleRemoveSubImage(index)}
+                    >
+                      삭제
+                    </button>
+                  )}
+
+                  {!hasNewImage && hasCurrentImage && (
+                    <span className="existing-image-label">기존 이미지</span>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
