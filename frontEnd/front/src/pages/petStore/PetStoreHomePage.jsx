@@ -9,12 +9,6 @@ import dogStoreCard from "../../assets/images/petStore/강아지스토어카드.
 import catStoreCard from "../../assets/images/petStore/고양이스토어카드.png";
 import storeHealthCareCard from "../../assets/images/petStore/스토어건강관리카드.png";
 
-//!! 리뷰 기능 완성되면!!
-// 1. getTempReviewInfo 함수 삭제
-// 2. tempReview.rating / tempReview.count 부분을 실제 리뷰 데이터로 변경
-// 예시:
-// {product.reviewRatingAvg?.toFixed(1) ?? "0.0"} ({product.reviewCount ?? 0})
-
 const shortcutList = [
   {
     id: "dog",
@@ -88,11 +82,11 @@ export default function PetStoreHomePage() {
                   <StoreShortcutDesc>{shortcut.desc}</StoreShortcutDesc>
 
                   <RoundedButton
-                    width="154px"
-                    height="28px"
+                    width="158px"
+                    height="29px"
                     fontSize="12px"
                     fontWeight="700"
-                    gap="12px"
+                    gap="10px"
                     rightIcon="→"
                     onClick={(evt) => {
                       evt.stopPropagation();
@@ -162,23 +156,10 @@ export default function PetStoreHomePage() {
                         {product.productPrice?.toLocaleString()}원
                       </ProductPrice>
 
-                      <ProductBottom>
-                        <ProductReviewInfo>
-                          <ReviewStar>★</ReviewStar>
-                          {tempReview.rating} ({tempReview.count})
-                        </ProductReviewInfo>
-
-                        <CartMiniButton
-                          type="button"
-                          aria-label="장바구니 담기"
-                          onClick={(evt) => {
-                            evt.stopPropagation();
-                            // 나중에 insertCartProduct({ productId: product.productId, qty: 1 }) 연결
-                          }}
-                        >
-                          🛒
-                        </CartMiniButton>
-                      </ProductBottom>
+                      <ProductReviewInfo>
+                        <ReviewStar>★</ReviewStar>
+                        {tempReview.rating} ({tempReview.count})
+                      </ProductReviewInfo>
                     </ProductInfo>
                   </BestProductCard>
                 );
@@ -200,12 +181,12 @@ export default function PetStoreHomePage() {
 
             <HealthButtonWrap>
               <RoundedButton
-                width="194px"
-                height="43px"
-                fontSize="15px"
-                fontWeight="800"
+                width="190px"
+                height="42px"
+                fontSize="14px"
+                fontWeight="700"
                 rightIcon=">"
-                onClick={() => navigate("/healthCare")}
+                onClick={() => navigate("/healthcare/requesthome")}
               >
                 건강관리 시작하기
               </RoundedButton>
@@ -225,18 +206,55 @@ const Wrapper = styled.main`
 const HeroBanner = styled.section`
   position: relative;
   width: 100%;
-  height: 315px;
-
+  height: 320px;
   overflow: hidden;
 
   display: flex;
   align-items: flex-start;
   justify-content: center;
 
-  background-image: url(${({ $bannerImage }) => $bannerImage});
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-size: cover;
+  background: #eef8f2;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background-image: url(${({ $bannerImage }) => $bannerImage});
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+
+    transform: scale(1);
+    transition:
+      transform 0.9s ease,
+      filter 0.9s ease;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+
+    background:
+      radial-gradient(
+        circle at 50% 42%,
+        rgba(255, 255, 255, 0.08),
+        transparent 34%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.06) 0%,
+        rgba(236, 253, 246, 0.05) 100%
+      );
+
+    pointer-events: none;
+  }
+
+  &:hover::before {
+    transform: scale(1.026);
+    filter: saturate(1.035) brightness(1.01);
+  }
 `;
 
 const HeroTextBox = styled.div`
@@ -244,7 +262,7 @@ const HeroTextBox = styled.div`
   z-index: 2;
 
   width: 100%;
-  padding-top: 62px;
+  padding-top: 68px;
 
   display: flex;
   flex-direction: column;
@@ -257,29 +275,29 @@ const HeroTextBox = styled.div`
 const HeroTitle = styled.h1`
   margin: 0;
 
-  color: #222222;
-  font-size: 56px;
-  font-weight: 900;
-  line-height: 0.92;
-  letter-spacing: -2.8px;
+  color: #242424;
+  font-size: 54px;
+  font-weight: 800;
+  line-height: 0.94;
+  letter-spacing: -2.7px;
 
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.18);
+  text-shadow: 0 2px 10px rgba(255, 255, 255, 0.32);
 `;
 
 const HeroDesc = styled.p`
-  margin: 42px 0 0;
+  margin: 40px 0 0;
 
-  color: #4d5352;
-  font-size: 20px;
-  font-weight: 600;
-  line-height: 1.45;
-  letter-spacing: -0.7px;
+  color: #505a57;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.55px;
 `;
 
 const ContentInner = styled.div`
   width: 1300px;
   margin: 0 auto;
-  padding: 14px 0 12px;
+  padding: 14px 0 14px;
 `;
 
 const StoreShortcutGrid = styled.section`
@@ -292,13 +310,13 @@ const StoreShortcutCard = styled.article`
   position: relative;
   overflow: hidden;
 
-  height: 150px;
-  padding: 24px 34px;
+  height: 158px;
+  padding: 25px 36px;
 
   display: flex;
   align-items: center;
 
-  border-radius: 16px;
+  border-radius: 18px;
   background-color: #e8f2ed;
   background-image: url(${({ $cardImage }) => $cardImage});
   background-repeat: no-repeat;
@@ -308,45 +326,62 @@ const StoreShortcutCard = styled.article`
   cursor: pointer;
 
   transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    filter 0.22s ease;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.04) 45%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    pointer-events: none;
+  }
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(18, 45, 46, 0.14);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 26px rgba(18, 45, 46, 0.13);
+    filter: saturate(1.035);
   }
 `;
 
 const StoreShortcutText = styled.div`
   position: relative;
   z-index: 3;
+  transform: translateY(-1px);
 `;
 
 const StoreShortcutEyebrow = styled.p`
-  margin: 0 0 5px;
+  margin: 0 0 7px;
 
   color: var(--color-main);
-  font-size: 16px;
-  font-weight: 900;
-  letter-spacing: -0.4px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.35px;
 `;
 
 const StoreShortcutTitle = styled.h2`
-  margin: 0 0 10px;
+  margin: 0 0 12px;
 
-  color: var(--text-main);
+  color: #202423;
   font-size: 32px;
-  font-weight: 900;
+  font-weight: 800;
   line-height: 1;
-  letter-spacing: -1.4px;
+  letter-spacing: -1.3px;
 `;
 
 const StoreShortcutDesc = styled.p`
   margin: 0 0 16px;
 
-  color: var(--text-desc);
+  color: #7b8582;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
+  letter-spacing: -0.2px;
 `;
 
 const ShortcutArrowButton = styled.button`
@@ -363,12 +398,12 @@ const ShortcutArrowButton = styled.button`
   align-items: center;
   justify-content: center;
 
-  border: 1.5px solid rgba(30, 42, 40, 0.75);
+  border: 1.4px solid rgba(30, 42, 40, 0.58);
   border-radius: 50%;
-  background-color: transparent;
-  color: #222;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #252b29;
 
-  font-size: 58px;
+  font-size: 56px;
   font-weight: 200;
   line-height: 0.7;
   cursor: pointer;
@@ -377,19 +412,21 @@ const ShortcutArrowButton = styled.button`
     background-color 0.18s ease,
     color 0.18s ease,
     border-color 0.18s ease,
-    transform 0.18s ease;
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
 
   &:hover {
-    transform: translateY(-50%) scale(1.04);
+    transform: translateY(-50%) scale(1.045);
     border-color: var(--color-main);
     color: var(--color-main);
-    background-color: rgba(255, 255, 255, 0.38);
+    background-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 8px 18px rgba(0, 169, 123, 0.14);
   }
 `;
 
 const SectionTitleArea = styled.section`
-  height: 42px;
-  padding: 11px 8px 0;
+  height: 43px;
+  padding: 12px 8px 0;
 
   display: flex;
   align-items: flex-start;
@@ -399,18 +436,18 @@ const SectionTitleArea = styled.section`
 const SectionTitle = styled.h2`
   margin: 0;
 
-  color: var(--text-main);
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: -0.7px;
+  color: #202423;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.75px;
 `;
 
 const SectionSubTitle = styled.p`
   margin: 6px 0 0;
 
-  color: var(--text-sub);
-  font-size: 13px;
-  font-weight: 700;
+  color: #5d6764;
+  font-size: 12px;
+  font-weight: 500;
 `;
 
 const BestProductGrid = styled.section`
@@ -423,36 +460,39 @@ const BestProductCard = styled.article`
   position: relative;
 
   height: 126px;
-  padding: 16px 18px;
+  padding: 15px 18px;
 
   display: grid;
-  grid-template-columns: 104px minmax(0, 1fr);
+  grid-template-columns: 102px minmax(0, 1fr);
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 
+  border: 1px solid rgba(18, 45, 46, 0.055);
   border-radius: 16px;
   background-color: var(--color-white);
-  box-shadow: 0 3px 14px rgba(18, 45, 46, 0.18);
+  box-shadow: 0 4px 15px rgba(18, 45, 46, 0.13);
 
   transition:
     transform 0.18s ease,
-    box-shadow 0.18s ease;
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
   cursor: pointer;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(18, 45, 46, 0.2);
+    transform: translateY(-3px);
+    border-color: rgba(0, 169, 123, 0.16);
+    box-shadow: 0 9px 22px rgba(18, 45, 46, 0.16);
   }
 `;
 
 const ProductVisualBox = styled.div`
   position: relative;
 
-  width: 104px;
-  height: 96px;
+  width: 102px;
+  height: 98px;
 
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
 `;
 
@@ -464,7 +504,7 @@ const BestBadge = styled.div`
 
   min-width: 48px;
   height: 20px;
-  padding: 0 8px;
+  padding: 0 7px;
 
   display: flex;
   align-items: center;
@@ -474,40 +514,46 @@ const BestBadge = styled.div`
   background-color: var(--color-main);
   color: var(--color-white);
 
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: -0.2px;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: -0.15px;
 `;
 
 const ProductImageBox = styled.div`
-  width: 88px;
-  height: 88px;
+  width: 90px;
+  height: 90px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  overflow: hidden;
-  border-radius: 10px;
-  background-color: #f1f6f3;
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
 `;
 
 const ProductImage = styled.img`
   width: 100%;
   height: 100%;
-  padding: 4px;
+  padding: 0;
   object-fit: contain;
+
+  transition: transform 0.18s ease;
+
+  ${BestProductCard}:hover & {
+    transform: scale(1.035);
+  }
 `;
 
 const ProductImageText = styled.span`
   color: var(--text-desc);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 500;
 `;
 
 const ProductInfo = styled.div`
   min-width: 0;
-  height: 92px;
+  height: 90px;
 
   display: flex;
   flex-direction: column;
@@ -515,14 +561,14 @@ const ProductInfo = styled.div`
 `;
 
 const ProductName = styled.h3`
-  min-height: 34px;
+  min-height: 35px;
   margin: 0;
 
-  color: var(--text-main);
-  font-size: 14px;
-  font-weight: 800;
-  line-height: 1.25;
-  letter-spacing: -0.2px;
+  color: #222827;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.32;
+  letter-spacing: -0.25px;
 
   display: -webkit-box;
   overflow: hidden;
@@ -533,79 +579,58 @@ const ProductName = styled.h3`
 const ProductPrice = styled.p`
   margin: 0;
 
-  color: var(--text-main);
-  font-size: 21px;
-  font-weight: 900;
+  color: #202423;
+  font-size: 20px;
+  font-weight: 800;
   line-height: 1;
-  letter-spacing: -0.7px;
-`;
-
-const ProductBottom = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  letter-spacing: -0.6px;
 `;
 
 const ProductReviewInfo = styled.div`
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
 
-  color: var(--text-sub);
-  font-size: 13px;
-  font-weight: 700;
+  color: #555f5c;
+  font-size: 12px;
+  font-weight: 500;
   line-height: 1;
 `;
 
 const ReviewStar = styled.span`
   color: #ffc400;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1;
-`;
-
-const CartMiniButton = styled.button`
-  width: 24px;
-  height: 24px;
-
-  border: none;
-  border-radius: 50%;
-  background-color: #d9f0e7;
-  color: var(--color-main);
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 12px;
-  cursor: pointer;
-
-  transition:
-    transform 0.16s ease,
-    background-color 0.16s ease;
-
-  &:hover {
-    transform: scale(1.08);
-    background-color: var(--color-bg-light);
-  }
 `;
 
 const HealthBanner = styled.section`
   position: relative;
   overflow: hidden;
 
-  height: 145px;
-  margin-top: 14px;
+  height: 146px;
+  margin-top: 16px;
   padding: 0 34px;
 
   display: flex;
   align-items: center;
 
-  border-radius: 16px;
+  border-radius: 18px;
   background-color: #dff2e7;
   background-image: url(${({ $cardImage }) => $cardImage});
   background-repeat: no-repeat;
   background-position: center center;
   background-size: cover;
+
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    filter 0.22s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(18, 45, 46, 0.11);
+    filter: saturate(1.025);
+  }
 `;
 
 const HealthTextBox = styled.div`
@@ -613,32 +638,33 @@ const HealthTextBox = styled.div`
   z-index: 2;
   flex-shrink: 0;
 
-  margin-left: 96px;
+  margin-left: 104px;
 `;
 
 const HealthTitle = styled.h2`
-  margin: 0 0 10px;
+  margin: 0 0 9px;
 
   color: var(--color-main);
-  font-size: 28px;
-  font-weight: 900;
-  letter-spacing: -1.1px;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -1px;
 
   strong {
-    color: var(--text-main);
+    color: #202423;
+    font-weight: 800;
   }
 `;
 
 const HealthDesc = styled.p`
   margin: 0;
 
-  color: var(--text-sub);
+  color: #4e5a57;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
 `;
 
 const HealthButtonWrap = styled.div`
-  margin-left: 58px;
+  margin-left: 64px;
   position: relative;
   z-index: 3;
 `;
@@ -656,5 +682,5 @@ const BestProductEmpty = styled.div`
   color: var(--text-sub);
 
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
 `;

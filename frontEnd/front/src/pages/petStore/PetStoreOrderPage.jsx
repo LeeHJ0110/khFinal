@@ -31,7 +31,6 @@ export default function PetStoreOrderPage() {
   const totalProductAmount = cart?.totalProductAmount ?? 0;
   const orderDeliveryFee = cart?.orderDeliveryFee ?? 0;
 
-  // 포인트는 아직 백엔드 결제금액에 반영되지 않으므로 cart 응답 금액 기준으로 고정
   const finalOrderAmount = useMemo(() => {
     return cart?.finalOrderAmount ?? totalProductAmount + orderDeliveryFee;
   }, [cart?.finalOrderAmount, totalProductAmount, orderDeliveryFee]);
@@ -104,6 +103,10 @@ export default function PetStoreOrderPage() {
     }
   }
 
+  function handleUnavailablePaymentMethod() {
+    alert("현재 결제서비스 도입 중입니다.");
+  }
+
   async function handlePayClick() {
     if (isPaying) {
       return;
@@ -153,6 +156,8 @@ export default function PetStoreOrderPage() {
   if (isLoading && !cart) {
     return (
       <Wrapper>
+        <PetStoreUserNav />
+
         <PageInner>
           <PageTitle>주문/결제</PageTitle>
           <LoadingBox>주문 정보를 불러오는 중입니다.</LoadingBox>
@@ -164,6 +169,7 @@ export default function PetStoreOrderPage() {
   return (
     <Wrapper>
       <PetStoreUserNav />
+
       <PageInner>
         <PageTitle>주문/결제</PageTitle>
 
@@ -238,7 +244,7 @@ export default function PetStoreOrderPage() {
                           <DeliveryCardName>{address.name}</DeliveryCardName>
 
                           {address.defaultYn === "Y" && (
-                            <SmallDefaultBadge>기본</SmallDefaultBadge>
+                            <SmallDefaultBadge>기본 배송지</SmallDefaultBadge>
                           )}
                         </DeliveryCardTop>
 
@@ -315,11 +321,17 @@ export default function PetStoreOrderPage() {
                   <span>카카오페이 결제</span>
                 </PaymentMethodCard>
 
-                <PaymentMethodCard type="button">
+                <PaymentMethodCard
+                  type="button"
+                  onClick={handleUnavailablePaymentMethod}
+                >
                   <span>신용/체크카드</span>
                 </PaymentMethodCard>
 
-                <PaymentMethodCard type="button">
+                <PaymentMethodCard
+                  type="button"
+                  onClick={handleUnavailablePaymentMethod}
+                >
                   <span>무통장 입금</span>
                 </PaymentMethodCard>
               </PaymentMethodGrid>
@@ -369,6 +381,10 @@ function formatPhone(phone) {
   return phone;
 }
 
+/* ================================
+   Layout
+================================ */
+
 const Wrapper = styled.main`
   width: 100%;
   min-height: 100vh;
@@ -376,45 +392,56 @@ const Wrapper = styled.main`
 `;
 
 const PageInner = styled.div`
-  width: 1360px;
+  width: 1532px;
   margin: 0 auto;
-  padding: 44px 0 80px;
+  padding: 24px 0 30px;
 `;
 
 const PageTitle = styled.h1`
-  margin: 0 0 24px;
+  margin: 0 0 18px;
+
+  color: #222222;
   font-size: 34px;
   font-weight: 800;
-  color: #111111;
+  line-height: 1;
   letter-spacing: -1.2px;
 `;
 
 const ContentGrid = styled.div`
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 400px;
-  gap: 32px;
-  align-items: start;
+  grid-template-columns: minmax(0, 1102px) 400px;
+  gap: 30px;
+  align-items: flex-start;
 `;
 
 const LeftArea = styled.div`
   min-width: 0;
+
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 `;
 
 const RightArea = styled.aside`
   position: sticky;
-  top: 120px;
+  top: 96px;
+  align-self: start;
+  height: fit-content;
+  z-index: 5;
 `;
+
+/* ================================
+   Common Card
+================================ */
 
 const SectionCard = styled.section`
   box-sizing: border-box;
   width: 100%;
+
   border: 1px solid #d8d8d8;
-  border-radius: 6px;
+  border-radius: 4px;
   background: #ffffff;
-  padding: 24px 30px;
+  padding: 22px 28px;
 `;
 
 const DeliveryCard = styled(SectionCard)`
@@ -426,90 +453,112 @@ const SectionTitle = styled.h2`
   display: flex;
   align-items: center;
   gap: 10px;
-  height: 24px;
-  margin: 0 0 22px;
+
+  min-height: 24px;
+  margin: 0 0 20px;
+
+  color: #111111;
   font-size: 19px;
   font-weight: 800;
-  color: #111111;
+  line-height: 1;
+  letter-spacing: -0.35px;
 `;
+
+/* ================================
+   Orderer
+================================ */
 
 const OrdererBox = styled.div`
   display: grid;
-  grid-template-columns: 56px minmax(0, 1fr);
+  grid-template-columns: 64px minmax(0, 1fr);
   align-items: center;
   column-gap: 12px;
-  height: 28px;
+  height: 30px;
 `;
 
 const OrdererLabel = styled.span`
+  color: #222222;
   font-size: 14px;
   font-weight: 800;
-  color: #222222;
   white-space: nowrap;
 `;
 
 const OrdererValue = styled.span`
   min-width: 0;
-  font-size: 15px;
+
   color: #333333;
+  font-size: 15px;
+  font-weight: 500;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 `;
 
+/* ================================
+   Delivery
+================================ */
+
 const DefaultBadge = styled.span`
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   height: 22px;
   padding: 0 9px;
+
   border: 1px solid #08aa7c;
   border-radius: 4px;
+  background: #ffffff;
+
+  color: #08aa7c;
   font-size: 12px;
   font-weight: 800;
-  color: #08aa7c;
-  background: #ffffff;
   white-space: nowrap;
 `;
 
 const SmallDefaultBadge = styled(DefaultBadge)`
   height: 20px;
   padding: 0 7px;
+
   font-size: 11px;
 `;
 
 const DeliveryInfoGrid = styled.div`
   display: grid;
   grid-template-columns: 112px minmax(0, 1fr);
-  row-gap: 14px;
+  row-gap: 13px;
   column-gap: 22px;
   align-items: center;
 `;
 
 const DeliveryLabel = styled.div`
+  color: #222222;
   font-size: 14px;
   font-weight: 800;
-  color: #222222;
   white-space: nowrap;
 `;
 
 const DeliveryValue = styled.div`
   min-width: 0;
-  font-size: 15px;
-  line-height: 1.5;
+
   color: #333333;
+  font-size: 15px;
+  line-height: 1.45;
 `;
 
 const DeliveryRequestInput = styled.input`
   box-sizing: border-box;
   width: 100%;
-  height: 38px;
+  height: 36px;
+
   border: 1px solid #cfd8d5;
   border-radius: 5px;
   padding: 0 12px;
   background: #ffffff;
-  font-size: 14px;
+
   color: #333333;
+  font-size: 14px;
 
   &:focus {
     outline: none;
@@ -521,25 +570,27 @@ const DeliveryCardList = styled.div`
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-  margin-top: 22px;
+  margin-top: 20px;
 `;
 
 const DeliverySelectCard = styled.button`
   box-sizing: border-box;
   width: 100%;
-  height: 104px;
-  border: 1px solid ${({ $active }) => ($active ? "#00a878" : "#d8d8d8")};
-  border-radius: 8px;
-  background: ${({ $active }) => ($active ? "#f8fffc" : "#ffffff")};
-  padding: 14px 16px;
-  text-align: left;
-  cursor: pointer;
-  overflow: hidden;
-  outline: none;
+  height: 100px;
+  padding: 13px 16px;
 
   display: flex;
   flex-direction: column;
   justify-content: center;
+
+  border: 1px solid ${({ $active }) => ($active ? "#00a878" : "#d8d8d8")};
+  border-radius: 6px;
+  background: ${({ $active }) => ($active ? "#f8fffc" : "#ffffff")};
+
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
 
   box-shadow: ${({ $active }) =>
     $active ? "inset 0 0 0 1px rgba(0, 168, 120, 0.3)" : "none"};
@@ -558,15 +609,18 @@ const DeliveryCardTop = styled.div`
   display: flex;
   align-items: center;
   gap: 8px;
+
   min-width: 0;
   margin-bottom: 8px;
 `;
 
 const DeliveryCardName = styled.strong`
   min-width: 0;
+
+  color: #222222;
   font-size: 14px;
   font-weight: 800;
-  color: #222222;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -574,35 +628,45 @@ const DeliveryCardName = styled.strong`
 
 const DeliveryCardReceiver = styled.div`
   margin-bottom: 5px;
+
+  color: #333333;
   font-size: 13px;
   font-weight: 700;
-  color: #333333;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 `;
 
 const DeliveryCardAddress = styled.div`
+  color: #666666;
   font-size: 12px;
   line-height: 1.4;
-  color: #666666;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 `;
 
 const EmptyDeliveryBox = styled.div`
-  min-height: 122px;
+  min-height: 120px;
+
   display: grid;
   place-items: center;
+
   border: 1px dashed #bdebd9;
   border-radius: 8px;
   background: #ffffff;
+
+  color: #777777;
   font-size: 14px;
   line-height: 1.7;
-  color: #777777;
   text-align: center;
 `;
+
+/* ================================
+   Order Table
+================================ */
 
 const OrderTable = styled.table`
   width: 100%;
@@ -616,9 +680,10 @@ const OrderTable = styled.table`
   th {
     height: 38px;
     text-align: left;
+
+    color: #222222;
     font-size: 14px;
     font-weight: 800;
-    color: #222222;
   }
 
   th:nth-child(1) {
@@ -626,21 +691,22 @@ const OrderTable = styled.table`
   }
 
   th:nth-child(2) {
-    width: 160px;
+    width: 170px;
     text-align: center;
   }
 
   th:nth-child(3) {
-    width: 180px;
+    width: 210px;
     text-align: right;
     padding-right: 18px;
   }
 
   td {
-    height: 62px;
+    height: 66px;
     border-bottom: 1px solid #eeeeee;
-    font-size: 14px;
+
     color: #222222;
+    font-size: 14px;
     vertical-align: middle;
   }
 
@@ -654,42 +720,51 @@ const ProductCell = styled.td`
 `;
 
 const ProductCellInner = styled.div`
+  min-width: 0;
+
   display: flex;
   align-items: center;
   gap: 14px;
-  min-width: 0;
 `;
 
 const ProductImageBox = styled.div`
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
+
+  flex-shrink: 0;
+  overflow: hidden;
+
   border: 1px solid #eeeeee;
   border-radius: 5px;
-  overflow: hidden;
   background: #f7f7f7;
-  flex-shrink: 0;
 `;
 
 const ProductImage = styled.img`
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  padding: 4px;
+  object-fit: contain;
 `;
 
 const NoImage = styled.div`
   width: 100%;
   height: 100%;
+
   display: grid;
   place-items: center;
-  font-size: 10px;
+
   color: #999999;
+  font-size: 10px;
 `;
 
 const ProductName = styled.div`
   min-width: 0;
-  max-width: 560px;
-  font-size: 14px;
+  max-width: 710px;
+
   color: #333333;
+  font-size: 15px;
+  font-weight: 500;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -697,12 +772,19 @@ const ProductName = styled.div`
 
 const QtyCell = styled.td`
   text-align: center;
+
+  color: #222222;
+  font-size: 15px;
+  font-weight: 700;
 `;
 
 const PriceCell = styled.td`
   text-align: right;
   padding-right: 18px;
-  font-weight: 700;
+
+  color: #111111;
+  font-size: 16px;
+  font-weight: 800;
 `;
 
 const EmptyCell = styled.td`
@@ -710,6 +792,10 @@ const EmptyCell = styled.td`
   text-align: center;
   color: #999999;
 `;
+
+/* ================================
+   Payment
+================================ */
 
 const PaymentMethodGrid = styled.div`
   display: grid;
@@ -720,18 +806,35 @@ const PaymentMethodGrid = styled.div`
 const PaymentMethodCard = styled.button`
   box-sizing: border-box;
   height: 56px;
-  border: 1px solid ${({ $active }) => ($active ? "#00a878" : "#d4d4d4")};
-  border-radius: 6px;
-  background: ${({ $active }) => ($active ? "#eafff7" : "#ffffff")};
+
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
+
+  border: 1px solid ${({ $active }) => ($active ? "#00a878" : "#d4d4d4")};
+  border-radius: 6px;
+  background: ${({ $active }) => ($active ? "#eafff7" : "#ffffff")};
+
+  color: #444444;
   font-size: 14px;
   font-weight: 800;
-  color: #444444;
+
   cursor: pointer;
   outline: none;
+
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
+
+  &:hover {
+    border-color: #00a878;
+    background: #f8fffc;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(0, 168, 120, 0.1);
+  }
 
   &:focus {
     outline: none;
@@ -742,21 +845,31 @@ const KakaoBadge = styled.span`
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   width: 58px;
   height: 30px;
+
   border-radius: 4px;
   background: #ffe812;
+
+  color: #111111;
   font-size: 12px;
   font-weight: 900;
-  color: #111111;
 `;
+
+/* ================================
+   Loading
+================================ */
 
 const LoadingBox = styled.div`
   height: 300px;
+
   display: grid;
   place-items: center;
+
   border: 1px solid #d8d8d8;
-  border-radius: 6px;
-  font-size: 16px;
+  border-radius: 4px;
+
   color: #777777;
+  font-size: 16px;
 `;
