@@ -985,3 +985,215 @@
     transition: none !important;
   }
 }
+
+.existing-image-label {
+  margin-top: 6px;
+  display: block;
+  color: #00a87e;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* ================================
+   Readability Override
+   - 모달 전체 가독성 개선
+   - 기존 레이아웃은 유지하고 글씨 굵기/색/줄간격만 정리
+================================ */
+
+/* 모달 제목은 유지하되 과한 느낌만 살짝 줄임 */
+.product-modal-header h2 {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.8px;
+}
+
+/* 섹션 제목: 초록색 강조는 유지, 너무 두꺼운 느낌 완화 */
+.product-form-section h3,
+.product-form-preview h3,
+.section-title-row h3 {
+  font-weight: 800;
+  letter-spacing: -0.45px;
+}
+
+/* 입력 라벨: 900 → 700으로 낮춰서 눈 피로 줄임 */
+.form-field span,
+.image-upload-main > span,
+.image-upload-sub-area > span,
+.feeding-guide-row label,
+.nutrition-row span {
+  color: #202423;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.15px;
+}
+
+/* 필수 별표는 또렷하게 유지 */
+.form-field em {
+  color: #ff4d4d;
+  font-weight: 800;
+}
+
+/* input/select 값: 너무 진하지 않게 */
+.form-field input,
+.form-field select,
+.input-with-unit input,
+.nutrition-row input,
+.feeding-guide-row input,
+.unit-select-box select,
+.small-select {
+  color: #263230;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+}
+
+/* placeholder도 너무 진하지 않게 */
+.form-field input::placeholder,
+.input-with-unit input::placeholder,
+.nutrition-row input::placeholder,
+.feeding-guide-row input::placeholder {
+  color: #9aa8a3;
+  font-weight: 500;
+}
+
+/* 단위 박스: kcal, %, 원 */
+.input-with-unit b {
+  color: #6f7d79;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* 업로드 박스 문구 */
+.upload-box strong {
+  font-weight: 800;
+}
+
+.upload-box p {
+  color: #7d8985;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.15px;
+}
+
+.image-upload-main em,
+.selected-file-count,
+.existing-image-label {
+  font-weight: 600;
+}
+
+/* 현재 등록된 이미지 영역 */
+.current-image-area p {
+  font-weight: 700;
+}
+
+.current-image-card span {
+  font-weight: 600;
+}
+
+/* 급여기준 안내문 */
+.feeding-guide-help {
+  color: #5f7970;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* 급여기준 번호는 강조 유지 */
+.feeding-range-label strong {
+  font-weight: 800;
+}
+
+.feeding-range-label span {
+  color: #202423;
+  font-weight: 700;
+}
+
+.feeding-range-label em {
+  color: #789086;
+  font-weight: 600;
+}
+
+/* 오른쪽 미리보기 영역 */
+.preview-name {
+  color: #151918;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: -0.35px;
+}
+
+/* 가격은 중요하니까 강조하되 900 → 800 */
+.preview-info strong {
+  color: #111111;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.65px;
+}
+
+/* 설명문 */
+.preview-desc {
+  color: #6c7773;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: -0.1px;
+}
+
+/* 이미지 placeholder */
+.preview-image-box span {
+  color: #8d9995;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 칩: 강아지/사료 */
+.preview-chip-row span {
+  color: #687672;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* 미리보기 패널 제목 */
+.preview-panel h4 {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.25px;
+}
+
+/* 미리보기 패널 내부 텍스트 */
+.preview-panel li {
+  color: #2d5c4e;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.preview-panel li strong {
+  color: #1f4f42;
+  font-weight: 700;
+}
+
+/* 배변용품 안내 같은 빈 상태 문구 */
+.preview-empty {
+  color: #668177;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+/* 액션 버튼: 버튼은 선명하게, 하지만 글자만 과하게 두껍지 않게 */
+.product-modal-actions button {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* 등록 버튼은 메인 액션이라 조금 더 강조 */
+.product-modal-actions button[type="submit"] {
+  font-weight: 800;
+}
+
+/* 취소 버튼은 보조 버튼이므로 가볍게 */
+.product-modal-actions button[type="button"] {
+  font-weight: 700;
+}

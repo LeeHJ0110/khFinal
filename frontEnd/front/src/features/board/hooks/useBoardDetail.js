@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { fetchBoardDetail } from "../api/boardApi";
 
 export const useBoardDetail = (boardId) => {
@@ -6,24 +6,23 @@ export const useBoardDetail = (boardId) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
+  const getDetail = useCallback(async () => {
     if (!boardId) return;
-
-    const getDetail = async () => {
-      try {
-        setIsLoading(true);
-        const data = await fetchBoardDetail(boardId);
-        setDetail(data);
-      } catch (err) {
-        console.error("게시글 상세 조회 실패:", err);
-        setError(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    getDetail();
+    try {
+      setIsLoading(true);
+      const data = await fetchBoardDetail(boardId);
+      setDetail(data);
+    } catch (err) {
+      console.error("게시글 상세 조회 실패:", err);
+      setError(err);
+    } finally {
+      setIsLoading(false);
+    }
   }, [boardId]);
 
-  return { detail, isLoading, error };
+  useEffect(() => {
+    getDetail();
+  }, [getDetail]);
+
+  return { detail, isLoading, error, refetch: getDetail };
 };

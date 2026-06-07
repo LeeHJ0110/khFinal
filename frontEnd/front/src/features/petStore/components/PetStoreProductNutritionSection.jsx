@@ -10,69 +10,31 @@ const NUTRITION_OPTIONS = [
 
 export default function PetStoreProductNutritionSection({
   nutrition,
-  nutritionRows,
   handleNutritionChange,
-  handleAddNutritionRow,
-  handleRemoveNutritionRow,
 }) {
-  const addableOptions = NUTRITION_OPTIONS.filter(
-    (option) => !nutritionRows.includes(option.name),
-  );
-
   return (
     <section className="product-form-section">
       <div className="section-title-row">
         <h3>3. 영양성분</h3>
-
-        <select
-          className="small-select"
-          value=""
-          onChange={(evt) => handleAddNutritionRow(evt.target.value)}
-        >
-          <option value="">성분 추가</option>
-          {addableOptions.map((option) => (
-            <option key={option.name} value={option.name}>
-              {option.label}
-            </option>
-          ))}
-        </select>
       </div>
 
-      {nutritionRows.length === 0 ? (
-        <div className="empty-mini-box">필요한 성분만 선택해서 추가하세요.</div>
-      ) : (
-        <div className="nutrition-row-list">
-          {nutritionRows.map((rowName) => {
-            const option = NUTRITION_OPTIONS.find(
-              (item) => item.name === rowName,
-            );
+      <div className="nutrition-row-list">
+        {NUTRITION_OPTIONS.map((option) => (
+          <div className="nutrition-row" key={option.name}>
+            <span>{option.label}</span>
 
-            return (
-              <div className="nutrition-row" key={rowName}>
-                <span>{option?.label}</span>
-
-                <div className="input-with-unit">
-                  <input
-                    name={rowName}
-                    value={nutrition[rowName]}
-                    onChange={handleNutritionChange}
-                    placeholder="입력"
-                  />
-                  <b>{option?.unit}</b>
-                </div>
-
-                <button
-                  type="button"
-                  className="icon-remove-button"
-                  onClick={() => handleRemoveNutritionRow(rowName)}
-                >
-                  ×
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
+            <div className="input-with-unit">
+              <input
+                name={option.name}
+                value={nutrition[option.name] ?? ""}
+                onChange={handleNutritionChange}
+                placeholder="입력하지 않으면 0으로 저장"
+              />
+              <b>{option.unit}</b>
+            </div>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

@@ -1,28 +1,106 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+import api from "../../app/api/axios";
 import usePetStoreCartList from "../../features/petStore/hooks/usePetStoreCartList";
+import { insertCartProduct } from "../../features/petStore/api/petStoreOrderApi";
 import PetStoreUserNav from "./PetStoreUserNav";
+import StorePaymentSummaryCard from "../../features/petStore/components/PetStorePaymentSummaryCard";
 
 export default function PetStoreCartListPage() {
   const navigate = useNavigate();
 
-  const { cart, handleDeleteCartItem, handleUpdateQty, isLoading } =
-    usePetStoreCartList();
+  const {
+    cart,
+    handleDeleteCartItem,
+    handleUpdateQty,
+    loadCartList,
+    isLoading,
+  } = usePetStoreCartList();
 
-  const cartItemList = cart?.cartItemList ?? [];
+  const cartItemList = useMemo(() => {
+    return cart?.cartItemList ?? [];
+  }, [cart]);
   const totalProductAmount = cart?.totalProductAmount ?? 0;
   const orderDeliveryFee = cart?.orderDeliveryFee ?? 0;
   const finalOrderAmount = cart?.finalOrderAmount ?? 0;
 
   const [selectedCartItemIds, setSelectedCartItemIds] = useState([]);
+  const [recommendProductList, setRecommendProductList] = useState([]);
+  const [isRecommendLoading, setIsRecommendLoading] = useState(false);
+  const [recommendCartSubmittingId, setRecommendCartSubmittingId] =
+    useState(null);
 
   const isAllSelected =
     cartItemList.length > 0 &&
     selectedCartItemIds.length === cartItemList.length;
 
+  const topCartItem = cartItemList[0];
+
+  const recommendTargetPetType = useMemo(() => {
+    return (
+      topCartItem?.productTargetPetType ??
+      topCartItem?.targetPetType ??
+      topCartItem?.petType ??
+      ""
+    );
+  }, [topCartItem]);
+
   function formatPrice(value) {
     return `${Number(value ?? 0).toLocaleString()}원`;
+  }
+
+  function normalizeProductList(responseData) {
+    if (Array.isArray(responseData)) {
+      return responseData;
+    }
+
+    if (Array.isArray(responseData?.content)) {
+      return responseData.content;
+    }
+
+    if (Array.isArray(responseData?.productList)) {
+      return responseData.productList;
+    }
+
+    if (Array.isArray(responseData?.data)) {
+      return responseData.data;
+    }
+
+    return [];
+  }
+
+  async function loadRecommendProductList() {
+    if (!cartItemList.length || !recommendTargetPetType) {
+      setRecommendProductList([]);
+      return;
+    }
+
+    setIsRecommendLoading(true);
+
+    try {
+      const response = await api.get("/store/product", {
+        params: {
+          targetPetType: recommendTargetPetType,
+          sort: "popular",
+        },
+      });
+
+      const cartProductIdSet = new Set(
+        cartItemList.map((item) => item.productId),
+      );
+
+      const list = normalizeProductList(response.data)
+        .filter((product) => !cartProductIdSet.has(product.productId))
+        .slice(0, 3);
+
+      setRecommendProductList(list);
+    } catch (error) {
+      console.error("추천 상품 조회 실패", error);
+      setRecommendProductList([]);
+    } finally {
+      setIsRecommendLoading(false);
+    }
   }
 
   function handleToggleAll() {
@@ -98,28 +176,78 @@ export default function PetStoreCartListPage() {
     setSelectedCartItemIds([]);
   }
 
-  function handleOrderClick() {
-    if (selectedCartItemIds.length === 0) {
-      alert("주문할 상품을 선택해주세요.");
+  function handleGoOrderPage() {
+    if (!cart || !cart.cartItemList || cart.cartItemList.length === 0) {
+      alert("장바구니가 비어 있습니다.");
       return;
     }
 
-    // 나중에 주문서 페이지 만들면 여기서 선택한 cartItemId들을 넘기면 됩니다.
-    // 예: navigate("/store/order/checkout", { state: { cartItemIds: selectedCartItemIds } });
-    navigate("/store/order/checkout", {
+    navigate("/store/order");
+  }
+
+  function handleGoProductDetail(productId) {
+    navigate(`/store/product/${productId}`, {
       state: {
-        cartItemIds: selectedCartItemIds,
+        from: "cart",
       },
     });
   }
 
-  function handleGoProductDetail(productId) {
-    navigate(`/store/product/${productId}`);
+  async function handleAddRecommendCart(event, product) {
+    event.stopPropagation();
+
+    if (!product?.productId) {
+      alert("상품 정보를 찾을 수 없습니다.");
+      return;
+    }
+
+    try {
+      setRecommendCartSubmittingId(product.productId);
+
+      await insertCartProduct({
+        productId: product.productId,
+        qty: 1,
+      });
+
+      alert("장바구니에 상품이 담겼습니다.");
+      await loadCartList();
+    } catch (error) {
+      console.error("추천 상품 장바구니 담기 실패", error);
+      alert("장바구니 담기에 실패했습니다.");
+    } finally {
+      setRecommendCartSubmittingId(null);
+    }
   }
+
+  useEffect(() => {
+    setSelectedCartItemIds((prev) =>
+      prev.filter((cartItemId) =>
+        cartItemList.some((item) => item.cartItemId === cartItemId),
+      ),
+    );
+  }, [cartItemList]);
+
+  useEffect(() => {
+    loadRecommendProductList();
+  }, [cartItemList.length, recommendTargetPetType]);
+
+  useEffect(() => {
+    function handlePageShow() {
+      loadCartList();
+    }
+
+    window.addEventListener("pageshow", handlePageShow);
+
+    return () => {
+      window.removeEventListener("pageshow", handlePageShow);
+    };
+  }, []);
 
   if (isLoading && !cart) {
     return (
       <Wrapper>
+        <PetStoreUserNav />
+
         <Inner>
           <PageTitle>장바구니</PageTitle>
           <LoadingBox>장바구니를 불러오는 중입니다.</LoadingBox>
@@ -131,6 +259,7 @@ export default function PetStoreCartListPage() {
   return (
     <Wrapper>
       <PetStoreUserNav />
+
       <Inner>
         <PageTitle>장바구니</PageTitle>
 
@@ -160,6 +289,7 @@ export default function PetStoreCartListPage() {
                   <EmptyDesc>
                     마음에 드는 상품을 장바구니에 담아보세요.
                   </EmptyDesc>
+
                   <ShoppingButton
                     type="button"
                     onClick={() => navigate("/store")}
@@ -224,7 +354,9 @@ export default function PetStoreCartListPage() {
                             >
                               -
                             </QtyButton>
+
                             <QtyValue>{item.cartItemQty}</QtyValue>
+
                             <QtyButton
                               type="button"
                               onClick={() => handleIncreaseQty(item)}
@@ -255,108 +387,97 @@ export default function PetStoreCartListPage() {
               )}
             </CartBox>
 
-            <RecommendSection>
-              <SectionTitle>함께 보면 좋은 상품</SectionTitle>
+            {cartItemList.length > 0 && (
+              <RecommendSection>
+                <SectionTitle>함께 보면 좋은 상품</SectionTitle>
 
-              <RecommendGrid>
-                <RecommendCard>
-                  <RecommendImageBox>
-                    <RecommendPlaceholder>추천상품</RecommendPlaceholder>
-                  </RecommendImageBox>
-                  <RecommendInfo>
-                    <RecommendName>
-                      강아지 브레스 기관지 영양제 100g
-                    </RecommendName>
-                    <RecommendPrice>23,100원</RecommendPrice>
-                    <RecommendActions>
-                      <WishButton type="button">♡</WishButton>
-                      <RecommendCartButton type="button">
-                        장바구니에 담기
-                      </RecommendCartButton>
-                    </RecommendActions>
-                  </RecommendInfo>
-                </RecommendCard>
+                {isRecommendLoading ? (
+                  <RecommendLoadingBox>
+                    추천 상품을 불러오는 중입니다.
+                  </RecommendLoadingBox>
+                ) : recommendProductList.length > 0 ? (
+                  <RecommendGrid>
+                    {recommendProductList.map((product) => (
+                      <RecommendCard key={product.productId}>
+                        <RecommendImageBox
+                          type="button"
+                          onClick={() =>
+                            handleGoProductDetail(product.productId)
+                          }
+                        >
+                          {product.mainImageUrl ? (
+                            <RecommendImage
+                              src={product.mainImageUrl}
+                              alt={product.productName}
+                            />
+                          ) : (
+                            <RecommendPlaceholder>
+                              상품 이미지
+                            </RecommendPlaceholder>
+                          )}
+                        </RecommendImageBox>
 
-                <RecommendCard>
-                  <RecommendImageBox>
-                    <RecommendPlaceholder>추천상품</RecommendPlaceholder>
-                  </RecommendImageBox>
-                  <RecommendInfo>
-                    <RecommendName>탐사 실속형 배변패드</RecommendName>
-                    <RecommendPrice>19,700원</RecommendPrice>
-                    <RecommendActions>
-                      <WishButton type="button">♡</WishButton>
-                      <RecommendCartButton type="button">
-                        장바구니에 담기
-                      </RecommendCartButton>
-                    </RecommendActions>
-                  </RecommendInfo>
-                </RecommendCard>
+                        <RecommendInfo>
+                          <RecommendNameButton
+                            type="button"
+                            onClick={() =>
+                              handleGoProductDetail(product.productId)
+                            }
+                          >
+                            {product.productName}
+                          </RecommendNameButton>
 
-                <RecommendCard>
-                  <RecommendImageBox>
-                    <RecommendPlaceholder>추천상품</RecommendPlaceholder>
-                  </RecommendImageBox>
-                  <RecommendInfo>
-                    <RecommendName>강아지 가수분해 덴탈껌</RecommendName>
-                    <RecommendPrice>15,600원</RecommendPrice>
-                    <RecommendActions>
-                      <WishButton type="button">♡</WishButton>
-                      <RecommendCartButton type="button">
-                        장바구니에 담기
-                      </RecommendCartButton>
-                    </RecommendActions>
-                  </RecommendInfo>
-                </RecommendCard>
-              </RecommendGrid>
-            </RecommendSection>
+                          <RecommendPrice>
+                            {formatPrice(product.productPrice)}
+                          </RecommendPrice>
+
+                          <RecommendActions>
+                            <WishButton type="button">♡</WishButton>
+
+                            <RecommendCartButton
+                              type="button"
+                              onClick={(event) =>
+                                handleAddRecommendCart(event, product)
+                              }
+                              disabled={
+                                recommendCartSubmittingId === product.productId
+                              }
+                            >
+                              {recommendCartSubmittingId === product.productId
+                                ? "담는 중..."
+                                : "장바구니에 담기"}
+                            </RecommendCartButton>
+                          </RecommendActions>
+                        </RecommendInfo>
+                      </RecommendCard>
+                    ))}
+                  </RecommendGrid>
+                ) : null}
+              </RecommendSection>
+            )}
           </LeftArea>
 
-          <SummaryCard>
-            <SummaryTitle>결제금액 요약</SummaryTitle>
-
-            <SummaryRow>
-              <SummaryLabel>주문 금액</SummaryLabel>
-              <SummaryValue>{formatPrice(totalProductAmount)}</SummaryValue>
-            </SummaryRow>
-
-            <SummaryRow>
-              <SummaryLabel>
-                배송비 <HelpIcon>?</HelpIcon>
-              </SummaryLabel>
-              <SummaryValue>{formatPrice(orderDeliveryFee)}</SummaryValue>
-            </SummaryRow>
-
-            <PointRow>
-              <SummaryLabel>사용 포인트</SummaryLabel>
-              <PointInputWrap>
-                <PointInput value="0" readOnly />
-                <PointSubText>현재 보유 포인트 : 0P</PointSubText>
-              </PointInputWrap>
-            </PointRow>
-
-            <Divider />
-
-            <FinalRow>
-              <FinalLabel>최종 결제 금액</FinalLabel>
-              <FinalValue>{formatPrice(finalOrderAmount)}</FinalValue>
-            </FinalRow>
-
-            <Divider />
-
-            <OrderButton type="button" onClick={handleOrderClick}>
-              주문하기
-            </OrderButton>
-
-            <ContinueButton type="button" onClick={() => navigate("/store")}>
-              쇼핑 계속하기
-            </ContinueButton>
-          </SummaryCard>
+          <RightArea>
+            <StorePaymentSummaryCard
+              totalProductAmount={totalProductAmount}
+              orderDeliveryFee={orderDeliveryFee}
+              finalOrderAmount={finalOrderAmount}
+              primaryButtonText="주문하기"
+              secondaryButtonText="쇼핑 계속하기"
+              onPrimaryClick={handleGoOrderPage}
+              onSecondaryClick={() => navigate("/store")}
+              primaryDisabled={cartItemList.length === 0}
+            />
+          </RightArea>
         </ContentLayout>
       </Inner>
     </Wrapper>
   );
 }
+
+/* ================================
+   Layout
+================================ */
 
 const Wrapper = styled.main`
   width: 100%;
@@ -364,23 +485,25 @@ const Wrapper = styled.main`
 `;
 
 const Inner = styled.div`
-  width: 1360px;
+  width: 1532px;
   margin: 0 auto;
-  padding: 44px 0 32px;
+  padding: 24px 0 30px;
 `;
 
 const PageTitle = styled.h1`
-  margin: 0 0 24px;
+  margin: 0 0 18px;
+
+  color: #222222;
   font-size: 34px;
   font-weight: 800;
-  color: #222;
+  line-height: 1;
   letter-spacing: -1.2px;
 `;
 
 const ContentLayout = styled.div`
   display: grid;
-  grid-template-columns: 1fr 420px;
-  gap: 32px;
+  grid-template-columns: minmax(0, 1102px) 400px;
+  gap: 30px;
   align-items: flex-start;
 `;
 
@@ -388,58 +511,83 @@ const LeftArea = styled.div`
   min-width: 0;
 `;
 
+const RightArea = styled.aside`
+  position: sticky;
+  top: 96px;
+  align-self: start;
+  height: fit-content;
+  z-index: 3;
+`;
+
+/* ================================
+   Cart Table
+================================ */
+
 const CartBox = styled.section`
+  width: 100%;
+  overflow: hidden;
+
   border: 1px solid #d8d8d8;
   border-radius: 4px;
-  background-color: #fff;
-  overflow: hidden;
+  background-color: #ffffff;
 `;
 
 const CartHeader = styled.div`
-  height: 48px;
+  height: 44px;
   padding: 0 18px;
-  border-bottom: 1px solid #d8d8d8;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
+
+  border-bottom: 1px solid #d8d8d8;
 `;
 
 const CheckArea = styled.button`
-  border: none;
-  background: transparent;
   padding: 0;
+
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #222;
+
+  border: none;
+  background: transparent;
+
+  color: #222222;
+  font-size: 14px;
+  font-weight: 700;
   cursor: pointer;
 `;
 
 const CheckIcon = styled.span`
   width: 16px;
   height: 16px;
-  border-radius: 2px;
-  border: 1px solid ${({ $checked }) => ($checked ? "#05a77b" : "#cfcfcf")};
-  background-color: ${({ $checked }) => ($checked ? "#05a77b" : "#fff")};
-  color: #fff;
-  font-size: 12px;
-  font-weight: 800;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  border: 1px solid ${({ $checked }) => ($checked ? "#05a77b" : "#cfcfcf")};
+  border-radius: 2px;
+  background-color: ${({ $checked }) => ($checked ? "#05a77b" : "#ffffff")};
+
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 800;
   line-height: 1;
 `;
 
 const SelectedDeleteButton = styled.button`
   height: 28px;
   padding: 0 12px;
+
   border: 1px solid #cfcfcf;
   border-radius: 3px;
-  background-color: #fff;
-  color: #333;
-  font-size: 13px;
+  background-color: #ffffff;
+
+  color: #333333;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
 
   &:hover {
@@ -453,10 +601,12 @@ const CartItemList = styled.div`
 `;
 
 const CartItemRow = styled.div`
-  min-height: 128px;
+  min-height: 118px;
+
   display: grid;
-  grid-template-columns: 48px 1.4fr 380px 250px 40px;
-  align-items: center;
+  grid-template-columns: 48px minmax(0, 1fr) 246px 274px 54px;
+  align-items: stretch;
+
   border-bottom: 1px solid #d8d8d8;
 
   &:last-child {
@@ -465,64 +615,77 @@ const CartItemRow = styled.div`
 `;
 
 const ItemSelectButton = styled.button`
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   border: none;
   background: transparent;
-  padding: 0;
-  display: flex;
-  justify-content: center;
   cursor: pointer;
 `;
 
 const ProductInfo = styled.div`
+  min-width: 0;
+  padding: 0 32px 0 4px;
+
   display: flex;
   align-items: center;
   gap: 22px;
-  min-width: 0;
 `;
 
 const ProductImageBox = styled.div`
   width: 74px;
   height: 74px;
-  border-radius: 4px;
-  overflow: hidden;
-  background-color: #f7f7f7;
-  border: 1px solid #eeeeee;
+
   flex: 0 0 auto;
+  overflow: hidden;
+
+  border: 1px solid #eeeeee;
+  border-radius: 5px;
+  background-color: #f7f7f7;
 `;
 
 const ProductImage = styled.img`
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  padding: 4px;
+  object-fit: contain;
 `;
 
 const NoImage = styled.div`
   width: 100%;
   height: 100%;
-  font-size: 10px;
-  color: #999;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  color: #999999;
+  font-size: 10px;
 `;
 
 const ProductTextArea = styled.div`
   min-width: 0;
+  transform: translateY(1px);
 `;
 
 const ProductNameButton = styled.button`
   max-width: 100%;
-  margin: 0 0 8px;
+  margin: 0 0 9px;
   padding: 0;
-  border: none;
-  background: transparent;
 
   display: block;
 
+  border: none;
+  background: transparent;
+
+  color: #202020;
   font-size: 20px;
   font-weight: 700;
-  color: #202020;
-  line-height: 1.35;
+  line-height: 1.28;
+  letter-spacing: -0.55px;
   text-align: left;
 
   white-space: nowrap;
@@ -539,43 +702,54 @@ const ProductNameButton = styled.button`
 `;
 
 const ProductPrice = styled.div`
+  margin-bottom: 13px;
+
+  color: #222222;
   font-size: 20px;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 14px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.25px;
 `;
 
 const DeliveryNotice = styled.div`
+  color: #777777;
   font-size: 12px;
-  color: #777;
+  font-weight: 500;
+  line-height: 1;
 `;
 
 const QtyArea = styled.div`
   height: 100%;
-  border-left: 1px solid #d8d8d8;
-  border-right: 1px solid #d8d8d8;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  border-left: 1px solid #d8d8d8;
+  border-right: 1px solid #d8d8d8;
 `;
 
 const QtyBox = styled.div`
-  width: 210px;
-  height: 38px;
-  border: 1px solid #e1e1e1;
-  border-radius: 19px;
-  overflow: hidden;
+  width: 156px;
+  height: 32px;
+
   display: grid;
-  grid-template-columns: 52px 1fr 52px;
-  background-color: #fff;
+  grid-template-columns: 42px 1fr 42px;
+
+  overflow: hidden;
+  border: 1px solid #e1e1e1;
+  border-radius: 999px;
+  background-color: #ffffff;
 `;
 
 const QtyButton = styled.button`
   border: none;
-  background-color: #fff;
-  font-size: 24px;
+  background-color: #ffffff;
+
+  color: #111111;
+  font-size: 20px;
   font-weight: 700;
-  color: #111;
+  line-height: 1;
   cursor: pointer;
 
   &:hover {
@@ -584,43 +758,61 @@ const QtyButton = styled.button`
 `;
 
 const QtyValue = styled.div`
-  border-left: 1px solid #e1e1e1;
-  border-right: 1px solid #e1e1e1;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
-  font-weight: 600;
-  color: #111;
+
+  border-left: 1px solid #e1e1e1;
+  border-right: 1px solid #e1e1e1;
+
+  color: #111111;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1;
 `;
 
 const ItemAmountArea = styled.div`
-  padding-left: 70px;
+  height: 100%;
+  padding-left: 64px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 `;
 
 const AmountLabel = styled.div`
-  font-size: 14px;
-  color: #777;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+
+  color: #777777;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
 `;
 
 const AmountValue = styled.div`
+  color: #111111;
   font-size: 28px;
   font-weight: 800;
-  color: #111;
-  letter-spacing: -0.5px;
+  line-height: 1;
+  letter-spacing: -0.75px;
 `;
 
 const DeleteOneButton = styled.button`
   width: 18px;
   height: 18px;
-  border: 1px solid #aaa;
-  background-color: #fff;
-  color: #777;
+  padding: 0;
+  margin: auto;
+
+  justify-self: center;
+  align-self: center;
+
+  border: 1px solid #aaaaaa;
+  background-color: #ffffff;
+
+  color: #777777;
   font-size: 15px;
   line-height: 14px;
   cursor: pointer;
-  padding: 0;
 
   &:hover {
     border-color: #05a77b;
@@ -628,248 +820,202 @@ const DeleteOneButton = styled.button`
   }
 `;
 
-const SummaryCard = styled.aside`
-  border: 1px solid #d8d8d8;
-  border-radius: 4px;
-  background-color: #fff;
-  padding: 26px 30px 28px;
-  position: sticky;
-  top: 120px;
-`;
-
-const SummaryTitle = styled.h2`
-  margin: 0 0 28px;
-  font-size: 20px;
-  font-weight: 800;
-  color: #222;
-`;
-
-const SummaryRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 26px;
-`;
-
-const SummaryLabel = styled.div`
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-`;
-
-const SummaryValue = styled.div`
-  font-size: 17px;
-  font-weight: 500;
-  color: #111;
-`;
-
-const HelpIcon = styled.span`
-  width: 14px;
-  height: 14px;
-  border: 1px solid #aaa;
-  border-radius: 50%;
-  color: #777;
-  font-size: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const PointRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 22px;
-`;
-
-const PointInputWrap = styled.div`
-  width: 150px;
-  text-align: right;
-`;
-
-const PointInput = styled.input`
-  width: 100%;
-  height: 22px;
-  border: 1px solid #d7d7d7;
-  text-align: right;
-  padding: 0 8px;
-  font-size: 14px;
-  color: #222;
-`;
-
-const PointSubText = styled.div`
-  margin-top: 6px;
-  font-size: 11px;
-  color: #05a77b;
-`;
-
-const Divider = styled.div`
-  height: 1px;
-  background-color: #d8d8d8;
-  margin: 22px 0;
-`;
-
-const FinalRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const FinalLabel = styled.div`
-  font-size: 17px;
-  font-weight: 700;
-  color: #111;
-`;
-
-const FinalValue = styled.div`
-  font-size: 28px;
-  font-weight: 900;
-  color: #05a77b;
-  letter-spacing: -1px;
-`;
-
-const OrderButton = styled.button`
-  width: 100%;
-  height: 52px;
-  border: none;
-  border-radius: 8px;
-  background-color: #05a77b;
-  color: #fff;
-  font-size: 17px;
-  font-weight: 800;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #04966f;
-  }
-`;
-
-const ContinueButton = styled.button`
-  width: 100%;
-  height: 52px;
-  border: 1px solid #d8d8d8;
-  border-radius: 8px;
-  background-color: #fff;
-  color: #333;
-  font-size: 16px;
-  font-weight: 700;
-  margin-top: 12px;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #f8f8f8;
-  }
-`;
+/* ================================
+   Recommend
+================================ */
 
 const RecommendSection = styled.section`
-  margin-top: 18px;
+  margin-top: 16px;
 `;
 
 const SectionTitle = styled.h2`
   margin: 0 0 14px;
+
+  color: #222222;
   font-size: 20px;
   font-weight: 800;
-  color: #222;
+  line-height: 1;
+  letter-spacing: -0.45px;
 `;
 
 const RecommendGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  overflow: hidden;
   border: 1px solid #d8d8d8;
   border-radius: 4px;
-  overflow: hidden;
+  background-color: #ffffff;
 `;
 
-const RecommendCard = styled.div`
+const RecommendCard = styled.article`
   min-height: 156px;
-  display: flex;
-  gap: 22px;
+  padding: 14px 20px;
+
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  gap: 24px;
   align-items: center;
-  padding: 14px 22px;
+
   border-right: 1px solid #d8d8d8;
+  background-color: #ffffff;
 
   &:last-child {
     border-right: none;
   }
 `;
 
-const RecommendImageBox = styled.div`
-  width: 130px;
-  height: 130px;
+const RecommendImageBox = styled.button`
+  width: 120px;
+  height: 120px;
+  padding: 0;
+
+  overflow: hidden;
+
   border: 1px solid #d8d8d8;
   border-radius: 6px;
   background-color: #fafafa;
-  flex: 0 0 auto;
+
+  cursor: pointer;
+
+  &:hover {
+    border-color: #05a77b;
+  }
+`;
+
+const RecommendImage = styled.img`
+  width: 80%;
+  height: 80%;
+  padding: 8px;
+  object-fit: contain;
 `;
 
 const RecommendPlaceholder = styled.div`
   width: 100%;
   height: 100%;
-  color: #aaa;
-  font-size: 13px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  color: #aaaaaa;
+  font-size: 13px;
 `;
 
 const RecommendInfo = styled.div`
   min-width: 0;
-  flex: 1;
 `;
 
-const RecommendName = styled.div`
-  font-size: 16px;
-  font-weight: 700;
-  color: #222;
-  line-height: 1.35;
-  margin-bottom: 16px;
+const RecommendNameButton = styled.button`
+  width: 100%;
   min-height: 42px;
+  margin: 0 0 14px;
+  padding: 0;
+
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+
+  border: 0;
+  background: transparent;
+
+  color: #222222;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.25px;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    color: #05a77b;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
 `;
 
 const RecommendPrice = styled.div`
-  font-size: 22px;
-  font-weight: 800;
-  color: #333;
   margin-bottom: 12px;
+
+  color: #333333;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.55px;
 `;
 
 const RecommendActions = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
   gap: 12px;
 `;
 
 const WishButton = styled.button`
   width: 42px;
   height: 38px;
+
   border: 1px solid #d8d8d8;
   border-radius: 4px;
-  background-color: #fff;
-  font-size: 22px;
-  color: #444;
+  background-color: #ffffff;
+
+  color: #444444;
+  font-size: 18px;
+  line-height: 1;
   cursor: pointer;
+
+  &:hover {
+    border-color: #05a77b;
+    color: #05a77b;
+  }
 `;
 
 const RecommendCartButton = styled.button`
-  flex: 1;
   height: 38px;
+  padding: 0 14px;
+
   border: 1px solid #05a77b;
   border-radius: 4px;
-  background-color: #fff;
+  background-color: #ffffff;
+
   color: #05a77b;
-  font-size: 15px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
 
   &:hover {
     background-color: #ecfff9;
   }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
 `;
+
+const RecommendLoadingBox = styled.div`
+  height: 156px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #d8d8d8;
+  border-radius: 4px;
+
+  color: #777777;
+  font-size: 14px;
+  font-weight: 700;
+`;
+
+/* ================================
+   Empty / Loading
+================================ */
 
 const EmptyCart = styled.div`
   height: 280px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -877,25 +1023,29 @@ const EmptyCart = styled.div`
 `;
 
 const EmptyTitle = styled.div`
+  margin-bottom: 8px;
+
+  color: #222222;
   font-size: 22px;
   font-weight: 800;
-  color: #222;
-  margin-bottom: 8px;
 `;
 
 const EmptyDesc = styled.div`
-  font-size: 15px;
-  color: #777;
   margin-bottom: 24px;
+
+  color: #777777;
+  font-size: 15px;
 `;
 
 const ShoppingButton = styled.button`
   width: 180px;
   height: 44px;
+
   border: none;
   border-radius: 6px;
   background-color: #05a77b;
-  color: #fff;
+
+  color: #ffffff;
   font-size: 15px;
   font-weight: 800;
   cursor: pointer;
@@ -903,11 +1053,14 @@ const ShoppingButton = styled.button`
 
 const LoadingBox = styled.div`
   height: 300px;
-  border: 1px solid #d8d8d8;
-  border-radius: 4px;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #777;
+
+  border: 1px solid #d8d8d8;
+  border-radius: 4px;
+
+  color: #777777;
   font-size: 16px;
 `;

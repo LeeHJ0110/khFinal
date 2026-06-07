@@ -2,7 +2,33 @@ import React, { useEffect } from "react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import styled from "styled-components";
+import { useLocation } from "react-router-dom";
 import useBoardForm from "../../features/board/hooks/useBoardForm";
+
+const getLoginMember = () => {
+  const saved = localStorage.getItem("loginMember");
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch (e) {
+      console.error("loginMember parse error", e);
+    }
+  }
+  const token = localStorage.getItem("accessToken");
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return {
+        username: payload.username || payload.sub,
+        nickname: payload.nickname || payload.username || payload.sub,
+        role: payload.role || "USER",
+      };
+    } catch (e) {
+      console.error("Token decode error", e);
+    }
+  }
+  return null;
+};
 
 export default function BoardWritePage() {
   const {
@@ -21,14 +47,28 @@ export default function BoardWritePage() {
     handleSubmit,
   } = useBoardForm();
 
+  const location = useLocation();
+  const loginMember = getLoginMember();
+  const isAdmin = loginMember?.role === "ADMIN" || loginMember?.role === "A" || loginMember?.role === "BOARD" || loginMember?.role === "B";
+
   // 사용자 로그인 권한 체크 및 리다이렉트
   useEffect(() => {
-    const loginMember = localStorage.getItem("loginMember");
-    if (!loginMember) {
+    const loginMemberObj = getLoginMember();
+    if (!loginMemberObj) {
       alert("로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.");
       navigate("/member/login");
+      return;
     }
-  }, [navigate]);
+
+    const currentIsAdmin = loginMemberObj.role === "ADMIN" || loginMemberObj.role === "A" || loginMemberObj.role === "BOARD" || loginMemberObj.role === "B";
+    
+    // 비관리자가 FAQ나 NEWS 글쓰기/수정 진입 시도 시 차단
+    const targetCategory = location.state?.defaultCategory || location.state?.board?.category || boardCategory;
+    if (!currentIsAdmin && (targetCategory === "FAQ" || targetCategory === "NEWS")) {
+      alert("관리자만 이용할 수 있는 기능입니다.");
+      navigate(-1);
+    }
+  }, [navigate, boardCategory, location.state]);
 
   // React Quill 툴바 및 모듈 구성 (시안 디자인에 맞게 최적화)
   const modules = {
@@ -69,6 +109,12 @@ export default function BoardWritePage() {
             <option value="FREE">자유게시판</option>
             <option value="PRODUCT_REVIEW">상품후기게시판</option>
             <option value="FAC_REVIEW">시설후기게시판</option>
+            {isAdmin && (
+              <>
+                <option value="FAQ">FAQ게시판</option>
+                <option value="NEWS">뉴스게시판</option>
+              </>
+            )}
           </CustomSelect>
 
           {boardCategory === "FREE" && (

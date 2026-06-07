@@ -77,12 +77,8 @@ export default function FreeBoardList({
       <BoardListWrapper>
         {list.map((item) => {
           const firstImg = extractFirstImg(item.content);
-          const mockComments = item.hits
-            ? Math.max(1, Math.floor(item.hits / 12))
-            : 0;
-          const mockLikes = item.hits
-            ? Math.max(0, Math.floor(item.hits / 18))
-            : 0;
+          const mockComments = item.replyCount || 0;
+          const mockLikes = item.likeCount || 0;
 
           return (
             <ListItem

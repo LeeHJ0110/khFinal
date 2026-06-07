@@ -1,6 +1,33 @@
 import "./PetStoreProductModal.css";
 import PetStoreProductForm from "./PetStoreProductForm";
 
+const PRODUCT_TAG_OPTIONS = {
+  FOOD: [
+    { tagId: 1, tagName: "성장" },
+    { tagId: 2, tagName: "체중" },
+    { tagId: 3, tagName: "피부" },
+    { tagId: 4, tagName: "소화" },
+  ],
+  SNACK: [
+    { tagId: 5, tagName: "치아" },
+    { tagId: 6, tagName: "칼로리" },
+    { tagId: 7, tagName: "보상" },
+    { tagId: 8, tagName: "기호성" },
+  ],
+  SUPPLEMENT: [
+    { tagId: 9, tagName: "관절" },
+    { tagId: 10, tagName: "소화" },
+    { tagId: 11, tagName: "면역" },
+    { tagId: 12, tagName: "눈" },
+  ],
+  TOILET: [
+    { tagId: 13, tagName: "탈취" },
+    { tagId: 14, tagName: "흡수" },
+    { tagId: 15, tagName: "위생" },
+    { tagId: 16, tagName: "대용량" },
+  ],
+};
+
 const emptyBasicData = {
   productName: "",
   productCategory: "FOOD",
@@ -44,6 +71,91 @@ const emptyFeedingGuideList = [
   },
 ];
 
+function normalizeText(value) {
+  return String(value ?? "").trim();
+}
+
+function findTagIdByName(category, tagName) {
+  const normalizedCategory = normalizeText(category);
+  const normalizedTagName = normalizeText(tagName);
+
+  if (!normalizedCategory || !normalizedTagName) {
+    return "";
+  }
+
+  const optionList = PRODUCT_TAG_OPTIONS[normalizedCategory] ?? [];
+
+  const found = optionList.find((tag) => {
+    return normalizeText(tag.tagName) === normalizedTagName;
+  });
+
+  return found?.tagId ?? "";
+}
+
+function isValidTagIdInCategory(category, tagId) {
+  const optionList = PRODUCT_TAG_OPTIONS[category] ?? [];
+
+  return optionList.some((tag) => {
+    return String(tag.tagId) === String(tagId);
+  });
+}
+
+function getInitialTagId(detailData) {
+  if (!detailData) {
+    return "";
+  }
+
+  const category = detailData.productCategory;
+
+  const tagName =
+    detailData.tagName ??
+    detailData.productTagName ??
+    detailData.storeProductTagName ??
+    detailData.tag?.tagName ??
+    detailData.tag?.name ??
+    detailData.productTag?.tagName ??
+    detailData.productTag?.name ??
+    detailData.storeProductTag?.tagName ??
+    detailData.storeProductTag?.name ??
+    "";
+
+  /*
+    백엔드 tagId와 프론트 option tagId가 안 맞는 경우가 있음.
+    예: 백엔드 응답 TOILET + tagId 12 + tagName 탈취
+    프론트 옵션 TOILET + 탈취 = 13
+
+    그래서 수정 모달 표시용 초기값은 tagName 매칭을 우선한다.
+  */
+  const tagIdByName = findTagIdByName(category, tagName);
+
+  if (tagIdByName) {
+    return String(tagIdByName);
+  }
+
+  const directTagId =
+    detailData.tagId ??
+    detailData.productTagId ??
+    detailData.storeProductTagId ??
+    detailData.tag?.tagId ??
+    detailData.tag?.id ??
+    detailData.productTag?.tagId ??
+    detailData.productTag?.id ??
+    detailData.storeProductTag?.tagId ??
+    detailData.storeProductTag?.id ??
+    "";
+
+  if (
+    directTagId !== "" &&
+    directTagId !== null &&
+    directTagId !== undefined &&
+    isValidTagIdInCategory(category, directTagId)
+  ) {
+    return String(directTagId);
+  }
+
+  return "";
+}
+
 function makeInitialBasicData(mode, detailData) {
   if (mode !== "update" || !detailData) {
     return emptyBasicData;
@@ -52,7 +164,7 @@ function makeInitialBasicData(mode, detailData) {
   return {
     productName: detailData.productName ?? "",
     productCategory: detailData.productCategory ?? "FOOD",
-    tagId: detailData.tagId ?? "",
+    tagId: String(getInitialTagId(detailData) ?? ""),
     productTargetPetType: detailData.productTargetPetType ?? "D",
     productPrice: detailData.productPrice ?? "",
     productSaleYn: detailData.productSaleYn ?? "Y",

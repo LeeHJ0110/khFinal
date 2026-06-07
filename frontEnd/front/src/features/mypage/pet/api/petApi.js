@@ -29,3 +29,15 @@ export function deletePet(petId) {
 export function changeRepresentPet(petId) {
   return api.put(`/pet/${petId}/represent`);
 }
+
+export function uploadPetImage(petId, file) {
+  const formData = new FormData();
+
+  formData.append("file", file);
+
+  return api.post(`/pet/${petId}/image`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+}

@@ -1,8 +1,11 @@
+import { useState } from "react";
 import styled from "styled-components";
 import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreProductList from "../../features/petStore/hooks/usePetStoreProductList";
 import PetStoreRecentAside from "./PetStoreRecentAside";
 import { useNavigate } from "react-router-dom";
+
+import foodBannerImg from "../../assets/images/petStore/사료목록배너.png";
 
 const sortOptions = [
   { label: "최신순", value: "latest" },
@@ -19,13 +22,29 @@ const tagList = [
   { label: "소화", tagId: 4 },
 ];
 
-/*
-  임시 리뷰 표시용 데이터입니다.
+const tagThemeMap = {
+  성장: {
+    background: "#e8f8f0",
+    color: "#00a97b",
+    border: "#bfead8",
+  },
+  체중관리: {
+    background: "#fff4e5",
+    color: "#d98218",
+    border: "#ffddad",
+  },
+  피부: {
+    background: "#eaf3ff",
+    color: "#2f74d0",
+    border: "#c8defc",
+  },
+  소화: {
+    background: "#f2edff",
+    color: "#7b55d9",
+    border: "#ddd0ff",
+  },
+};
 
-  나중에 리뷰 기능 완성되면 이 함수는 삭제하고,
-  아래 표시 부분을 실제 데이터로 변경하면 됩니다.
-
-*/
 function getTempReviewInfo(index) {
   const tempReviewList = [
     { rating: "4.9", count: 128 },
@@ -38,8 +57,28 @@ function getTempReviewInfo(index) {
   return tempReviewList[index % tempReviewList.length];
 }
 
+function getProductTagLabel(product) {
+  return (
+    product.tagName ||
+    product.productTagName ||
+    product.productTag?.tagName ||
+    "사료"
+  );
+}
+
+function getTagTheme(tagLabel) {
+  return (
+    tagThemeMap[tagLabel] || {
+      background: "#e8f8f0",
+      color: "var(--color-main)",
+      border: "#bfead8",
+    }
+  );
+}
+
 export default function PetStoreDogFoodProductListPage() {
   const navigate = useNavigate();
+
   const {
     productList,
     isLoading,
@@ -55,27 +94,38 @@ export default function PetStoreDogFoodProductListPage() {
     handleChangeTagId,
   } = usePetStoreProductList("D", "FOOD");
 
+  const [wishlistMap, setWishlistMap] = useState({});
+
+  function handleToggleWishlist(evt, productId) {
+    evt.stopPropagation();
+
+    setWishlistMap((prev) => ({
+      ...prev,
+      [productId]: !prev[productId],
+    }));
+  }
+
   return (
     <>
       <PetStoreUserNav />
 
       <Wrapper>
         <HeroBanner>
+          <HeroBannerImage src={foodBannerImg} alt="강아지 사료 목록 배너" />
+
           <HeroInner>
             <HeroTextBox>
               <HeroEyebrow>우리 강아지를 위한</HeroEyebrow>
+
               <HeroTitle>
                 프리미엄 <strong>사료</strong>
               </HeroTitle>
+
               <HeroDesc>
                 영양 밸런스는 기본, 기호성까지 고려한 건강한 선택
                 <br />더 오래, 더 건강하게 함께해요.
               </HeroDesc>
             </HeroTextBox>
-
-            <HeroImageBox>
-              <HeroImageText>강아지 사료 배너 이미지 영역</HeroImageText>
-            </HeroImageBox>
           </HeroInner>
         </HeroBanner>
 
@@ -148,6 +198,7 @@ export default function PetStoreDogFoodProductListPage() {
                 <ProductGrid>
                   {productList.map((product, index) => {
                     const tempReview = getTempReviewInfo(index);
+                    const tagLabel = getProductTagLabel(product);
 
                     return (
                       <ProductCard
@@ -156,11 +207,22 @@ export default function PetStoreDogFoodProductListPage() {
                           navigate(`/store/product/${product.productId}`)
                         }
                       >
-                        <WishButton type="button" aria-label="관심상품">
-                          ♡
+                        <WishButton
+                          type="button"
+                          aria-label="관심상품"
+                          $active={!!wishlistMap[product.productId]}
+                          onClick={(evt) =>
+                            handleToggleWishlist(evt, product.productId)
+                          }
+                        >
+                          {wishlistMap[product.productId] ? "♥" : "♡"}
                         </WishButton>
 
                         <ProductImageBox>
+                          <ProductTagBadge $tagLabel={tagLabel}>
+                            {tagLabel}
+                          </ProductTagBadge>
+
                           {product.mainImageUrl ? (
                             <ProductImage
                               src={product.mainImageUrl}
@@ -171,20 +233,18 @@ export default function PetStoreDogFoodProductListPage() {
                           )}
                         </ProductImageBox>
 
-                        <ProductCategoryBadge>사료</ProductCategoryBadge>
+                        <ProductInfoArea>
+                          <ProductName>{product.productName}</ProductName>
 
-                        <ProductName>{product.productName}</ProductName>
+                          <ProductReviewInfo>
+                            <ReviewStar>★</ReviewStar>
+                            {tempReview.rating} ({tempReview.count})
+                          </ProductReviewInfo>
 
-                        <ProductReviewInfo>
-                          <ReviewStar>★</ReviewStar>
-                          {tempReview.rating} ({tempReview.count})
-                        </ProductReviewInfo>
-
-                        <ProductBottom>
                           <ProductPrice>
                             {product.productPrice?.toLocaleString()}원
                           </ProductPrice>
-                        </ProductBottom>
+                        </ProductInfoArea>
                       </ProductCard>
                     );
                   })}
@@ -192,8 +252,9 @@ export default function PetStoreDogFoodProductListPage() {
               )}
             </ProductSection>
 
-            {/* 최근 조회 사이드바 */}
-            <PetStoreRecentAside />
+            <RecentAsideStickyBox>
+              <PetStoreRecentAside />
+            </RecentAsideStickyBox>
           </BodyLayout>
         </ContentInner>
       </Wrapper>
@@ -206,88 +267,84 @@ const Wrapper = styled.main`
   background-color: var(--color-white);
 `;
 
+/* ================================
+   Banner
+================================ */
+
 const HeroBanner = styled.section`
+  position: relative;
   width: 100%;
-  height: 240px;
-
-  display: flex;
-  align-items: center;
-
+  height: 320px;
   overflow: hidden;
-  background: linear-gradient(90deg, #dff2e9 0%, #eefaf4 48%, #dff2e9 100%);
+  background-color: #edf8f2;
+`;
+
+const HeroBannerImage = styled.img`
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  display: block;
+  object-fit: cover;
+  object-position: center 80%;
 `;
 
 const HeroInner = styled.div`
+  position: relative;
+  z-index: 2;
+
   width: 1300px;
   height: 100%;
   margin: 0 auto;
 
   display: flex;
   align-items: center;
-  justify-content: space-between;
 `;
 
 const HeroTextBox = styled.div`
-  position: relative;
-  z-index: 2;
-  width: 430px;
+  width: 520px;
+  transform: translateY(-2px);
 `;
 
 const HeroEyebrow = styled.p`
-  margin: 0 0 10px;
+  margin: 0 0 12px;
 
-  color: var(--text-main);
-  font-size: 17px;
-  font-weight: 800;
+  color: #202423;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.45px;
 `;
 
 const HeroTitle = styled.h1`
-  margin: 0 0 15px;
+  margin: 0 0 18px;
 
-  color: var(--text-main);
-  font-size: 39px;
+  color: #151918;
+  font-size: 52px;
   font-weight: 900;
-  line-height: 1.2;
-  letter-spacing: -1.7px;
+  line-height: 1.14;
+  letter-spacing: -2.1px;
 
   strong {
     color: var(--color-main);
+    font-weight: 900;
   }
 `;
 
 const HeroDesc = styled.p`
   margin: 0;
 
-  color: var(--text-sub);
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.65;
+  color: #4f5b58;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.7;
+  letter-spacing: -0.3px;
 `;
 
-const HeroImageBox = styled.div`
-  width: 700px;
-  height: 100%;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const HeroImageText = styled.div`
-  width: 100%;
-  height: 82%;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 24px;
-  background-color: rgba(255, 255, 255, 0.34);
-  color: rgba(0, 0, 0, 0.24);
-
-  font-size: 15px;
-  font-weight: 800;
-`;
+/* ================================
+   Layout
+================================ */
 
 const ContentInner = styled.div`
   width: 1300px;
@@ -326,17 +383,17 @@ const HeaderBlank = styled.div`
 const PageTitle = styled.h2`
   margin: 0;
 
-  color: var(--text-main);
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: -0.7px;
+  color: #202423;
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -0.75px;
   white-space: nowrap;
 `;
 
 const ProductCount = styled.span`
-  color: var(--text-sub);
+  color: #58625f;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
 `;
 
 const ControlBox = styled.div`
@@ -345,9 +402,13 @@ const ControlBox = styled.div`
   gap: 10px;
 `;
 
+/* ================================
+   Search / Sort
+================================ */
+
 const SearchBox = styled.div`
-  width: 220px;
-  height: 28px;
+  width: 230px;
+  height: 29px;
   padding: 0 8px 0 12px;
 
   display: flex;
@@ -356,6 +417,15 @@ const SearchBox = styled.div`
   border: 1px solid #d5e2dc;
   border-radius: 999px;
   background-color: var(--color-white);
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &:focus-within {
+    border-color: var(--color-main);
+    box-shadow: 0 0 0 3px rgba(0, 169, 123, 0.1);
+  }
 `;
 
 const SearchInput = styled.input`
@@ -366,9 +436,9 @@ const SearchInput = styled.input`
   outline: none;
   background-color: transparent;
 
-  color: var(--text-main);
+  color: #202423;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
 
   &::placeholder {
     color: #9ba9a4;
@@ -382,22 +452,42 @@ const SearchButton = styled.button`
 
   font-size: 13px;
   cursor: pointer;
+
+  transition: transform 0.18s ease;
+
+  &:hover {
+    transform: scale(1.08);
+  }
 `;
 
 const SortSelect = styled.select`
-  width: 92px;
+  width: 96px;
   height: 30px;
   padding: 0 8px;
 
   border: 1px solid #d5e2dc;
   border-radius: 8px;
+  outline: none;
   background-color: var(--color-white);
 
-  color: var(--text-main);
+  color: #202423;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &:focus {
+    border-color: var(--color-main);
+    box-shadow: 0 0 0 3px rgba(0, 169, 123, 0.1);
+  }
 `;
+
+/* ================================
+   Body
+================================ */
 
 const BodyLayout = styled.section`
   margin-top: 6px;
@@ -415,9 +505,9 @@ const FilterAside = styled.aside`
 const FilterTitle = styled.h3`
   margin: 0 0 14px;
 
-  color: var(--text-main);
+  color: #202423;
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 800;
 `;
 
 const TagList = styled.div`
@@ -431,16 +521,29 @@ const TagList = styled.div`
 `;
 
 const TagButton = styled.button`
+  width: fit-content;
+
   border: 0;
+  outline: none;
   background-color: transparent;
   text-align: left;
 
   color: ${(props) =>
     props.$active ? "var(--color-main)" : "var(--text-sub)"};
   font-size: 12px;
-  font-weight: ${(props) => (props.$active ? 900 : 700)};
+  font-weight: ${(props) => (props.$active ? 800 : 500)};
 
   cursor: pointer;
+
+  transition:
+    color 0.18s ease,
+    transform 0.18s ease;
+
+  &:hover,
+  &:focus {
+    color: var(--color-main);
+    transform: translateX(2px);
+  }
 `;
 
 const ProductSection = styled.section`
@@ -457,16 +560,28 @@ const ProductGrid = styled.div`
   gap: 34px 30px;
 `;
 
+const RecentAsideStickyBox = styled.aside`
+  position: sticky;
+  top: 92px;
+  align-self: start;
+  height: fit-content;
+  z-index: 3;
+`;
+
+/* ================================
+   Product Card
+================================ */
+
 const ProductCard = styled.article`
   position: relative;
 
-  height: 260px;
-  padding: 22px 20px 18px;
+  height: 276px;
+  padding: 20px 18px 20px;
 
   display: flex;
   flex-direction: column;
 
-  border-radius: 10px;
+  border-radius: 11px;
   background-color: var(--color-white);
   box-shadow: 0 2px 8px rgba(18, 45, 46, 0.08);
 
@@ -476,8 +591,12 @@ const ProductCard = styled.article`
   cursor: pointer;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(18, 45, 46, 0.12);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(18, 45, 46, 0.12);
+  }
+
+  &:hover img {
+    transform: scale(1.045);
   }
 `;
 
@@ -485,70 +604,118 @@ const WishButton = styled.button`
   position: absolute;
   right: 13px;
   top: 12px;
-  z-index: 2;
+  z-index: 3;
 
-  border: 0;
-  background-color: transparent;
-  color: #111;
-
-  font-size: 28px;
-  line-height: 1;
-  cursor: pointer;
-`;
-
-const ProductImageBox = styled.div`
-  width: 100%;
-  height: 118px;
-  margin-bottom: 10px;
+  width: 32px;
+  height: 32px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  overflow: hidden;
-  border-radius: 12px;
-  background-color: #f6faf8;
+  border: 0;
+  border-radius: 50%;
+  background-color: transparent;
+  color: ${({ $active }) => ($active ? "var(--color-main)" : "#151918")};
+
+  font-size: ${({ $active }) => ($active ? "27px" : "29px")};
+  font-weight: ${({ $active }) => ($active ? "800" : "300")};
+  line-height: 1;
+  cursor: pointer;
+
+  transition:
+    color 0.18s ease,
+    transform 0.18s ease,
+    background-color 0.18s ease;
+
+  &:hover {
+    color: var(--color-main);
+    transform: scale(1.09);
+    background-color: rgba(236, 253, 246, 0.72);
+  }
+
+  &:active {
+    transform: scale(0.94);
+  }
 `;
 
-const ProductImage = styled.img`
+const ProductImageBox = styled.div`
+  position: relative;
+
   width: 100%;
-  height: 100%;
-  padding: 8px;
-  object-fit: contain;
+  height: 132px;
+  margin-bottom: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: visible;
+  border-radius: 0;
+  background-color: transparent;
 `;
 
-const ProductImageText = styled.span`
-  color: var(--text-desc);
-  font-size: 12px;
-  font-weight: 800;
-`;
+const ProductTagBadge = styled.span`
+  position: absolute;
+  left: 2px;
+  top: 0;
+  z-index: 2;
 
-const ProductCategoryBadge = styled.span`
   width: fit-content;
-  height: 18px;
-  padding: 0 8px;
-  margin-bottom: 7px;
+  min-width: 40px;
+  height: 21px;
+  padding: 0 9px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 3px;
-  background-color: #c9f0dd;
-  color: var(--color-main);
+  border: 1px solid ${({ $tagLabel }) => getTagTheme($tagLabel).border};
+  border-radius: 999px;
+  background-color: ${({ $tagLabel }) => getTagTheme($tagLabel).background};
+  color: ${({ $tagLabel }) => getTagTheme($tagLabel).color};
 
-  font-size: 10px;
-  font-weight: 900;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+
+  box-shadow: 0 2px 6px rgba(18, 45, 46, 0.06);
+`;
+
+const ProductImage = styled.img`
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  object-fit: contain;
+
+  transition: transform 0.2s ease;
+`;
+
+const ProductImageText = styled.span`
+  color: var(--text-desc);
+  font-size: 12px;
+  font-weight: 600;
+`;
+
+const ProductInfoArea = styled.div`
+  flex: 1;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 `;
 
 const ProductName = styled.h3`
   min-height: 35px;
-  margin: 0 0 4px;
+  margin: 0 0 6px;
 
-  color: var(--text-main);
-  font-size: 13px;
-  font-weight: 800;
-  line-height: 1.35;
+  color: #202423;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.38;
   letter-spacing: -0.2px;
 
   display: -webkit-box;
@@ -562,11 +729,11 @@ const ProductReviewInfo = styled.div`
   align-items: center;
   gap: 4px;
 
-  margin-bottom: 8px;
+  margin-bottom: 9px;
 
-  color: var(--text-sub);
-  font-size: 12px;
-  font-weight: 700;
+  color: #555f5c;
+  font-size: 11px;
+  font-weight: 500;
 `;
 
 const ReviewStar = styled.span`
@@ -575,21 +742,14 @@ const ReviewStar = styled.span`
   line-height: 1;
 `;
 
-const ProductBottom = styled.div`
-  margin-top: auto;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
 const ProductPrice = styled.p`
-  margin: 0;
+  margin: auto 0 0;
 
-  color: var(--text-main);
+  color: #151918;
   font-size: 20px;
-  font-weight: 900;
-  letter-spacing: -0.8px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.65px;
 `;
 
 const EmptyBox = styled.div`
@@ -601,5 +761,5 @@ const EmptyBox = styled.div`
 
   color: var(--text-sub);
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
 `;

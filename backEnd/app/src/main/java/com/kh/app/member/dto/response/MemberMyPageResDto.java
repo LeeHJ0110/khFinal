@@ -28,16 +28,16 @@ public class MemberMyPageResDto {
     // 상세주소
     private String addressDetail;
 
-    public static MemberMyPageResDto from(MemberEntity member) {
+    private String profileImageUrl;
 
+    public static MemberMyPageResDto from(
+            MemberEntity member,
+            String profileImageUrl
+    ) {
         return MemberMyPageResDto.builder()
                 .nickname(member.getNickname())
                 .email(member.getEmail())
-
-                // 전화번호 포맷팅
                 .phone(formatPhone(member.getPhone()))
-
-                // 가입일 포맷팅
                 .createdAt(
                         member.getCreatedAt() != null
                                 ? member.getCreatedAt().format(
@@ -45,10 +45,9 @@ public class MemberMyPageResDto {
                         )
                                 : null
                 )
-
                 .address(member.getAddress())
                 .addressDetail(member.getAddressDetail())
-
+                .profileImageUrl(profileImageUrl)
                 .build();
     }
 

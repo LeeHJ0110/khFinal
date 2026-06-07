@@ -58,6 +58,9 @@ public class PetEntity extends BaseEntity {
     @JoinColumn(name = "BREED_ID")
     private BreedEntity breed;
 
+    @Column(name = "PET_IMAGE_URL", length = 500)
+    private String imageUrl;
+
     public void update(
             BreedEntity breed,
             String name,
@@ -79,5 +82,7 @@ public class PetEntity extends BaseEntity {
     public void changeRepresentYn(PetRepresentYn representYn) {
         this.representYn = representYn;
     }
-
+    public void updateImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 }

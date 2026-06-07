@@ -13,3 +13,15 @@ export function checkNickname(nickname) {
 export function updateMyInfo(data) {
   return api.put("/member/me", data);
 }
+
+export function uploadProfileImage(file) {
+  const formData = new FormData();
+
+  formData.append("file", file);
+
+  return api.post("/member/me/profile-image", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+}

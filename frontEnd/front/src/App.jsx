@@ -20,6 +20,8 @@ import DiagnosisRequestHomePage from "./pages/petcare/DiagnosisRequestHomePage";
 import DiagnosisRequestPage from "./pages/petcare/DiagnosisRequestPage";
 import DiagnosisManagePage from "./pages/petcare/DiagnosisManagePage";
 import DiagnosisDetailPage from "./pages/petcare/DiagnosisDetailPage";
+import PetInsuranceMain from "./pages/petinsurance/PetInsuranceMain";
+import InsuranceAdminApplicationPage from "./pages/petinsurance/InsuranceAdminApplicationPage";
 
 // store
 import PetStoreAdminProductListPage from "./pages/petStore/PetStoreAdminProductListPage";
@@ -36,6 +38,7 @@ import PetStoreCatSupplementProductListPage from "./pages/petStore/PetStoreCatSu
 import PetStoreCatToiletProductListPage from "./pages/petStore/PetStoreCatToiletProductListPage";
 import PetStoreProductDetailPage from "./pages/petStore/PetStoreProductDetailPage";
 import PetStoreCartListPage from "./pages/petStore/PetStoreCartListPage";
+import PetStoreOrderPage from "./pages/petStore/PetStoreOrderPage";
 
 // mypage
 import MyPageHomePage from "./pages/mypage/MyPageHomePage";
@@ -54,6 +57,7 @@ import CommunityHistoryPage from "./pages/mypage/CommunityHistoryPage";
 import BoardHome from "./pages/board/BoardHome";
 import BoardDetailPage from "./pages/board/BoardDetailPage";
 import DeliveryManagePage from "./pages/mypage/DeliveryManagePage";
+import PetStoreOrderCompletePage from "./pages/petStore/PetStoreOrderCompletePage";
 import AdminMemberPage from "./pages/admin/member/AdminMemberPage";
 import AdminMessageSendPage from "./pages/admin/message/AdminMessageSendPage";
 import AdminSentMessagePage from "./pages/admin/message/AdminSentMessagePage";
@@ -93,6 +97,13 @@ function App() {
             {/* vet/admin */}
             <Route path="manage" element={<DiagnosisManagePage />} />
             <Route path="manage/:id" element={<DiagnosisDetailPage />} />
+
+            {/* 펫보험 */}
+            <Route path="petinsurance" element={<PetInsuranceMain />} />
+            <Route
+              path="petinsurance/admin"
+              element={<InsuranceAdminApplicationPage />}
+            />
           </Route>
 
           {/* 스토어 */}
@@ -109,7 +120,14 @@ function App() {
             {/* 장바구니 */}
             <Route path="cart/list" element={<PetStoreCartListPage />} />
 
-            {/* 강아지 스토어 계열 - 임시로 홈 연결 */}
+            {/* 주문페이지 */}
+            <Route path="order" element={<PetStoreOrderPage />} />
+            <Route
+              path="order/complete"
+              element={<PetStoreOrderCompletePage />}
+            />
+
+            {/* 강아지 스토어 계열 */}
             <Route path="dog" element={<PetStoreDogHomePage />} />
             <Route
               path="dog/food"
@@ -128,7 +146,7 @@ function App() {
               element={<PetStoreDogToiletProductListPage />}
             />
 
-            {/* 고양이 스토어 계열 -  임시로 홈 연결 */}
+            {/* 고양이 스토어 계열*/}
             <Route path="cat" element={<PetStoreCatHomePage />} />
             <Route
               path="cat/food"
@@ -151,8 +169,6 @@ function App() {
               path="product/:productId"
               element={<PetStoreProductDetailPage />}
             />
-
-            {/* 사용자 보조 메뉴 */}
           </Route>
 
           {/* 마이페이지 */}

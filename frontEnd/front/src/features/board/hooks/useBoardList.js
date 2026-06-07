@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fetchBoardList } from "../api/boardApi";
+import { fetchBoardList, fetchNaverNewsApi } from "../api/boardApi";
 
 export default function useBoardList() {
   const [list, setList] = useState([]);
@@ -11,7 +11,14 @@ export default function useBoardList() {
   async function asyncFetchBoardList(category, page = 0, condition = {}) {
     setLoading(true);
     try {
-      const resp = await fetchBoardList(category, page, condition);
+      let resp;
+      if (category === "NEWS") {
+        const searchKeyword =
+          condition.title || condition.content || "반려동물";
+        resp = await fetchNaverNewsApi(page, searchKeyword);
+      } else {
+        resp = await fetchBoardList(category, page, condition);
+      }
       setList(resp.data.content || []);
       setTotalPages(resp.data.totalPages || 0);
       setTotalElements(resp.data.totalElements || 0);
@@ -36,4 +43,3 @@ export default function useBoardList() {
     isLoading,
   };
 }
-

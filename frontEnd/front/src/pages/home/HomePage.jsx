@@ -1,37 +1,36 @@
-import { useState } from "react";
-import styled, { keyframes } from "styled-components";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import styled, { css, keyframes } from "styled-components";
+
 import petModelImg from "../../assets/images/homePage/homemodelpets.png";
+import reviewVideo from "../../assets/images/homePage/후기영상.mp4";
 
-/*
-  이미지는 public/images/home/ 하위에 넣으면 됩니다.
+import card1 from "../../assets/images/homePage/1번카드.png";
+import card2 from "../../assets/images/homePage/2번카드.png";
+import card3 from "../../assets/images/homePage/3번카드.png";
+import card4 from "../../assets/images/homePage/4번카드.png";
 
-  예시:
-  public/images/home/hero-pets.png
-  public/images/home/card-health.png
-  public/images/home/monitor-frame.png
+import healthcareIntroduction from "../../assets/images/homePage/홈용건강관리.png";
+import storeIntroduction from "../../assets/images/homePage/홈용스토어.png";
+import insuIntroduction from "../../assets/images/homePage/홈용펫보험.png";
+import commuIntroduction from "../../assets/images/homePage/홈용커뮤니티.png";
+import careIntroduction from "../../assets/images/homePage/홈용맞춤관리.png";
 
-  코드에서는 public을 쓰지 않고 /images/home/... 으로 접근합니다.
-*/
 const HOME_IMAGES = {
   petModel: petModelImg,
 
-  cardHealth: "/images/home/card-health.png",
-  cardCommunity: "/images/home/card-community.png",
-  cardStore: "/images/home/card-store.png",
-  cardCare: "/images/home/card-care.png",
+  screenHealth: healthcareIntroduction,
+  screenStore: storeIntroduction,
+  screenInsurance: insuIntroduction,
+  screenCommunity: commuIntroduction,
+  screenCustom: careIntroduction,
 
-  monitorFrame: "/images/home/monitor-frame.png",
-  screenHealth: "/images/home/screen-health.png",
-  screenStore: "/images/home/screen-store.png",
-  screenInsurance: "/images/home/screen-insurance.png",
-  screenCommunity: "/images/home/screen-community.png",
-  screenCustom: "/images/home/screen-custom.png",
+  cardHealth: card1,
+  cardCommunity: card2,
+  cardStore: card3,
+  cardCare: card4,
 
-  review1: "/images/home/review-1.png",
-  review2: "/images/home/review-2.png",
-  review3: "/images/home/review-3.png",
-
-  ctaPets: "/images/home/cta-pets.png",
+  ctaPets: petModelImg,
 };
 
 const serviceCards = [
@@ -39,21 +38,25 @@ const serviceCards = [
     title: "간편하고 정확한 건강 체크",
     desc: "우리 아이의 상태를 빠르게 확인하세요",
     image: HOME_IMAGES.cardHealth,
+    icon: "🐾",
   },
   {
     title: "함께하는 정보 공유",
     desc: "경험과 노하우를 나누세요",
     image: HOME_IMAGES.cardCommunity,
+    icon: "💚",
   },
   {
     title: "딱 맞는 제품 추천",
     desc: "건강 데이터 기반 맞춤 쇼핑",
     image: HOME_IMAGES.cardStore,
+    icon: "🛍️",
   },
   {
     title: "놓치지 않는 건강 관리",
-    desc: "일정관리, 알림, 기록까지 한 곳에서",
+    desc: "일정관리, 알림, 기록까지 자동 관리",
     image: HOME_IMAGES.cardCare,
+    icon: "🔔",
   },
 ];
 
@@ -91,7 +94,27 @@ const featureTabs = [
 ];
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const [activeFeature, setActiveFeature] = useState(featureTabs[0]);
+
+  useEffect(() => {
+    featureTabs.forEach((tab) => {
+      const image = new Image();
+      image.src = tab.screen;
+    });
+  }, []);
+
+  function handleClickFeature(tab) {
+    setActiveFeature(tab);
+  }
+
+  function handleMoveHealthCare() {
+    navigate("/healthcare");
+  }
+
+  function handleMoveCommunity() {
+    navigate("/community");
+  }
 
   return (
     <Wrapper>
@@ -119,10 +142,11 @@ export default function HomePage() {
             </HeroDesc>
 
             <HeroButtonGroup>
-              <HeroPrimaryButton type="button">
+              <HeroPrimaryButton type="button" onClick={handleMoveHealthCare}>
                 건강관리 시작하기
               </HeroPrimaryButton>
-              <HeroSecondaryButton type="button">
+
+              <HeroSecondaryButton type="button" onClick={handleMoveCommunity}>
                 커뮤니티 둘러보기
               </HeroSecondaryButton>
             </HeroButtonGroup>
@@ -171,15 +195,33 @@ export default function HomePage() {
           {serviceCards.map((card, index) => (
             <ServiceCard key={card.title} $index={index}>
               <CardImageWrap>
-                <SafeImage src={card.image} alt={card.title} />
-                <CardImageFallback>
-                  <strong>{card.title}</strong>
-                  <span>이미지 영역</span>
-                </CardImageFallback>
+                {card.image ? (
+                  <SafeImage src={card.image} alt={card.title} />
+                ) : (
+                  <CardImageFallback>
+                    <CardFallbackIcon>
+                      {index === 0
+                        ? "✚"
+                        : index === 1
+                          ? "♣"
+                          : index === 2
+                            ? "▣"
+                            : "⌁"}
+                    </CardFallbackIcon>
+                    <strong>{card.title}</strong>
+                    <span>{card.desc}</span>
+                  </CardImageFallback>
+                )}
               </CardImageWrap>
 
+              <CardDim />
+
               <CardOverlay>
-                <CardTitle>{card.title}</CardTitle>
+                <CardTitleRow>
+                  <CardTempIcon>{card.icon}</CardTempIcon>
+                  <CardTitle>{card.title}</CardTitle>
+                </CardTitleRow>
+
                 <CardDesc>{card.desc}</CardDesc>
               </CardOverlay>
             </ServiceCard>
@@ -201,7 +243,7 @@ export default function HomePage() {
                 key={tab.key}
                 type="button"
                 $active={activeFeature.key === tab.key}
-                onClick={() => setActiveFeature(tab)}
+                onClick={() => handleClickFeature(tab)}
               >
                 <FeatureIcon>{tab.icon}</FeatureIcon>
                 <FeatureLabel>{tab.label}</FeatureLabel>
@@ -210,28 +252,27 @@ export default function HomePage() {
           </FeatureTabList>
 
           <MonitorArea>
-            <MonitorScreenBox>
-              <SafeImage
-                key={activeFeature.key}
-                src={activeFeature.screen}
-                alt={`${activeFeature.label} 화면`}
-                screen
-              />
-              <MonitorScreenFallback>
-                <strong>{activeFeature.label}</strong>
-                <span>화면 이미지 영역</span>
-              </MonitorScreenFallback>
-            </MonitorScreenBox>
+            <MonitorFrame>
+              <MonitorTopBar>
+                <MonitorCamera />
+              </MonitorTopBar>
 
-            <MonitorFrameBox>
-              <SafeImage src={HOME_IMAGES.monitorFrame} alt="모니터 프레임" />
-              <MonitorFallback>
-                <MonitorFallbackScreen>
-                  <span>MONITOR</span>
-                  <strong>FRAME</strong>
-                </MonitorFallbackScreen>
-              </MonitorFallback>
-            </MonitorFrameBox>
+              <MonitorScreen>
+                {featureTabs.map((tab) => (
+                  <MonitorScreenImage
+                    key={tab.key}
+                    src={tab.screen}
+                    alt={`${tab.label} 화면`}
+                    $active={activeFeature.key === tab.key}
+                  />
+                ))}
+              </MonitorScreen>
+
+              <MonitorBottomBar />
+            </MonitorFrame>
+
+            <MonitorNeck />
+            <MonitorStand />
           </MonitorArea>
 
           <FeatureDesc>
@@ -244,54 +285,16 @@ export default function HomePage() {
 
       <ReviewSection>
         <ReviewInner>
-          <ReviewList>
-            <ReviewCard>
-              <ReviewProfileBox>
-                <SafeImage src={HOME_IMAGES.review1} alt="리뷰 작성자 1" />
-                <ProfileFallback />
-              </ReviewProfileBox>
-
-              <ReviewContent>
-                <StarText>★★★★★</StarText>
-                <ReviewName>by k9e090</ReviewName>
-                <ReviewText>
-                  기대했던 서비스예요! 건강 리포트 기능이 정말 직관적이라 초보
-                  집사도 사용하기 편합니다.
-                </ReviewText>
-              </ReviewContent>
-            </ReviewCard>
-
-            <ReviewCard>
-              <ReviewProfileBox>
-                <SafeImage src={HOME_IMAGES.review2} alt="리뷰 작성자 2" />
-                <ProfileFallback />
-              </ReviewProfileBox>
-
-              <ReviewContent>
-                <StarText>★★★★★</StarText>
-                <ReviewName>by sum8542</ReviewName>
-                <ReviewText>
-                  반려견 상태를 한눈에 볼 수 있어서 좋아요. 맞춤 추천도
-                  유용했습니다.
-                </ReviewText>
-              </ReviewContent>
-            </ReviewCard>
-
-            <ReviewCard>
-              <ReviewProfileBox>
-                <SafeImage src={HOME_IMAGES.review3} alt="리뷰 작성자 3" />
-                <ProfileFallback />
-              </ReviewProfileBox>
-
-              <ReviewContent>
-                <StarText>★★★★★</StarText>
-                <ReviewName>by bou42</ReviewName>
-                <ReviewText>
-                  기록 관리가 쉬워져서 병원 방문 전에도 도움이 많이 됩니다.
-                </ReviewText>
-              </ReviewContent>
-            </ReviewCard>
-          </ReviewList>
+          <ReviewMediaArea>
+            <ReviewVideo
+              src={reviewVideo}
+              autoPlay
+              muted
+              loop
+              playsInline
+              controls={false}
+            />
+          </ReviewMediaArea>
 
           <ReviewTextBox>
             <ReviewMainTitle>
@@ -301,14 +304,14 @@ export default function HomePage() {
             </ReviewMainTitle>
 
             <ReviewSubText>
-              이미 검증된 서비스입니다
+              이미 검증된 서비스입니다.
               <br />
-              수많은 반려인들이 직접 경험하고 만족했습니다
+              수많은 반려인들이 직접 경험하고 만족했습니다.
             </ReviewSubText>
 
             <ReviewSubText>
               정확한 건강진단과 맞춤 관리
-              <br />그 변화를 지금 확인해보세요
+              <br />그 변화를 지금 확인해보세요.
             </ReviewSubText>
           </ReviewTextBox>
         </ReviewInner>
@@ -326,14 +329,12 @@ export default function HomePage() {
             </CtaDesc>
           </CtaTextBox>
 
-          <CtaButton type="button">건강관리 시작하기 &gt;</CtaButton>
+          <CtaButton type="button" onClick={handleMoveHealthCare}>
+            건강관리 시작하기 &gt;
+          </CtaButton>
 
           <CtaPetsBox>
             <SafeImage src={HOME_IMAGES.ctaPets} alt="강아지와 고양이" />
-            <CtaImageFallback>
-              <strong>CTA 펫 이미지</strong>
-              <span>cta-pets.png</span>
-            </CtaImageFallback>
           </CtaPetsBox>
         </CtaInner>
       </CtaSection>
@@ -341,12 +342,15 @@ export default function HomePage() {
   );
 }
 
-function SafeImage({ src, alt, screen = false }) {
+function SafeImage({ src, alt }) {
+  if (!src) {
+    return null;
+  }
+
   return (
     <StyledImage
       src={src}
       alt={alt}
-      $screen={screen}
       onError={(evt) => {
         evt.currentTarget.style.display = "none";
       }}
@@ -393,16 +397,20 @@ const fadeLeft = keyframes`
     transform: translateX(0);
   }
 `;
-
 const screenSlide = keyframes`
-  from {
+  0% {
     opacity: 0;
-    transform: translateX(70px) scale(0.98);
+    transform: translateX(72px) scale(1.12);
   }
 
-  to {
+  60% {
     opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: translateX(-6px) scale(1.12);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1.12);
   }
 `;
 
@@ -410,9 +418,25 @@ const floatY = keyframes`
   0% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-10px);
   }
+
+  100% {
+    transform: translateY(0);
+  }
+`;
+
+const cardFloat = keyframes`
+  0% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+
   100% {
     transform: translateY(0);
   }
@@ -422,9 +446,11 @@ const floatYSlow = keyframes`
   0% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-16px);
   }
+
   100% {
     transform: translateY(0);
   }
@@ -435,10 +461,12 @@ const glowPulse = keyframes`
     opacity: 0.72;
     transform: translate(-50%, -50%) scale(0.96);
   }
+
   50% {
     opacity: 1;
     transform: translate(-50%, -50%) scale(1.04);
   }
+
   100% {
     opacity: 0.72;
     transform: translate(-50%, -50%) scale(0.96);
@@ -469,8 +497,7 @@ const StyledImage = styled.img`
   height: 100%;
   display: block;
   object-fit: cover;
-  animation: ${({ $screen }) => ($screen ? screenSlide : "none")} 0.55s ease
-    both;
+  object-position: center;
 `;
 
 /* ================================
@@ -481,7 +508,7 @@ const HeroSection = styled.section`
   position: relative;
   width: 100%;
   height: 560px;
-  padding-top: calc(var(--header-height) + 28px);
+  padding-top: calc(var(--header-height) + -2px);
   overflow: hidden;
   background: linear-gradient(135deg, #06b487 0%, #34c6a3 52%, #68d3bd 100%);
 
@@ -520,8 +547,8 @@ const HeroTextBox = styled.div`
 
 const HeroBadge = styled.div`
   width: fit-content;
-  height: 38px;
-  padding: 0 20px;
+  height: 45px;
+  padding: 0 30px;
   display: flex;
   align-items: center;
   border-radius: 999px;
@@ -529,7 +556,7 @@ const HeroBadge = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: var(--color-white);
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 00;
   backdrop-filter: blur(10px);
 `;
 
@@ -547,7 +574,7 @@ const HeroDesc = styled.p`
   color: rgba(255, 255, 255, 0.95);
   font-size: 23px;
   line-height: 1.55;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: -0.8px;
 `;
 
@@ -567,7 +594,7 @@ const HeroPrimaryButton = styled.button`
   background-color: var(--color-white);
   color: var(--color-main-dark);
   font-size: 16px;
-  font-weight: 900;
+  font-weight: 700;
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.14);
   cursor: pointer;
   transition:
@@ -589,7 +616,7 @@ const HeroSecondaryButton = styled.button`
   background: rgba(255, 255, 255, 0.08);
   color: var(--color-white);
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 600;
   backdrop-filter: blur(10px);
   cursor: pointer;
   transition:
@@ -805,7 +832,6 @@ const CardGrid = styled.div`
   row-gap: 42px;
   align-items: start;
 `;
-
 const ServiceCard = styled.article`
   position: relative;
   width: 405px;
@@ -813,8 +839,20 @@ const ServiceCard = styled.article`
   border-radius: 22px;
   overflow: hidden;
   background-color: #f5fffb;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
-  animation: ${fadeUp} 0.8s ease ${({ $index }) => 0.2 + $index * 0.12}s both;
+  box-shadow: 0 18px 36px rgba(18, 45, 46, 0.14);
+
+  animation:
+    ${fadeUp} 0.8s ease ${({ $index }) => 0.2 + $index * 0.12}s both,
+    ${cardFloat} 4.6s ease-in-out ${({ $index }) => $index * 0.45}s infinite;
+
+  transition:
+    transform 0.24s ease,
+    box-shadow 0.24s ease;
+
+  &:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 24px 44px rgba(18, 45, 46, 0.18);
+  }
 
   &:nth-child(2) {
     margin-top: 34px;
@@ -827,66 +865,103 @@ const ServiceCard = styled.article`
   &:nth-child(4) {
     margin-top: 30px;
   }
+
+  img {
+    transition: transform 0.45s ease;
+  }
+
+  &:hover img {
+    transform: scale(1.045);
+  }
 `;
 
 const CardImageWrap = styled.div`
   position: absolute;
   inset: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 `;
 
-const CardImageFallback = styled.div`
+const CardDim = styled.div`
   position: absolute;
   inset: 0;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  z-index: 3;
+
   background:
-    linear-gradient(180deg, rgba(12, 41, 38, 0.3), rgba(12, 41, 38, 0.08)),
-    linear-gradient(135deg, #eafff7, #cceee1);
-  color: var(--color-main-dark);
-  text-align: center;
+    linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.42) 0%,
+      rgba(0, 0, 0, 0.2) 42%,
+      rgba(0, 0, 0, 0.08) 100%
+    ),
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.28) 0%,
+      rgba(0, 0, 0, 0.08) 52%,
+      rgba(0, 0, 0, 0.04) 100%
+    );
 
-  strong {
-    font-size: 18px;
-    font-weight: 900;
-  }
-
-  span {
-    font-size: 14px;
-    font-weight: 700;
-  }
+  pointer-events: none;
 `;
 
 const CardOverlay = styled.div`
   position: absolute;
   inset: 0;
   z-index: 4;
-  padding: 36px 34px;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.42) 0%,
-    rgba(0, 0, 0, 0.18) 45%,
-    rgba(0, 0, 0, 0.08) 100%
-  );
+  padding: 34px 34px;
+`;
+
+const CardTitleRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
+
+const CardTempIcon = styled.div`
+  width: 54px;
+  height: 54px;
+
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 16px;
+  background-color: rgba(0, 169, 123, 0.92);
+  color: #ffffff;
+
+  font-size: 29px;
+  line-height: 1;
+
+  box-shadow: 0 10px 18px rgba(0, 169, 123, 0.24);
 `;
 
 const CardTitle = styled.h3`
   margin: 0;
+
   color: var(--color-white);
-  font-size: 27px;
-  line-height: 1.2;
-  font-weight: 900;
+  font-size: 24px;
+  line-height: 1.18;
+  font-weight: 700;
   letter-spacing: -1px;
+
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
 `;
 
 const CardDesc = styled.p`
-  margin: 7px 0 0;
-  color: var(--color-white);
-  font-size: 11px;
-  font-weight: 700;
+  margin: 0px 0 0 66px;
+
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 `;
 
 /* ================================
@@ -912,6 +987,7 @@ const FeatureTitle = styled.h2`
 const FeatureTabList = styled.div`
   width: 650px;
   margin: 42px auto 54px;
+
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -926,6 +1002,15 @@ const FeatureTabButton = styled.button`
   color: ${({ $active }) =>
     $active ? "var(--color-main)" : "var(--text-sub)"};
   cursor: pointer;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+
+  &:hover {
+    color: var(--color-main);
+    transform: translateY(-3px);
+  }
 
   &::after {
     content: "";
@@ -959,87 +1044,97 @@ const MonitorArea = styled.div`
   width: 720px;
   height: 600px;
   margin: 0 auto;
-`;
 
-const MonitorFrameBox = styled.div`
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-`;
-
-const MonitorFallback = styled.div`
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  border-radius: 28px;
-  background:
-    linear-gradient(#202020 0 0) center top 36px / 650px 390px no-repeat,
-    linear-gradient(#d8d8d8 0 0) center bottom 85px / 350px 35px no-repeat,
-    linear-gradient(#cfcfcf 0 0) center bottom 0 / 520px 95px no-repeat;
-`;
-
-const MonitorFallbackScreen = styled.div`
-  width: 650px;
-  height: 390px;
-  margin-top: 36px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  color: rgba(255, 255, 255, 0.35);
-  font-size: 42px;
-  font-weight: 900;
-  text-align: center;
-
-  strong {
-    display: block;
-    font-size: 48px;
-    line-height: 1;
-  }
 `;
 
-const MonitorScreenBox = styled.div`
-  position: absolute;
-  left: 51px;
-  top: 43px;
-  width: 618px;
-  height: 348px;
+const MonitorFrame = styled.div`
+  position: relative;
+  width: 720px;
+  height: 455px;
+  margin: 0 auto;
+
+  border-radius: 16px 16px 12px 12px;
+  background-color: #1f1f1f;
+  box-shadow:
+    0 28px 50px rgba(18, 45, 46, 0.18),
+    0 8px 18px rgba(18, 45, 46, 0.12);
   overflow: hidden;
-  border-radius: 4px;
-  z-index: 2;
-  background-color: var(--color-white);
 `;
 
-const MonitorScreenFallback = styled.div`
-  position: absolute;
-  inset: 0;
-  z-index: 1;
+const MonitorTopBar = styled.div`
+  height: 18px;
+  background: linear-gradient(180deg, #252525 0%, #151515 100%);
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  background:
-    linear-gradient(90deg, rgba(0, 174, 132, 0.08), rgba(0, 174, 132, 0.18)),
-    var(--color-white);
-  color: var(--color-main);
-  text-align: center;
+`;
 
-  strong {
-    font-size: 30px;
-    line-height: 1.4;
-    font-weight: 900;
-  }
+const MonitorCamera = styled.span`
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #545454;
+`;
 
-  span {
-    margin-top: 4px;
-    font-size: 16px;
-    font-weight: 700;
-  }
+const MonitorScreen = styled.div`
+  position: relative;
+  width: 672px;
+  height: 382px;
+  margin: 0 auto;
+
+  overflow: hidden;
+  background-color: #ffffff;
+`;
+const MonitorScreenImage = styled.img`
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+  display: block;
+
+  object-fit: cover;
+  object-position: top center;
+
+  opacity: ${({ $active }) => ($active ? 1 : 0)};
+  z-index: ${({ $active }) => ($active ? 2 : 1)};
+  pointer-events: none;
+
+  transform: ${({ $active }) =>
+    $active ? "translateX(0) scale(1.12)" : "translateX(72px) scale(1.12)"};
+
+  transition: opacity 0.22s ease;
+  will-change: opacity, transform;
+
+  ${({ $active }) =>
+    $active &&
+    css`
+      animation: ${screenSlide} 0.54s cubic-bezier(0.18, 0.89, 0.32, 1.04) both;
+    `}
+`;
+
+const MonitorBottomBar = styled.div`
+  height: 55px;
+  background: linear-gradient(180deg, #222222 0%, #111111 100%);
+`;
+
+const MonitorNeck = styled.div`
+  width: 190px;
+  height: 44px;
+  margin: 0 auto;
+  background: linear-gradient(180deg, #d7d7d7 0%, #bfbfbf 100%);
+`;
+
+const MonitorStand = styled.div`
+  width: 360px;
+  height: 54px;
+  margin: 0 auto;
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(180deg, #d8d8d8 0%, #c7c7c7 100%);
+  box-shadow: 0 18px 24px rgba(18, 45, 46, 0.12);
 `;
 
 const FeatureDesc = styled.p`
@@ -1051,104 +1146,72 @@ const FeatureDesc = styled.p`
   font-weight: 800;
   letter-spacing: -0.5px;
 `;
-
 /* ================================
    Review
 ================================ */
 
 const ReviewSection = styled.section`
   width: 100%;
-  padding: 68px 0 60px;
+  padding: 10px 0 20px;
   background-color: var(--color-bg-light);
 `;
 
 const ReviewInner = styled.div`
-  width: 1080px;
+  width: 1220px;
   margin: 0 auto;
-  display: flex;
+
+  display: grid;
+  grid-template-columns: 560px 1fr;
   align-items: center;
-  gap: 82px;
+  column-gap: 88px;
 `;
 
-const ReviewList = styled.div`
-  width: 445px;
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
+const ReviewMediaArea = styled.div`
+  width: 560px;
+
+  /*
+    영상 자체 배경을 피그마 배경색과 맞춰 만들었다고 했으니
+    여기서는 박스, 테두리, 그림자, 둥근모서리 전부 제거합니다.
+    그래야 '영역 안에 갇힌 영상'이 아니라
+    섹션에 자연스럽게 붙은 것처럼 보입니다.
+  */
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
 `;
 
-const ReviewCard = styled.article`
-  width: 445px;
-  min-height: 130px;
-  padding: 18px 22px;
-  display: flex;
-  gap: 17px;
-  align-items: flex-start;
-  border-radius: 14px;
-  background-color: var(--color-white);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.04);
-`;
+const ReviewVideo = styled.video`
+  width: 100%;
+  height: auto;
 
-const ReviewProfileBox = styled.div`
-  position: relative;
-  width: 75px;
-  height: 75px;
-  flex: 0 0 75px;
-  border-radius: 50%;
-  overflow: hidden;
-`;
+  display: block;
 
-const ProfileFallback = styled.div`
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background:
-    radial-gradient(circle at 50% 34%, #9be6d0 0 20%, transparent 21%),
-    radial-gradient(
-      circle at 50% 80%,
-      var(--color-main) 0 34%,
-      transparent 35%
-    ),
-    #e5fff7;
-`;
+  /*
+    cover 금지.
+    cover를 쓰면 영상이 박스에 맞춰 확대되면서 위아래가 잘립니다.
+    contain/auto 느낌으로 원본 비율 그대로 보여줘야 합니다.
+  */
+  object-fit: contain;
+  object-position: center;
 
-const ReviewContent = styled.div`
-  flex: 1;
-  min-width: 0;
-`;
-
-const StarText = styled.div`
-  color: var(--color-main);
-  font-size: 24px;
-  line-height: 1;
-  font-weight: 900;
-  letter-spacing: 1px;
-`;
-
-const ReviewName = styled.div`
-  margin-top: 3px;
-  color: var(--text-desc);
-  font-size: 12px;
-  font-weight: 600;
-`;
-
-const ReviewText = styled.p`
-  margin: 7px 0 0;
-  color: var(--text-sub);
-  font-size: 12px;
-  line-height: 1.45;
-  font-weight: 500;
+  background: transparent;
+  border: 0;
+  outline: 0;
 `;
 
 const ReviewTextBox = styled.div`
-  flex: 1;
+  min-width: 0;
+  padding-top: 4px;
 `;
 
 const ReviewMainTitle = styled.h2`
   margin: 0;
+
   color: #000000;
   font-size: 42px;
-  line-height: 1.22;
+  line-height: 1.2;
   font-weight: 900;
   letter-spacing: -2px;
 `;
@@ -1159,13 +1222,13 @@ const PointText = styled.span`
 
 const ReviewSubText = styled.p`
   margin: 34px 0 0;
-  color: #6b6b6b;
+
+  color: #666666;
   font-size: 24px;
   line-height: 1.55;
   font-weight: 500;
   letter-spacing: -1px;
 `;
-
 /* ================================
    CTA
 ================================ */
@@ -1182,8 +1245,10 @@ const CtaInner = styled.div`
   height: 142px;
   margin: 0 auto;
   padding: 0 36px;
+
   display: flex;
   align-items: center;
+
   border-radius: 18px;
   background-color: #d7f1e5;
   overflow: hidden;
@@ -1193,12 +1258,15 @@ const CtaIcon = styled.div`
   width: 70px;
   height: 70px;
   margin-right: 22px;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   border-radius: 50%;
   color: var(--color-white);
   background-color: var(--color-main-dark);
+
   font-size: 34px;
 `;
 
@@ -1227,14 +1295,18 @@ const CtaButton = styled.button`
   right: 345px;
   top: 50%;
   z-index: 2;
+
   width: 165px;
   height: 42px;
+
   border: none;
   border-radius: 999px;
   background-color: var(--color-main);
   color: var(--color-white);
+
   font-size: 14px;
   font-weight: 800;
+
   transform: translateY(-50%);
   cursor: pointer;
 `;
@@ -1245,29 +1317,9 @@ const CtaPetsBox = styled.div`
   bottom: 0;
   width: 250px;
   height: 128px;
-`;
 
-const CtaImageFallback = styled.div`
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  background-color: rgba(255, 255, 255, 0.45);
-  color: var(--color-main-dark);
-  text-align: center;
-
-  strong {
-    font-size: 15px;
-    font-weight: 900;
-  }
-
-  span {
-    margin-top: 4px;
-    font-size: 12px;
-    font-weight: 700;
+  img {
+    object-fit: contain;
+    object-position: center bottom;
   }
 `;

@@ -24,6 +24,7 @@ export async function fetchBoardList(category, page = 0, searchCondition = {}) {
       content: searchCondition.content || null,
       writer: searchCondition.writer || null,
       boardSubCategory: searchCondition.boardSubCategory || null,
+      sort: searchCondition.sort || null,
     },
   });
 }
@@ -39,3 +40,24 @@ export const deleteBoardApi = async (boardId) => {
   });
   return resp.data;
 };
+
+export async function writeReplyApi(boardId, content, parentId = null) {
+  return await api.post(`/board/${boardId}/reply`, {
+    content,
+    parentId,
+  });
+}
+
+export async function deleteReplyApi(replyId) {
+  return await api.delete(`/board/reply/${replyId}`);
+}
+
+export async function toggleLikeApi(boardId) {
+  return await api.post(`/board/${boardId}/like`);
+}
+
+export async function fetchNaverNewsApi(page = 0, search = "반려동물") {
+  return await api.get("/board/news", {
+    params: { page, search },
+  });
+}

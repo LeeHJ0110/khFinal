@@ -32,26 +32,42 @@ function formatRelativeTime(dateString) {
 }
 
 // ==========================================
+// 태그 목록 및 헬퍼 함수
+// ==========================================
+const DEFAULT_NO_IMAGE = "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/%EC%82%AC%EC%A7%84%EC%97%86%EC%9D%84%EB%95%8C%EA%B8%B0%EB%B3%B8.png";
+
+const TAG_LIST = [
+  "성장", "체중관리", "피브", "소화", "치아",
+  "칼로리", "보상", "기호성", "관절", "면영",
+  "눈", "탈취", "흡수", "위생", "대용량"
+];
+
+function getMockTags(boardId) {
+  if (!boardId) return ["성장", "기호성"];
+  const idx1 = boardId % TAG_LIST.length;
+  const idx2 = (boardId * 3 + 2) % TAG_LIST.length;
+  return idx1 === idx2 ? [TAG_LIST[idx1]] : [TAG_LIST[idx1], TAG_LIST[idx2]];
+}
+
+// ==========================================
 // 1. 인기 게시글 TOP 5 위젯
 // ==========================================
-export function PopularPostsWidget({ list, onItemClick }) {
+export function PopularPostsWidget({ list, onItemClick, className }) {
   // 안전 장치: 리스트 가공 (최근 1주일 글 필터링은 백엔드에서 수행)
   // 인기 점수 공식: (조회수 * 1) + (좋아요 * 3) + (댓글 * 3)
   // 프론트엔드 연산 및 상위 5개 정렬 바인딩
   const computedList = [...list]
     .map((item) => {
-      const mockComments = item.hits
-        ? Math.max(1, Math.floor(item.hits / 12))
-        : 0;
-      const mockLikes = item.hits ? Math.max(0, Math.floor(item.hits / 18)) : 0;
-      const score = (item.hits || 0) * 1 + mockLikes * 3 + mockComments * 3;
+      const replyCount = item.replyCount || 0;
+      const likeCount = item.likeCount || 0;
+      const score = (item.hits || 0) * 1 + likeCount * 3 + replyCount * 3;
       return { ...item, score };
     })
     .sort((a, b) => b.score - a.score)
     .slice(0, 5);
 
   return (
-    <WidgetContainer>
+    <WidgetContainer className={className}>
       <WidgetHeader>
         <WidgetTitle>
           <SvgCrown /> 인기 게시글 TOP 5
@@ -76,10 +92,20 @@ export function PopularPostsWidget({ list, onItemClick }) {
                 <CategoryBadge $type={item.category}>
                   {categoryLabel}
                 </CategoryBadge>
-                <ViewsStat>
-                  <SvgEye />
-                  {item.hits ? item.hits.toLocaleString() : 0}
-                </ViewsStat>
+                <WidgetStats>
+                  <StatText title="조회수">
+                    <SvgEye />
+                    <span>{item.hits ? item.hits.toLocaleString() : 0}</span>
+                  </StatText>
+                  <StatText title="댓글수">
+                    <SvgComment />
+                    <span>{item.replyCount || 0}</span>
+                  </StatText>
+                  <StatText title="좋아요수">
+                    <SvgHeartSmall />
+                    <span>{item.likeCount || 0}</span>
+                  </StatText>
+                </WidgetStats>
               </PopularItem>
             );
           })
@@ -92,11 +118,11 @@ export function PopularPostsWidget({ list, onItemClick }) {
 // ==========================================
 // 2. 자유게시판 최신글 위젯
 // ==========================================
-export function LatestFreePostsWidget({ list, onItemClick, onMoreClick }) {
+export function LatestFreePostsWidget({ list, onItemClick, onMoreClick, className }) {
   const latestList = [...list].slice(0, 4);
 
   return (
-    <WidgetContainer>
+    <WidgetContainer className={className}>
       <WidgetHeader>
         <WidgetTitle>자유게시판 최신글</WidgetTitle>
         <MoreLink onClick={onMoreClick}>더보기 &gt;</MoreLink>
@@ -107,11 +133,7 @@ export function LatestFreePostsWidget({ list, onItemClick, onMoreClick }) {
         ) : (
           latestList.map((item) => {
             const firstImg =
-              extractFirstImg(item.content) ||
-              "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150&q=80";
-            const mockComments = item.hits
-              ? Math.max(1, Math.floor(item.hits / 12))
-              : 0;
+              extractFirstImg(item.content) || DEFAULT_NO_IMAGE;
 
             return (
               <LatestItem
@@ -129,10 +151,20 @@ export function LatestFreePostsWidget({ list, onItemClick, onMoreClick }) {
                     <span>{formatRelativeTime(item.createdAt)}</span>
                   </LatestMeta>
                 </LatestInfo>
-                <CommentsStat>
-                  <SvgComment />
-                  <span>{mockComments}</span>
-                </CommentsStat>
+                <WidgetStats>
+                  <StatText title="조회수">
+                    <SvgEye />
+                    <span>{item.hits ? item.hits.toLocaleString() : 0}</span>
+                  </StatText>
+                  <StatText title="댓글수">
+                    <SvgComment />
+                    <span>{item.replyCount || 0}</span>
+                  </StatText>
+                  <StatText title="좋아요수">
+                    <SvgHeartSmall />
+                    <span>{item.likeCount || 0}</span>
+                  </StatText>
+                </WidgetStats>
               </LatestItem>
             );
           })
@@ -151,14 +183,6 @@ export function BestFacilityReviewsWidget({ list, onItemClick, onMoreClick }) {
     .sort((a, b) => (b.stars || 5) - (a.stars || 5))
     .slice(0, 4);
 
-  // 시안의 4개 카드 플레이스홀더 매칭 데이터
-  const mockIcons = [
-    "https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=300&q=80", // 동물병원
-    "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=300&q=80", // 애견카페
-    "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=300&q=80", // 호텔
-    "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=300&q=80", // 펜션
-  ];
-
   return (
     <WidgetContainer>
       <WidgetHeader>
@@ -173,7 +197,7 @@ export function BestFacilityReviewsWidget({ list, onItemClick, onMoreClick }) {
         ) : (
           facilityReviews.map((item, idx) => {
             const firstImg =
-              extractFirstImg(item.content) || mockIcons[idx % 4];
+              extractFirstImg(item.content) || DEFAULT_NO_IMAGE;
             return (
               <ReviewCard
                 key={item.boardId}
@@ -186,8 +210,11 @@ export function BestFacilityReviewsWidget({ list, onItemClick, onMoreClick }) {
                 <CardBody>
                   <CardTitle>{item.title}</CardTitle>
                   <CardTagGroup>
-                    <CardTag $type="facility">#반려견동반</CardTag>
-                    <CardTag $type="location">#추천시설</CardTag>
+                    {getMockTags(item.boardId).map((tag, tIdx) => (
+                      <CardTag key={tIdx} $type="facility">
+                        #{tag}
+                      </CardTag>
+                    ))}
                   </CardTagGroup>
                 </CardBody>
               </ReviewCard>
@@ -208,14 +235,6 @@ export function BestProductReviewsWidget({ list, onItemClick, onMoreClick }) {
     .sort((a, b) => (b.stars || 5) - (a.stars || 5))
     .slice(0, 4);
 
-  // 시안 상품 이미지 플레이스홀더
-  const mockProducts = [
-    "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=300&q=80", // 사료 1
-    "https://images.unsplash.com/photo-1608454509000-19cfe9766647?w=300&q=80", // 영양제 2
-    "https://images.unsplash.com/photo-1583511655826-05700d52f4d9?w=300&q=80", // 간식 3
-    "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=300&q=80", // 샴푸 4
-  ];
-
   return (
     <WidgetContainer>
       <WidgetHeader>
@@ -230,7 +249,7 @@ export function BestProductReviewsWidget({ list, onItemClick, onMoreClick }) {
         ) : (
           productReviews.map((item, idx) => {
             const firstImg =
-              extractFirstImg(item.content) || mockProducts[idx % 4];
+              extractFirstImg(item.content) || DEFAULT_NO_IMAGE;
             return (
               <ReviewCard
                 key={item.boardId}
@@ -243,8 +262,11 @@ export function BestProductReviewsWidget({ list, onItemClick, onMoreClick }) {
                 <CardBody>
                   <CardTitle>{item.title}</CardTitle>
                   <CardTagGroup>
-                    <CardTag $type="product">#유기농간식</CardTag>
-                    <CardTag $type="satisfaction">#강력추천</CardTag>
+                    {getMockTags(item.boardId).map((tag, tIdx) => (
+                      <CardTag key={tIdx} $type="product">
+                        #{tag}
+                      </CardTag>
+                    ))}
                   </CardTagGroup>
                 </CardBody>
               </ReviewCard>
@@ -256,31 +278,31 @@ export function BestProductReviewsWidget({ list, onItemClick, onMoreClick }) {
   );
 }
 
+// RFC 822 날짜 포맷팅 함수 (예: "Sun, 07 Jun 2026 16:00:00 +0900" -> "2026.06.07")
+function formatDate(dateStr) {
+  if (!dateStr) return "";
+  try {
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, "0");
+    const dd = String(date.getDate()).padStart(2, "0");
+    return `${yyyy}.${mm}.${dd}`;
+  } catch (e) {
+    return dateStr;
+  }
+}
+
 // ==========================================
-// 5. 반려 뉴스 Mock 위젯 (틀만 구성)
+// 5. 반려 뉴스 실시간 위젯 (최신 3개 글, 썸네일 생략)
 // ==========================================
-export function LatestNewsWidget({ onMoreClick }) {
-  // 시안 기반 뉴스 Mock 데이터 3선
-  const mockNewsData = [
-    {
-      id: "news-1",
-      title: "봄철 반려동물 알레르기, 이렇게 관리하세요!",
-      date: "2026.05.10",
-      img: "https://images.unsplash.com/photo-1592194996308-7b43878e84a6?w=150&q=80",
-    },
-    {
-      id: "news-2",
-      title: "강아지가 5성급 호텔 가고 저속노화 즐기는 시대",
-      date: "2026.05.09",
-      img: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=150&q=80",
-    },
-    {
-      id: "news-3",
-      title: "우리 고양이가 좋아하는 '이것' 알고 먹여야 더 건강합니다",
-      date: "2026.05.08",
-      img: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=150&q=80",
-    },
-  ];
+export function LatestNewsWidget({ list = [], onMoreClick }) {
+  const latestNews = [...list].slice(0, 3);
+
+  const stripHtml = (html) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>/g, "").replaceAll("&quot;", "\"");
+  };
 
   return (
     <WidgetContainer>
@@ -289,20 +311,30 @@ export function LatestNewsWidget({ onMoreClick }) {
         <MoreLink onClick={onMoreClick}>더보기 &gt;</MoreLink>
       </WidgetHeader>
       <NewsList>
-        {mockNewsData.map((news) => (
-          <NewsItem
-            key={news.id}
-            onClick={() => alert("뉴스 기사는 현재 점검 준비 중입니다.")}
-          >
-            <NewsThumbnail>
-              <img src={news.img} alt={news.title} />
-            </NewsThumbnail>
-            <NewsInfo>
-              <NewsItemTitle>{news.title}</NewsItemTitle>
-              <NewsDate>{news.date}</NewsDate>
-            </NewsInfo>
-          </NewsItem>
-        ))}
+        {latestNews.length === 0 ? (
+          <EmptyText>최신 뉴스가 없습니다.</EmptyText>
+        ) : (
+          latestNews.map((news, idx) => {
+            const cleanTitle = stripHtml(news.title);
+            return (
+              <NewsItem
+                key={idx}
+                onClick={() => {
+                  if (news.link) {
+                    window.open(news.link, "_blank", "noopener,noreferrer");
+                  }
+                }}
+              >
+                <NewsInfo style={{ padding: "4px 0" }}>
+                  <NewsItemTitle style={{ fontSize: "13px", fontWeight: "700", color: "#343a40", lineHeight: "1.5" }}>
+                    {cleanTitle}
+                  </NewsItemTitle>
+                  <NewsDate style={{ marginTop: "4px" }}>{formatDate(news.pubDate)}</NewsDate>
+                </NewsInfo>
+              </NewsItem>
+            );
+          })
+        )}
       </NewsList>
     </WidgetContainer>
   );
@@ -346,6 +378,37 @@ const SvgComment = () => (
     <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
   </svg>
 );
+
+const SvgHeartSmall = () => (
+  <svg
+    viewBox="0 0 24 24"
+    width="12"
+    height="12"
+    fill="#adb5bd"
+  >
+    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+  </svg>
+);
+
+const WidgetStats = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+`;
+
+const StatText = styled.div`
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+  color: #adb5bd;
+  gap: 3px;
+
+  svg {
+    fill: #adb5bd;
+  }
+`;
 
 // ==========================================
 // Styled Components
@@ -620,8 +683,9 @@ const CardTitle = styled.h4`
 `;
 
 const CardTagGroup = styled.div`
-  display: flex;
+  display: none; /* 일단 커뮤니티 홈에서는 안보이게 처리 */
   gap: 4px;
+  margin-top: 4px;
 `;
 
 const CardTag = styled.span`

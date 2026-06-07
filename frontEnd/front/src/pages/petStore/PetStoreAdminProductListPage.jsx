@@ -6,6 +6,8 @@ import usePetStoreProductModal from "../../features/petStore/hooks/usePetStorePr
 import PetStoreProductModal from "../../features/petStore/components/PetStoreProductModal";
 import PetStoreAdminNav from "./PetStoreAdminNav";
 
+const PAGE_GROUP_SIZE = 10;
+
 export default function PetStoreAdminProductListPage() {
   const navigate = useNavigate();
 
@@ -44,24 +46,58 @@ export default function PetStoreAdminProductListPage() {
     await loadStatusCounts();
   }, currentPage);
 
+  const pageNumbers = getPageNumbers({
+    currentPage,
+    totalPages,
+    pageGroupSize: PAGE_GROUP_SIZE,
+  });
+
+  const currentPageGroup = Math.floor(currentPage / PAGE_GROUP_SIZE);
+  const lastPageGroup = Math.floor(
+    (Math.max(totalPages, 1) - 1) / PAGE_GROUP_SIZE,
+  );
+
+  const hasPrevPageGroup = currentPageGroup > 0;
+  const hasNextPageGroup = currentPageGroup < lastPageGroup;
+
   function handleMoveDetail(productId) {
     navigate(`/store/product/${productId}`);
   }
 
-  function handleMovePrevPage() {
-    if (currentPage <= 0) {
+  function handleMovePrevPageGroup() {
+    const currentGroup = Math.floor(currentPage / PAGE_GROUP_SIZE);
+
+    if (currentGroup <= 0) {
       return;
     }
 
-    loadProductList(currentPage - 1, searchCondition);
+    const prevGroupFirstPage = (currentGroup - 1) * PAGE_GROUP_SIZE;
+
+    loadProductList(prevGroupFirstPage, searchCondition);
   }
 
-  function handleMoveNextPage() {
-    if (currentPage >= totalPages - 1) {
+  function handleMoveNextPageGroup() {
+    const currentGroup = Math.floor(currentPage / PAGE_GROUP_SIZE);
+    const nextGroupFirstPage = (currentGroup + 1) * PAGE_GROUP_SIZE;
+
+    if (nextGroupFirstPage >= totalPages) {
       return;
     }
 
-    loadProductList(currentPage + 1, searchCondition);
+    loadProductList(nextGroupFirstPage, searchCondition);
+  }
+
+  function handleSearchKeyDown(evt) {
+    if (evt.key !== "Enter") {
+      return;
+    }
+
+    if (evt.nativeEvent?.isComposing) {
+      return;
+    }
+
+    evt.preventDefault();
+    handleSearch();
   }
 
   return (
@@ -72,9 +108,7 @@ export default function PetStoreAdminProductListPage() {
         <HeaderArea>
           <TitleRow>
             <PageTitle>상품관리</PageTitle>
-            <PageDesc>
-              상품 등록, 조회, 수정, 판매중지를 할 수 있는 관리자 페이지
-            </PageDesc>
+            <PageDesc>스토어 관리자의 작고 소중한 업무 페이지</PageDesc>
           </TitleRow>
         </HeaderArea>
 
@@ -123,11 +157,7 @@ export default function PetStoreAdminProductListPage() {
                 placeholder="제품명을 입력하세요."
                 value={searchCondition.keyword}
                 onChange={handleChangeSearchCondition}
-                onKeyDown={(evt) => {
-                  if (evt.key === "Enter") {
-                    handleSearch();
-                  }
-                }}
+                onKeyDown={handleSearchKeyDown}
               />
 
               <SearchButton
@@ -200,8 +230,8 @@ export default function PetStoreAdminProductListPage() {
                 <col style={{ width: "120px" }} />
                 <col style={{ width: "120px" }} />
                 <col style={{ width: "130px" }} />
-                <col style={{ width: "115px" }} />
                 <col style={{ width: "125px" }} />
+                <col style={{ width: "115px" }} />
                 <col style={{ width: "150px" }} />
               </colgroup>
 
@@ -213,8 +243,8 @@ export default function PetStoreAdminProductListPage() {
                   <th>대상동물</th>
                   <th>카테고리</th>
                   <th>판매가</th>
-                  <th>상태</th>
                   <th>등록일</th>
+                  <th>상태</th>
                   <th>관리</th>
                 </tr>
               </thead>
@@ -253,6 +283,8 @@ export default function PetStoreAdminProductListPage() {
                       <td>{getCategoryLabel(product.productCategory)}</td>
                       <td>{product.productPrice?.toLocaleString()}원</td>
 
+                      <DateCell>{formatDate(product.createdAt)}</DateCell>
+
                       <td>
                         <SaleBadge $saleYn={product.productSaleYn}>
                           {product.productSaleYn === "Y"
@@ -260,8 +292,6 @@ export default function PetStoreAdminProductListPage() {
                             : "판매중지"}
                         </SaleBadge>
                       </td>
-
-                      <DateCell>{formatDate(product.createdAt)}</DateCell>
 
                       <td>
                         <ActionBox>
@@ -300,28 +330,28 @@ export default function PetStoreAdminProductListPage() {
         <Pagination>
           <PageArrowButton
             type="button"
-            disabled={currentPage === 0}
-            onClick={handleMovePrevPage}
+            disabled={!hasPrevPageGroup}
+            onClick={handleMovePrevPageGroup}
           >
             ‹
           </PageArrowButton>
 
-          {Array.from({ length: totalPages }).map((_, index) => (
+          {pageNumbers.map((pageIndex) => (
             <PageNumberButton
-              key={index}
+              key={pageIndex}
               type="button"
-              $active={currentPage === index}
-              disabled={currentPage === index}
-              onClick={() => loadProductList(index, searchCondition)}
+              $active={currentPage === pageIndex}
+              disabled={currentPage === pageIndex}
+              onClick={() => loadProductList(pageIndex, searchCondition)}
             >
-              {index + 1}
+              {pageIndex + 1}
             </PageNumberButton>
           ))}
 
           <PageArrowButton
             type="button"
-            disabled={currentPage >= totalPages - 1}
-            onClick={handleMoveNextPage}
+            disabled={!hasNextPageGroup}
+            onClick={handleMoveNextPageGroup}
           >
             ›
           </PageArrowButton>
@@ -339,6 +369,20 @@ export default function PetStoreAdminProductListPage() {
       </Wrapper>
     </>
   );
+}
+
+function getPageNumbers({ currentPage, totalPages, pageGroupSize }) {
+  if (!totalPages || totalPages <= 0) {
+    return [];
+  }
+
+  const currentGroup = Math.floor(currentPage / pageGroupSize);
+  const startPage = currentGroup * pageGroupSize;
+  const endPage = Math.min(startPage + pageGroupSize, totalPages);
+
+  return Array.from({ length: endPage - startPage }, (_, index) => {
+    return startPage + index;
+  });
 }
 
 function getPetTypeLabel(targetPetType) {
@@ -372,12 +416,12 @@ function formatDate(value) {
 const Wrapper = styled.main`
   width: 1300px;
   margin: 0 auto;
-  padding: 34px 0 58px;
+  padding: 22px 0 52px;
   background-color: #ffffff;
 `;
 
 const HeaderArea = styled.section`
-  margin-bottom: 26px;
+  margin-bottom: 18px;
 `;
 
 const TitleRow = styled.div`
@@ -389,8 +433,8 @@ const TitleRow = styled.div`
 const PageTitle = styled.h2`
   margin: 0;
   color: #222222;
-  font-size: 28px;
-  font-weight: 900;
+  font-size: 27px;
+  font-weight: 800;
   line-height: 1;
   letter-spacing: -0.8px;
 `;
@@ -399,7 +443,7 @@ const PageDesc = styled.p`
   margin: 0 0 3px;
   color: #777777;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1;
 `;
 
@@ -407,7 +451,7 @@ const StatusAndActionRow = styled.section`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 `;
 
 const StatusTabs = styled.div`
@@ -418,36 +462,36 @@ const StatusTabs = styled.div`
 
 const StatusTabButton = styled.button`
   min-width: 74px;
-  height: 36px;
-  padding: 0 16px;
+  height: 34px;
+  padding: 0 15px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 11px;
 
   border: 0;
   border-radius: 5px;
   background-color: ${(props) => (props.$active ? "#d9f3e9" : "#eeeeee")};
   color: ${(props) => (props.$active ? "#00a87e" : "#777777")};
 
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
 
   span {
-    font-weight: 900;
+    font-weight: 700;
   }
 
   strong {
-    font-size: 15px;
-    font-weight: 900;
+    font-size: 14px;
+    font-weight: 800;
   }
 `;
 
 const InsertButton = styled.button`
   width: 88px;
-  height: 38px;
+  height: 36px;
 
   display: inline-flex;
   align-items: center;
@@ -460,16 +504,16 @@ const InsertButton = styled.button`
   color: #ffffff;
 
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 700;
   cursor: pointer;
 
   span {
-    font-weight: 900;
+    font-weight: 700;
   }
 
   strong {
     font-size: 15px;
-    font-weight: 900;
+    font-weight: 800;
   }
 `;
 
@@ -482,7 +526,7 @@ const ListCard = styled.section`
 `;
 
 const FilterRow = styled.div`
-  height: 58px;
+  height: 54px;
   padding: 0 28px;
 
   display: flex;
@@ -495,7 +539,7 @@ const FilterRow = styled.div`
 
 const SearchBox = styled.div`
   width: 230px;
-  height: 34px;
+  height: 32px;
 
   display: grid;
   grid-template-columns: 1fr 36px;
@@ -516,7 +560,7 @@ const SearchInput = styled.input`
 
   color: #222222;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
 
   &::placeholder {
     color: #aaaaaa;
@@ -529,13 +573,13 @@ const SearchButton = styled.button`
   color: #00a87e;
 
   font-size: 17px;
-  font-weight: 900;
+  font-weight: 700;
   cursor: pointer;
 `;
 
 const FilterSelectBox = styled.div`
   width: ${(props) => (props.$wide ? "146px" : "132px")};
-  height: 34px;
+  height: 32px;
   padding: 0 10px;
 
   display: grid;
@@ -551,7 +595,7 @@ const FilterSelectBox = styled.div`
 const FilterLabel = styled.span`
   color: #999999;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
 `;
 
@@ -565,7 +609,7 @@ const FilterSelect = styled.select`
 
   color: #222222;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 600;
   cursor: pointer;
 `;
 
@@ -575,7 +619,7 @@ const FilterSpacer = styled.div`
 
 const ResetButton = styled.button`
   width: 86px;
-  height: 34px;
+  height: 32px;
 
   border: 1px solid #d7dedb;
   border-radius: 4px;
@@ -583,7 +627,7 @@ const ResetButton = styled.button`
   color: #999999;
 
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 `;
 
@@ -596,7 +640,7 @@ const LoadingBox = styled.div`
 
   color: #777777;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
 `;
 
 const Table = styled.table`
@@ -605,19 +649,19 @@ const Table = styled.table`
   table-layout: fixed;
 
   thead tr {
-    height: 42px;
+    height: 40px;
     background-color: #dff6ee;
   }
 
   th {
     color: #222222;
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 700;
     text-align: center;
   }
 
   tbody tr {
-    height: 68px;
+    height: 66px;
     border-bottom: 1px solid #edf2f0;
   }
 
@@ -628,7 +672,7 @@ const Table = styled.table`
   td {
     color: #222222;
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 500;
     text-align: center;
     vertical-align: middle;
   }
@@ -652,7 +696,7 @@ const EmptyCell = styled.td`
   height: 180px;
   color: #777777 !important;
   font-size: 14px !important;
-  font-weight: 800 !important;
+  font-weight: 600 !important;
   text-align: center !important;
 `;
 
@@ -677,7 +721,7 @@ const NoImageBox = styled.div`
   color: #999999;
 
   font-size: 10px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const ProductLinkButton = styled.button`
@@ -690,7 +734,7 @@ const ProductLinkButton = styled.button`
   color: #222222;
 
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 2px;
 
@@ -721,7 +765,7 @@ const SaleBadge = styled.span`
   color: ${(props) => (props.$saleYn === "Y" ? "#00a87e" : "#888888")};
 
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const ActionBox = styled.div`
@@ -739,7 +783,7 @@ const ActionButtonBase = styled.button`
   background-color: #ffffff;
 
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
 `;
 
@@ -759,12 +803,12 @@ const ResumeButton = styled(ActionButtonBase)`
 `;
 
 const Pagination = styled.div`
-  margin-top: 18px;
+  margin-top: 16px;
 
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 12px;
 `;
 
 const PageNumberButton = styled.button`
@@ -779,7 +823,7 @@ const PageNumberButton = styled.button`
     props.$active ? "0 2px 8px rgba(0, 168, 126, 0.18)" : "none"};
 
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: ${(props) => (props.$active ? "default" : "pointer")};
 `;
 

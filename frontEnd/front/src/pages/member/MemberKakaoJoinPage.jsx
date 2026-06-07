@@ -25,6 +25,7 @@ export default function MemberKakaoJoinPage() {
     nicknameMessage,
     phoneMessage,
     isSuccess,
+    emailMessage,
   } = useMemberKakaoJoinForm(socialId, marketingAgreeYn);
 
   useEffect(() => {
@@ -121,6 +122,7 @@ export default function MemberKakaoJoinPage() {
               onChange={handleChange}
               value={formData.email}
             />
+            <p className="form-message">{emailMessage}</p>
           </div>
 
           {/* 주소 */}

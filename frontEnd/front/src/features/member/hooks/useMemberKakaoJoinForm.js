@@ -17,6 +17,7 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
   const [phoneMessage, setPhoneMessage] = useState("");
 
   const [isNicknameChecked, setNicknameChecked] = useState(false);
+  const [emailMessage, setEmailMessage] = useState("");
 
   function formatPhoneNumber(value) {
     const numbers = value.replace(/[^0-9]/g, "");
@@ -38,7 +39,19 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
   function getOnlyPhoneNumber(value) {
     return value.replace(/[^0-9]/g, "");
   }
+  function validateEmail(email) {
+    const regex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
+    if (!email) {
+      return "";
+    }
+
+    if (!regex.test(email)) {
+      return "이메일 형식이 올바르지 않습니다.";
+    }
+
+    return "올바른 이메일 형식입니다.";
+  }
   function validatePhone(phone) {
     const numbers = getOnlyPhoneNumber(phone);
 
@@ -67,6 +80,10 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
 
       nextValue = formatPhoneNumber(numbers);
       setPhoneMessage(validatePhone(nextValue));
+    }
+
+    if (name === "email") {
+      setEmailMessage(validateEmail(nextValue));
     }
 
     setFormData((prev) => ({
@@ -126,7 +143,12 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
       alert("이메일을 입력해주세요.");
       return;
     }
-
+    if (
+      !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(formData.email)
+    ) {
+      alert("이메일 형식이 올바르지 않습니다.");
+      return;
+    }
     if (!formData.address) {
       alert("주소를 입력해주세요.");
       return;
@@ -154,5 +176,6 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
     nicknameMessage,
     phoneMessage,
     isSuccess,
+    emailMessage,
   };
 }
