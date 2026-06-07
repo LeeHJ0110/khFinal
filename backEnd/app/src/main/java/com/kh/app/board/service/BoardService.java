@@ -55,7 +55,11 @@ public class BoardService {
         Pageable pageable = PageRequest.of(page, 10);
         System.out.println("BoardService.getList@@@@@servicedeee ");
         Page<BoardEntity> entityPage = boardRepository.getListByCategory(category, condition, pageable);
-        return entityPage.map(BoardResDto::from);
+        return entityPage.map(entity -> {
+            long replyCount = boardReplyRepository.countByBoardAndDelYn(entity, DelYn.N);
+            long likeCount = entity.getHits() != null ? Math.max(0, entity.getHits() / 18) : 0L;
+            return BoardResDto.from(entity, replyCount, likeCount);
+        });
     }
 
     @Transactional
@@ -95,7 +99,10 @@ public class BoardService {
                                 String childContent = child.getDelYn() == DelYn.Y ? "삭제된 댓글입니다." : child.getContent();
                                 String childNickname = child.getDelYn() == DelYn.Y ? "" : child.getMember().getNickname();
                                 Long childLevel = child.getDelYn() == DelYn.Y ? 0L : child.getMember().getLevelExp();
-                                String childProfileUrl = child.getDelYn() == DelYn.Y ? "" : s3Service.getFileUrl(child.getMember().getProfileImageUrl());
+                                String childProfileUrl = child.getDelYn() == DelYn.Y ? "/images/default-profile.png" : s3Service.getFileUrl(child.getMember().getProfileImageUrl());
+                                if (childProfileUrl == null || childProfileUrl.isBlank()) {
+                                    childProfileUrl = "/images/default-profile.png";
+                                }
                                 Boolean childIsAuthor = child.getDelYn() == DelYn.Y ? false : child.getMember().getId().equals(entity.getWriter().getId());
 
                                 return BoardReplyResDto.builder()
@@ -112,7 +119,10 @@ public class BoardService {
                     String parentContent = reply.getDelYn() == DelYn.Y ? "삭제된 댓글입니다." : reply.getContent();
                     String parentNickname = reply.getDelYn() == DelYn.Y ? "" : reply.getMember().getNickname();
                     Long parentLevel = reply.getDelYn() == DelYn.Y ? 0L : reply.getMember().getLevelExp();
-                    String parentProfileUrl = reply.getDelYn() == DelYn.Y ? "" : s3Service.getFileUrl(reply.getMember().getProfileImageUrl());
+                    String parentProfileUrl = reply.getDelYn() == DelYn.Y ? "/images/default-profile.png" : s3Service.getFileUrl(reply.getMember().getProfileImageUrl());
+                    if (parentProfileUrl == null || parentProfileUrl.isBlank()) {
+                        parentProfileUrl = "/images/default-profile.png";
+                    }
                     Boolean parentIsAuthor = reply.getDelYn() == DelYn.Y ? false : reply.getMember().getId().equals(entity.getWriter().getId());
 
                     return BoardReplyResDto.builder()
@@ -128,6 +138,9 @@ public class BoardService {
                 }).toList();
 
         String writerProfileUrl = s3Service.getFileUrl(entity.getWriter().getProfileImageUrl());
+        if (writerProfileUrl == null || writerProfileUrl.isBlank()) {
+            writerProfileUrl = "/images/default-profile.png";
+        }
 
         return BoardDetailResDto.from(entity, fileList, replyList, writerProfileUrl);
     }

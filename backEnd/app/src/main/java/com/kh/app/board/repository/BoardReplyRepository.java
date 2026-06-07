@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface BoardReplyRepository extends JpaRepository<BoardReplyEntity, Long> {
     List<BoardReplyEntity> findByBoardAndParentIsNullOrderByCreatedAtAsc(BoardEntity board);
+    long countByBoardAndDelYn(BoardEntity board, com.kh.app.common.entity.DelYn delYn);
 }

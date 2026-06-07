@@ -15,4 +15,5 @@ public class BoardSearchCondition {
     private String boardSubCategory;
     private Long boardStars;
     private Long boardHits;
+    private String sort;
 }

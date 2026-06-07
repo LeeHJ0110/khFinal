@@ -25,8 +25,14 @@ public class BoardResDto {
     private Long hits;
     private Long stars;
     private LocalDateTime createdAt;
+    private Long replyCount;
+    private Long likeCount;
 
     public static BoardResDto from(BoardEntity entity) {
+        return from(entity, 0L, 0L);
+    }
+
+    public static BoardResDto from(BoardEntity entity, long replyCount, long likeCount) {
         return BoardResDto.builder()
                 .boardId(entity.getId())
                 .boardCategory(entity.getCategory() != null ? entity.getCategory().toString() : null)
@@ -38,6 +44,8 @@ public class BoardResDto {
                 .hits(entity.getHits())
                 .stars(entity.getStars())
                 .createdAt(entity.getCreatedAt())
+                .replyCount(replyCount)
+                .likeCount(likeCount)
                 .build();
     }
 

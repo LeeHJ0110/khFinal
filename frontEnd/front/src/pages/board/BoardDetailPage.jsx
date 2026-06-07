@@ -6,7 +6,11 @@ import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.bubble.css";
 
 import { useBoardDetail } from "../../features/board/hooks/useBoardDetail";
-import { deleteBoardApi, writeReplyApi, deleteReplyApi } from "../../features/board/api/boardApi";
+import {
+  deleteBoardApi,
+  writeReplyApi,
+  deleteReplyApi,
+} from "../../features/board/api/boardApi";
 import BoardSubNavbar from "./components/BoardSubNavbar";
 
 export default function BoardDetailPage() {
@@ -217,13 +221,13 @@ export default function BoardDetailPage() {
           {/* 작성자 정보 및 메타데이터 행 */}
           <PostMetaRow>
             <MetaLeft>
-              <AuthorAvatar
-                src={
-                  detail.writerProfileImageUrl ||
-                  "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=120&q=80"
-                }
-                alt="작성자 프로필"
-              />
+              <AuthorAvatarWrapper>
+                {detail.writerProfileImageUrl && detail.writerProfileImageUrl !== "/images/default-profile.png" ? (
+                  <img src={detail.writerProfileImageUrl} alt="작성자 프로필" />
+                ) : (
+                  <DefaultAvatarChar>🐾</DefaultAvatarChar>
+                )}
+              </AuthorAvatarWrapper>
               <AuthorTextInfo>
                 <AuthorNameRow>
                   <LevelBadge>Lv.{detail.writerLevel || 1}</LevelBadge>
@@ -345,10 +349,13 @@ export default function BoardDetailPage() {
                 <Fragment key={comment.id}>
                   {/* 메인 댓글 */}
                   <CommentItem>
-                    <CommentAvatar
-                      src={comment.profileImageUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=120&q=80"}
-                      alt={comment.writerNickname}
-                    />
+                    <CommentAvatarWrapper>
+                      {comment.profileImageUrl && comment.profileImageUrl !== "/images/default-profile.png" ? (
+                        <img src={comment.profileImageUrl} alt={comment.writerNickname} />
+                      ) : (
+                        <DefaultCommentAvatarChar>🐾</DefaultCommentAvatarChar>
+                      )}
+                    </CommentAvatarWrapper>
 
                     <CommentContentBox>
                       <CommentMetaRow>
@@ -359,19 +366,28 @@ export default function BoardDetailPage() {
                       <CommentText>{comment.content}</CommentText>
                       <CommentFooterRow>
                         {loginMember && (
-                          <CommentActionLink onClick={() => {
-                            if (activeReplyParentId === comment.id) {
-                              setActiveReplyParentId(null);
-                            } else {
-                              setActiveReplyParentId(comment.id);
-                              setReplyContent("");
-                            }
-                          }}>
-                            {activeReplyParentId === comment.id ? "취소" : "답글달기"}
+                          <CommentActionLink
+                            onClick={() => {
+                              if (activeReplyParentId === comment.id) {
+                                setActiveReplyParentId(null);
+                              } else {
+                                setActiveReplyParentId(comment.id);
+                                setReplyContent("");
+                              }
+                            }}
+                          >
+                            {activeReplyParentId === comment.id
+                              ? "취소"
+                              : "답글달기"}
                           </CommentActionLink>
                         )}
-                        {(loginMember?.nickname === comment.writerNickname || JSON.parse(localStorage.getItem("loginMember"))?.role === "ADMIN") && (
-                          <CommentReportLink style={{ color: "#ff6b6b" }} onClick={() => handleCommentDelete(comment.id)}>
+                        {(loginMember?.nickname === comment.writerNickname ||
+                          JSON.parse(localStorage.getItem("loginMember"))
+                            ?.role === "ADMIN") && (
+                          <CommentReportLink
+                            style={{ color: "#ff6b6b" }}
+                            onClick={() => handleCommentDelete(comment.id)}
+                          >
                             삭제
                           </CommentReportLink>
                         )}
@@ -386,7 +402,9 @@ export default function BoardDetailPage() {
 
                   {/* 대댓글 작성 창 */}
                   {activeReplyParentId === comment.id && (
-                    <ReplyInputForm onSubmit={(e) => handleReplySubmit(e, comment.id)}>
+                    <ReplyInputForm
+                      onSubmit={(e) => handleReplySubmit(e, comment.id)}
+                    >
                       <ReplyTextarea
                         placeholder="답글을 남겨보세요"
                         value={replyContent}
@@ -402,10 +420,13 @@ export default function BoardDetailPage() {
                       <ReplyItem key={reply.id}>
                         <ReplyIndentArrow>↳</ReplyIndentArrow>
                         <ReplyContentCard>
-                          <CommentAvatar
-                            src={reply.profileImageUrl || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=120&q=80"}
-                            alt={reply.writerNickname}
-                          />
+                          <CommentAvatarWrapper>
+                            {reply.profileImageUrl && reply.profileImageUrl !== "/images/default-profile.png" ? (
+                              <img src={reply.profileImageUrl} alt={reply.writerNickname} />
+                            ) : (
+                              <DefaultCommentAvatarChar>🐾</DefaultCommentAvatarChar>
+                            )}
+                          </CommentAvatarWrapper>
                           <CommentContentBox>
                             <CommentMetaRow>
                               <LevelBadge>Lv.{reply.writerLevel}</LevelBadge>
@@ -418,8 +439,14 @@ export default function BoardDetailPage() {
                             </CommentMetaRow>
                             <CommentText>{reply.content}</CommentText>
                             <CommentFooterRow>
-                              {(loginMember?.nickname === reply.writerNickname || JSON.parse(localStorage.getItem("loginMember"))?.role === "ADMIN") && (
-                                <CommentReportLink style={{ color: "#ff6b6b" }} onClick={() => handleCommentDelete(reply.id)}>
+                              {(loginMember?.nickname ===
+                                reply.writerNickname ||
+                                JSON.parse(localStorage.getItem("loginMember"))
+                                  ?.role === "ADMIN") && (
+                                <CommentReportLink
+                                  style={{ color: "#ff6b6b" }}
+                                  onClick={() => handleCommentDelete(reply.id)}
+                                >
                                   삭제
                                 </CommentReportLink>
                               )}
@@ -438,14 +465,7 @@ export default function BoardDetailPage() {
             )}
           </CommentList>
 
-          {/* 댓글 페이지네이션 */}
-          <PaginationWrapper>
-            <PageArrow disabled>&lt;</PageArrow>
-            <PageNumber $active>1</PageNumber>
-            <PageNumber>2</PageNumber>
-            <PageNumber>3</PageNumber>
-            <PageArrow>&gt;</PageArrow>
-          </PaginationWrapper>
+
         </CommentsSection>
       </ContentWrapper>
     </Container>
@@ -596,12 +616,26 @@ const MetaLeft = styled.div`
   gap: 12px;
 `;
 
-const AuthorAvatar = styled.img`
+const AuthorAvatarWrapper = styled.div`
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  object-fit: cover;
+  overflow: hidden;
   background-color: #f1f3f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const DefaultAvatarChar = styled.span`
+  font-size: 20px;
 `;
 
 const AuthorTextInfo = styled.div`
@@ -883,13 +917,26 @@ const CommentItem = styled.div`
   border-bottom: 1px solid #f1f3f4;
 `;
 
-const CommentAvatar = styled.img`
+const CommentAvatarWrapper = styled.div`
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  object-fit: cover;
+  overflow: hidden;
   background-color: #f1f3f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const DefaultCommentAvatarChar = styled.span`
+  font-size: 18px;
 `;
 
 const CommentContentBox = styled.div`
@@ -987,51 +1034,7 @@ const ReplyContentCard = styled.div`
   margin: 10px 0;
 `;
 
-const PaginationWrapper = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  margin-top: 30px;
-`;
 
-const PageArrow = styled.button`
-  width: 28px;
-  height: 28px;
-  background-color: #ffffff;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  color: #888888;
-
-  &:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-`;
-
-const PageNumber = styled.button`
-  width: 28px;
-  height: 28px;
-  background-color: ${(props) =>
-    props.$active ? "var(--color-main)" : "#ffffff"};
-  color: ${(props) => (props.$active ? "#ffffff" : "#555555")};
-  border: 1px solid
-    ${(props) => (props.$active ? "var(--color-main)" : "#dee2e6")};
-  font-weight: ${(props) => (props.$active ? "700" : "500")};
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-
-  &:hover:not([disabled]) {
-    border-color: var(--color-main);
-    color: ${(props) => (props.$active ? "#ffffff" : "var(--color-main)")};
-  }
-`;
 
 const ReplyInputForm = styled.form`
   display: flex;

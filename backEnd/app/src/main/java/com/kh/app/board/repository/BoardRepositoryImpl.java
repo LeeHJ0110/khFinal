@@ -9,6 +9,11 @@ import com.kh.app.common.entity.DelYn;
 import com.kh.app.member.entity.QMemberEntity;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
+import com.querydsl.core.types.OrderSpecifier;
+import com.querydsl.core.types.Order;
+import com.kh.app.board.entity.QBoardReplyEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -36,6 +41,24 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
 
         QBoardEntity board = QBoardEntity.boardEntity;
         QMemberEntity member = QMemberEntity.memberEntity;
+        QBoardReplyEntity reply = QBoardReplyEntity.boardReplyEntity;
+
+        OrderSpecifier<?>[] orderSpecifiers;
+        if (StringUtils.hasText(condition.getSort())) {
+            if ("popular".equals(condition.getSort())) {
+                orderSpecifiers = new OrderSpecifier<?>[]{board.hits.desc(), board.id.desc()};
+            } else if ("comments".equals(condition.getSort())) {
+                JPQLQuery<Long> replyCount = JPAExpressions
+                        .select(reply.count())
+                        .from(reply)
+                        .where(reply.board.eq(board).and(reply.delYn.eq(DelYn.N)));
+                orderSpecifiers = new OrderSpecifier<?>[]{new OrderSpecifier<>(Order.DESC, replyCount), board.id.desc()};
+            } else {
+                orderSpecifiers = new OrderSpecifier<?>[]{board.id.desc()};
+            }
+        } else {
+            orderSpecifiers = new OrderSpecifier<?>[]{board.id.desc()};
+        }
 
         List<BoardEntity> content = queryFactory
                 .selectFrom(board)
@@ -49,7 +72,7 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
                         hitsGoe(condition.getBoardHits()),
                         board.delYn.eq(DelYn.N)
                 )
-                .orderBy(board.id.desc())
+                .orderBy(orderSpecifiers)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
