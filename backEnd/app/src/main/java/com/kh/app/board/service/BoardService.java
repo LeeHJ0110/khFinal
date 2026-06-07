@@ -19,6 +19,9 @@ import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.board.dto.response.BoardReplyResDto;
 import com.kh.app.board.entity.BoardReplyEntity;
 import com.kh.app.board.repository.BoardReplyRepository;
+import com.kh.app.board.entity.BoardLikeEntity;
+import com.kh.app.board.repository.BoardLikeRepository;
+import com.kh.app.board.dto.response.BoardLikeResDto;
 import java.time.format.DateTimeFormatter;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +49,7 @@ public class BoardService {
     private final MemberRepository memberRepository;
     private final BoardFileRepository boardFileRepository;
     private final BoardReplyRepository boardReplyRepository;
+    private final BoardLikeRepository boardLikeRepository;
     private final S3Service s3Service;
 
     @Value("${cloud.aws.s3.bucket}")
@@ -63,7 +67,7 @@ public class BoardService {
     }
 
     @Transactional
-    public BoardDetailResDto getBoardDetail(Long id) {
+    public BoardDetailResDto getBoardDetail(Long id, String username) {
         BoardEntity entity = boardRepository.findById(id)
                 .orElseThrow(() -> new CustomException(BoardErrorCode.BOARD_NOT_FOUND));
 
@@ -142,8 +146,18 @@ public class BoardService {
             writerProfileUrl = "/images/default-profile.png";
         }
 
-        return BoardDetailResDto.from(entity, fileList, replyList, writerProfileUrl);
+        long likeCount = boardLikeRepository.countByBoard(entity);
+        boolean isLiked = false;
+        if (username != null && !username.isBlank()) {
+            MemberEntity memberEntity = memberRepository.findByUsernameAndDelYn(username, DelYn.N).orElse(null);
+            if (memberEntity != null) {
+                isLiked = boardLikeRepository.existsByBoardAndMember(entity, memberEntity);
+            }
+        }
+
+        return BoardDetailResDto.from(entity, fileList, replyList, writerProfileUrl, likeCount, isLiked);
     }
+
 
     @Transactional
     public void write(BoardWriteReqDto reqDto, List<MultipartFile> fileList, String username) throws IOException {
@@ -343,5 +357,34 @@ public class BoardService {
         boardEntity.delete();
 
         log.info("[게시글 소프트 딜리트 완료] boardId : {}, 상태: {}", id, boardEntity.getDelYn());
+    }
+
+    @Transactional
+    public BoardLikeResDto toggleLike(Long boardId, String username) {
+        BoardEntity board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new CustomException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        MemberEntity member = memberRepository.findByUsernameAndDelYn(username, DelYn.N)
+                .orElseThrow(() -> new EntityNotFoundException("MEMBER NOT FOUND ........"));
+
+        java.util.Optional<BoardLikeEntity> boardLikeOpt = boardLikeRepository.findByBoardAndMember(board, member);
+        boolean isLiked;
+        if (boardLikeOpt.isPresent()) {
+            boardLikeRepository.delete(boardLikeOpt.get());
+            isLiked = false;
+        } else {
+            BoardLikeEntity boardLike = BoardLikeEntity.builder()
+                    .board(board)
+                    .member(member)
+                    .build();
+            boardLikeRepository.save(boardLike);
+            isLiked = true;
+        }
+
+        long likeCount = boardLikeRepository.countByBoard(board);
+        return BoardLikeResDto.builder()
+                .likeCount(likeCount)
+                .isLiked(isLiked)
+                .build();
     }
 }

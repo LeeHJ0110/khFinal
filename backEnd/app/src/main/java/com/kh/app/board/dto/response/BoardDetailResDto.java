@@ -27,12 +27,14 @@ public class BoardDetailResDto {
     private Long hits;
     private Long stars;
     private LocalDateTime createdAt;
+    private Long likeCount;
+    private Boolean isLiked;
 
 
     private List<BoardFileResDto> fileList;
     private List<BoardReplyResDto> replies;
 
-    public static BoardDetailResDto from(BoardEntity entity, List<BoardFileResDto> fileList, List<BoardReplyResDto> replies, String writerProfileImageUrl) {
+    public static BoardDetailResDto from(BoardEntity entity, List<BoardFileResDto> fileList, List<BoardReplyResDto> replies, String writerProfileImageUrl, Long likeCount, Boolean isLiked) {
         return BoardDetailResDto.builder()
                 .boardId(entity.getId())
                 .boardCategory(entity.getCategory() != null ? entity.getCategory().toString() : null)
@@ -48,6 +50,8 @@ public class BoardDetailResDto {
                 .createdAt(entity.getCreatedAt())
                 .fileList(fileList)
                 .replies(replies)
+                .likeCount(likeCount)
+                .isLiked(isLiked)
                 .build();
     }
 }

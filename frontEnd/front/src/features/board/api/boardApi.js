@@ -51,3 +51,7 @@ export async function writeReplyApi(boardId, content, parentId = null) {
 export async function deleteReplyApi(replyId) {
   return await api.delete(`/board/reply/${replyId}`);
 }
+
+export async function toggleLikeApi(boardId) {
+  return await api.post(`/board/${boardId}/like`);
+}
