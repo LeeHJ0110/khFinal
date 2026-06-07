@@ -7,6 +7,7 @@ import useFormData from "../../../shared/hooks/useFormData";
 
 const FEEDING_GUIDE_CATEGORIES = ["FOOD", "SUPPLEMENT", "SNACK"];
 const NUTRITION_CATEGORIES = ["FOOD", "SUPPLEMENT", "SNACK"];
+
 const NUTRITION_FIELD_NAMES = [
   "nutritionCalorie",
   "nutritionProtein",
@@ -16,22 +17,6 @@ const NUTRITION_FIELD_NAMES = [
   "nutritionCalcium",
   "nutritionPhosphorus",
 ];
-
-function hasNutritionValue(value) {
-  return (
-    value !== null && value !== undefined && value !== "" && Number(value) !== 0
-  );
-}
-
-function makeInitialNutritionRows(initialNutrition) {
-  if (!initialNutrition) {
-    return [];
-  }
-
-  return NUTRITION_FIELD_NAMES.filter((name) =>
-    hasNutritionValue(initialNutrition[name]),
-  );
-}
 
 function isFeedingGuideCategory(category) {
   return FEEDING_GUIDE_CATEGORIES.includes(category);
@@ -95,9 +80,6 @@ export default function PetStoreProductForm({
   const [subImagePreviews, setSubImagePreviews] = useState([]);
 
   const [nutrition, setNutrition] = useState(initialNutrition);
-  const [nutritionRows, setNutritionRows] = useState(() =>
-    makeInitialNutritionRows(initialNutrition),
-  );
 
   const [feedingGuideList, setFeedingGuideList] = useState(
     initialFeedingGuideList,
@@ -111,6 +93,8 @@ export default function PetStoreProductForm({
   const isFeedingGuideVisible = isFeedingGuideCategory(
     formData.productCategory,
   );
+
+  const nutritionRows = isNutritionVisible ? NUTRITION_FIELD_NAMES : [];
 
   const previewImageUrl = useMemo(() => {
     if (mainImagePreview) {
@@ -136,23 +120,28 @@ export default function PetStoreProductForm({
   }, [mainImagePreview, detailData]);
 
   const previewSubImageUrls = useMemo(() => {
-    if (subImagePreviews.length > 0) {
-      return subImagePreviews;
-    }
-
     const currentImageList =
       detailData?.imageList ||
       detailData?.images ||
       detailData?.productImageList ||
       [];
 
-    return currentImageList
+    const currentSubImageUrls = currentImageList
       .filter((image) => image.imageRepresentYn === "N")
       .map(
         (image) =>
           image.imageUrl || image.thumbnailUrl || image.imageChangedName,
       )
       .filter(Boolean);
+
+    const maxLength = Math.max(
+      subImagePreviews.length,
+      currentSubImageUrls.length,
+    );
+
+    return Array.from({ length: maxLength }, (_, index) => {
+      return subImagePreviews[index] || currentSubImageUrls[index] || "";
+    }).filter(Boolean);
   }, [subImagePreviews, detailData]);
 
   function handleNutritionChange(evt) {
@@ -161,29 +150,6 @@ export default function PetStoreProductForm({
     setNutrition((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  }
-
-  function handleAddNutritionRow(type) {
-    if (!type) {
-      return;
-    }
-
-    setNutritionRows((prev) => {
-      if (prev.includes(type)) {
-        return prev;
-      }
-
-      return [...prev, type];
-    });
-  }
-
-  function handleRemoveNutritionRow(type) {
-    setNutritionRows((prev) => prev.filter((item) => item !== type));
-
-    setNutrition((prev) => ({
-      ...prev,
-      [type]: "",
     }));
   }
 
@@ -406,8 +372,6 @@ export default function PetStoreProductForm({
               nutrition={nutrition}
               nutritionRows={nutritionRows}
               handleNutritionChange={handleNutritionChange}
-              handleAddNutritionRow={handleAddNutritionRow}
-              handleRemoveNutritionRow={handleRemoveNutritionRow}
             />
           )}
 
@@ -467,18 +431,15 @@ export default function PetStoreProductForm({
           {isNutritionVisible && (
             <div className="preview-panel">
               <h4>영양성분</h4>
-              {nutritionRows.length === 0 ? (
-                <p className="preview-empty">추가된 성분이 없습니다.</p>
-              ) : (
-                <ul>
-                  {nutritionRows.map((rowName) => (
-                    <li key={rowName}>
-                      <span>{getNutritionLabel(rowName)}</span>
-                      <strong>{nutrition[rowName] || "-"}</strong>
-                    </li>
-                  ))}
-                </ul>
-              )}
+
+              <ul>
+                {nutritionRows.map((rowName) => (
+                  <li key={rowName}>
+                    <span>{getNutritionLabel(rowName)}</span>
+                    <strong>{nutrition[rowName] || "-"}</strong>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
