@@ -195,8 +195,8 @@ const BaseButton = styled.button`
   height: 60px;
 
   border-radius: 8px;
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 20px;
+  font-weight: 700;
   cursor: pointer;
 
   transition:

@@ -62,7 +62,6 @@ import AdminMemberPage from "./pages/admin/member/AdminMemberPage";
 import AdminMessageSendPage from "./pages/admin/message/AdminMessageSendPage";
 import AdminSentMessagePage from "./pages/admin/message/AdminSentMessagePage";
 
-
 function App() {
   return (
     <>
@@ -101,7 +100,10 @@ function App() {
 
             {/* 펫보험 */}
             <Route path="petinsurance" element={<PetInsuranceMain />} />
-            <Route path="petinsurance/admin" element={<InsuranceAdminApplicationPage/>} />
+            <Route
+              path="petinsurance/admin"
+              element={<InsuranceAdminApplicationPage />}
+            />
           </Route>
 
           {/* 스토어 */}
@@ -125,7 +127,7 @@ function App() {
               element={<PetStoreOrderCompletePage />}
             />
 
-            {/* 강아지 스토어 계열 - 임시로 홈 연결 */}
+            {/* 강아지 스토어 계열 */}
             <Route path="dog" element={<PetStoreDogHomePage />} />
             <Route
               path="dog/food"
@@ -144,7 +146,7 @@ function App() {
               element={<PetStoreDogToiletProductListPage />}
             />
 
-            {/* 고양이 스토어 계열 -  임시로 홈 연결 */}
+            {/* 고양이 스토어 계열*/}
             <Route path="cat" element={<PetStoreCatHomePage />} />
             <Route
               path="cat/food"

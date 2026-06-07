@@ -1,14 +1,25 @@
+import { useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreBestProductList from "../../features/petStore/hooks/usePetStoreBestProductList";
 
+import dogStoreBanner from "../../assets/images/petStore/강아지홈배너.png";
+import foodCard from "../../assets/images/petStore/사료카드.png";
+import snackCard from "../../assets/images/petStore/간식카드.png";
+import suppleCard from "../../assets/images/petStore/영양제카드.png";
+import dogToiletCard from "../../assets/images/petStore/배변패드카드.png";
+
+import securityIcon from "../../assets/images/icon/보안.png";
+import truckIcon from "../../assets/images/icon/트럭.png";
+import materialIcon from "../../assets/images/icon/원료.png";
+
 const categoryList = [
   {
-    id: "feed",
+    id: "food",
     title: "사료",
     desc: "건강한 식습관의 시작",
-    imageText: "사료 이미지",
+    image: foodCard,
     path: "/store/dog/food",
   },
 
@@ -16,55 +27,88 @@ const categoryList = [
     id: "snack",
     title: "간식",
     desc: "맛과 건강 둘 다 챙긴 우리아이 간식",
-    imageText: "간식 이미지",
+    image: snackCard,
     path: "/store/dog/snack",
   },
   {
     id: "supplement",
     title: "영양제",
     desc: "맞춤형 건강 케어",
-    imageText: "영양제 이미지",
+    image: suppleCard,
     path: "/store/dog/supplement",
   },
   {
     id: "toilet",
-    title: "배변용품",
+    title: "배변패드",
     desc: "위생적인 생활 필수품",
-    imageText: "배변패드 이미지",
+    image: dogToiletCard,
     path: "/store/dog/toilet",
   },
 ];
 
-/*
-  임시 리뷰 표시용 데이터입니다.
+const heroIconList = [
+  {
+    id: "material",
+    label: "꼼꼼한 성분체크",
+    icon: materialIcon,
+  },
+  {
+    id: "security",
+    label: "안심할 수 있는 품질",
+    icon: securityIcon,
+  },
+  {
+    id: "delivery",
+    label: "빠르고 안전한 배송",
+    icon: truckIcon,
+  },
+];
 
-  나중에 리뷰 기능 완성되면 이 함수는 삭제하고,
-  아래 표시 부분을 실제 데이터로 변경하면 됩니다.
-*/
 function getTempReviewInfo(index) {
   const tempReviewList = [
     { rating: "4.9", count: 128 },
     { rating: "4.7", count: 76 },
     { rating: "4.6", count: 32 },
     { rating: "4.5", count: 21 },
-    { rating: "4.3", count: 17 },
   ];
 
   return tempReviewList[index] ?? { rating: "0.0", count: 0 };
 }
 
+function getCategoryLabel(category) {
+  const categoryMap = {
+    FEED: "사료",
+    FOOD: "사료",
+    SNACK: "간식",
+    SUPPLEMENT: "영양제",
+    TOILET: "배변패드",
+  };
+
+  return categoryMap[category] ?? "상품";
+}
+
 export default function PetStoreDogHomePage() {
   const navigate = useNavigate();
-
-  // 강아지 상품 중 베스트 상품만 조회
   const { bestProductList, isBestLoading } = usePetStoreBestProductList("D");
 
+  const [wishlistMap, setWishlistMap] = useState({});
+
+  function handleToggleWishlist(evt, productId) {
+    evt.stopPropagation();
+
+    setWishlistMap((prev) => ({
+      ...prev,
+      [productId]: !prev[productId],
+    }));
+  }
   return (
     <>
       <PetStoreUserNav />
 
       <Wrapper>
         <HeroBanner>
+          <HeroBannerImage src={dogStoreBanner} alt="강아지 스토어 배너" />
+
           <HeroArrowButton type="button" aria-label="이전 배너">
             ‹
           </HeroArrowButton>
@@ -72,34 +116,26 @@ export default function PetStoreDogHomePage() {
           <HeroInner>
             <HeroTextBox>
               <HeroEyebrow>우리 강아지를 위한 모든 것</HeroEyebrow>
+
               <HeroTitle>
                 건강한 강아지의
                 <br />
                 <strong>행복한 일상</strong>
               </HeroTitle>
+
               <HeroDesc>좋은 제품이 건강한 습관을 만듭니다.</HeroDesc>
 
               <HeroIconRow>
-                <HeroIconItem>
-                  <HeroIconCircle>🌿</HeroIconCircle>
-                  <HeroIconText>꼼꼼한 성분체크</HeroIconText>
-                </HeroIconItem>
-
-                <HeroIconItem>
-                  <HeroIconCircle>🛡</HeroIconCircle>
-                  <HeroIconText>안심할 수 있는 품질</HeroIconText>
-                </HeroIconItem>
-
-                <HeroIconItem>
-                  <HeroIconCircle>🚚</HeroIconCircle>
-                  <HeroIconText>빠르고 안전한 배송</HeroIconText>
-                </HeroIconItem>
+                {heroIconList.map((item) => (
+                  <HeroIconItem key={item.id}>
+                    <HeroIconCircle>
+                      <HeroIconImage src={item.icon} alt={item.label} />
+                    </HeroIconCircle>
+                    <HeroIconText>{item.label}</HeroIconText>
+                  </HeroIconItem>
+                ))}
               </HeroIconRow>
             </HeroTextBox>
-
-            <HeroVisualBox>
-              <HeroVisualText>강아지 메인 배너 이미지 영역</HeroVisualText>
-            </HeroVisualBox>
           </HeroInner>
 
           <HeroArrowButton type="button" aria-label="다음 배너" $right>
@@ -118,20 +154,21 @@ export default function PetStoreDogHomePage() {
             {categoryList.map((category) => (
               <CategoryCard
                 key={category.id}
-                type="button"
+                role="button"
+                tabIndex={0}
+                $cardImage={category.image}
                 onClick={() => navigate(category.path)}
+                onKeyDown={(evt) => {
+                  if (evt.key === "Enter") {
+                    navigate(category.path);
+                  }
+                }}
               >
                 <CategoryTextBox>
                   <CategoryTitle>{category.title}</CategoryTitle>
                   <CategoryDesc>{category.desc}</CategoryDesc>
-                  <CategoryMoveButton type="button">→</CategoryMoveButton>
+                  <CategoryMoveIcon>→</CategoryMoveIcon>
                 </CategoryTextBox>
-
-                <CategoryImageBox>
-                  <CategoryImageText>{category.imageText}</CategoryImageText>
-                </CategoryImageBox>
-
-                <CategoryBgPaw>●</CategoryBgPaw>
               </CategoryCard>
             ))}
           </CategoryGrid>
@@ -150,7 +187,7 @@ export default function PetStoreDogHomePage() {
               ) : bestProductList.length === 0 ? (
                 <BestProductEmpty>베스트 상품이 없습니다.</BestProductEmpty>
               ) : (
-                bestProductList.map((product, index) => {
+                bestProductList.slice(0, 4).map((product, index) => {
                   const tempReview = getTempReviewInfo(index);
 
                   return (
@@ -162,8 +199,15 @@ export default function PetStoreDogHomePage() {
                     >
                       <ProductRank>{index + 1}</ProductRank>
 
-                      <WishButton type="button" aria-label="관심상품">
-                        ♡
+                      <WishButton
+                        type="button"
+                        aria-label="관심상품"
+                        $active={!!wishlistMap[product.productId]}
+                        onClick={(evt) =>
+                          handleToggleWishlist(evt, product.productId)
+                        }
+                      >
+                        {wishlistMap[product.productId] ? "♥" : "♡"}
                       </WishButton>
 
                       <ProductImageBox>
@@ -177,22 +221,22 @@ export default function PetStoreDogHomePage() {
                         )}
                       </ProductImageBox>
 
-                      <ProductCategoryBadge>
-                        {getCategoryLabel(product.productCategory)}
-                      </ProductCategoryBadge>
+                      <ProductInfoArea>
+                        <ProductCategoryBadge>
+                          {getCategoryLabel(product.productCategory)}
+                        </ProductCategoryBadge>
 
-                      <ProductName>{product.productName}</ProductName>
+                        <ProductName>{product.productName}</ProductName>
 
-                      <ProductReviewInfo>
-                        <ReviewStar>★</ReviewStar>
-                        {tempReview.rating} ({tempReview.count})
-                      </ProductReviewInfo>
+                        <ProductReviewInfo>
+                          <ReviewStar>★</ReviewStar>
+                          {tempReview.rating} ({tempReview.count})
+                        </ProductReviewInfo>
 
-                      <ProductBottom>
                         <ProductPrice>
                           {product.productPrice?.toLocaleString()}원
                         </ProductPrice>
-                      </ProductBottom>
+                      </ProductInfoArea>
                     </BestProductCard>
                   );
                 })
@@ -205,140 +249,153 @@ export default function PetStoreDogHomePage() {
   );
 }
 
-function getCategoryLabel(category) {
-  const categoryMap = {
-    FEED: "사료",
-    FOOD: "사료",
-    SNACK: "간식",
-    SUPPLEMENT: "영양제",
-    TOILET: "배변패드",
-  };
-
-  return categoryMap[category] ?? "상품";
-}
-
 const Wrapper = styled.main`
   width: 100%;
   background-color: var(--color-white);
 `;
 
+/* ================================
+   Hero Banner
+================================ */
+
 const HeroBanner = styled.section`
   position: relative;
   width: 100%;
-  height: 310px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
   overflow: hidden;
-  background: linear-gradient(90deg, #dff2e9 0%, #eefaf4 48%, #dff2e9 100%);
+  background-color: #edf8f2;
+`;
+
+const HeroBannerImage = styled.img`
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
 `;
 
 const HeroInner = styled.div`
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
   width: 1300px;
   height: 100%;
   margin: 0 auto;
+  left: 0;
+  right: 0;
 
   display: flex;
   align-items: center;
-  justify-content: space-between;
 `;
 
 const HeroTextBox = styled.div`
-  position: relative;
-  z-index: 2;
-  width: 430px;
+  width: 470px;
+  transform: translateY(-2px);
 `;
 
 const HeroEyebrow = styled.p`
-  margin: 0 0 20px;
+  margin: 0 0 18px;
 
-  color: var(--text-main);
+  color: #202423;
   font-size: 17px;
-  font-weight: 800;
+  font-weight: 600;
+  letter-spacing: -0.35px;
 `;
 
 const HeroTitle = styled.h1`
-  margin: 0 0 24px;
+  margin: 0 0 32px;
 
-  color: var(--text-main);
-  font-size: 40px;
-  font-weight: 900;
-  line-height: 1.22;
-  letter-spacing: -1.6px;
+  color: #151918;
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.13;
+  letter-spacing: -1.8px;
 
   strong {
     color: var(--color-main);
+    font-weight: 800;
   }
 `;
 
 const HeroDesc = styled.p`
-  margin: 0 0 24px;
+  margin: 0 0 34px;
 
-  color: var(--text-sub);
-  font-size: 15px;
-  font-weight: 700;
+  color: #4f5b58;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.25px;
 `;
 
 const HeroIconRow = styled.div`
   display: flex;
-  gap: 46px;
+  gap: 64px;
 `;
 
 const HeroIconItem = styled.div`
+  width: 94px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 9px;
+  gap: 11px;
+
+  cursor: default;
+
+  &:hover div {
+    transform: translateY(-5px) scale(1.06);
+    box-shadow: 0 13px 26px rgba(0, 169, 123, 0.17);
+    background-color: #ffffff;
+  }
+
+  &:hover img {
+    transform: scale(1.1);
+  }
+
+  &:hover span {
+    color: var(--color-main);
+    font-weight: 600;
+  }
 `;
 
 const HeroIconCircle = styled.div`
-  width: 64px;
-  height: 64px;
+  width: 74px;
+  height: 74px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
   border-radius: 50%;
-  background-color: var(--color-white);
-  color: var(--color-main);
-  box-shadow: 0 4px 10px rgba(18, 45, 46, 0.08);
+  background-color: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 5px 14px rgba(18, 45, 46, 0.08);
 
-  font-size: 30px;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    background-color 0.22s ease;
+`;
+
+const HeroIconImage = styled.img`
+  width: 37px;
+  height: 37px;
+  object-fit: contain;
+
+  transition: transform 0.22s ease;
 `;
 
 const HeroIconText = styled.span`
-  color: var(--text-sub);
-  font-size: 12px;
-  font-weight: 700;
-`;
-
-const HeroVisualBox = styled.div`
-  position: relative;
-  width: 710px;
-  height: 100%;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const HeroVisualText = styled.div`
   width: 100%;
-  height: 86%;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  color: #555f5c;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.25px;
+  text-align: center;
+  white-space: nowrap;
 
-  border-radius: 24px;
-  background-color: rgba(255, 255, 255, 0.35);
-  color: rgba(0, 0, 0, 0.25);
-
-  font-size: 16px;
-  font-weight: 800;
+  transition:
+    color 0.18s ease,
+    font-weight 0.18s ease;
 `;
 
 const HeroArrowButton = styled.button`
@@ -349,8 +406,8 @@ const HeroArrowButton = styled.button`
   z-index: 5;
   transform: translateY(-50%);
 
-  width: 48px;
-  height: 48px;
+  width: 50px;
+  height: 50px;
 
   display: flex;
   align-items: center;
@@ -358,20 +415,34 @@ const HeroArrowButton = styled.button`
 
   border: 0;
   border-radius: 50%;
-  background-color: var(--color-white);
-  color: var(--text-main);
-  box-shadow: 0 3px 10px rgba(18, 45, 46, 0.12);
+  background-color: rgba(255, 255, 255, 0.95);
+  color: #202423;
+  box-shadow: 0 5px 16px rgba(18, 45, 46, 0.12);
 
-  font-size: 42px;
-  font-weight: 300;
+  font-size: 43px;
+  font-weight: 200;
   line-height: 1;
   cursor: pointer;
+
+  transition:
+    transform 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
+
+  &:hover {
+    transform: translateY(-50%) scale(1.06);
+    color: var(--color-main);
+    background-color: #ffffff;
+    box-shadow: 0 8px 22px rgba(18, 45, 46, 0.16);
+  }
 `;
 
 const HeroDotBox = styled.div`
   position: absolute;
   left: 50%;
-  bottom: 16px;
+  bottom: 24px;
+  z-index: 5;
   transform: translateX(-50%);
 
   display: flex;
@@ -379,19 +450,35 @@ const HeroDotBox = styled.div`
 `;
 
 const HeroDot = styled.span`
-  width: 12px;
-  height: 12px;
+  width: 13px;
+  height: 13px;
 
   border-radius: 50%;
   background-color: ${(props) =>
-    props.$active ? "var(--color-main)" : "#8c918e"};
+    props.$active ? "var(--color-main)" : "rgba(32, 36, 35, 0.42)"};
+
+  transition:
+    transform 0.18s ease,
+    background-color 0.18s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
 `;
+
+/* ================================
+   Content
+================================ */
 
 const ContentInner = styled.div`
   width: 1300px;
   margin: 0 auto;
-  padding: 14px 0 12px;
+  padding: 16px 0 12px;
 `;
+
+/* ================================
+   Category
+================================ */
 
 const CategoryGrid = styled.section`
   display: grid;
@@ -399,29 +486,32 @@ const CategoryGrid = styled.section`
   gap: 20px;
 `;
 
-const CategoryCard = styled.button`
+const CategoryCard = styled.article`
   position: relative;
   overflow: hidden;
 
-  height: 170px;
-  padding: 22px 24px;
+  height: 176px;
+  padding: 25px 24px;
 
-  display: flex;
-  justify-content: space-between;
-
-  border: 0;
-  border-radius: 16px;
+  border-radius: 17px;
   background-color: #edf5f1;
+  background-image: url(${({ $cardImage }) => $cardImage});
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+
   text-align: left;
   cursor: pointer;
 
   transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    filter 0.22s ease;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 14px rgba(18, 45, 46, 0.12);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(18, 45, 46, 0.13);
+    filter: saturate(1.035) brightness(1.01);
   }
 `;
 
@@ -431,23 +521,37 @@ const CategoryTextBox = styled.div`
 `;
 
 const CategoryTitle = styled.h2`
-  margin: 0 0 9px;
+  margin: 0 0 10px;
 
-  color: var(--text-main);
-  font-size: 26px;
-  font-weight: 900;
-  letter-spacing: -1px;
+  color: #202423;
+  font-size: 27px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -1.05px;
+
+  transition:
+    color 0.18s ease,
+    transform 0.18s ease;
+
+  ${CategoryCard}:hover & {
+    color: var(--color-main);
+    transform: translateX(2px);
+  }
 `;
 
 const CategoryDesc = styled.p`
+  width: 164px;
+  min-height: 34px;
   margin: 0 0 24px;
 
-  color: var(--text-sub);
+  color: #596461;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
+  line-height: 1.42;
+  letter-spacing: -0.25px;
 `;
 
-const CategoryMoveButton = styled.button`
+const CategoryMoveIcon = styled.div`
   width: 42px;
   height: 42px;
 
@@ -455,86 +559,67 @@ const CategoryMoveButton = styled.button`
   align-items: center;
   justify-content: center;
 
-  border: 0;
   border-radius: 50%;
-  background-color: var(--color-white);
-  color: #333;
+  background-color: rgba(255, 255, 255, 0.96);
+  color: #303635;
 
-  font-size: 24px;
-  font-weight: 800;
-  cursor: pointer;
+  font-size: 22px;
+  font-weight: 700;
+
+  transition:
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
+
+  ${CategoryCard}:hover & {
+    color: var(--color-main);
+    transform: translateX(3px);
+    background-color: #ffffff;
+    box-shadow: 0 6px 14px rgba(18, 45, 46, 0.1);
+  }
 `;
 
-const CategoryImageBox = styled.div`
-  position: absolute;
-  right: 16px;
-  bottom: 12px;
-
-  width: 155px;
-  height: 105px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  color: var(--text-desc);
-  font-size: 12px;
-  font-weight: 800;
-`;
-
-const CategoryImageText = styled.div`
-  width: 100%;
-  height: 100%;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 14px;
-  background-color: rgba(255, 255, 255, 0.42);
-`;
-
-const CategoryBgPaw = styled.span`
-  position: absolute;
-  right: 20px;
-  top: 15px;
-
-  color: rgba(0, 118, 83, 0.08);
-  font-size: 90px;
-  line-height: 1;
-`;
+/* ================================
+   Section Title
+================================ */
 
 const SectionTitleArea = styled.section`
-  height: 42px;
-  padding: 11px 0 0;
+  height: 43px;
+  padding: 12px 0 0;
 
   display: flex;
   align-items: flex-start;
-  gap: 14px;
+  gap: 12px;
 `;
 
 const SectionTitle = styled.h2`
   margin: 0;
 
-  color: var(--text-main);
-  font-size: 22px;
-  font-weight: 900;
+  color: #202423;
+  font-size: 21px;
+  font-weight: 800;
   letter-spacing: -0.7px;
 `;
 
 const SectionSubTitle = styled.p`
   margin: 6px 0 0;
 
-  color: var(--text-sub);
-  font-size: 13px;
-  font-weight: 700;
+  color: #58625f;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.25px;
 `;
 
-const BestSectionBox = styled.section`
-  padding: 28px 34px;
+/* ================================
+   Best Product
+================================ */
 
-  border-radius: 16px;
-  background-color: #edf5f1;
+const BestSectionBox = styled.section`
+  padding: 30px 34px 34px;
+
+  border-radius: 17px;
+  background-color: #eef6f2;
 `;
 
 const BestProductGrid = styled.section`
@@ -546,32 +631,39 @@ const BestProductGrid = styled.section`
 const BestProductCard = styled.article`
   position: relative;
 
-  height: 260px;
-  padding: 22px 20px 18px;
+  height: 338px;
+  padding: 22px 20px 24px;
 
   display: flex;
   flex-direction: column;
 
-  border-radius: 14px;
+  border-radius: 16px;
   background-color: var(--color-white);
-  box-shadow: 0 3px 12px rgba(18, 45, 46, 0.12);
+  box-shadow: 0 4px 14px rgba(18, 45, 46, 0.1);
 
   cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(18, 45, 46, 0.16);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 26px rgba(18, 45, 46, 0.15);
+  }
+
+  &:hover img {
+    transform: scale(1.045);
   }
 `;
 
 const ProductRank = styled.div`
   position: absolute;
-  left: 14px;
-  top: 14px;
+  left: 16px;
+  top: 15px;
   z-index: 2;
 
-  width: 24px;
-  height: 24px;
+  width: 25px;
+  height: 25px;
 
   display: flex;
   align-items: center;
@@ -581,79 +673,114 @@ const ProductRank = styled.div`
   background-color: var(--color-main);
   color: var(--color-white);
 
-  font-size: 12px;
-  font-weight: 900;
+  font-size: 11px;
+  font-weight: 800;
 `;
 
 const WishButton = styled.button`
   position: absolute;
-  right: 13px;
-  top: 12px;
+  right: 17px;
+  top: 14px;
   z-index: 2;
 
-  border: 0;
-  background-color: transparent;
-  color: #111;
-
-  font-size: 28px;
-  line-height: 1;
-  cursor: pointer;
-`;
-
-const ProductImageBox = styled.div`
-  width: 100%;
-  height: 118px;
-  margin-bottom: 10px;
+  width: 34px;
+  height: 34px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  overflow: hidden;
-  border-radius: 12px;
-  background-color: #f6faf8;
+  border: 0;
+  border-radius: 50%;
+  background-color: transparent;
+  color: ${({ $active }) => ($active ? "var(--color-main)" : "#191f1d")};
+
+  font-size: ${({ $active }) => ($active ? "28px" : "30px")};
+  font-weight: ${({ $active }) => ($active ? "800" : "300")};
+  line-height: 1;
+  cursor: pointer;
+
+  transition:
+    color 0.18s ease,
+    transform 0.18s ease,
+    background-color 0.18s ease;
+
+  &:hover {
+    color: var(--color-main);
+    transform: scale(1.1);
+    background-color: rgba(236, 253, 246, 0.72);
+  }
+
+  &:active {
+    transform: scale(0.94);
+  }
+`;
+
+const ProductImageBox = styled.div`
+  width: 100%;
+  height: 162px;
+  margin-bottom: 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
 `;
 
 const ProductImage = styled.img`
   width: 100%;
   height: 100%;
-  padding: 8px;
+  padding: 0;
   object-fit: contain;
+
+  transition: transform 0.2s ease;
 `;
 
 const ProductImageText = styled.span`
   color: var(--text-desc);
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 500;
+`;
+
+const ProductInfoArea = styled.div`
+  flex: 1;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 `;
 
 const ProductCategoryBadge = styled.span`
   width: fit-content;
-  height: 18px;
-  padding: 0 8px;
-  margin-bottom: 7px;
+  height: 19px;
+  padding: 0 9px;
+  margin-bottom: 9px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  border-radius: 3px;
+  border-radius: 4px;
   background-color: #c9f0dd;
   color: var(--color-main);
 
-  font-size: 10px;
-  font-weight: 900;
+  font-size: 9px;
+  font-weight: 700;
 `;
 
 const ProductName = styled.h3`
-  min-height: 35px;
-  margin: 0 0 4px;
+  min-height: 38px;
+  margin: 0 0 8px;
 
-  color: var(--text-main);
+  color: #242827;
   font-size: 13px;
-  font-weight: 800;
-  line-height: 1.35;
-  letter-spacing: -0.2px;
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: -0.22px;
 
   display: -webkit-box;
   overflow: hidden;
@@ -666,39 +793,32 @@ const ProductReviewInfo = styled.div`
   align-items: center;
   gap: 4px;
 
-  margin-bottom: 8px;
+  margin-bottom: 13px;
 
-  color: var(--text-sub);
+  color: #555f5c;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 500;
 `;
 
 const ReviewStar = styled.span`
   color: #ffc400;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1;
 `;
 
-const ProductBottom = styled.div`
-  margin-top: auto;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
 const ProductPrice = styled.p`
-  margin: 0;
+  margin: auto 0 0;
 
-  color: var(--text-main);
-  font-size: 21px;
-  font-weight: 900;
-  letter-spacing: -0.8px;
+  color: #202423;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.75px;
 `;
 
 const BestProductEmpty = styled.div`
   grid-column: 1 / -1;
-  height: 220px;
+  height: 260px;
 
   display: flex;
   align-items: center;
@@ -709,5 +829,5 @@ const BestProductEmpty = styled.div`
   color: var(--text-sub);
 
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 500;
 `;
