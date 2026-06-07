@@ -127,11 +127,12 @@ export default function ReviewBoardList({
                 </StatIconWrapper>
                 <StatIconWrapper title="댓글">
                   <SvgComment />
-                  <span>0</span>
+                  <span>{item.replyCount || 0}</span>
                 </StatIconWrapper>
-                <div>
-                  <span>0</span>
-                </div>
+                <StatIconWrapper title="좋아요">
+                  <SvgHeart />
+                  <span>{item.likeCount || 0}</span>
+                </StatIconWrapper>
               </ItemStats>
             </ListItem>
           );

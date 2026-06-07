@@ -76,7 +76,7 @@ public class BoardService {
         Page<BoardEntity> entityPage = boardRepository.getListByCategory(category, condition, pageable);
         return entityPage.map(entity -> {
             long replyCount = boardReplyRepository.countByBoardAndDelYn(entity, DelYn.N);
-            long likeCount = entity.getHits() != null ? Math.max(0, entity.getHits() / 18) : 0L;
+            long likeCount = boardLikeRepository.countByBoard(entity);
             return BoardResDto.from(entity, replyCount, likeCount);
         });
     }
