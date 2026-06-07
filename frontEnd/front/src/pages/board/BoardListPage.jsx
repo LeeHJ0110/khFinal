@@ -195,7 +195,10 @@ export default function BoardListPage() {
             </BoardTitleInfo>
 
             {((activeTab !== "FAQ" && activeTab !== "NEWS") ||
-              loginMember?.role === "ADMIN") && (
+              loginMember?.role === "ADMIN" ||
+              loginMember?.role === "A" ||
+              loginMember?.role === "BOARD" ||
+              loginMember?.role === "B") && (
               <WriteButton
                 onClick={() => {
                   if (!loginMember) {
@@ -306,8 +309,9 @@ export default function BoardListPage() {
               isLoading={isLoading}
               activeTab={activeTab}
               onTabChange={handleTabChange}
-              // FAQ는 아코디언 컴포넌트 내부 자체 토글 제어이므로 onItemClick 함수를 비워두거나 넘기지 않아도 무방합니다.
-              onItemClick={null}
+              onItemClick={(item) =>
+                navigate(`/community/detail/${item.boardId}`)
+              }
             />
           )}
 
