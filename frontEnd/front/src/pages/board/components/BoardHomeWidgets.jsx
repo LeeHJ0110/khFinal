@@ -133,8 +133,7 @@ export function LatestFreePostsWidget({ list, onItemClick, onMoreClick, classNam
         ) : (
           latestList.map((item) => {
             const firstImg =
-              extractFirstImg(item.content) ||
-              "https://images.unsplash.com/photo-1543466835-00a7907e9de1?w=150&q=80";
+              extractFirstImg(item.content) || DEFAULT_NO_IMAGE;
 
             return (
               <LatestItem
