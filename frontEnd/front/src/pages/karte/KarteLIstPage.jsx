@@ -36,7 +36,22 @@ export default function KarteListPage() {
 
   return (
     <Wrapper>
-      <div>
+      <Header>
+        <HeaderTextArea>
+          <Eyebrow>PET HEALTH CARE</Eyebrow>
+
+          <Title>건강진단 신청 목록</Title>
+
+          <Description>
+            접수된 반려동물 건강진단 신청 내역을 확인할 수 있습니다.
+          </Description>
+        </HeaderTextArea>
+
+        <TotalCount>
+          전체 <strong>{totalElements}</strong>건
+        </TotalCount>
+      </Header>
+      {/* <div>
         {isLoading ? (
           <p>불러오는 중...</p>
         ) : (
@@ -71,119 +86,510 @@ export default function KarteListPage() {
               )}
             </tbody>
           </table>
-        )}
-        {/* 하단 페이지네이션 */}
-        {/* {totalPages > 1 && (
-          <PaginationWrapper>
-            <PageArrowButton
-              onClick={() => setCurrentPage((p) => p - 1)}
-              disabled={currentPage === 0}
-            >
-              <SvgChevronLeft />
-            </PageArrowButton>
-
-            {Array.from({ length: totalPages }).map((_, idx) => (
-              <PageNumberButton
-                key={idx}
-                active={currentPage === idx}
-                onClick={() => setCurrentPage(idx)}
-              >
-                {idx + 1}
-              </PageNumberButton>
-            ))}
-
-            <PageArrowButton
-              onClick={() => setCurrentPage((p) => p + 1)}
-              disabled={currentPage === totalPages - 1}
-            >
-              <SvgChevronRight />
-            </PageArrowButton>
-          </PaginationWrapper>
         )} */}
-      </div>
+
+      <TableCard>
+        {isLoading ? (
+          <LoadingArea>
+            <LoadingSpinner />
+
+            <LoadingText>건강진단 결과 내역을 불러오는 중입니다.</LoadingText>
+          </LoadingArea>
+        ) : (
+          <Table>
+            <thead>
+              <tr>
+                <th>번호</th>
+                <th>제목</th>
+                <th>생성일</th>
+                <th>작성자</th>
+                <th>열람여부</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {list.length === 0 ? (
+                <tr>
+                  <EmptyCell colSpan={6}>
+                    <EmptyIcon>♡</EmptyIcon>
+
+                    <EmptyTitle>등록된 건강진단 결과가 없습니다.</EmptyTitle>
+
+                    <EmptyDescription>
+                      관리자가 검사를 마치면 이곳에서 확인할 수 있습니다.
+                    </EmptyDescription>
+                  </EmptyCell>
+                </tr>
+              ) : (
+                list.map((item, idx) => (
+                  <TableRow
+                    key={item.id}
+                    onClick={() => navigate(`/healthcare/result/${item.id}`)}
+                  >
+                    <NumberCell>{getRowNumber(idx)}</NumberCell>
+                    <td>{item.petName} 건강검진 결과</td>
+                    <DateCell>{formatDate(item.createdAt)}</DateCell>
+                    <td>{item.writer}</td>
+                    <td>{item.visited}</td>
+                    {/* 그림으로 바꾸기 */}
+                    <td>
+                      <DetailButton
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+
+                          navigate(`/healthcare/result/${item.id}`);
+                        }}
+                      >
+                        상세보기
+                        <span>›</span>
+                      </DetailButton>
+                    </td>
+                  </TableRow>
+                ))
+              )}
+            </tbody>
+          </Table>
+        )}
+      </TableCard>
+      {/* 하단 페이지네이션 */}
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationButton
+            type="button"
+            disabled={currentPage === 0}
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+          >
+            ‹
+          </PaginationButton>
+
+          {Array.from({ length: totalPages }, (_, index) => (
+            <PaginationButton
+              key={index}
+              type="button"
+              $active={currentPage === index}
+              aria-current={currentPage === index ? "page" : undefined}
+              onClick={() => setCurrentPage(index)}
+            >
+              {index + 1}
+            </PaginationButton>
+          ))}
+
+          <PaginationButton
+            type="button"
+            disabled={currentPage === totalPages - 1}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+          >
+            ›
+          </PaginationButton>
+        </Pagination>
+      )}
     </Wrapper>
   );
 }
 
-const Wrapper = styled.div`
-  width: 100%;
-  padding: 24px;
+/* =====================================
+   전체 영역
+===================================== */
 
-  table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 12px;
+const Wrapper = styled.main`
+  width: min(1180px, calc(100% - 48px));
+
+  margin: 0 auto;
+  padding: 52px 0 88px;
+
+  box-sizing: border-box;
+`;
+
+/* =====================================
+   상단 제목 영역
+===================================== */
+
+const Header = styled.header`
+  display: flex;
+
+  align-items: flex-end;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  margin-bottom: 24px;
+`;
+
+const HeaderTextArea = styled.div`
+  min-width: 0;
+`;
+
+const Eyebrow = styled.p`
+  margin: 0 0 8px;
+
+  color: #00a97b;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  letter-spacing: 1.4px;
+`;
+
+const Title = styled.h1`
+  margin: 0;
+
+  color: #202927;
+
+  font-size: 30px;
+  font-weight: 800;
+
+  letter-spacing: -1px;
+`;
+
+const Description = styled.p`
+  margin: 10px 0 0;
+
+  color: #7a8582;
+
+  font-size: 14px;
+  font-weight: 500;
+`;
+
+const TotalCount = styled.div`
+  flex-shrink: 0;
+
+  padding: 9px 15px;
+
+  border: 1px solid rgba(0, 169, 123, 0.18);
+  border-radius: 999px;
+
+  background: rgba(0, 169, 123, 0.06);
+  color: #62706c;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  strong {
+    color: #00a97b;
+
+    font-size: 15px;
   }
+`;
 
-  thead th {
-    text-align: left;
-    padding: 12px 16px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #666;
-    border-bottom: 2px solid #f0f0f0;
-  }
+/* =====================================
+   페이지네이션
+===================================== */
 
-  tbody tr {
-    background: #fff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
+const Pagination = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
 
-  tbody tr:hover {
+  margin-top: 26px;
+`;
+
+const PaginationButton = styled.button`
+  min-width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid ${({ $active }) => ($active ? "#00a97b" : "#dce5e2")};
+  border-radius: 9px;
+
+  background: ${({ $active }) => ($active ? "#00a97b" : "#ffffff")};
+  color: ${({ $active }) => ($active ? "#ffffff" : "#74807c")};
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease;
+
+  &:hover:not(:disabled) {
+    border-color: #00a97b;
+
+    background: ${({ $active }) =>
+      $active ? "#00a97b" : "rgba(0, 169, 123, 0.08)"};
+
+    color: ${({ $active }) => ($active ? "#ffffff" : "#00a97b")};
+
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   }
 
-  tbody td {
-    padding: 18px 16px;
-    font-size: 14px;
-    color: #333;
-    background: #fff;
-  }
+  &:disabled {
+    background: #f5f7f6;
+    color: #c0c8c5;
 
-  tbody td:first-child {
-    border-radius: 12px 0 0 12px;
-    font-weight: 600;
-    color: #888;
+    cursor: default;
   }
+`;
+/* =====================================
+   테이블 영역
+===================================== */
 
-  tbody td:last-child {
-    border-radius: 0 12px 12px 0;
-  }
+const TableCard = styled.section`
+  min-height: 330px;
 
-  tbody tr td:nth-child(2) {
-    font-weight: 600;
-    color: #222;
-  }
+  overflow: hidden;
 
-  tbody tr td[colspan] {
+  border: 1px solid #e2ece8;
+  border-radius: 16px;
+
+  background: #ffffff;
+
+  box-shadow: 0 8px 24px rgba(20, 72, 58, 0.055);
+`;
+
+const Table = styled.table`
+  width: 100%;
+
+  border-collapse: collapse;
+
+  table-layout: fixed;
+
+  th {
+    padding: 16px 14px;
+
+    border-bottom: 1px solid #e5eeeb;
+
+    background: #f7fbf9;
+    color: #687571;
+
+    font-size: 13px;
+    font-weight: 800;
+
     text-align: center;
-    padding: 40px;
-    background: #fafafa;
-    border-radius: 12px;
   }
 
-  @media (max-width: 768px) {
-    padding: 16px;
+  td {
+    padding: 18px 14px;
 
-    thead {
-      display: none;
-    }
+    border-bottom: 1px solid #edf2f0;
 
-    tbody tr {
-      display: flex;
-      flex-direction: column;
-      margin-bottom: 12px;
-    }
+    color: #47534f;
 
-    tbody td {
-      display: flex;
-      justify-content: space-between;
-      padding: 12px 16px;
-      border-radius: 0 !important;
+    font-size: 14px;
+
+    text-align: center;
+  }
+
+  th:nth-child(1) {
+    width: 8%;
+  }
+
+  th:nth-child(2) {
+    width: 20%;
+  }
+
+  th:nth-child(3) {
+    width: 16%;
+  }
+
+  th:nth-child(4) {
+    width: 20%;
+  }
+
+  th:nth-child(5) {
+    width: 20%;
+  }
+
+  th:nth-child(6) {
+    width: 16%;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+`;
+
+const TableRow = styled.tr`
+  cursor: pointer;
+
+  transition: background-color 0.18s ease;
+
+  &:hover {
+    background: #f8fffc;
+  }
+`;
+
+const NumberCell = styled.td`
+  color: #8a9692 !important;
+
+  font-weight: 700;
+`;
+
+const DateCell = styled.td`
+  color: #7b8783 !important;
+
+  font-size: 13px !important;
+`;
+
+/* =====================================
+   상태 표시
+===================================== */
+
+const StatusBadge = styled.span`
+  min-width: 106px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  padding: 7px 11px;
+
+  border: 1px solid
+    ${({ $active }) =>
+      $active ? "rgba(0, 169, 123, 0.2)" : "rgba(112, 126, 121, 0.18)"};
+
+  border-radius: 999px;
+
+  background: ${({ $active }) =>
+    $active ? "rgba(0, 169, 123, 0.08)" : "#f5f7f6"};
+
+  color: ${({ $active }) => ($active ? "#008f69" : "#78837f")};
+
+  font-size: 12px;
+  font-weight: 800;
+`;
+
+const StatusDot = styled.span`
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: ${({ $active }) => ($active ? "#00a97b" : "#aeb8b5")};
+`;
+
+/* =====================================
+   상세보기 버튼
+===================================== */
+
+const DetailButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  padding: 8px 12px;
+
+  border: 1px solid rgba(0, 169, 123, 0.2);
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #00a97b;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+
+  span {
+    font-size: 17px;
+    line-height: 1;
+
+    transition: transform 0.18s ease;
+  }
+
+  &:hover {
+    background: #00a97b;
+    color: #ffffff;
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 5px 11px rgba(0, 169, 123, 0.15);
+
+    span {
+      transform: translateX(2px);
     }
   }
+`;
+
+/* =====================================
+   빈 목록
+===================================== */
+
+const EmptyCell = styled.td`
+  height: 270px;
+
+  text-align: center !important;
+`;
+
+const EmptyIcon = styled.div`
+  margin-bottom: 10px;
+
+  color: #a8d9cb;
+
+  font-size: 33px;
+  font-weight: 800;
+`;
+
+const EmptyTitle = styled.p`
+  margin: 0;
+
+  color: #51605b;
+
+  font-size: 15px;
+  font-weight: 800;
+`;
+
+const EmptyDescription = styled.p`
+  margin: 8px 0 0;
+
+  color: #929d99;
+
+  font-size: 13px;
+`;
+
+/* =====================================
+   로딩 영역
+===================================== */
+
+const LoadingArea = styled.div`
+  min-height: 330px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 13px;
+`;
+
+const LoadingSpinner = styled.div`
+  width: 28px;
+  height: 28px;
+
+  border: 3px solid rgba(0, 169, 123, 0.15);
+  border-top-color: #00a97b;
+
+  border-radius: 50%;
+
+  animation: rotate 0.8s linear infinite;
+
+  @keyframes rotate {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
+const LoadingText = styled.p`
+  margin: 0;
+
+  color: #7d8985;
+
+  font-size: 13px;
+  font-weight: 600;
 `;

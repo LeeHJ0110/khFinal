@@ -79,6 +79,7 @@ function App() {
         {/* 기본 레이아웃 */}
         <Route path="/*" element={<DefaultLayout />}>
           {/* 홈페이지 */}
+          <Route index element={<HomePage />} />
           <Route path="home" element={<HomePage />} />
           {/* 헬스케어 */}
           <Route path="healthcare">
@@ -87,7 +88,7 @@ function App() {
             <Route path="schedule" element={<ScheduleMainPage />} />
 
             {/* 진단결과 */}
-            <Route path="result" element={<KarteListPage />} />
+            <Route path="resultList" element={<KarteListPage />} />
             <Route path="result/:id" element={<KarteDetailPage />} />
 
             {/* user */}
