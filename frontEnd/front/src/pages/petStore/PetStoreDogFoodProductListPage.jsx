@@ -1,4 +1,3 @@
-import { useState } from "react";
 import styled from "styled-components";
 import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreProductList from "../../features/petStore/hooks/usePetStoreProductList";
@@ -6,6 +5,7 @@ import PetStoreRecentAside from "./PetStoreRecentAside";
 import { useNavigate } from "react-router-dom";
 
 import foodBannerImg from "../../assets/images/petStore/사료목록배너.png";
+import usePetStoreWishToggle from "../../features/petStore/hooks/usePetStoreWishToggle";
 
 const sortOptions = [
   { label: "최신순", value: "latest" },
@@ -92,18 +92,10 @@ export default function PetStoreDogFoodProductListPage() {
     handleSearch,
     handleChangeSort,
     handleChangeTagId,
+    updateProductWishState,
   } = usePetStoreProductList("D", "FOOD");
 
-  const [wishlistMap, setWishlistMap] = useState({});
-
-  function handleToggleWishlist(evt, productId) {
-    evt.stopPropagation();
-
-    setWishlistMap((prev) => ({
-      ...prev,
-      [productId]: !prev[productId],
-    }));
-  }
+  const { wishSubmittingId, handleToggleWishlist } = usePetStoreWishToggle();
 
   return (
     <>
@@ -210,12 +202,22 @@ export default function PetStoreDogFoodProductListPage() {
                         <WishButton
                           type="button"
                           aria-label="관심상품"
-                          $active={!!wishlistMap[product.productId]}
+                          $active={!!product.wished}
+                          disabled={wishSubmittingId === product.productId}
                           onClick={(evt) =>
-                            handleToggleWishlist(evt, product.productId)
+                            handleToggleWishlist(
+                              evt,
+                              product,
+                              (updatedProduct) => {
+                                updateProductWishState(
+                                  updatedProduct.productId,
+                                  updatedProduct.wished,
+                                );
+                              },
+                            )
                           }
                         >
-                          {wishlistMap[product.productId] ? "♥" : "♡"}
+                          {product.wished ? "♥" : "♡"}
                         </WishButton>
 
                         <ProductImageBox>
@@ -636,6 +638,11 @@ const WishButton = styled.button`
 
   &:active {
     transform: scale(0.94);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: wait;
   }
 `;
 

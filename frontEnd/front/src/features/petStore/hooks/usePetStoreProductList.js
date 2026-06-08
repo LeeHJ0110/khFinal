@@ -3,57 +3,85 @@ import { fetchProductList } from "../api/petStoreApi";
 
 export default function usePetStoreProductList(targetPetType, category) {
   const [productList, setProductList] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setLoading] = useState(false);
 
   const [keyword, setKeyword] = useState("");
   const [sort, setSort] = useState("latest");
   const [tagId, setTagId] = useState("");
-  const [tagName, setTagName] = useState("");
 
-  async function loadProductList() {
+  async function loadProductList({
+    nextKeyword = keyword,
+    nextSort = sort,
+    nextTagId = tagId,
+  } = {}) {
+    setLoading(true);
+
     try {
-      setIsLoading(true);
-
-      const resp = await fetchProductList({
-        targetPetType: targetPetType,
-        category: category,
-        keyword: keyword,
-        tagId: tagId,
-        tagName: tagName,
-        sort: sort,
+      const response = await fetchProductList({
+        targetPetType,
+        category,
+        keyword: nextKeyword,
+        tagId: nextTagId,
+        sort: nextSort,
       });
 
-      setProductList(resp.data);
+      setProductList(response.data ?? []);
     } catch (error) {
       console.error("상품 목록 조회 실패", error);
       setProductList([]);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }
 
   function handleSearch() {
-    loadProductList();
+    loadProductList({
+      nextKeyword: keyword,
+      nextSort: sort,
+      nextTagId: tagId,
+    });
   }
 
   function handleChangeSort(nextSort) {
     setSort(nextSort);
+
+    loadProductList({
+      nextKeyword: keyword,
+      nextSort,
+      nextTagId: tagId,
+    });
   }
 
   function handleChangeTagId(nextTagId) {
     setTagId(nextTagId);
+
+    loadProductList({
+      nextKeyword: keyword,
+      nextSort: sort,
+      nextTagId,
+    });
   }
 
-  function resetFilter() {
-    setKeyword("");
-    setTagId("");
-    setTagName("");
-    setSort("latest");
+  function updateProductWishState(productId, wished) {
+    setProductList((prev) =>
+      prev.map((product) =>
+        product.productId === productId
+          ? {
+              ...product,
+              wished,
+            }
+          : product,
+      ),
+    );
   }
 
   useEffect(() => {
-    loadProductList();
-  }, [targetPetType, category, sort, tagId]);
+    loadProductList({
+      nextKeyword: "",
+      nextSort: "latest",
+      nextTagId: "",
+    });
+  }, [targetPetType, category]);
 
   return {
     productList,
@@ -63,18 +91,13 @@ export default function usePetStoreProductList(targetPetType, category) {
     setKeyword,
 
     sort,
-    setSort,
-
     tagId,
-    setTagId,
-
-    tagName,
-    setTagName,
 
     loadProductList,
+    updateProductWishState,
+
     handleSearch,
     handleChangeSort,
     handleChangeTagId,
-    resetFilter,
   };
 }

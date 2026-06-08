@@ -116,7 +116,8 @@ public class StoreProductService {
             String keyword,
             Long tagId,
             String tagName,
-            String sort
+            String sort,
+            String username
     ) {
         String petType = normalizeTargetPetType(targetPetType);
         String keywordText = normalizeKeyword(keyword);
@@ -133,13 +134,25 @@ public class StoreProductService {
                         sortType
                 );
 
+        MemberEntity member = null;
+
+        if (!isNotLogin(username)) {
+            member = memberRepository
+                    .findByUsernameAndDelYn(username, DelYn.N)
+                    .orElse(null);
+        }
+
+        MemberEntity loginMember = member;
+
         return productList.stream()
-                .map(this::toStoreProductListResDto)
+                .map(product -> toStoreProductListResDto(product, loginMember))
                 .toList();
     }
 
-    public List<StoreProductListResDto> getBestProductList(String targetPetType) {
-
+    public List<StoreProductListResDto> getBestProductList(
+            String targetPetType,
+            String username
+    ) {
         List<StoreProductEntity> productList;
 
         if (targetPetType == null || targetPetType.isBlank()) {
@@ -161,13 +174,25 @@ public class StoreProductService {
                     );
         }
 
+        MemberEntity member = null;
+
+        if (!isNotLogin(username)) {
+            member = memberRepository
+                    .findByUsernameAndDelYn(username, DelYn.N)
+                    .orElse(null);
+        }
+
+        MemberEntity loginMember = member;
+
         return productList.stream()
-                .map(this::toStoreProductListResDto)
+                .map(product -> toStoreProductListResDto(product, loginMember))
                 .toList();
     }
 
-    private StoreProductListResDto toStoreProductListResDto(StoreProductEntity product) {
-
+    private StoreProductListResDto toStoreProductListResDto(
+            StoreProductEntity product,
+            MemberEntity member
+    ) {
         StoreProductImageEntity mainImage =
                 storeProductImageRepository
                         .findFirstByProduct_ProductIdAndImageRepresentYnOrderBySortOrderAsc(
@@ -180,10 +205,36 @@ public class StoreProductService {
                 ? null
                 : makeS3Url(mainImage.getImageChangedName());
 
-        return StoreProductListResDto.from(product, mainImageUrl);
+        Boolean wished = false;
+        Long wishlistId = null;
+
+        if (member != null) {
+            StoreWishEntity wish = storeWishRepository
+                    .findByMember_IdAndProduct_ProductId(
+                            member.getId(),
+                            product.getProductId()
+                    )
+                    .orElse(null);
+
+            if (wish != null) {
+                wished = true;
+                wishlistId = wish.getWishlistId();
+            }
+        }
+
+        return StoreProductListResDto.from(
+                product,
+                mainImageUrl,
+                wished,
+                wishlistId
+        );
     }
 
-    //이거 안쓸듯?
+    private StoreProductListResDto toStoreProductListResDto(StoreProductEntity product) {
+        return toStoreProductListResDto(product, null);
+    }
+
+    //이거 관리자 수정할때 기존정보가져오는거
     public StoreProductAdminDetailResDto getAdminProductDetail(Long productId) {
         StoreProductEntity productEntity = storeProductRepository.findById(productId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
@@ -240,6 +291,7 @@ public class StoreProductService {
                 subImageUrls
         );
 
+        applyWishInfo(result, productEntity, username);
         applyFeedingRecommend(result, productEntity, feedingGuideList, username);
 
         return result;
@@ -924,5 +976,81 @@ public class StoreProductService {
                 wish.getWishlistId(),
                 wish.getProduct().getProductId()
         );
+    }
+
+    @Transactional
+    public void wishDeleteByProductId(Long productId, String username) {
+        // 1. 로그인 여부 확인
+        if (isNotLogin(username)) {
+            throw new IllegalStateException("로그인 후 관심상품을 이용할 수 있습니다.");
+        }
+
+        // 2. 요청값 검증
+        if (productId == null) {
+            throw new IllegalArgumentException("상품 ID는 필수입니다.");
+        }
+
+        // 3. 로그인 회원 조회
+        MemberEntity member = getLoginMember(username);
+
+        // 4. 로그인 회원의 해당 상품 관심상품 조회
+        StoreWishEntity wish = storeWishRepository
+                .findByMember_IdAndProduct_ProductId(
+                        member.getId(),
+                        productId
+                )
+                .orElseThrow(() -> new EntityNotFoundException("관심상품을 찾을 수 없습니다."));
+
+        // 5. 삭제
+        storeWishRepository.delete(wish);
+
+        log.info("[관심상품 상품ID 기준 삭제] memberId={}, username={}, wishlistId={}, productId={}",
+                member.getId(),
+                member.getUsername(),
+                wish.getWishlistId(),
+                productId
+        );
+    }
+
+    private void applyWishInfo(
+            StoreProductDetailResDto result,
+            StoreProductEntity productEntity,
+            String username
+    ) {
+        // 1. 비로그인 상태면 관심상품 아님으로 내려줌
+        if (isNotLogin(username)) {
+            result.setWished(false);
+            result.setWishlistId(null);
+            return;
+        }
+
+        // 2. 로그인 회원 조회
+        // 상품 상세는 공개 페이지이므로 회원 조회 실패 시 상세 전체를 터뜨리지 않음
+        MemberEntity member = memberRepository
+                .findByUsernameAndDelYn(username, DelYn.N)
+                .orElse(null);
+
+        if (member == null) {
+            result.setWished(false);
+            result.setWishlistId(null);
+            return;
+        }
+
+        // 3. 현재 상품이 로그인 회원의 관심상품인지 조회
+        StoreWishEntity wish = storeWishRepository
+                .findByMember_IdAndProduct_ProductId(
+                        member.getId(),
+                        productEntity.getProductId()
+                )
+                .orElse(null);
+
+        if (wish == null) {
+            result.setWished(false);
+            result.setWishlistId(null);
+            return;
+        }
+
+        result.setWished(true);
+        result.setWishlistId(wish.getWishlistId());
     }
 }
