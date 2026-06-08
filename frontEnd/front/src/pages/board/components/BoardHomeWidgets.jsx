@@ -34,12 +34,25 @@ function formatRelativeTime(dateString) {
 // ==========================================
 // 태그 목록 및 헬퍼 함수
 // ==========================================
-const DEFAULT_NO_IMAGE = "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/%EC%82%AC%EC%A7%84%EC%97%86%EC%9D%84%EB%95%8C%EA%B8%B0%EB%B3%B8.png";
+const DEFAULT_NO_IMAGE =
+  "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/%EC%82%AC%EC%A7%84%EC%97%86%EC%9D%84%EB%95%8C%EA%B8%B0%EB%B3%B8.png";
 
 const TAG_LIST = [
-  "성장", "체중관리", "피브", "소화", "치아",
-  "칼로리", "보상", "기호성", "관절", "면영",
-  "눈", "탈취", "흡수", "위생", "대용량"
+  "성장",
+  "체중관리",
+  "피브",
+  "소화",
+  "치아",
+  "칼로리",
+  "보상",
+  "기호성",
+  "관절",
+  "면영",
+  "눈",
+  "탈취",
+  "흡수",
+  "위생",
+  "대용량",
 ];
 
 function getMockTags(boardId) {
@@ -118,7 +131,12 @@ export function PopularPostsWidget({ list, onItemClick, className }) {
 // ==========================================
 // 2. 자유게시판 최신글 위젯
 // ==========================================
-export function LatestFreePostsWidget({ list, onItemClick, onMoreClick, className }) {
+export function LatestFreePostsWidget({
+  list,
+  onItemClick,
+  onMoreClick,
+  className,
+}) {
   const latestList = [...list].slice(0, 4);
 
   return (
@@ -132,8 +150,7 @@ export function LatestFreePostsWidget({ list, onItemClick, onMoreClick, classNam
           <EmptyText>작성된 게시글이 없습니다.</EmptyText>
         ) : (
           latestList.map((item) => {
-            const firstImg =
-              extractFirstImg(item.content) || DEFAULT_NO_IMAGE;
+            const firstImg = extractFirstImg(item.content) || DEFAULT_NO_IMAGE;
 
             return (
               <LatestItem
@@ -196,8 +213,7 @@ export function BestFacilityReviewsWidget({ list, onItemClick, onMoreClick }) {
           </EmptyText>
         ) : (
           facilityReviews.map((item, idx) => {
-            const firstImg =
-              extractFirstImg(item.content) || DEFAULT_NO_IMAGE;
+            const firstImg = extractFirstImg(item.content) || DEFAULT_NO_IMAGE;
             return (
               <ReviewCard
                 key={item.boardId}
@@ -248,8 +264,7 @@ export function BestProductReviewsWidget({ list, onItemClick, onMoreClick }) {
           </EmptyText>
         ) : (
           productReviews.map((item, idx) => {
-            const firstImg =
-              extractFirstImg(item.content) || DEFAULT_NO_IMAGE;
+            const firstImg = extractFirstImg(item.content) || DEFAULT_NO_IMAGE;
             return (
               <ReviewCard
                 key={item.boardId}
@@ -301,7 +316,7 @@ export function LatestNewsWidget({ list = [], onMoreClick }) {
 
   const stripHtml = (html) => {
     if (!html) return "";
-    return html.replace(/<[^>]*>/g, "").replaceAll("&quot;", "\"");
+    return html.replace(/<[^>]*>/g, "").replaceAll("&quot;", '"');
   };
 
   return (
@@ -326,10 +341,19 @@ export function LatestNewsWidget({ list = [], onMoreClick }) {
                 }}
               >
                 <NewsInfo style={{ padding: "4px 0" }}>
-                  <NewsItemTitle style={{ fontSize: "13px", fontWeight: "700", color: "#343a40", lineHeight: "1.5" }}>
+                  <NewsItemTitle
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: "700",
+                      color: "#343a40",
+                      lineHeight: "1.5",
+                    }}
+                  >
                     {cleanTitle}
                   </NewsItemTitle>
-                  <NewsDate style={{ marginTop: "4px" }}>{formatDate(news.pubDate)}</NewsDate>
+                  <NewsDate style={{ marginTop: "4px" }}>
+                    {formatDate(news.pubDate)}
+                  </NewsDate>
                 </NewsInfo>
               </NewsItem>
             );
@@ -380,12 +404,7 @@ const SvgComment = () => (
 );
 
 const SvgHeartSmall = () => (
-  <svg
-    viewBox="0 0 24 24"
-    width="12"
-    height="12"
-    fill="#adb5bd"
-  >
+  <svg viewBox="0 0 24 24" width="12" height="12" fill="#adb5bd">
     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
   </svg>
 );

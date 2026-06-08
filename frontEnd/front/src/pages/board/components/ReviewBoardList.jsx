@@ -110,7 +110,9 @@ export default function ReviewBoardList({
 
                 <ItemMeta>
                   <LevelBadge>Lv.{item.writerLevel || 1}</LevelBadge>
-                  <WriterName>{item.writerNickname || "탈퇴한 회원"}</WriterName>
+                  <WriterName>
+                    {item.writerNickname || "탈퇴한 회원"}
+                  </WriterName>
                   <span>•</span>
                   <RelativeTime>
                     {formatRelativeTime(item.createdAt)}

@@ -49,7 +49,11 @@ export default function BoardWritePage() {
 
   const location = useLocation();
   const loginMember = getLoginMember();
-  const isAdmin = loginMember?.role === "ADMIN" || loginMember?.role === "A" || loginMember?.role === "BOARD" || loginMember?.role === "B";
+  const isAdmin =
+    loginMember?.role === "ADMIN" ||
+    loginMember?.role === "A" ||
+    loginMember?.role === "BOARD" ||
+    loginMember?.role === "B";
 
   // 사용자 로그인 권한 체크 및 리다이렉트
   useEffect(() => {
@@ -60,11 +64,21 @@ export default function BoardWritePage() {
       return;
     }
 
-    const currentIsAdmin = loginMemberObj.role === "ADMIN" || loginMemberObj.role === "A" || loginMemberObj.role === "BOARD" || loginMemberObj.role === "B";
-    
+    const currentIsAdmin =
+      loginMemberObj.role === "ADMIN" ||
+      loginMemberObj.role === "A" ||
+      loginMemberObj.role === "BOARD" ||
+      loginMemberObj.role === "B";
+
     // 비관리자가 FAQ나 NEWS 글쓰기/수정 진입 시도 시 차단
-    const targetCategory = location.state?.defaultCategory || location.state?.board?.category || boardCategory;
-    if (!currentIsAdmin && (targetCategory === "FAQ" || targetCategory === "NEWS")) {
+    const targetCategory =
+      location.state?.defaultCategory ||
+      location.state?.board?.category ||
+      boardCategory;
+    if (
+      !currentIsAdmin &&
+      (targetCategory === "FAQ" || targetCategory === "NEWS")
+    ) {
       alert("관리자만 이용할 수 있는 기능입니다.");
       navigate(-1);
     }
