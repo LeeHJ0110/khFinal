@@ -93,6 +93,7 @@ export default function ScheduleModal({ open, onClose, data }) {
               />
             </Field>
           </Row>
+          <Label>일정 시간</Label>
           <Row>
             <Select
               value={formData.at?.split(":")[0] || "00"}
@@ -109,7 +110,7 @@ export default function ScheduleModal({ open, onClose, data }) {
             >
               {Array.from({ length: 24 }, (_, i) => (
                 <option key={i} value={String(i).padStart(2, "0")}>
-                  {i}
+                  {i}시
                 </option>
               ))}
             </Select>
@@ -129,7 +130,7 @@ export default function ScheduleModal({ open, onClose, data }) {
             >
               {Array.from({ length: 60 }, (_, i) => (
                 <option key={i} value={String(i).padStart(2, "0")}>
-                  {i}
+                  {i}분
                 </option>
               ))}
             </Select>

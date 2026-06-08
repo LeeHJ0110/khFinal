@@ -54,6 +54,8 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
                 }
               }}
             >
+              <Label>운동 시간</Label>
+
               <Row>
                 <Select
                   value={formData.trainingTime?.split(":")[0] || "00"}
@@ -312,4 +314,10 @@ const PetCheckItem = styled.div`
   &:hover {
     opacity: 0.85;
   }
+`;
+const Label = styled.label`
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #666;
 `;
