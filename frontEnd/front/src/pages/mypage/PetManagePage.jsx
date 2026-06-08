@@ -223,7 +223,7 @@ export default function PetManagePage() {
                     {!isCreateMode && selectedPet?.imageUrl ? (
                       <img src={selectedPet.imageUrl} alt={selectedPet.name} />
                     ) : (
-                      <span>🐶</span>
+                      <span>🐾</span>
                     )}
                   </PetProfileImage>
 
