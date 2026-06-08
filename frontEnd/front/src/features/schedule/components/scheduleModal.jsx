@@ -155,7 +155,7 @@ export default function ScheduleModal({ open, onClose, data }) {
           </Field>
           <Field>
             <Label>색상</Label>
-            <Input
+            <ColorInput
               type="color"
               name="backgroundColor"
               value={formData.backgroundColor}
@@ -295,19 +295,12 @@ const Label = styled.label`
 
 const Input = styled.input`
   height: 46px;
-
-  border: 1px solid #ddd;
-
+  border: 1px solid #a7fd91;
   border-radius: 14px;
-
   padding: 0 14px;
-
   font-size: 14px;
-
   outline: none;
-
   transition: 0.2s;
-
   &:focus {
     border-color: #5ec8a7;
   }
@@ -316,7 +309,7 @@ const Input = styled.input`
 const TextArea = styled.textarea`
   min-height: 180px;
 
-  border: 1px solid #ddd;
+  border: 1px solid #a7fd91;
 
   border-radius: 14px;
 
@@ -425,6 +418,6 @@ const Select = styled.select`
 
   padding: 0 12px;
 
-  border: 1px solid #ddd;
+  border: 1px solid #a7fd91;
   border-radius: 8px;
 `;

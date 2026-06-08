@@ -23,12 +23,14 @@ import insurance from "../../features/petcare/img/preInsurance.png";
 function getTotalChartData(score, listArr) {
   if (!listArr) return [];
   const myScore = typeof score === "number" ? score : 0;
-  const breedAvg = listArr.breedAvgList?.find((i) => i.category === "TOTAL")?.score ?? 0;
-  const petTypeAvg = listArr.petTypeAvgList?.find((i) => i.category === "TOTAL")?.score ?? 0;
+  const breedAvg =
+    listArr.breedAvgList?.find((i) => i.category === "TOTAL")?.score ?? 0;
+  const petTypeAvg =
+    listArr.petTypeAvgList?.find((i) => i.category === "TOTAL")?.score ?? 0;
   return [
     { name: "내 강아지", score: myScore },
     { name: "품종 평균", score: breedAvg },
-    { name: "종 평균",   score: petTypeAvg },
+    { name: "종 평균", score: petTypeAvg },
   ];
 }
 
@@ -48,7 +50,9 @@ export default function HealthCareHome() {
 
   const currentPet = petList?.[currentIndex];
 
-  useEffect(() => { fetchMyPetList(); }, []);
+  useEffect(() => {
+    fetchMyPetList();
+  }, []);
 
   useEffect(() => {
     if (!petList?.length) return;
@@ -72,22 +76,30 @@ export default function HealthCareHome() {
   const score = typeof data === "number" ? data : 0;
 
   const sortedHistory = useMemo(
-    () => [...(listHis ?? [])].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)),
-    [listHis]
+    () =>
+      [...(listHis ?? [])].sort(
+        (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+      ),
+    [listHis],
   );
 
   const totalChartData = useMemo(
     () => getTotalChartData(score, listArr),
-    [score, listArr]
+    [score, listArr],
   );
 
-  const breedAvgScore = listArr?.breedAvgList?.find((i) => i.category === "TOTAL")?.score;
+  const breedAvgScore = listArr?.breedAvgList?.find(
+    (i) => i.category === "TOTAL",
+  )?.score;
   const diffFromBreed = breedAvgScore != null ? score - breedAvgScore : null;
   const compText =
-    diffFromBreed === null ? "" :
-    diffFromBreed > 0 ? `${currentPet?.name ?? "우리 아이"}는 품종 평균보다 ${diffFromBreed}점 높아요` :
-    diffFromBreed < 0 ? `${currentPet?.name ?? "우리 아이"}는 품종 평균보다 ${Math.abs(diffFromBreed)}점 낮아요` :
-    "품종 평균과 동일해요";
+    diffFromBreed === null
+      ? ""
+      : diffFromBreed > 0
+        ? `${currentPet?.name ?? "우리 아이"}는 품종 평균보다 ${diffFromBreed}점 높아요`
+        : diffFromBreed < 0
+          ? `${currentPet?.name ?? "우리 아이"}는 품종 평균보다 ${Math.abs(diffFromBreed)}점 낮아요`
+          : "품종 평균과 동일해요";
 
   const showNav = petList?.length > 1;
 
@@ -95,14 +107,19 @@ export default function HealthCareHome() {
     <>
       <PetCareNav />
       <Wrapper>
-
         {/* ── TopSection ── */}
         <TopWrapper>
           {/* 왼쪽 화살표 */}
           {showNav && (
             <ArrowBtn onClick={handlePrev} aria-label="이전 반려동물">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path
+                  d="M13 4L7 10L13 16"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </ArrowBtn>
           )}
@@ -114,13 +131,31 @@ export default function HealthCareHome() {
                 <p>로딩중</p>
               ) : currentPet ? (
                 <PetCard>
-                  <PetImage />
+                  <PetThumb>
+                    {currentPet.imageUrl ? (
+                      <img src={currentPet.imageUrl} alt={currentPet.name} />
+                    ) : (
+                      <span>🐾</span>
+                    )}
+                  </PetThumb>
                   <PetInfo>
                     <PetName>{currentPet.name}</PetName>
-                    <InfoRow><span>품종</span><strong>{currentPet.breedName}</strong></InfoRow>
-                    <InfoRow><span>몸무게</span><strong>{currentPet.weight}kg</strong></InfoRow>
-                    <InfoRow><span>생년월일</span><strong>{currentPet.birthDate}</strong></InfoRow>
-                    <PetButton type="button" onClick={() => navigate("/mypage/pet-manage")}>
+                    <InfoRow>
+                      <span>품종</span>
+                      <strong>{currentPet.breedName}</strong>
+                    </InfoRow>
+                    <InfoRow>
+                      <span>몸무게</span>
+                      <strong>{currentPet.weight}kg</strong>
+                    </InfoRow>
+                    <InfoRow>
+                      <span>생년월일</span>
+                      <strong>{currentPet.birthDate}</strong>
+                    </InfoRow>
+                    <PetButton
+                      type="button"
+                      onClick={() => navigate("/mypage/pet-manage")}
+                    >
                       반려동물 정보관리
                     </PetButton>
                   </PetInfo>
@@ -137,7 +172,10 @@ export default function HealthCareHome() {
               {scoreLoading ? (
                 <p>로딩중</p>
               ) : currentPet ? (
-                <HealthScore petId={currentPet.petId} petName={currentPet.name} />
+                <HealthScore
+                  petId={currentPet.petId}
+                  petName={currentPet.name}
+                />
               ) : (
                 <p>반려동물을 등록해주세요</p>
               )}
@@ -162,7 +200,12 @@ export default function HealthCareHome() {
                     <XAxis dataKey="createdAt" tick={{ fontSize: 11 }} />
                     <YAxis width={36} domain={[0, 100]} />
                     <Tooltip />
-                    <Area type="monotone" dataKey="score" stroke="#5EC8A7" fill="#5EC8A7" />
+                    <Area
+                      type="monotone"
+                      dataKey="score"
+                      stroke="#5EC8A7"
+                      fill="#5EC8A7"
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               )}
@@ -173,7 +216,13 @@ export default function HealthCareHome() {
           {showNav && (
             <ArrowBtn onClick={handleNext} aria-label="다음 반려동물">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M7 4L13 10L7 16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path
+                  d="M7 4L13 10L7 16"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </ArrowBtn>
           )}
@@ -193,12 +242,20 @@ export default function HealthCareHome() {
               <EmptyText>로딩중</EmptyText>
             ) : (
               <ResponsiveContainer width="100%" height="80%">
-                <BarChart data={totalChartData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                <BarChart
+                  data={totalChartData}
+                  margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                   <YAxis domain={[0, 100]} width={36} />
                   <Tooltip />
-                  <Bar dataKey="score" fill="#5EC8A7" radius={[4, 4, 0, 0]} name="종합 점수" />
+                  <Bar
+                    dataKey="score"
+                    fill="#5EC8A7"
+                    radius={[4, 4, 0, 0]}
+                    name="종합 점수"
+                  />
                 </BarChart>
               </ResponsiveContainer>
             )}
@@ -214,10 +271,21 @@ export default function HealthCareHome() {
 
           {/* 배너 */}
           <Card $flex={1} $banner>
-            <img src={insurance} alt="보험 배너" style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "16px" }} />
+            <img
+              src={insurance}
+              alt="보험 배너"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: "16px",
+              }}
+              onClick={() => {
+                navigate("/healthcare/petinsurance");
+              }}
+            />
           </Card>
         </BottomSection>
-
       </Wrapper>
     </>
   );
@@ -253,8 +321,10 @@ const ArrowBtn = styled.button`
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #5EC8A7;
-  transition: background 0.15s, box-shadow 0.15s;
+  color: #5ec8a7;
+  transition:
+    background 0.15s,
+    box-shadow 0.15s;
 
   &:hover {
     background: #f0faf6;
@@ -316,12 +386,27 @@ const PetCard = styled.section`
   gap: 30px;
 `;
 
-const PetImage = styled.div`
+const PetThumb = styled.div`
   width: 160px;
   height: 160px;
   border-radius: 50%;
+  margin: 12px auto 10px;
   background: #ddd;
-  flex-shrink: 0;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  span {
+    font-size: 30px;
+  }
 `;
 
 const PetInfo = styled.div`
@@ -349,12 +434,17 @@ const InfoRow = styled.div`
   gap: 12px;
   margin-bottom: 6px;
   font-size: 13px;
-  span { width: 52px; color: #666; }
-  strong { color: #333; }
+  span {
+    width: 52px;
+    color: #666;
+  }
+  strong {
+    color: #333;
+  }
 `;
 
 const RegisterBtn = styled.button`
-  background: #5EC8A7;
+  background: #5ec8a7;
   color: white;
   border: none;
   border-radius: 10px;

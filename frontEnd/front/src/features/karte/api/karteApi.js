@@ -1,7 +1,7 @@
 import api from "../../../app/api/axios";
 
-export async function fetchKarteList() {
-  return await api.get(`/karte`);
+export async function fetchKarteList(page) {
+  return await api.get(`/karte?pno=${page}`);
 }
 
 export async function fetchKarteWrite(vo) {

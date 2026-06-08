@@ -17,7 +17,7 @@ const CARDS = [
     description:
       "수의사가 작성한 진단 결과를\n확인해 건강상태를\n확인해 보세요",
     src: pawprint,
-    path: "/healthCare/result",
+    path: "/healthCare/resultList",
   },
 ];
 
