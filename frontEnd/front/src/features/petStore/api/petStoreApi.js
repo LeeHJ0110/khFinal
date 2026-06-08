@@ -132,3 +132,30 @@ export async function fetchProductList({
 
   return await api.get(`/store/product${queryString ? `?${queryString}` : ""}`);
 }
+
+//9. 사용자 : 관심상품 등록
+export async function insertWishProduct({ productId }) {
+  return await api.post(`/store/product/wish/insert`, {
+    productId,
+  });
+}
+
+//10. 사용자 : 관심상품 목록 조회
+// page     : 페이지 번호
+// category : FOOD, SNACK, SUPPLEMENT, TOILET
+export async function fetchWishList({ page = 0, category } = {}) {
+  const params = new URLSearchParams();
+
+  params.append("page", page);
+
+  if (category) {
+    params.append("category", category);
+  }
+
+  return await api.get(`/store/product/wish/list?${params.toString()}`);
+}
+
+//11. 사용자 : 관심상품 삭제
+export async function deleteWishProduct(wishlistId) {
+  return await api.delete(`/store/product/wish/delete/${wishlistId}`);
+}

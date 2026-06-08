@@ -7,17 +7,11 @@ import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.pet.entity.PetEntity;
 import com.kh.app.pet.entity.PetType;
 import com.kh.app.pet.repository.PetRepository;
-import com.kh.app.store.dto.request.StoreFeedingGuideInsertReqDto;
-import com.kh.app.store.dto.request.StoreInsertReqDto;
-import com.kh.app.store.dto.request.StoreNutritionInsertReqDto;
-import com.kh.app.store.dto.request.StoreUpdateReqDto;
+import com.kh.app.store.dto.request.*;
 import com.kh.app.store.dto.response.*;
 import com.kh.app.store.entity.*;
-import com.kh.app.store.repository.StoreProductFeedingGuideRepository;
-import com.kh.app.store.repository.StoreProductImageRepository;
-import com.kh.app.store.repository.StoreProductNutritionRepository;
-import com.kh.app.store.repository.StoreProductRepository;
-import com.kh.app.store.repository.StoreProductTagRepository;
+import com.kh.app.store.repository.*;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,6 +42,7 @@ public class StoreProductService {
     private final StoreProductImageRepository storeProductImageRepository;
     private final MemberRepository memberRepository;
     private final PetRepository petRepository;
+    private final StoreWishRepository storeWishRepository;
 
     private final S3Service s3Service;
 
@@ -778,5 +773,156 @@ public class StoreProductService {
         }
 
         return null;
+    }
+
+    @Transactional
+    public void wishInsert(StoreWishInsertReqDto reqDto, String username) {
+        // 1. 로그인 여부 확인
+        if (isNotLogin(username)) {
+            throw new IllegalStateException("로그인 후 관심상품을 이용할 수 있습니다.");
+        }
+
+        // 2. 요청값 검증
+        if (reqDto == null || reqDto.getProductId() == null) {
+            throw new IllegalArgumentException("상품 ID는 필수입니다.");
+        }
+
+        // 3. 로그인 회원 조회
+        MemberEntity member = getLoginMember(username);
+
+        // 4. 상품 조회
+        StoreProductEntity product = storeProductRepository.findById(reqDto.getProductId())
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 상품입니다."));
+
+        // 5. 판매중 여부 확인
+        if (!product.isOnSale()) {
+            throw new IllegalStateException("판매중지된 상품은 관심상품에 등록할 수 없습니다.");
+        }
+
+        // 6. 중복 관심상품 확인
+        boolean alreadyExists = storeWishRepository.existsByMember_IdAndProduct_ProductId(
+                member.getId(),
+                product.getProductId()
+        );
+
+        if (alreadyExists) {
+            throw new IllegalStateException("이미 관심상품에 등록된 상품입니다.");
+        }
+
+        // 7. 관심상품 등록
+        StoreWishEntity newWish = StoreWishEntity.builder()
+                .member(member)
+                .product(product)
+                .build();
+
+        storeWishRepository.save(newWish);
+
+        log.info("[관심상품 신규 등록] memberId={}, username={}, productId={}",
+                member.getId(),
+                member.getUsername(),
+                product.getProductId()
+        );
+    }
+
+    public Page<StoreWishListResDto> getWishList(
+            String username,
+            int page,
+            StoreProductCategory category
+    ) {
+        // 1. 로그인 여부 확인
+        if (isNotLogin(username)) {
+            throw new IllegalStateException("로그인 후 관심상품을 이용할 수 있습니다.");
+        }
+
+        // 2. 로그인 회원 조회
+        MemberEntity member = getLoginMember(username);
+
+        // 3. 페이지 번호 보정
+        int pageNo = Math.max(page, 0);
+
+        // 4. 페이지 설정
+        Pageable pageable = PageRequest.of(pageNo, 10);
+
+        // 5. 카테고리 조건에 따라 관심상품 조회
+        Page<StoreWishEntity> wishPage;
+
+        if (category == null) {
+            wishPage = storeWishRepository.findByMemberOrderByWishlistIdDesc(
+                    member,
+                    pageable
+            );
+        } else {
+            wishPage = storeWishRepository.findByMemberAndProduct_ProductCategoryOrderByWishlistIdDesc(
+                    member,
+                    category,
+                    pageable
+            );
+        }
+
+        // 6. DTO 변환
+        return wishPage.map(wishItem -> {
+            String mainImageUrl = getMainImageUrlByProductId(
+                    wishItem.getProduct().getProductId()
+            );
+
+            return StoreWishListResDto.from(wishItem, mainImageUrl);
+        });
+    }
+
+    private String getMainImageUrlByProductId(Long productId) {
+        StoreProductImageEntity mainImage =
+                storeProductImageRepository
+                        .findFirstByProduct_ProductIdAndImageRepresentYnOrderBySortOrderAsc(
+                                productId,
+                                "Y"
+                        )
+                        .orElse(null);
+
+        if (mainImage == null) {
+            return null;
+        }
+
+        return makeS3Url(mainImage.getImageChangedName());
+    }
+
+    private MemberEntity getLoginMember(String username) {
+        return memberRepository
+                .findByUsernameAndDelYn(username, DelYn.N)
+                .orElseThrow(() -> new EntityNotFoundException("로그인 회원을 찾을 수 없습니다."));
+    }
+
+    private boolean isNotLogin(String username) {
+        return username == null || username.isBlank() || "anonymousUser".equals(username);
+    }
+
+    @Transactional
+    public void wishDelete(Long wishlistId, String username) {
+        // 1. 로그인 여부 확인
+        if (isNotLogin(username)) {
+            throw new IllegalStateException("로그인 후 관심상품을 이용할 수 있습니다.");
+        }
+
+        // 2. 요청값 검증
+        if (wishlistId == null) {
+            throw new IllegalArgumentException("관심상품 ID는 필수입니다.");
+        }
+
+        // 3. 로그인 회원 조회
+        MemberEntity member = getLoginMember(username);
+
+        // 4. 로그인 회원의 관심상품인지 확인하면서 단건 조회
+        StoreWishEntity wish = storeWishRepository.findByWishlistIdAndMember(wishlistId, member)
+                .orElseThrow(() -> new EntityNotFoundException("관심상품을 찾을 수 없습니다."));
+
+        // 5. 삭제
+        storeWishRepository.delete(wish);
+
+        // 6. 로그
+        log.info("[관심상품 삭제] memberId={}, username={}, wishlistId={}, productId={}",
+                member.getId(),
+                member.getUsername(),
+                wish.getWishlistId(),
+                wish.getProduct().getProductId()
+        );
     }
 }

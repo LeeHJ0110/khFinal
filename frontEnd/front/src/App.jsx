@@ -61,6 +61,7 @@ import PetStoreOrderCompletePage from "./pages/petStore/PetStoreOrderCompletePag
 import AdminMemberPage from "./pages/admin/member/AdminMemberPage";
 import AdminMessageSendPage from "./pages/admin/message/AdminMessageSendPage";
 import AdminSentMessagePage from "./pages/admin/message/AdminSentMessagePage";
+import PetStoreWishListPage from "./pages/petStore/PetStoreWishListPage";
 
 function App() {
   return (
@@ -117,6 +118,9 @@ function App() {
               path="product/admin"
               element={<PetStoreAdminProductListPage />}
             />
+
+            {/* 관심상품 */}
+            <Route path="wish/list" element={<PetStoreWishListPage />} />
 
             {/* 장바구니 */}
             <Route path="cart/list" element={<PetStoreCartListPage />} />
