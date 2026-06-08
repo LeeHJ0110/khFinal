@@ -90,11 +90,17 @@ function PreviewSection({ selectedPet, onChangeSelectedPet }) {
 
   const [petList, setPetList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
   const [isPetMenuOpen, setIsPetMenuOpen] = useState(false);
+
+  const [hasProfileImageError, setHasProfileImageError] = useState(false);
 
   // 부모 컴포넌트에서 관리하는 선택 펫
   const petInfo = selectedPet;
 
+  // =====================================
+  // 로그인한 회원의 반려동물 목록 조회
+  // =====================================
   useEffect(() => {
     async function loadPetInfo() {
       try {
@@ -125,6 +131,17 @@ function PreviewSection({ selectedPet, onChangeSelectedPet }) {
     loadPetInfo();
   }, [onChangeSelectedPet]);
 
+  // 현재 선택된 펫 이미지 URL
+  const profileImageUrl = getProfileImageUrl(petInfo);
+
+  // =====================================
+  // 펫 또는 이미지 주소 변경 시
+  // 기존 이미지 오류 상태 초기화
+  // =====================================
+  useEffect(() => {
+    setHasProfileImageError(false);
+  }, [petInfo?.petId, profileImageUrl]);
+
   if (isLoading) {
     return (
       <PreviewWrapper>
@@ -133,15 +150,14 @@ function PreviewSection({ selectedPet, onChangeSelectedPet }) {
     );
   }
 
-  // 현재 선택된 펫 정보
-  const profileImageUrl = getProfileImageUrl(petInfo);
-
   const age = calculateAge(petInfo?.birthDate);
 
   // 현재 선택된 펫의 건강진단 진행 여부
   const isApplying = petInfo?.diagnosisInProgress === true;
 
+  // =====================================
   // 선택한 펫 변경
+  // =====================================
   function handleSelectPet(pet) {
     onChangeSelectedPet(pet);
     setIsPetMenuOpen(false);
@@ -154,13 +170,19 @@ function PreviewSection({ selectedPet, onChangeSelectedPet }) {
         {petInfo ? (
           <>
             <ProfileImageBox>
-              {profileImageUrl ? (
+              {profileImageUrl && !hasProfileImageError ? (
                 <ProfileImage
                   src={profileImageUrl}
                   alt={`${petInfo.name ?? "반려동물"} 프로필`}
+                  onError={() => setHasProfileImageError(true)}
                 />
               ) : (
-                <NoProfileImage>이미지 없음</NoProfileImage>
+                <DefaultProfileEmoji
+                  aria-label="기본 반려동물 프로필"
+                  role="img"
+                >
+                  🐾
+                </DefaultProfileEmoji>
               )}
             </ProfileImageBox>
 
@@ -374,7 +396,7 @@ const ProfileImageBox = styled.div`
 
   border-radius: 50%;
 
-  background: var(--color-bg-light);
+  background: #dddddd;
 
   transition:
     transform 0.25s ease,
@@ -400,11 +422,18 @@ const ProfileImage = styled.img`
   }
 `;
 
-const NoProfileImage = styled.span`
-  color: var(--text-desc);
+const DefaultProfileEmoji = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  font-size: 13px;
-  font-weight: 600;
+  width: 100%;
+  height: 100%;
+
+  background: #dddddd;
+
+  font-size: 34px;
+  line-height: 1;
 `;
 
 const ProfileContent = styled.div`
@@ -559,6 +588,7 @@ const PetInfoBadge = styled.span`
   border-radius: 6px;
 
   background: var(--color-white);
+
   color: var(--text-sub);
 
   font-size: 12px;
@@ -635,6 +665,7 @@ const PointText = styled.p`
 
 const ProfileButtonGroup = styled.div`
   display: grid;
+
   grid-template-columns: 1fr 1fr;
 `;
 
@@ -646,6 +677,7 @@ const SubButton = styled.button`
   border-radius: 7px 0 0 7px;
 
   background: var(--color-white);
+
   color: var(--text-sub);
 
   font-size: 12px;
@@ -668,9 +700,11 @@ const ApplyButton = styled.button`
   height: 43px;
 
   border: none;
+
   border-radius: 0 7px 7px 0;
 
   background: var(--color-main);
+
   color: var(--color-white);
 
   font-size: 14px;
@@ -717,6 +751,7 @@ const RegisterButton = styled.button`
   border-radius: 8px;
 
   background: var(--color-white);
+
   color: var(--color-main);
 
   font-size: 14px;
@@ -816,6 +851,7 @@ const CheckIcon = styled.span`
   border-radius: 50%;
 
   background: var(--color-main);
+
   color: var(--color-white);
 
   font-size: 15px;
