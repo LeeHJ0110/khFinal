@@ -13,7 +13,7 @@
   padding: 60px 70px;
   box-sizing: border-box;
 
-  color: white;
+  color: var(--color-white);
 }
 
 /* 배경 동영상 */
@@ -48,9 +48,20 @@
   margin-top: -160px;
 }
 
+.main-logo-button {
+  display: block;
+  width: fit-content;
+  padding: 0;
+  margin: 0 0 20px;
+
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
 .main-logo {
+  display: block;
   width: 130px;
-  margin-bottom: 20px;
 }
 
 .login-hero h2 {
@@ -63,7 +74,7 @@
   font-size: 52px;
   margin: 0 0 45px;
   font-weight: 900;
-  color: #7ee0cf;
+  color: var(--color-main);
 }
 
 .login-hero p {
@@ -74,19 +85,24 @@
 
 .login-card {
   width: 420px;
+  min-width: 420px;
+  max-width: 420px;
+  flex: 0 0 420px;
+
   padding: 35px 45px;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(4px);
-  color: #222;
+  color: var(--text-main);
   text-align: center;
 }
 
 .card-logo {
-  width: 80px;
-  margin-bottom: 8px;
+  display: block;
+  width: 200px;
+  height: auto;
+  margin: -10px auto 0;
 }
-
 .login-card h2 {
   margin: 0;
   font-size: 28px;
@@ -94,7 +110,7 @@
 
 .welcome {
   font-size: 12px;
-  color: #777;
+  color: var(--text-desc);
   margin-bottom: 28px;
 }
 
@@ -112,14 +128,14 @@
 
 .login-card input[type="text"]:focus,
 .login-card input[type="password"]:focus {
-  box-shadow: 0 0 0 2px rgba(0, 180, 134, 0.35);
+  box-shadow: 0 0 0 2px rgba(0, 169, 123, 0.35);
 }
 
 .login-options {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #666;
+  color: var(--text-sub);
   margin: 0 0 18px;
 }
 
@@ -134,27 +150,27 @@
   height: 44px;
   border: none;
   border-radius: 6px;
-  background: #00b486;
-  color: white;
+  background: var(--color-main);
+  color: var(--color-white);
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
 }
 
 .login-btn:hover {
-  background: #009f78;
+  background: var(--color-main-dark);
 }
 
 .login-error {
   margin: 14px 0 0;
-  color: #e53935;
+  color: var(--color-error, #e53935);
   font-size: 13px;
   font-weight: 600;
 }
 
 .divider {
   height: 1px;
-  background: rgba(180, 180, 180, 0.7);
+  background: var(--color-line, rgba(180, 180, 180, 0.7));
   margin: 38px 0 24px;
 }
 
@@ -173,10 +189,10 @@
 .join-btn {
   width: 100%;
   height: 42px;
-  border: 1px solid white;
+  border: 1px solid var(--color-white);
   border-radius: 6px;
   background: transparent;
-  color: #333;
+  color: var(--text-main);
   font-weight: 700;
   cursor: pointer;
 }
