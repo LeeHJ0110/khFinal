@@ -71,4 +71,21 @@ public class CommunityHistoryController {
                 )
         );
     }
+    @GetMapping("/comment")
+    public ResponseEntity<Page<CommunityHistoryBoardResDto>> getMyReplyBoards(
+            Authentication authentication,
+            @PageableDefault(
+                    size = 5,
+                    sort = "createdAt",
+                    direction = Sort.Direction.DESC
+            )
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(
+                communityHistoryService.getMyReplyBoards(
+                        authentication.getName(),
+                        pageable
+                )
+        );
+    }
 }

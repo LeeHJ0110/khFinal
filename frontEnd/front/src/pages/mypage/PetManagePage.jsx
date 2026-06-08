@@ -39,8 +39,10 @@ export default function PetManagePage() {
   useEffect(() => {
     if (!selectedPet || isCreateMode) return;
 
+    const petType = selectedPet.petType || "D";
+
     setFormData({
-      petType: selectedPet.petType || "D",
+      petType,
       name: selectedPet.name || "",
       breedName: selectedPet.breedName || "",
       gender: selectedPet.gender || "",
@@ -48,13 +50,23 @@ export default function PetManagePage() {
       weight: selectedPet.weight || "",
       representYn: selectedPet.representYn || "N",
     });
+
+    fetchBreedList(petType);
   }, [selectedPet, isCreateMode]);
   useEffect(() => {
-    if (!loading && !hasPet) {
+    if (loading) {
+      return;
+    }
+
+    if (!hasPet) {
       setCreateMode(true);
       setDetailOpen(true);
       setFormData(emptyForm);
+      return;
     }
+
+    setCreateMode(false);
+    setDetailOpen(true);
   }, [loading, hasPet]);
   async function handleChange(evt) {
     const { name, value } = evt.target;
@@ -81,15 +93,6 @@ export default function PetManagePage() {
     setFormData(emptyForm);
   }
 
-  function handleSelectPet(index) {
-    selectPet(index);
-    setCreateMode(false);
-  }
-
-  function handleCreateMode() {
-    setCreateMode(true);
-    setFormData(emptyForm);
-  }
   async function handleDelete() {
     if (!selectedPet) {
       return;
@@ -124,6 +127,10 @@ export default function PetManagePage() {
 
     if (!formData.gender) {
       alert("성별을 선택하세요.");
+      return;
+    }
+    if (formData.birthDate > new Date().toISOString().slice(0, 10)) {
+      alert("생년월일은 오늘 이후 날짜를 선택할 수 없습니다.");
       return;
     }
 
@@ -290,6 +297,7 @@ export default function PetManagePage() {
                     name="birthDate"
                     value={formData.birthDate}
                     onChange={handleChange}
+                    max={new Date().toISOString().slice(0, 10)}
                   />
                 </InfoRow>
 

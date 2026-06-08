@@ -4,6 +4,7 @@ import MyPageLayout from "./components/MyPageLayout";
 import useCommunityHistory from "../../features/mypage/community/hooks/useCommunityHistory";
 import FreeBoardList from "../board/components/FreeBoardList";
 import ReviewBoardList from "../board/components/ReviewBoardList";
+import { useNavigate } from "react-router-dom";
 
 const tabs = [
   { label: "자유게시판", value: "FREE" },
@@ -14,7 +15,7 @@ const tabs = [
 
 export default function CommunityHistoryPage() {
   const [activeTab, setActiveTab] = useState("FREE");
-
+  const navigate = useNavigate();
   const { list, loading, currentPage, setCurrentPage, totalPages } =
     useCommunityHistory(activeTab);
 
@@ -30,7 +31,7 @@ export default function CommunityHistoryPage() {
           list={list}
           isLoading={loading}
           onItemClick={(item) => {
-            console.log("자유게시글 클릭:", item);
+            navigate(`/community/detail/${item.boardId}`);
           }}
         />
       );
@@ -43,7 +44,7 @@ export default function CommunityHistoryPage() {
           list={list}
           isLoading={loading}
           onItemClick={(item) => {
-            console.log("상품후기 클릭:", item);
+            navigate(`/community/detail/${item.boardId}`);
           }}
         />
       );
@@ -56,13 +57,21 @@ export default function CommunityHistoryPage() {
           list={list}
           isLoading={loading}
           onItemClick={(item) => {
-            console.log("시설후기 클릭:", item);
+            navigate(`/community/detail/${item.boardId}`);
           }}
         />
       );
     }
 
-    return <CommentHistoryList list={list} isLoading={loading} />;
+    return (
+      <FreeBoardList
+        list={list}
+        isLoading={loading}
+        onItemClick={(item) => {
+          navigate(`/community/detail/${item.boardId}`);
+        }}
+      />
+    );
   }
 
   return (
@@ -118,38 +127,6 @@ export default function CommunityHistoryPage() {
       )}
     </MyPageLayout>
   );
-}
-
-function CommentHistoryList({ list, isLoading }) {
-  if (isLoading) {
-    return <EmptyBox>댓글 이력을 불러오는 중입니다...</EmptyBox>;
-  }
-
-  if (!list || list.length === 0) {
-    return <EmptyBox>작성한 댓글이 없습니다.</EmptyBox>;
-  }
-
-  return (
-    <CommentListWrapper>
-      {list.map((comment) => (
-        <CommentItem key={comment.commentId}>
-          <CommentTitle>{comment.boardTitle}</CommentTitle>
-
-          <CommentContent>{comment.content}</CommentContent>
-
-          <CommentMeta>{formatDate(comment.createdAt)}</CommentMeta>
-        </CommentItem>
-      ))}
-    </CommentListWrapper>
-  );
-}
-
-function formatDate(value) {
-  if (!value) {
-    return "";
-  }
-
-  return String(value).replace("T", " ").slice(0, 16);
 }
 
 const Title = styled.h1`
@@ -248,39 +225,4 @@ const ArrowBtn = styled.button`
     opacity: 0.4;
     cursor: not-allowed;
   }
-`;
-
-const CommentListWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-`;
-
-const CommentItem = styled.div`
-  padding: 20px 10px;
-  border-bottom: 1px solid #f1f3f4;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #fafbfc;
-  }
-`;
-
-const CommentTitle = styled.h2`
-  font-size: 15px;
-  font-weight: 800;
-  color: #222;
-  margin: 0 0 8px;
-`;
-
-const CommentContent = styled.p`
-  font-size: 14px;
-  color: #555;
-  margin: 0 0 10px;
-  line-height: 1.6;
-`;
-
-const CommentMeta = styled.div`
-  font-size: 12px;
-  color: #888;
 `;
