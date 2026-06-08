@@ -195,11 +195,25 @@ export default function BoardDetailPage() {
         console.error("loginMember parse error", e);
       }
     }
-    const token = loginMember?.accessToken || localStorage.getItem("accessToken");
+    const token =
+      loginMember?.accessToken || localStorage.getItem("accessToken");
     if (token) {
       try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        return payload.role;
+        const payloadPart = token.split(".")[1];
+        if (payloadPart) {
+          const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+          const decodedPayload = decodeURIComponent(
+            atob(base64)
+              .split("")
+              .map(
+                (char) =>
+                  `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`,
+              )
+              .join(""),
+          );
+          const payload = JSON.parse(decodedPayload);
+          return payload.role;
+        }
       } catch (e) {
         console.error("Token decode error", e);
       }
