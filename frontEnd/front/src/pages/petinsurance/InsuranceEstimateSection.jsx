@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import styled from "styled-components";
 
@@ -11,6 +11,77 @@ function InsuranceEstimateSection() {
   const [isLoading, setIsLoading] = useState(false);
 
   const [errorMessage, setErrorMessage] = useState("");
+
+  const [selectedYear, setSelectedYear] = useState("ALL");
+  const [selectedMonth, setSelectedMonth] = useState("ALL");
+
+  // =========================================================
+  // 조회 가능한 연도 목록
+  // 현재 연도부터 1980년까지 모두 표시
+  // =========================================================
+  const availableYearList = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+
+    return Array.from(
+      { length: currentYear - 1980 + 1 },
+      (_, index) => currentYear - index,
+    );
+  }, []);
+
+  // =========================================================
+  // 선택한 연도와 월에 맞게 결제 내역 필터링
+  // =========================================================
+  const filteredPaymentHistoryList = useMemo(() => {
+    return paymentHistoryList.filter((payment) => {
+      const date = getValidDate(payment.paidAt);
+
+      if (!date) {
+        return selectedYear === "ALL" && selectedMonth === "ALL";
+      }
+
+      const year = String(date.getFullYear());
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+
+      const isYearMatched = selectedYear === "ALL" || year === selectedYear;
+
+      const isMonthMatched = selectedMonth === "ALL" || month === selectedMonth;
+
+      return isYearMatched && isMonthMatched;
+    });
+  }, [paymentHistoryList, selectedYear, selectedMonth]);
+
+  // =========================================================
+  // 결제 내역을 월별로 그룹화
+  // SUCCESS 상태의 결제 금액만 월별 최종 금액에 포함
+  // =========================================================
+  const monthlyPaymentHistoryList = useMemo(() => {
+    const groupedMap = new Map();
+
+    filteredPaymentHistoryList.forEach((payment) => {
+      const monthKey = getMonthKey(payment.paidAt);
+
+      if (!groupedMap.has(monthKey)) {
+        groupedMap.set(monthKey, {
+          monthKey,
+          monthLabel: formatMonthLabel(monthKey),
+          totalAmount: 0,
+          paymentList: [],
+        });
+      }
+
+      const monthGroup = groupedMap.get(monthKey);
+
+      monthGroup.paymentList.push(payment);
+
+      if (payment.paymentStatus === "SUCCESS") {
+        monthGroup.totalAmount += Number(payment.paymentAmount || 0);
+      }
+    });
+
+    return Array.from(groupedMap.values()).sort((a, b) =>
+      b.monthKey.localeCompare(a.monthKey),
+    );
+  }, [filteredPaymentHistoryList]);
 
   // =========================================================
   // 모달이 열려 있는 동안 배경 스크롤 방지
@@ -46,6 +117,8 @@ function InsuranceEstimateSection() {
       }
 
       setPaymentHistoryList(data);
+      setSelectedYear("ALL");
+      setSelectedMonth("ALL");
       setIsModalOpen(true);
     } catch (error) {
       console.error("펫 보험 정기결제 내역 조회 실패:", error);
@@ -161,6 +234,46 @@ function InsuranceEstimateSection() {
                   <ModalDescription>
                     최초 보험료 결제와 이후 정기결제 내역을 확인할 수 있습니다.
                   </ModalDescription>
+
+                  <FilterRow>
+                    <FilterSelect
+                      value={selectedYear}
+                      onChange={(event) => setSelectedYear(event.target.value)}
+                      aria-label="결제 연도 선택"
+                    >
+                      <option value="ALL">전체 연도</option>
+
+                      {availableYearList.map((year) => (
+                        <option key={year} value={String(year)}>
+                          {year}년
+                        </option>
+                      ))}
+                    </FilterSelect>
+
+                    <FilterSelect
+                      value={selectedMonth}
+                      onChange={(event) => setSelectedMonth(event.target.value)}
+                      aria-label="결제 월 선택"
+                    >
+                      <option value="ALL">전체 월</option>
+
+                      {MONTH_OPTION_LIST.map((month) => (
+                        <option key={month} value={month}>
+                          {Number(month)}월
+                        </option>
+                      ))}
+                    </FilterSelect>
+
+                    <ResetFilterButton
+                      type="button"
+                      onClick={() => {
+                        setSelectedYear("ALL");
+                        setSelectedMonth("ALL");
+                      }}
+                    >
+                      초기화
+                    </ResetFilterButton>
+                  </FilterRow>
                 </div>
 
                 <CloseButton
@@ -173,57 +286,90 @@ function InsuranceEstimateSection() {
               </ModalHeader>
 
               <ModalBody>
-                {paymentHistoryList.length === 0 ? (
+                {filteredPaymentHistoryList.length === 0 ? (
                   <EmptyHistory>
                     <EmptyIcon>₩</EmptyIcon>
 
-                    <EmptyTitle>아직 결제된 보험료가 없습니다</EmptyTitle>
+                    <EmptyTitle>
+                      {paymentHistoryList.length === 0
+                        ? "아직 결제된 보험료가 없습니다"
+                        : "선택한 기간의 결제 내역이 없습니다"}
+                    </EmptyTitle>
 
                     <EmptyDescription>
-                      보험 가입 승인 후 결제가 완료되면 이곳에서 내역을 확인할
-                      수 있습니다.
+                      {paymentHistoryList.length === 0
+                        ? "보험 가입 승인 후 결제가 완료되면 이곳에서 내역을 확인할 수 있습니다."
+                        : "조회 연도 또는 월을 변경해 주세요."}
                     </EmptyDescription>
                   </EmptyHistory>
                 ) : (
-                  <PaymentHistoryList>
-                    {paymentHistoryList.map((payment) => (
-                      <PaymentHistoryItem key={payment.paymentId}>
-                        <PaymentTopRow>
-                          <PaymentDate>
-                            {formatDateTime(payment.paidAt)}
-                          </PaymentDate>
+                  <MonthlyHistoryList>
+                    {monthlyPaymentHistoryList.map((monthGroup) => (
+                      <MonthlyHistorySection key={monthGroup.monthKey}>
+                        <MonthlySummary>
+                          <div>
+                            <MonthlyTitle>{monthGroup.monthLabel}</MonthlyTitle>
 
-                          <PaymentStatus $status={payment.paymentStatus}>
-                            {getPaymentStatusLabel(payment.paymentStatus)}
-                          </PaymentStatus>
-                        </PaymentTopRow>
+                            <MonthlyDescription>
+                              결제 완료된 보험료 기준
+                            </MonthlyDescription>
+                          </div>
 
-                        <PaymentDivider />
+                          <MonthlyTotalArea>
+                            <MonthlyTotalLabel>
+                              월별 최종 금액
+                            </MonthlyTotalLabel>
 
-                        <PaymentInfoRow>
-                          <PaymentLabel>반려동물</PaymentLabel>
+                            <MonthlyTotalPrice>
+                              {formatPrice(monthGroup.totalAmount)}원
+                            </MonthlyTotalPrice>
+                          </MonthlyTotalArea>
+                        </MonthlySummary>
 
-                          <PaymentValue>{payment.petName || "-"}</PaymentValue>
-                        </PaymentInfoRow>
+                        <PaymentHistoryList>
+                          {monthGroup.paymentList.map((payment) => (
+                            <PaymentHistoryItem key={payment.paymentId}>
+                              <PaymentTopRow>
+                                <PaymentDate>
+                                  {formatDateTime(payment.paidAt)}
+                                </PaymentDate>
 
-                        <PaymentInfoRow>
-                          <PaymentLabel>보험 상품</PaymentLabel>
+                                <PaymentStatus $status={payment.paymentStatus}>
+                                  {getPaymentStatusLabel(payment.paymentStatus)}
+                                </PaymentStatus>
+                              </PaymentTopRow>
 
-                          <PaymentValue>
-                            {payment.productName || "-"}
-                          </PaymentValue>
-                        </PaymentInfoRow>
+                              <PaymentDivider />
 
-                        <PaymentInfoRow>
-                          <PaymentLabel>결제 금액</PaymentLabel>
+                              <PaymentInfoRow>
+                                <PaymentLabel>반려동물</PaymentLabel>
 
-                          <PaymentPrice>
-                            {formatPrice(payment.paymentAmount)}원
-                          </PaymentPrice>
-                        </PaymentInfoRow>
-                      </PaymentHistoryItem>
+                                <PaymentValue>
+                                  {payment.petName || "-"}
+                                </PaymentValue>
+                              </PaymentInfoRow>
+
+                              <PaymentInfoRow>
+                                <PaymentLabel>보험 상품</PaymentLabel>
+
+                                <PaymentValue>
+                                  {payment.productName || "-"}
+                                </PaymentValue>
+                              </PaymentInfoRow>
+
+                              <PaymentInfoRow>
+                                <PaymentLabel>결제 금액</PaymentLabel>
+
+                                <PaymentPrice>
+                                  {formatPrice(payment.paymentAmount)}원
+                                </PaymentPrice>
+                              </PaymentInfoRow>
+                            </PaymentHistoryItem>
+                          ))}
+                        </PaymentHistoryList>
+                      </MonthlyHistorySection>
                     ))}
-                  </PaymentHistoryList>
+                  </MonthlyHistoryList>
                 )}
               </ModalBody>
 
@@ -245,6 +391,64 @@ export default InsuranceEstimateSection;
 // =========================================================
 // 유틸 함수
 // =========================================================
+const MONTH_OPTION_LIST = [
+  "01",
+  "02",
+  "03",
+  "04",
+  "05",
+  "06",
+  "07",
+  "08",
+  "09",
+  "10",
+  "11",
+  "12",
+];
+
+function getValidDate(dateTimeValue) {
+  if (!dateTimeValue) {
+    return null;
+  }
+
+  const date = new Date(dateTimeValue);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
+}
+
+function getYearValue(dateTimeValue) {
+  const date = getValidDate(dateTimeValue);
+
+  return date ? date.getFullYear() : null;
+}
+
+function getMonthKey(dateTimeValue) {
+  const date = getValidDate(dateTimeValue);
+
+  if (!date) {
+    return "unknown";
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+
+  return `${year}-${month}`;
+}
+
+function formatMonthLabel(monthKey) {
+  if (monthKey === "unknown") {
+    return "결제 일시 미확인";
+  }
+
+  const [year, month] = monthKey.split("-");
+
+  return `${year}년 ${month}월`;
+}
+
 function getErrorMessage(error, defaultMessage) {
   return (
     error.response?.data?.message ||
@@ -557,6 +761,56 @@ const ModalDescription = styled.p`
   color: var(--text-desc);
 `;
 
+const FilterRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  margin-top: 15px;
+`;
+
+const FilterSelect = styled.select`
+  min-width: 108px;
+  height: 36px;
+
+  padding: 0 10px;
+
+  border: 1px solid #dfe8e5;
+  border-radius: 8px;
+
+  background: var(--color-white);
+
+  font-size: 12px;
+  color: var(--text-main);
+
+  cursor: pointer;
+
+  &:focus {
+    outline: 1px solid var(--color-main);
+  }
+`;
+
+const ResetFilterButton = styled.button`
+  height: 36px;
+
+  padding: 0 12px;
+
+  border: 1px solid var(--color-mint);
+  border-radius: 8px;
+
+  background: var(--color-bg-light);
+
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-main-dark);
+
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--color-main);
+  }
+`;
+
 const CloseButton = styled.button`
   border: none;
 
@@ -629,10 +883,78 @@ const EmptyDescription = styled.p`
   color: var(--text-desc);
 `;
 
+const MonthlyHistoryList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+`;
+
+const MonthlyHistorySection = styled.section`
+  overflow: hidden;
+
+  border: 1px solid #dfe8e5;
+  border-radius: 14px;
+
+  background: #fafdfc;
+`;
+
+const MonthlySummary = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 15px 16px;
+
+  border-bottom: 1px solid #e7ecea;
+
+  background: var(--color-bg-light);
+`;
+
+const MonthlyTitle = styled.h3`
+  margin: 0;
+
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-main);
+`;
+
+const MonthlyDescription = styled.p`
+  margin: 5px 0 0;
+
+  font-size: 11px;
+  color: var(--text-desc);
+`;
+
+const MonthlyTotalArea = styled.div`
+  flex-shrink: 0;
+
+  text-align: right;
+`;
+
+const MonthlyTotalLabel = styled.p`
+  margin: 0;
+
+  font-size: 11px;
+  color: var(--text-desc);
+`;
+
+const MonthlyTotalPrice = styled.strong`
+  display: block;
+
+  margin-top: 4px;
+
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--color-main-dark);
+`;
+
 const PaymentHistoryList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 12px;
+
+  padding: 12px;
 `;
 
 const PaymentHistoryItem = styled.article`
