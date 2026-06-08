@@ -158,7 +158,9 @@ export default function BoardListPage() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (activeTab === "NEWS" && searchType === "writer") {
-      alert("뉴스게시판에서는 작성자 검색을 지원하지 않습니다. 제목 또는 제목+내용을 이용해 주세요.");
+      alert(
+        "뉴스게시판에서는 작성자 검색을 지원하지 않습니다. 제목 또는 제목+내용을 이용해 주세요.",
+      );
       return;
     }
     setCurrentPage(0);
@@ -170,7 +172,12 @@ export default function BoardListPage() {
   const handleSortChange = (sortType) => {
     setActiveSort(sortType);
     setCurrentPage(0);
-    const condition = buildSearchCondition(searchKeyword, searchType, subCategory, sortType);
+    const condition = buildSearchCondition(
+      searchKeyword,
+      searchType,
+      subCategory,
+      sortType,
+    );
     asyncFetchBoardList(activeTab, 0, condition);
   };
 
@@ -191,7 +198,9 @@ export default function BoardListPage() {
           <BoardHeader>
             <BoardTitleInfo>
               <BoardTitle>{boardMeta[activeTab]?.title || "게시판"}</BoardTitle>
-              <BoardSubtitle>{boardMeta[activeTab]?.subtitle || ""}</BoardSubtitle>
+              <BoardSubtitle>
+                {boardMeta[activeTab]?.subtitle || ""}
+              </BoardSubtitle>
             </BoardTitleInfo>
 
             {((activeTab !== "FAQ" && activeTab !== "NEWS") ||

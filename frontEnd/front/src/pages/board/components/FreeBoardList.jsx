@@ -120,13 +120,13 @@ export default function FreeBoardList({
 
               <ItemStats>
                 <StatIconWrapper>
-                  <SvgComment />
-                  {mockComments}
+                  <SvgEye />
+                  {item.hits ? item.hits.toLocaleString() : 0}
                 </StatIconWrapper>
 
                 <StatIconWrapper>
-                  <SvgEye />
-                  {item.hits ? item.hits.toLocaleString() : 0}
+                  <SvgComment />
+                  {mockComments}
                 </StatIconWrapper>
 
                 <StatIconWrapper>

@@ -360,11 +360,11 @@ public class BoardService {
                 .orElseThrow(() -> new EntityNotFoundException("MEMBER NOT FOUND ........"));
 
         if (boardEntity.getCategory() == com.kh.app.board.entity.BoardCategory.FAQ) {
-            if (memberEntity.getRole() != MemberRole.A) {
-                throw new IllegalStateException("Only ADMIN can delete FAQ posts.");
+            if (memberEntity.getRole() != MemberRole.A && memberEntity.getRole() != MemberRole.B) {
+                throw new IllegalStateException("Only ADMIN or BOARD manager can delete FAQ posts.");
             }
         } else {
-            if (!boardEntity.getWriter().getUsername().equals(username) && memberEntity.getRole() != MemberRole.A) {
+            if (!boardEntity.getWriter().getUsername().equals(username) && memberEntity.getRole() != MemberRole.A && memberEntity.getRole() != MemberRole.B) {
                 throw new IllegalStateException("NO PERMISSION TO DELETE BOARD ........");
             }
         }
