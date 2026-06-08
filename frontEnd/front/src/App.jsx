@@ -62,6 +62,7 @@ import AdminMemberPage from "./pages/admin/member/AdminMemberPage";
 import AdminMessageSendPage from "./pages/admin/message/AdminMessageSendPage";
 import AdminSentMessagePage from "./pages/admin/message/AdminSentMessagePage";
 import PetStoreWishListPage from "./pages/petStore/PetStoreWishListPage";
+import OrderHistoryPage from "./pages/mypage/OrderHistoryPage";
 
 function App() {
   return (
@@ -186,6 +187,7 @@ function App() {
             <Route path="message" element={<MessageBoxPage />} />
             <Route path="community" element={<CommunityHistoryPage />} />
             <Route path="delivery" element={<DeliveryManagePage />} />
+            <Route path="orders" element={<OrderHistoryPage />} />
           </Route>
           <Route path="admin">
             <Route path="member" element={<AdminMemberPage />} />
