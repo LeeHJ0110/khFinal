@@ -203,11 +203,12 @@ export default function BoardListPage() {
               </BoardSubtitle>
             </BoardTitleInfo>
 
-            {((activeTab !== "FAQ" && activeTab !== "NEWS") ||
-              loginMember?.role === "ADMIN" ||
-              loginMember?.role === "A" ||
-              loginMember?.role === "BOARD" ||
-              loginMember?.role === "B") && (
+            {activeTab !== "NEWS" &&
+              (activeTab !== "FAQ" ||
+                loginMember?.role === "ADMIN" ||
+                loginMember?.role === "A" ||
+                loginMember?.role === "BOARD" ||
+                loginMember?.role === "B") && (
               <WriteButton
                 onClick={() => {
                   if (!loginMember) {
