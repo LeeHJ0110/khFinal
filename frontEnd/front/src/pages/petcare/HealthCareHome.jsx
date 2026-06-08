@@ -19,18 +19,22 @@ import {
 import ActionCardGroup from "../../features/petcare/components/healthCareHome/ActionCardGroup";
 import ScheduleMain from "../../features/schedule/components/scheduleMain";
 import insurance from "../../features/petcare/img/preInsurance.png";
+import schedule from "../../features/petcare/img/calendar 1.png";
+import graph from "../../features/petcare/img/GGgraph 1.png";
 
-function getTotalChartData(score, listArr) {
+function getTotalChartData(score, listArr, currentPet) {
   if (!listArr) return [];
   const myScore = typeof score === "number" ? score : 0;
   const breedAvg =
     listArr.breedAvgList?.find((i) => i.category === "TOTAL")?.score ?? 0;
   const petTypeAvg =
     listArr.petTypeAvgList?.find((i) => i.category === "TOTAL")?.score ?? 0;
+  const curPetType =
+    currentPet?.petType === "D" ? "강아지 평균" : "고양이 평균";
   return [
-    { name: "내 강아지", score: myScore },
-    { name: "품종 평균", score: breedAvg },
-    { name: "종 평균", score: petTypeAvg },
+    { name: currentPet?.name, score: myScore },
+    { name: currentPet?.breedName + "평균", score: breedAvg },
+    { name: curPetType, score: petTypeAvg },
   ];
 }
 
@@ -84,7 +88,7 @@ export default function HealthCareHome() {
   );
 
   const totalChartData = useMemo(
-    () => getTotalChartData(score, listArr),
+    () => getTotalChartData(score, listArr, currentPet),
     [score, listArr],
   );
 
@@ -102,6 +106,7 @@ export default function HealthCareHome() {
           : "품종 평균과 동일해요";
 
   const showNav = petList?.length > 1;
+  console.log(currentPet);
 
   return (
     <>
@@ -126,49 +131,51 @@ export default function HealthCareHome() {
 
           <TopCard>
             {/* 프로필 */}
-            <TopCell>
-              {loading ? (
-                <p>로딩중</p>
-              ) : currentPet ? (
-                <PetCard>
-                  <PetThumb>
-                    {currentPet.imageUrl ? (
-                      <img src={currentPet.imageUrl} alt={currentPet.name} />
-                    ) : (
-                      <span>🐾</span>
-                    )}
-                  </PetThumb>
-                  <PetInfo>
-                    <PetName>{currentPet.name}</PetName>
-                    <InfoRow>
-                      <span>품종</span>
-                      <strong>{currentPet.breedName}</strong>
-                    </InfoRow>
-                    <InfoRow>
-                      <span>몸무게</span>
-                      <strong>{currentPet.weight}kg</strong>
-                    </InfoRow>
-                    <InfoRow>
-                      <span>생년월일</span>
-                      <strong>{currentPet.birthDate}</strong>
-                    </InfoRow>
-                    <PetButton
-                      type="button"
-                      onClick={() => navigate("/mypage/pet-manage")}
-                    >
-                      반려동물 정보관리
-                    </PetButton>
-                  </PetInfo>
-                </PetCard>
-              ) : (
-                <RegisterBtn onClick={() => navigate("/mypage/pet-manage")}>
-                  반려동물 등록하기
-                </RegisterBtn>
-              )}
+            <TopCell $flex={1.3}>
+              <PetCard>
+                {loading ? (
+                  <p>로딩중</p>
+                ) : currentPet ? (
+                  <>
+                    <PetThumb>
+                      {currentPet.imageUrl ? (
+                        <img src={currentPet.imageUrl} alt={currentPet.name} />
+                      ) : (
+                        <span>🐾</span>
+                      )}
+                    </PetThumb>
+                    <PetInfo>
+                      <PetName>{currentPet.name}</PetName>
+                      <InfoRow>
+                        <span>품종</span>
+                        <strong>{currentPet.breedName}</strong>
+                      </InfoRow>
+                      <InfoRow>
+                        <span>몸무게</span>
+                        <strong>{currentPet.weight}kg</strong>
+                      </InfoRow>
+                      <InfoRow>
+                        <span>생년월일</span>
+                        <strong>{currentPet.birthDate}</strong>
+                      </InfoRow>
+                      <PetButton
+                        type="button"
+                        onClick={() => navigate("/mypage/pet-manage")}
+                      >
+                        반려동물 정보관리
+                      </PetButton>
+                    </PetInfo>
+                  </>
+                ) : (
+                  <RegisterBtn onClick={() => navigate("/mypage/pet-manage")}>
+                    반려동물 등록하기
+                  </RegisterBtn>
+                )}
+              </PetCard>
             </TopCell>
 
             {/* 건강 점수 */}
-            <TopCell $center>
+            <TopCell $center $flex={0.8}>
               {scoreLoading ? (
                 <p>로딩중</p>
               ) : currentPet ? (
@@ -198,7 +205,11 @@ export default function HealthCareHome() {
                   <AreaChart data={sortedHistory}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="createdAt" tick={{ fontSize: 11 }} />
-                    <YAxis width={36} domain={[0, 100]} />
+                    <YAxis
+                      width={36}
+                      domain={[0, 100]}
+                      tick={{ fontSize: 11 }}
+                    />
                     <Tooltip />
                     <Area
                       type="monotone"
@@ -232,12 +243,20 @@ export default function HealthCareHome() {
         <BottomSection>
           {/* 오늘 일정 */}
           <Card>
-            <CardTitle>오늘 일정</CardTitle>
+            <FlexDiv>
+              <SmallIcon src={schedule} alt="일정" />
+              <CardTitle>오늘 일정</CardTitle>
+            </FlexDiv>
+            <Label>오늘 해야 할 일들을 볼 수 있어요.</Label>
           </Card>
 
           {/* 건강점수 비교 */}
           <Card $flex={1.2}>
-            <CardTitle>건강점수 비교</CardTitle>
+            <FlexDiv>
+              <SmallIcon src={graph} alt="차트" />
+              <CardTitle>건강점수 비교</CardTitle>
+            </FlexDiv>
+            <Label>비슷한 반려동물과 비교한 결과에요.</Label>
             {scoreLoading ? (
               <EmptyText>로딩중</EmptyText>
             ) : (
@@ -247,8 +266,8 @@ export default function HealthCareHome() {
                   margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis domain={[0, 100]} width={36} />
+                  <XAxis dataKey="name" />
+                  <YAxis domain={[0, 100]} width={36} tick={{ fontSize: 11 }} />
                   <Tooltip />
                   <Bar
                     dataKey="score"
@@ -307,6 +326,11 @@ const TopWrapper = styled.div`
   display: flex;
   align-items: center;
   gap: 12px;
+`;
+
+const FlexDiv = styled.div`
+  display: flex;
+  align-items: center;
 `;
 
 const ArrowBtn = styled.button`
@@ -384,6 +408,8 @@ const PetCard = styled.section`
   display: flex;
   align-items: center;
   gap: 30px;
+  margin-top: 30px;
+  margin-left: 30px;
 `;
 
 const PetThumb = styled.div`
@@ -456,7 +482,7 @@ const RegisterBtn = styled.button`
 
 const CardTitle = styled.h3`
   margin: 0 0 12px;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: #333;
 `;
@@ -472,4 +498,17 @@ const CompText = styled.p`
   font-weight: 600;
   color: ${({ $positive }) => ($positive ? "#5EC8A7" : "#FF6B6B")};
   margin: 0 0 8px;
+`;
+
+const Label = styled.label`
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #666;
+  margin-bottom: 10px;
+`;
+
+const SmallIcon = styled.img`
+  margin-bottom: 10px;
+  margin-right: 10px;
 `;
