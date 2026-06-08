@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import styled from "styled-components";
 
@@ -12,6 +13,12 @@ import {
 } from "../../features/petInsurance/api/petInsuranceApi";
 
 function InsuranceProductSection() {
+  const navigate = useNavigate();
+
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    return Boolean(localStorage.getItem("accessToken"));
+  });
+
   const [productList, setProductList] = useState([]);
   const [petList, setPetList] = useState([]);
 
@@ -36,6 +43,8 @@ function InsuranceProductSection() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const [priceErrorMessage, setPriceErrorMessage] = useState("");
+
+  
 
   // =========================================================
   // 현재 선택한 반려동물
@@ -99,11 +108,15 @@ function InsuranceProductSection() {
   }, [selectedProduct, selectedPet, selectedPetAge, calculatedPriceMap]);
 
   // =========================================================
-  // 페이지 진입 시 초기 데이터 조회
+  // 로그인한 경우에만 초기 데이터 조회
   // =========================================================
   useEffect(() => {
+    if (!isLoggedIn) {
+      return;
+    }
+
     loadInitialData();
-  }, []);
+  }, [isLoggedIn]);
 
   // =========================================================
   // 모달이 열린 동안 배경 스크롤 차단
@@ -283,14 +296,23 @@ function InsuranceProductSection() {
       } else {
         setSelectedPetId("");
       }
-    } catch (error) {
-      console.error("펫 보험 초기 데이터 조회 실패:", error);
+} catch (error) {
+  console.error("펫 보험 초기 데이터 조회 실패:", error);
 
-      setErrorMessage(
-        getErrorMessage(error, "보험 정보를 불러오지 못했습니다."),
-      );
-    }
+  const status = error.response?.status;
+
+  if (status === 401 || status === 403) {
+    localStorage.removeItem("accessToken");
+    setIsLoggedIn(false);
+
+    return;
   }
+
+  setErrorMessage(
+    getErrorMessage(error, "보험 정보를 불러오지 못했습니다."),
+  );
+}
+}
 
   // =========================================================
   // 가입 내역이 없는 경우에만 상품 선택 허용
@@ -477,6 +499,35 @@ function InsuranceProductSection() {
       setIsCancelling(false);
     }
   }
+
+if (!isLoggedIn) {
+  return (
+    <ProductSection>
+      <LoginRequiredWrapper>
+        <LoginRequiredBox>
+          <LoginBadge>LOGIN REQUIRED</LoginBadge>
+
+          <LoginRequiredTitle>
+            로그인이 필요한 서비스입니다
+          </LoginRequiredTitle>
+
+          <LoginRequiredDescription>
+            펫보험 상품 확인과 가입 신청을 위해
+            <br />
+            로그인 후 이용해 주세요.
+          </LoginRequiredDescription>
+
+          <LoginButton
+            type="button"
+            onClick={() => navigate("/member/login")}
+          >
+            로그인하기
+          </LoginButton>
+        </LoginRequiredBox>
+      </LoginRequiredWrapper>
+    </ProductSection>
+  );
+}
 
   return (
     <ProductSection>
@@ -1066,6 +1117,109 @@ const ProductSection = styled.section`
   width: 85%;
   margin: auto;
 `;
+
+const LoginRequiredWrapper = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 520px;
+  padding: 32px 20px;
+`;
+
+const LoginRequiredBox = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  width: min(100%, 560px);
+  min-height: 290px;
+  padding: 42px 34px;
+
+  border: 1px solid #cdebe1;
+  border-radius: 20px;
+
+  background: linear-gradient(
+    145deg,
+    var(--color-white) 0%,
+    #f8fdfb 100%
+  );
+
+  box-shadow: 0 12px 34px rgba(0, 169, 123, 0.07);
+
+  text-align: center;
+`;
+
+const LoginBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 16px;
+  padding: 6px 11px;
+
+  border-radius: 999px;
+
+  background: var(--color-bg-light);
+
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+
+  color: var(--color-main-dark);
+`;
+
+const LoginRequiredTitle = styled.h3`
+  margin: 0;
+
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+
+  color: var(--text-main);
+`;
+
+const LoginRequiredDescription = styled.p`
+  margin: 11px 0 0;
+
+  font-size: 13px;
+  line-height: 1.7;
+
+  color: var(--text-desc);
+`;
+
+const LoginButton = styled.button`
+  height: 42px;
+  margin-top: 22px;
+  padding: 0 21px;
+
+  border: 1px solid var(--color-main);
+  border-radius: 9px;
+
+  background: var(--color-main);
+
+  font-size: 13px;
+  font-weight: 800;
+
+  color: var(--color-white);
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &:hover {
+    background: var(--color-main-dark);
+
+    transform: translateY(-2px);
+
+    box-shadow: 0 8px 18px rgba(0, 169, 123, 0.16);
+  }
+`;
+
 
 const SectionHeader = styled.div`
   margin-bottom: 18px;
