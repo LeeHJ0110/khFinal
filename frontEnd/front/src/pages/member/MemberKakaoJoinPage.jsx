@@ -5,7 +5,7 @@ import useMemberKakaoJoinForm from "../../features/member/hooks/useMemberKakaoJo
 
 import "./MemberJoinPage.css";
 
-import logo from "../../assets/images/login_logo2.png";
+import logo from "../../assets/images/배경제거로고.png";
 import AddressSearchModal from "../../shared/components/AddressSearchModal";
 export default function MemberKakaoJoinPage() {
   const location = useLocation();
