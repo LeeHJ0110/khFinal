@@ -1,7 +1,7 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import "./MemberJoinPage.css";
-import logo from "../../assets/images/login_logo2.png";
+import logo from "../../assets/images/배경제거로고.png";
 
 export default function MemberJoinCompletePage() {
   const navigate = useNavigate();

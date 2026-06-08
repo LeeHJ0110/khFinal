@@ -3,7 +3,7 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 
 import "./MemberJoinPage.css";
 
-import logo from "../../assets/images/login_logo2.png";
+import logo from "../../assets/images/배경제거로고.png";
 
 import checkEmpty from "../../assets/images/check-empty.png";
 import checkFill from "../../assets/images/check-fill.png";

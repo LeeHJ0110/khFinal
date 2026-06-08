@@ -3,7 +3,7 @@ import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import useMemberJoinForm from "../../features/member/hooks/useMemberJoinForm";
 
 import "./MemberJoinPage.css";
-import logo from "../../assets/images/login_logo2.png";
+import logo from "../../assets/images/배경제거로고.png";
 import AddressSearchModal from "../../shared/components/AddressSearchModal";
 
 export default function MemberJoinPage() {
