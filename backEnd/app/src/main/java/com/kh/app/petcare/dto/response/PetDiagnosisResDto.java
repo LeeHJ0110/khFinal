@@ -19,12 +19,16 @@ public class PetDiagnosisResDto {
     private BigDecimal weight;
     private String representYn;
 
+    // 브라우저에서 바로 접근 가능한 최종 이미지 URL
+    private String imageUrl;
+
     // 현재 진행 중인 건강진단 신청 여부
     private boolean diagnosisInProgress;
 
     public static PetDiagnosisResDto from(
             PetEntity pet,
-            boolean diagnosisInProgress
+            boolean diagnosisInProgress,
+            String imageUrl
     ) {
         return PetDiagnosisResDto.builder()
                 .petId(pet.getId())
@@ -51,7 +55,7 @@ public class PetDiagnosisResDto {
                                 ? pet.getRepresentYn().name()
                                 : null
                 )
-                //진단 진행여부
+                .imageUrl(imageUrl)
                 .diagnosisInProgress(diagnosisInProgress)
                 .build();
     }
