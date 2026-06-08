@@ -176,6 +176,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
       >
         <span
           style={{
+            width: "100%",
             fontSize: small ? "8px" : "20px",
             fontWeight: "bolder",
             lineHeight: "1",
@@ -257,7 +258,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
 }
 
 const Wrapper = styled.div`
-  width: ${({ $small }) => ($small ? "300px" : "1200px")};
+  width: ${({ $small }) => ($small ? "370px" : "1200px")};
   .fc-daygrid-day-number {
     width: 32px;
     height: 32px;
