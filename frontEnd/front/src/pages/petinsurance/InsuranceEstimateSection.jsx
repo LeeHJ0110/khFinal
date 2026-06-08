@@ -2,9 +2,7 @@ import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import styled from "styled-components";
 
-import {
-  fetchMyInsurancePaymentHistory,
-} from "../../features/petInsurance/api/petInsuranceApi";
+import { fetchMyInsurancePaymentHistory } from "../../features/petInsurance/api/petInsuranceApi";
 
 function InsuranceEstimateSection() {
   const [paymentHistoryList, setPaymentHistoryList] = useState([]);
@@ -22,14 +20,12 @@ function InsuranceEstimateSection() {
       return undefined;
     }
 
-    const previousOverflow =
-      document.body.style.overflow;
+    const previousOverflow = document.body.style.overflow;
 
     document.body.style.overflow = "hidden";
 
     return () => {
-      document.body.style.overflow =
-        previousOverflow;
+      document.body.style.overflow = previousOverflow;
     };
   }, [isModalOpen]);
 
@@ -41,30 +37,21 @@ function InsuranceEstimateSection() {
       setIsLoading(true);
       setErrorMessage("");
 
-      const response =
-        await fetchMyInsurancePaymentHistory();
+      const response = await fetchMyInsurancePaymentHistory();
 
       const data = response.data;
 
       if (!Array.isArray(data)) {
-        throw new Error(
-          "정기결제 내역 응답 형식이 올바르지 않습니다.",
-        );
+        throw new Error("정기결제 내역 응답 형식이 올바르지 않습니다.");
       }
 
       setPaymentHistoryList(data);
       setIsModalOpen(true);
     } catch (error) {
-      console.error(
-        "펫 보험 정기결제 내역 조회 실패:",
-        error,
-      );
+      console.error("펫 보험 정기결제 내역 조회 실패:", error);
 
       setErrorMessage(
-        getErrorMessage(
-          error,
-          "정기결제 내역을 불러오지 못했습니다.",
-        ),
+        getErrorMessage(error, "정기결제 내역을 불러오지 못했습니다."),
       );
     } finally {
       setIsLoading(false);
@@ -85,9 +72,7 @@ function InsuranceEstimateSection() {
   return (
     <>
       <GuideSection>
-        <GuideBadge>
-          펫 보험 이용 안내
-        </GuideBadge>
+        <GuideBadge>펫 보험 이용 안내</GuideBadge>
 
         <Title>
           우리 아이의 보험을
@@ -97,60 +82,44 @@ function InsuranceEstimateSection() {
 
         <Description>
           가입 신청부터 결제 내역 확인까지
-          <br />
-          한 화면에서 간편하게 관리할 수 있습니다.
+          <br />한 화면에서 간편하게 관리할 수 있습니다.
         </Description>
 
         <Divider />
 
         <GuideList>
           <GuideItem>
-            <GuideNumber>
-              1
-            </GuideNumber>
+            <GuideNumber>1</GuideNumber>
 
             <GuideContent>
-              <GuideItemTitle>
-                반려동물을 선택해 주세요
-              </GuideItemTitle>
+              <GuideItemTitle>반려동물을 선택해 주세요</GuideItemTitle>
 
               <GuideItemDescription>
-                등록된 반려동물의 정보를 기준으로
-                월 보험료가 자동 계산됩니다.
+                등록된 반려동물의 정보를 기준으로 월 보험료가 자동 계산됩니다.
               </GuideItemDescription>
             </GuideContent>
           </GuideItem>
 
           <GuideItem>
-            <GuideNumber>
-              2
-            </GuideNumber>
+            <GuideNumber>2</GuideNumber>
 
             <GuideContent>
-              <GuideItemTitle>
-                가입 신청을 진행해 주세요
-              </GuideItemTitle>
+              <GuideItemTitle>가입 신청을 진행해 주세요</GuideItemTitle>
 
               <GuideItemDescription>
-                진료확인서를 첨부하고 카카오페이
-                결제 수단을 등록해 주세요.
+                진료확인서를 첨부하고 카카오페이 결제 수단을 등록해 주세요.
               </GuideItemDescription>
             </GuideContent>
           </GuideItem>
 
           <GuideItem>
-            <GuideNumber>
-              3
-            </GuideNumber>
+            <GuideNumber>3</GuideNumber>
 
             <GuideContent>
-              <GuideItemTitle>
-                승인 후 가입이 완료됩니다
-              </GuideItemTitle>
+              <GuideItemTitle>승인 후 가입이 완료됩니다</GuideItemTitle>
 
               <GuideItemDescription>
-                관리자 승인 이후 등록한 결제 수단으로
-                최초 보험료가 결제됩니다.
+                관리자 승인 이후 등록한 결제 수단으로 최초 보험료가 결제됩니다.
               </GuideItemDescription>
             </GuideContent>
           </GuideItem>
@@ -161,56 +130,36 @@ function InsuranceEstimateSection() {
           onClick={handleOpenPaymentHistory}
           disabled={isLoading}
         >
-          <ReceiptIcon>
-            ₩
-          </ReceiptIcon>
+          <ReceiptIcon>₩</ReceiptIcon>
 
-          {isLoading
-            ? "결제 내역 불러오는 중..."
-            : "정기결제 내역 확인하기"}
+          {isLoading ? "결제 내역 불러오는 중..." : "정기결제 내역 확인하기"}
 
-          {!isLoading && (
-            <ArrowIcon>
-              ›
-            </ArrowIcon>
-          )}
+          {!isLoading && <ArrowIcon>›</ArrowIcon>}
         </HistoryButton>
 
-        {errorMessage && (
-          <ErrorMessage>
-            {errorMessage}
-          </ErrorMessage>
-        )}
+        {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
       </GuideSection>
 
       {isModalOpen &&
         typeof document !== "undefined" &&
         createPortal(
-          <ModalOverlay
-            onClick={handleCloseModal}
-            role="presentation"
-          >
+          <ModalOverlay onClick={handleCloseModal} role="presentation">
             <ModalBox
               role="dialog"
               aria-modal="true"
               aria-labelledby="payment-history-modal-title"
-              onClick={(event) =>
-                event.stopPropagation()
-              }
+              onClick={(event) => event.stopPropagation()}
             >
               <ModalHeader>
                 <div>
-                  <ModalBadge>
-                    보험료 결제 내역
-                  </ModalBadge>
+                  <ModalBadge>보험료 결제 내역</ModalBadge>
 
                   <ModalTitle id="payment-history-modal-title">
                     펫 보험 정기결제 내역
                   </ModalTitle>
 
                   <ModalDescription>
-                    최초 보험료 결제와 이후 정기결제 내역을
-                    확인할 수 있습니다.
+                    최초 보험료 결제와 이후 정기결제 내역을 확인할 수 있습니다.
                   </ModalDescription>
                 </div>
 
@@ -226,90 +175,60 @@ function InsuranceEstimateSection() {
               <ModalBody>
                 {paymentHistoryList.length === 0 ? (
                   <EmptyHistory>
-                    <EmptyIcon>
-                      ₩
-                    </EmptyIcon>
+                    <EmptyIcon>₩</EmptyIcon>
 
-                    <EmptyTitle>
-                      아직 결제된 보험료가 없습니다
-                    </EmptyTitle>
+                    <EmptyTitle>아직 결제된 보험료가 없습니다</EmptyTitle>
 
                     <EmptyDescription>
-                      보험 가입 승인 후 결제가 완료되면
-                      이곳에서 내역을 확인할 수 있습니다.
+                      보험 가입 승인 후 결제가 완료되면 이곳에서 내역을 확인할
+                      수 있습니다.
                     </EmptyDescription>
                   </EmptyHistory>
                 ) : (
                   <PaymentHistoryList>
-                    {paymentHistoryList.map(
-                      (payment) => (
-                        <PaymentHistoryItem
-                          key={payment.paymentId}
-                        >
-                          <PaymentTopRow>
-                            <PaymentDate>
-                              {formatDateTime(
-                                payment.paidAt,
-                              )}
-                            </PaymentDate>
+                    {paymentHistoryList.map((payment) => (
+                      <PaymentHistoryItem key={payment.paymentId}>
+                        <PaymentTopRow>
+                          <PaymentDate>
+                            {formatDateTime(payment.paidAt)}
+                          </PaymentDate>
 
-                            <PaymentStatus
-                              $status={
-                                payment.paymentStatus
-                              }
-                            >
-                              {getPaymentStatusLabel(
-                                payment.paymentStatus,
-                              )}
-                            </PaymentStatus>
-                          </PaymentTopRow>
+                          <PaymentStatus $status={payment.paymentStatus}>
+                            {getPaymentStatusLabel(payment.paymentStatus)}
+                          </PaymentStatus>
+                        </PaymentTopRow>
 
-                          <PaymentDivider />
+                        <PaymentDivider />
 
-                          <PaymentInfoRow>
-                            <PaymentLabel>
-                              반려동물
-                            </PaymentLabel>
+                        <PaymentInfoRow>
+                          <PaymentLabel>반려동물</PaymentLabel>
 
-                            <PaymentValue>
-                              {payment.petName || "-"}
-                            </PaymentValue>
-                          </PaymentInfoRow>
+                          <PaymentValue>{payment.petName || "-"}</PaymentValue>
+                        </PaymentInfoRow>
 
-                          <PaymentInfoRow>
-                            <PaymentLabel>
-                              보험 상품
-                            </PaymentLabel>
+                        <PaymentInfoRow>
+                          <PaymentLabel>보험 상품</PaymentLabel>
 
-                            <PaymentValue>
-                              {payment.productName || "-"}
-                            </PaymentValue>
-                          </PaymentInfoRow>
+                          <PaymentValue>
+                            {payment.productName || "-"}
+                          </PaymentValue>
+                        </PaymentInfoRow>
 
-                          <PaymentInfoRow>
-                            <PaymentLabel>
-                              결제 금액
-                            </PaymentLabel>
+                        <PaymentInfoRow>
+                          <PaymentLabel>결제 금액</PaymentLabel>
 
-                            <PaymentPrice>
-                              {formatPrice(
-                                payment.paymentAmount,
-                              )}
-                              원
-                            </PaymentPrice>
-                          </PaymentInfoRow>
-                        </PaymentHistoryItem>
-                      ),
-                    )}
+                          <PaymentPrice>
+                            {formatPrice(payment.paymentAmount)}원
+                          </PaymentPrice>
+                        </PaymentInfoRow>
+                      </PaymentHistoryItem>
+                    ))}
                   </PaymentHistoryList>
                 )}
               </ModalBody>
 
               <ModalFooter>
-                <ConfirmButton
-                  type="button"
-                  onClick={handleCloseModal}
-                >
+                <ConfirmButton type="button" onClick={handleCloseModal}>
                   확인
                 </ConfirmButton>
               </ModalFooter>
@@ -336,9 +255,7 @@ function getErrorMessage(error, defaultMessage) {
 }
 
 function formatPrice(price) {
-  return Number(price || 0).toLocaleString(
-    "ko-KR",
-  );
+  return Number(price || 0).toLocaleString("ko-KR");
 }
 
 function formatDateTime(dateTimeValue) {
@@ -346,9 +263,7 @@ function formatDateTime(dateTimeValue) {
     return "-";
   }
 
-  return new Date(
-    dateTimeValue,
-  ).toLocaleString("ko-KR", {
+  return new Date(dateTimeValue).toLocaleString("ko-KR", {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -383,6 +298,8 @@ const GuideSection = styled.section`
   flex-direction: column;
 
   width: 100%;
+  height: 620px;
+
   padding: 42px 26px;
 
   overflow: hidden;
@@ -504,7 +421,7 @@ const HistoryButton = styled.button`
   width: 100%;
   min-height: 44px;
 
-  margin-top: 21px;
+  margin-top: auto;
   padding: 0 13px;
 
   border: 1px solid var(--color-mint);

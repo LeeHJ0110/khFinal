@@ -1,10 +1,6 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
 
 import {
   calculateInsurancePrice,
@@ -19,75 +15,48 @@ function InsuranceProductSection() {
   const [productList, setProductList] = useState([]);
   const [petList, setPetList] = useState([]);
 
-  const [selectedPetId, setSelectedPetId] =
-    useState("");
+  const [selectedPetId, setSelectedPetId] = useState("");
 
-  const [selectedProduct, setSelectedProduct] =
-    useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const [
-    calculatedPriceMap,
-    setCalculatedPriceMap,
-  ] = useState({});
+  const [calculatedPriceMap, setCalculatedPriceMap] = useState({});
 
-  const [
-    medicalCertificate,
-    setMedicalCertificate,
-  ] = useState(null);
+  const [medicalCertificate, setMedicalCertificate] = useState(null);
 
-  const [isPetMenuOpen, setIsPetMenuOpen] =
-    useState(false);
+  const [isPetMenuOpen, setIsPetMenuOpen] = useState(false);
 
-  const [isModalOpen, setIsModalOpen] =
-    useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [isLoading, setIsLoading] =
-    useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [isCancelling, setIsCancelling] =
-    useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
-  const [isPriceLoading, setIsPriceLoading] =
-    useState(false);
+  const [isPriceLoading, setIsPriceLoading] = useState(false);
 
-  const [errorMessage, setErrorMessage] =
-    useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
-  const [
-    priceErrorMessage,
-    setPriceErrorMessage,
-  ] = useState("");
+  const [priceErrorMessage, setPriceErrorMessage] = useState("");
 
   // =========================================================
   // 현재 선택한 반려동물
   // =========================================================
   const selectedPet = useMemo(() => {
-    return petList.find(
-      (pet) =>
-        String(pet.petId) ===
-        String(selectedPetId),
-    );
+    return petList.find((pet) => String(pet.petId) === String(selectedPetId));
   }, [petList, selectedPetId]);
 
   // =========================================================
   // 저장된 생년월일 기준 현재 만 나이
   // =========================================================
   const selectedPetAge = useMemo(() => {
-    return calculateAgeFromBirthDate(
-      selectedPet?.birthDate,
-    );
+    return calculateAgeFromBirthDate(selectedPet?.birthDate);
   }, [selectedPet]);
 
   // =========================================================
   // 만 10세 이상 또는 생년월일 누락 여부
   // =========================================================
-  const isAgeRestricted =
-    selectedPetAge !== null &&
-    selectedPetAge >= 10;
+  const isAgeRestricted = selectedPetAge !== null && selectedPetAge >= 10;
 
-  const isBirthDateMissing =
-    Boolean(selectedPet) &&
-    selectedPetAge === null;
+  const isBirthDateMissing = Boolean(selectedPet) && selectedPetAge === null;
 
   // =========================================================
   // 현재 선택한 반려동물의 보험 상태
@@ -109,10 +78,7 @@ function InsuranceProductSection() {
 
     return productList.filter(
       (product) =>
-        String(product.productId) ===
-        String(
-          selectedPet.insuranceProductId,
-        ),
+        String(product.productId) === String(selectedPet.insuranceProductId),
     );
   }, [productList, selectedPet]);
 
@@ -130,12 +96,7 @@ function InsuranceProductSection() {
       selectedPetAge,
       calculatedPriceMap,
     });
-  }, [
-    selectedProduct,
-    selectedPet,
-    selectedPetAge,
-    calculatedPriceMap,
-  ]);
+  }, [selectedProduct, selectedPet, selectedPetAge, calculatedPriceMap]);
 
   // =========================================================
   // 페이지 진입 시 초기 데이터 조회
@@ -152,14 +113,12 @@ function InsuranceProductSection() {
       return undefined;
     }
 
-    const previousOverflow =
-      document.body.style.overflow;
+    const previousOverflow = document.body.style.overflow;
 
     document.body.style.overflow = "hidden";
 
     return () => {
-      document.body.style.overflow =
-        previousOverflow;
+      document.body.style.overflow = previousOverflow;
     };
   }, [isModalOpen]);
 
@@ -175,26 +134,24 @@ function InsuranceProductSection() {
       return;
     }
 
+    if (isAgeRestricted) {
+      setSelectedProduct(null);
+      return;
+    }
+
     if (selectedPet.insuranceProductId) {
       const appliedProduct = productList.find(
         (product) =>
-          String(product.productId) ===
-          String(
-            selectedPet.insuranceProductId,
-          ),
+          String(product.productId) === String(selectedPet.insuranceProductId),
       );
 
-      setSelectedProduct(
-        appliedProduct || null,
-      );
+      setSelectedProduct(appliedProduct || null);
 
       return;
     }
 
-    setSelectedProduct(
-      productList[0] || null,
-    );
-  }, [selectedPet, productList]);
+    setSelectedProduct(productList[0] || null);
+  }, [selectedPet, productList, isAgeRestricted]);
 
   // =========================================================
   // 펫 변경 시 전체 상품 월 보험료 자동 계산
@@ -225,9 +182,7 @@ function InsuranceProductSection() {
       }
 
       if (selectedPetAge === null) {
-        setPriceErrorMessage(
-          "반려동물의 생년월일 형식을 확인해 주세요.",
-        );
+        setPriceErrorMessage("반려동물의 생년월일 형식을 확인해 주세요.");
 
         return;
       }
@@ -243,46 +198,25 @@ function InsuranceProductSection() {
       try {
         setIsPriceLoading(true);
 
-        const resultList =
-          await Promise.all(
-            productList.map(
-              async (product) => {
-                const response =
-                  await calculateInsurancePrice(
-                    {
-                      productId:
-                        product.productId,
+        const resultList = await Promise.all(
+          productList.map(async (product) => {
+            const response = await calculateInsurancePrice({
+              productId: product.productId,
 
-                      birthDate:
-                        selectedPet.birthDate,
-                    },
-                  );
+              birthDate: selectedPet.birthDate,
+            });
 
-                return [
-                  String(
-                    product.productId,
-                  ),
-
-                  response.data,
-                ];
-              },
-            ),
-          );
+            return [String(product.productId), response.data];
+          }),
+        );
 
         if (isCancelled) {
           return;
         }
 
-        setCalculatedPriceMap(
-          Object.fromEntries(
-            resultList,
-          ),
-        );
+        setCalculatedPriceMap(Object.fromEntries(resultList));
       } catch (error) {
-        console.error(
-          "보험료 자동 계산 실패:",
-          error,
-        );
+        console.error("보험료 자동 계산 실패:", error);
 
         if (isCancelled) {
           return;
@@ -308,11 +242,7 @@ function InsuranceProductSection() {
     return () => {
       isCancelled = true;
     };
-  }, [
-    selectedPet,
-    selectedPetAge,
-    productList,
-  ]);
+  }, [selectedPet, selectedPetAge, productList]);
 
   // =========================================================
   // 상품 목록 + 내 반려동물 목록 조회
@@ -321,73 +251,43 @@ function InsuranceProductSection() {
     try {
       setErrorMessage("");
 
-      const [
-        productResponse,
-        petResponse,
-      ] = await Promise.all([
+      const [productResponse, petResponse] = await Promise.all([
         fetchInsuranceProductList(),
 
         fetchMyPetListForInsurance(),
       ]);
 
-      const productData =
-        productResponse.data;
+      const productData = productResponse.data;
 
-      const petData =
-        petResponse.data;
+      const petData = petResponse.data;
 
       if (!Array.isArray(productData)) {
-        throw new Error(
-          "보험 상품 목록 응답 형식이 올바르지 않습니다.",
-        );
+        throw new Error("보험 상품 목록 응답 형식이 올바르지 않습니다.");
       }
 
       if (!Array.isArray(petData)) {
-        throw new Error(
-          "반려동물 목록 응답 형식이 올바르지 않습니다.",
-        );
+        throw new Error("반려동물 목록 응답 형식이 올바르지 않습니다.");
       }
 
       setProductList(productData);
       setPetList(petData);
 
       if (petData.length > 0) {
-        setSelectedPetId(
-          (currentPetId) => {
-            const exists =
-              petData.some(
-                (pet) =>
-                  String(
-                    pet.petId,
-                  ) ===
-                  String(
-                    currentPetId,
-                  ),
-              );
+        setSelectedPetId((currentPetId) => {
+          const exists = petData.some(
+            (pet) => String(pet.petId) === String(currentPetId),
+          );
 
-            return exists
-              ? String(
-                  currentPetId,
-                )
-              : String(
-                  petData[0].petId,
-                );
-          },
-        );
+          return exists ? String(currentPetId) : String(petData[0].petId);
+        });
       } else {
         setSelectedPetId("");
       }
     } catch (error) {
-      console.error(
-        "펫 보험 초기 데이터 조회 실패:",
-        error,
-      );
+      console.error("펫 보험 초기 데이터 조회 실패:", error);
 
       setErrorMessage(
-        getErrorMessage(
-          error,
-          "보험 정보를 불러오지 못했습니다.",
-        ),
+        getErrorMessage(error, "보험 정보를 불러오지 못했습니다."),
       );
     }
   }
@@ -395,10 +295,8 @@ function InsuranceProductSection() {
   // =========================================================
   // 가입 내역이 없는 경우에만 상품 선택 허용
   // =========================================================
-  function handleSelectProduct(
-    product,
-  ) {
-    if (!selectedPetStatus.canApply) {
+  function handleSelectProduct(product) {
+    if (!selectedPetStatus.canApply || isAgeRestricted) {
       return;
     }
 
@@ -409,18 +307,13 @@ function InsuranceProductSection() {
   // =========================================================
   // 가입 신청 모달 열기
   // =========================================================
-  function handleOpenApplyModal(
-    event,
-    product,
-  ) {
+  function handleOpenApplyModal(event, product) {
     event.stopPropagation();
 
     setErrorMessage("");
 
     if (!selectedPetId) {
-      setErrorMessage(
-        "가입할 반려동물을 먼저 선택해 주세요.",
-      );
+      setErrorMessage("가입할 반려동물을 먼저 선택해 주세요.");
 
       return;
     }
@@ -438,9 +331,7 @@ function InsuranceProductSection() {
     }
 
     if (isAgeRestricted) {
-      setErrorMessage(
-        "만 10세 이상인 반려동물은 보험에 가입할 수 없습니다.",
-      );
+      setErrorMessage("만 10세 이상인 반려동물은 보험에 가입할 수 없습니다.");
 
       return;
     }
@@ -470,17 +361,13 @@ function InsuranceProductSection() {
     setErrorMessage("");
 
     if (!selectedPetId) {
-      setErrorMessage(
-        "가입할 반려동물을 선택해 주세요.",
-      );
+      setErrorMessage("가입할 반려동물을 선택해 주세요.");
 
       return;
     }
 
     if (!selectedProduct) {
-      setErrorMessage(
-        "보험 상품을 선택해 주세요.",
-      );
+      setErrorMessage("보험 상품을 선택해 주세요.");
 
       return;
     }
@@ -494,17 +381,13 @@ function InsuranceProductSection() {
     }
 
     if (isAgeRestricted) {
-      setErrorMessage(
-        "만 10세 이상인 반려동물은 보험에 가입할 수 없습니다.",
-      );
+      setErrorMessage("만 10세 이상인 반려동물은 보험에 가입할 수 없습니다.");
 
       return;
     }
 
     if (!medicalCertificate) {
-      setErrorMessage(
-        "진료확인서를 첨부해 주세요.",
-      );
+      setErrorMessage("진료확인서를 첨부해 주세요.");
 
       return;
     }
@@ -512,63 +395,38 @@ function InsuranceProductSection() {
     try {
       setIsLoading(true);
 
-      const applicationResponse =
-        await requestInsurance({
-          petId: Number(
-            selectedPetId,
-          ),
+      const applicationResponse = await requestInsurance({
+        petId: Number(selectedPetId),
 
-          productId:
-            selectedProduct.productId,
+        productId: selectedProduct.productId,
 
-          medicalCertificate,
-        });
+        medicalCertificate,
+      });
 
-      const applicationId =
-        applicationResponse
-          .data
-          ?.applicationId;
+      const applicationId = applicationResponse.data?.applicationId;
 
       if (!applicationId) {
-        throw new Error(
-          "보험 가입 신청 번호를 확인할 수 없습니다.",
-        );
+        throw new Error("보험 가입 신청 번호를 확인할 수 없습니다.");
       }
 
       const paymentReadyResponse =
-        await readySubscriptionPayment(
-          applicationId,
-        );
+        await readySubscriptionPayment(applicationId);
 
-      const paymentReadyData =
-        paymentReadyResponse.data;
+      const paymentReadyData = paymentReadyResponse.data;
 
       const redirectUrl =
-        paymentReadyData
-          ?.nextRedirectPcUrl ||
-        paymentReadyData
-          ?.next_redirect_pc_url;
+        paymentReadyData?.nextRedirectPcUrl ||
+        paymentReadyData?.next_redirect_pc_url;
 
       if (!redirectUrl) {
-        throw new Error(
-          "카카오페이 카드 등록 화면 주소를 확인할 수 없습니다.",
-        );
+        throw new Error("카카오페이 카드 등록 화면 주소를 확인할 수 없습니다.");
       }
 
-      window.location.href =
-        redirectUrl;
+      window.location.href = redirectUrl;
     } catch (error) {
-      console.error(
-        "보험 가입 신청 실패:",
-        error,
-      );
+      console.error("보험 가입 신청 실패:", error);
 
-      setErrorMessage(
-        getErrorMessage(
-          error,
-          "보험 가입 신청에 실패했습니다.",
-        ),
-      );
+      setErrorMessage(getErrorMessage(error, "보험 가입 신청에 실패했습니다."));
     } finally {
       setIsLoading(false);
     }
@@ -578,26 +436,19 @@ function InsuranceProductSection() {
   // 보험 신청 취소 또는 가입 완료 보험 해지
   // =========================================================
   async function handleCancelInsurance() {
-    if (
-      !selectedPet?.applicationId
-    ) {
-      setErrorMessage(
-        "취소할 보험 신청 정보를 찾을 수 없습니다.",
-      );
+    if (!selectedPet?.applicationId) {
+      setErrorMessage("취소할 보험 신청 정보를 찾을 수 없습니다.");
 
       return;
     }
 
-    const actionText =
-      selectedPet.approveStatus ===
-      "APPROVED"
-        ? "보험을 해지"
-        : "보험 가입 신청을 취소";
+    const isApproved = selectedPet.approveStatus === "APPROVED";
 
-    const isConfirmed =
-      window.confirm(
-        `${selectedPet.petName}의 ${actionText}하시겠습니까?`,
-      );
+    const confirmMessage = isApproved
+      ? `${selectedPet.petName}의 보험을 해지하시겠습니까?\n\n해지 후에도 현재 결제 기간이 끝날 때까지 보험 혜택은 유지됩니다.\n다음 결제일부터 자동 결제가 중단됩니다.`
+      : `${selectedPet.petName}의 보험 가입 신청을 취소하시겠습니까?`;
+
+    const isConfirmed = window.confirm(confirmMessage);
 
     if (!isConfirmed) {
       return;
@@ -607,22 +458,20 @@ function InsuranceProductSection() {
       setIsCancelling(true);
       setErrorMessage("");
 
-      await cancelInsuranceApplication(
-        selectedPet.applicationId,
+      await cancelInsuranceApplication(selectedPet.applicationId);
+
+      window.alert(
+        isApproved
+          ? "보험 해지가 신청되었습니다.\n현재 결제 기간이 끝날 때까지 보험 혜택은 유지됩니다."
+          : "보험 가입 신청이 취소되었습니다.",
       );
 
       await loadInitialData();
     } catch (error) {
-      console.error(
-        "보험 신청 취소 또는 해지 실패:",
-        error,
-      );
+      console.error("보험 신청 취소 또는 해지 실패:", error);
 
       setErrorMessage(
-        getErrorMessage(
-          error,
-          "보험 신청 취소 또는 해지 처리에 실패했습니다.",
-        ),
+        getErrorMessage(error, "보험 신청 취소 또는 해지 처리에 실패했습니다."),
       );
     } finally {
       setIsCancelling(false);
@@ -645,120 +494,74 @@ function InsuranceProductSection() {
         <ToolbarGuide>
           <GuideDot />
 
-          <span>
-            가입할 반려동물을 선택한 뒤 원하는 상품을 확인해 주세요.
-          </span>
+          <span>가입할 반려동물을 선택한 뒤 원하는 상품을 확인해 주세요.</span>
         </ToolbarGuide>
 
         <PetMenuWrapper>
           <PetMenuButton
             type="button"
-            onClick={() =>
-              setIsPetMenuOpen(
-                (previous) =>
-                  !previous,
-              )
-            }
+            onClick={() => setIsPetMenuOpen((previous) => !previous)}
           >
-            <span>
-              펫 선택하기
-            </span>
+            <span>펫 선택하기</span>
 
-            <MenuArrow
-              $isOpen={
-                isPetMenuOpen
-              }
-            >
-              ⌄
-            </MenuArrow>
+            <MenuArrow $isOpen={isPetMenuOpen}>⌄</MenuArrow>
           </PetMenuButton>
 
           {isPetMenuOpen && (
             <PetDropdown>
               {petList.length === 0 ? (
-                <EmptyPetMessage>
-                  등록된 반려동물이 없습니다.
-                </EmptyPetMessage>
+                <EmptyPetMessage>등록된 반려동물이 없습니다.</EmptyPetMessage>
               ) : (
-                petList.map(
-                  (pet) => {
-                    const petStatus =
-                      getPetInsuranceStatus(
-                        pet,
-                      );
+                petList.map((pet) => {
+                  const petStatus = getPetInsuranceStatus(pet);
 
-                    const petAge =
-                      calculateAgeFromBirthDate(
-                        pet.birthDate,
-                      );
+                  const petAge = calculateAgeFromBirthDate(pet.birthDate);
 
-                    const isSelected =
-                      String(
-                        pet.petId,
-                      ) ===
-                      String(
-                        selectedPetId,
-                      );
+                  const isPetAgeRestricted = petAge !== null && petAge >= 10;
 
-                    return (
-                      <PetOptionButton
-                        key={
-                          pet.petId
-                        }
-                        type="button"
-                        $isSelected={
-                          isSelected
-                        }
-                        onClick={() => {
-                          setSelectedPetId(
-                            String(
-                              pet.petId,
-                            ),
-                          );
+                  const displayPetStatus = isPetAgeRestricted
+                    ? {
+                        status: "RESTRICTED",
+                        label: "가입 불가",
+                      }
+                    : petStatus;
 
-                          setErrorMessage(
-                            "",
-                          );
+                  const isSelected =
+                    String(pet.petId) === String(selectedPetId);
 
-                          setIsPetMenuOpen(
-                            false,
-                          );
-                        }}
-                      >
-                        <PetOptionTop>
-                          <PetName>
-                            {
-                              pet.petName
-                            }
-                          </PetName>
+                  return (
+                    <PetOptionButton
+                      key={pet.petId}
+                      type="button"
+                      $isSelected={isSelected}
+                      onClick={() => {
+                        setSelectedPetId(String(pet.petId));
 
-                          {isSelected && (
-                            <SelectedPetDot />
-                          )}
-                        </PetOptionTop>
+                        setErrorMessage("");
 
-                        <PetOptionBottom>
-                          <PetAgeText>
-                            {petAge ===
-                            null
-                              ? "생년월일 확인 필요"
-                              : `만 ${petAge}세`}
-                          </PetAgeText>
+                        setIsPetMenuOpen(false);
+                      }}
+                    >
+                      <PetOptionTop>
+                        <PetName>{pet.petName}</PetName>
 
-                          <PetStatusText
-                            $status={
-                              petStatus.status
-                            }
-                          >
-                            {
-                              petStatus.label
-                            }
-                          </PetStatusText>
-                        </PetOptionBottom>
-                      </PetOptionButton>
-                    );
-                  },
-                )
+                        {isSelected && <SelectedPetDot />}
+                      </PetOptionTop>
+
+                      <PetOptionBottom>
+                        <PetAgeText>
+                          {petAge === null
+                            ? "생년월일 확인 필요"
+                            : `만 ${petAge}세`}
+                        </PetAgeText>
+
+                        <PetStatusText $status={displayPetStatus.status}>
+                          {displayPetStatus.label}
+                        </PetStatusText>
+                      </PetOptionBottom>
+                    </PetOptionButton>
+                  );
+                })
               )}
             </PetDropdown>
           )}
@@ -769,27 +572,18 @@ function InsuranceProductSection() {
         <SelectedSummary>
           <SummaryInfoGroup>
             <SummaryItem>
-              <SummaryLabel>
-                반려동물
-              </SummaryLabel>
+              <SummaryLabel>반려동물</SummaryLabel>
 
-              <SummaryText>
-                {
-                  selectedPet.petName
-                }
-              </SummaryText>
+              <SummaryText>{selectedPet.petName}</SummaryText>
             </SummaryItem>
 
             <SummaryDivider />
 
             <SummaryItem>
-              <SummaryLabel>
-                나이
-              </SummaryLabel>
+              <SummaryLabel>나이</SummaryLabel>
 
               <SummaryText>
-                {selectedPetAge ===
-                null
+                {selectedPetAge === null
                   ? "생년월일 확인 필요"
                   : `만 ${selectedPetAge}세`}
               </SummaryText>
@@ -798,15 +592,11 @@ function InsuranceProductSection() {
             <SummaryDivider />
 
             <SummaryItem>
-              <SummaryLabel>
-                보험 상태
-              </SummaryLabel>
+              <SummaryLabel>보험 상태</SummaryLabel>
 
               <SummaryStatus
                 $status={
-                  isAgeRestricted
-                    ? "RESTRICTED"
-                    : selectedPetStatus.status
+                  isAgeRestricted ? "RESTRICTED" : selectedPetStatus.status
                 }
               >
                 {isAgeRestricted
@@ -818,251 +608,172 @@ function InsuranceProductSection() {
             <SummaryDivider />
 
             <SummaryItem>
-              <SummaryLabel>
-                선택 상품
-              </SummaryLabel>
+              <SummaryLabel>선택 상품</SummaryLabel>
 
               <SummaryText>
-                {selectedProduct
-                  ?.productName ||
-                  "상품을 선택해 주세요"}
+                {isAgeRestricted
+                  ? "선택 불가"
+                  : selectedProduct?.productName || "상품을 선택해 주세요"}
               </SummaryText>
             </SummaryItem>
 
-            <SummaryDivider />
+            {!isAgeRestricted && (
+              <>
+                <SummaryDivider />
 
-            <SummaryItem>
-              <SummaryLabel>
-                월 보험료
-              </SummaryLabel>
+                <SummaryItem>
+                  <SummaryLabel>월 보험료</SummaryLabel>
 
-              <SummaryPrice>
-                {selectedPriceInfo
-                  ? `${formatPrice(
-                      selectedPriceInfo
-                        .monthlyPrice,
-                    )}원`
-                  : "-"}
-              </SummaryPrice>
-            </SummaryItem>
+                  <SummaryPrice>
+                    {selectedPriceInfo
+                      ? `${formatPrice(selectedPriceInfo.monthlyPrice)}원`
+                      : "-"}
+                  </SummaryPrice>
+                </SummaryItem>
+              </>
+            )}
           </SummaryInfoGroup>
 
-          {!selectedPetStatus
-            .canApply &&
-            selectedPet
-              .applicationId && (
-              <CancelInsuranceButton
-                type="button"
-                onClick={
-                  handleCancelInsurance
-                }
-                disabled={
-                  isCancelling
-                }
-              >
-                {isCancelling
-                  ? "처리 중..."
-                  : selectedPet
-                        .approveStatus ===
-                      "APPROVED"
-                    ? "보험 해지"
-                    : "신청 취소"}
-              </CancelInsuranceButton>
-            )}
+          {!selectedPetStatus.canApply && selectedPet.applicationId && (
+            <CancelInsuranceButton
+              type="button"
+              onClick={handleCancelInsurance}
+              disabled={isCancelling}
+            >
+              {isCancelling
+                ? "처리 중..."
+                : selectedPet.approveStatus === "APPROVED"
+                  ? "보험 해지"
+                  : "신청 취소"}
+            </CancelInsuranceButton>
+          )}
         </SelectedSummary>
       )}
 
-      {priceErrorMessage && (
-        <ErrorMessage>
-          {priceErrorMessage}
-        </ErrorMessage>
+      {priceErrorMessage && <ErrorMessage>{priceErrorMessage}</ErrorMessage>}
+
+      {errorMessage && !isModalOpen && (
+        <ErrorMessage>{errorMessage}</ErrorMessage>
       )}
 
-      {errorMessage &&
-        !isModalOpen && (
-          <ErrorMessage>
-            {errorMessage}
-          </ErrorMessage>
-        )}
+      <ProductGrid $isSingle={visibleProductList.length === 1}>
+        {visibleProductList.map((product) => {
+          const isSelected = selectedProduct?.productId === product.productId;
 
-      <ProductGrid
-        $isSingle={
-          visibleProductList.length ===
-          1
-        }
-      >
-        {visibleProductList.map(
-          (product) => {
-            const isSelected =
-              selectedProduct
-                ?.productId ===
-              product.productId;
+          const priceInfo = getProductPriceInfo({
+            product,
 
-            const priceInfo =
-              getProductPriceInfo({
-                product,
+            selectedPet,
 
-                selectedPet,
+            selectedPetAge,
 
-                selectedPetAge,
+            calculatedPriceMap,
+          });
 
-                calculatedPriceMap,
-              });
+          return (
+            <ProductCard
+              key={product.productId}
+              $isSelected={isSelected}
+              $isLocked={!selectedPetStatus.canApply || isAgeRestricted}
+              onClick={() => handleSelectProduct(product)}
+            >
+              <CardHeader>
+                <ProductName $isSelected={isSelected}>
+                  {product.productName}
+                </ProductName>
 
-            return (
-              <ProductCard
-                key={
-                  product.productId
-                }
-                $isSelected={
-                  isSelected
-                }
-                $isLocked={
-                  !selectedPetStatus.canApply
-                }
-                onClick={() =>
-                  handleSelectProduct(
-                    product,
-                  )
-                }
-              >
-                <CardHeader>
-            <ProductName $isSelected={isSelected}>
-  {product.productName}
-</ProductName>
+                {!isAgeRestricted && (
+                  <SelectedCheckbox
+                    $isSelected={isSelected}
+                    aria-label={
+                      isSelected ? "선택된 상품" : "선택되지 않은 상품"
+                    }
+                    title={isSelected ? "선택된 상품" : "상품 선택"}
+                  >
+                    {isSelected && "✓"}
+                  </SelectedCheckbox>
+                )}
+              </CardHeader>
 
-                  {isSelected && (
-                    <SelectedLamp
-                      aria-label="선택된 상품"
-                      title="선택된 상품"
-                    >
-                      <LampCore />
-                    </SelectedLamp>
-                  )}
-                </CardHeader>
+              <ProductDescription>
+                반려동물 정보를 반영한 맞춤형 펫 보험 상품입니다.
+              </ProductDescription>
 
-                <ProductDescription>
-                  반려동물 정보를 반영한 맞춤형 펫 보험 상품입니다.
-                </ProductDescription>
+              <Divider />
 
-                <Divider />
+              <ProductContent>{product.productContent}</ProductContent>
 
-                <ProductContent>
-                  {
-                    product.productContent
-                  }
-                </ProductContent>
-
-                <ProductBottom>
+              <ProductBottom>
+                {!isAgeRestricted && (
                   <PriceArea>
                     <ProductPrice>
-                      {isPriceLoading &&
-                      !selectedPet
-                        ?.applicationId
+                      {isPriceLoading && !selectedPet?.applicationId
                         ? "계산 중..."
-                        : `${formatPrice(
-                            priceInfo
-                              .monthlyPrice,
-                          )}원`}
+                        : `${formatPrice(priceInfo.monthlyPrice)}원`}
 
-                      {!isPriceLoading && (
-                        <PriceUnit>
-                          / 월
-                        </PriceUnit>
-                      )}
+                      {!isPriceLoading && <PriceUnit>/ 월</PriceUnit>}
                     </ProductPrice>
 
-                    {!isAgeRestricted &&
-                      !isBirthDateMissing && (
-                        <PriceDescription>
-                          반려동물 정보를 반영한 최종 월 보험료입니다.
-                        </PriceDescription>
-                      )}
+                    {!isBirthDateMissing && (
+                      <PriceDescription>
+                        반려동물 정보를 반영한 최종 월 보험료입니다.
+                      </PriceDescription>
+                    )}
                   </PriceArea>
+                )}
 
-                  {selectedPetStatus
-                    .canApply ? (
-                    isAgeRestricted ? (
-                      <UnavailableBadge>
-                        만 10세 이상 가입 불가
-                      </UnavailableBadge>
-                    ) : isBirthDateMissing ? (
-                      <UnavailableBadge>
-                        생년월일 확인 필요
-                      </UnavailableBadge>
-                    ) : (
-                      <ApplyButton
-                        type="button"
-                        disabled={
-                          isPriceLoading
-                        }
-                        onClick={(
-                          event,
-                        ) =>
-                          handleOpenApplyModal(
-                            event,
-
-                            product,
-                          )
-                        }
-                      >
-                        가입 신청
-                      </ApplyButton>
-                    )
+                {selectedPetStatus.canApply ? (
+                  isAgeRestricted ? (
+                    <UnavailableBadge>만 10세 이상 가입 불가</UnavailableBadge>
+                  ) : isBirthDateMissing ? (
+                    <UnavailableBadge>생년월일 확인 필요</UnavailableBadge>
                   ) : (
-                    <CurrentProductStatus
-                      $status={
-                        selectedPetStatus.status
+                    <ApplyButton
+                      type="button"
+                      disabled={isPriceLoading}
+                      onClick={(event) =>
+                        handleOpenApplyModal(
+                          event,
+
+                          product,
+                        )
                       }
                     >
-                      {
-                        selectedPetStatus.label
-                      }
-                    </CurrentProductStatus>
-                  )}
-                </ProductBottom>
-              </ProductCard>
-            );
-          },
-        )}
+                      가입 신청
+                    </ApplyButton>
+                  )
+                ) : (
+                  <CurrentProductStatus $status={selectedPetStatus.status}>
+                    {selectedPetStatus.label}
+                  </CurrentProductStatus>
+                )}
+              </ProductBottom>
+            </ProductCard>
+          );
+        })}
       </ProductGrid>
 
       {isModalOpen &&
-        typeof document !==
-          "undefined" &&
+        typeof document !== "undefined" &&
         createPortal(
-          <ModalOverlay
-            onClick={
-              handleCloseModal
-            }
-          >
-            <ModalBox
-              onClick={(event) =>
-                event.stopPropagation()
-              }
-            >
+          <ModalOverlay onClick={handleCloseModal}>
+            <ModalBox onClick={(event) => event.stopPropagation()}>
               <ModalHeader>
                 <div>
-                  <FormBadge>
-                    보험 가입 신청서
-                  </FormBadge>
+                  <FormBadge>보험 가입 신청서</FormBadge>
 
-                  <ModalTitle>
-                    펫 보험 가입 신청
-                  </ModalTitle>
+                  <ModalTitle>펫 보험 가입 신청</ModalTitle>
 
                   <ModalDescription>
-                    신청 정보를 확인하고 진료확인서를 첨부해 주세요.
-                    신청 후 카카오페이 카드 등록 화면으로 이동합니다.
+                    신청 정보를 확인하고 진료확인서를 첨부해 주세요. 신청 후
+                    카카오페이 카드 등록 화면으로 이동합니다.
                   </ModalDescription>
                 </div>
 
                 <CloseButton
                   type="button"
                   aria-label="닫기"
-                  onClick={
-                    handleCloseModal
-                  }
+                  onClick={handleCloseModal}
                 >
                   ×
                 </CloseButton>
@@ -1070,59 +781,39 @@ function InsuranceProductSection() {
 
               <ModalBody>
                 <FormSection>
-                  <ModalSectionTitle>
-                    신청 정보
-                  </ModalSectionTitle>
+                  <ModalSectionTitle>신청 정보</ModalSectionTitle>
 
                   <InfoTable>
                     <InfoRow>
-                      <InfoLabel>
-                        반려동물
-                      </InfoLabel>
+                      <InfoLabel>반려동물</InfoLabel>
 
-                      <InfoValue>
-                        {selectedPet
-                          ?.petName ||
-                          "-"}
-                      </InfoValue>
+                      <InfoValue>{selectedPet?.petName || "-"}</InfoValue>
                     </InfoRow>
 
                     <InfoRow>
-                      <InfoLabel>
-                        현재 나이
-                      </InfoLabel>
+                      <InfoLabel>현재 나이</InfoLabel>
 
                       <InfoValue>
-                        {selectedPetAge ===
-                        null
+                        {selectedPetAge === null
                           ? "-"
                           : `만 ${selectedPetAge}세`}
                       </InfoValue>
                     </InfoRow>
 
                     <InfoRow>
-                      <InfoLabel>
-                        선택 상품
-                      </InfoLabel>
+                      <InfoLabel>선택 상품</InfoLabel>
 
                       <InfoValue>
-                        {selectedProduct
-                          ?.productName ||
-                          "-"}
+                        {selectedProduct?.productName || "-"}
                       </InfoValue>
                     </InfoRow>
 
                     <InfoRow>
-                      <InfoLabel>
-                        월 보험료
-                      </InfoLabel>
+                      <InfoLabel>월 보험료</InfoLabel>
 
                       <PriceValue>
                         {selectedPriceInfo
-                          ? `${formatPrice(
-                              selectedPriceInfo
-                                .monthlyPrice,
-                            )}원`
+                          ? `${formatPrice(selectedPriceInfo.monthlyPrice)}원`
                           : "-"}
                       </PriceValue>
                     </InfoRow>
@@ -1131,11 +822,7 @@ function InsuranceProductSection() {
 
                 <FormSection>
                   <ModalSectionTitle>
-                    진료확인서 첨부{" "}
-
-                    <RequiredMark>
-                      *
-                    </RequiredMark>
+                    진료확인서 첨부 <RequiredMark>*</RequiredMark>
                   </ModalSectionTitle>
 
                   <UploadCard>
@@ -1144,9 +831,7 @@ function InsuranceProductSection() {
                     </UploadGuide>
 
                     <UploadRow>
-                      <FileInputLabel
-                        htmlFor="medical-certificate"
-                      >
+                      <FileInputLabel htmlFor="medical-certificate">
                         파일 선택
                       </FileInputLabel>
 
@@ -1154,22 +839,12 @@ function InsuranceProductSection() {
                         id="medical-certificate"
                         type="file"
                         accept=".pdf,.png,.jpg,.jpeg"
-                        onChange={(
-                          event,
-                        ) =>
-                          setMedicalCertificate(
-                            event.target
-                              .files?.[0] ||
-                              null,
-                          )
+                        onChange={(event) =>
+                          setMedicalCertificate(event.target.files?.[0] || null)
                         }
                       />
 
-                      <SelectedFileName
-                        $hasFile={Boolean(
-                          medicalCertificate,
-                        )}
-                      >
+                      <SelectedFileName $hasFile={Boolean(medicalCertificate)}>
                         {medicalCertificate
                           ? medicalCertificate.name
                           : "선택된 파일이 없습니다."}
@@ -1179,20 +854,16 @@ function InsuranceProductSection() {
                 </FormSection>
 
                 {errorMessage && (
-                  <ModalErrorMessage>
-                    {errorMessage}
-                  </ModalErrorMessage>
+                  <ModalErrorMessage>{errorMessage}</ModalErrorMessage>
                 )}
 
                 <NoticeBox>
-                  <NoticeTitle>
-                    신청 전 확인해 주세요
-                  </NoticeTitle>
+                  <NoticeTitle>신청 전 확인해 주세요</NoticeTitle>
 
                   <NoticeText>
-                    신청 후 카카오페이 카드 등록 화면으로 이동합니다.
-                    카드 등록 완료 후 관리자 심사가 진행되며,
-                    관리자 승인 시 표시된 월 보험료가 최초 결제됩니다.
+                    신청 후 카카오페이 카드 등록 화면으로 이동합니다. 카드 등록
+                    완료 후 관리자 심사가 진행되며, 관리자 승인 시 표시된 월
+                    보험료가 최초 결제됩니다.
                   </NoticeText>
                 </NoticeBox>
               </ModalBody>
@@ -1200,28 +871,18 @@ function InsuranceProductSection() {
               <ModalFooter>
                 <ModalCancelButton
                   type="button"
-                  onClick={
-                    handleCloseModal
-                  }
-                  disabled={
-                    isLoading
-                  }
+                  onClick={handleCloseModal}
+                  disabled={isLoading}
                 >
                   닫기
                 </ModalCancelButton>
 
                 <SubmitButton
                   type="button"
-                  onClick={
-                    handleApplyInsurance
-                  }
-                  disabled={
-                    isLoading
-                  }
+                  onClick={handleApplyInsurance}
+                  disabled={isLoading}
                 >
-                  {isLoading
-                    ? "신청 처리 중..."
-                    : "가입 신청하기"}
+                  {isLoading ? "신청 처리 중..." : "가입 신청하기"}
                 </SubmitButton>
               </ModalFooter>
             </ModalBox>
@@ -1243,18 +904,13 @@ function getPetInsuranceStatus(pet) {
     return {
       status: "EMPTY",
 
-      label:
-        "반려동물을 선택해 주세요",
+      label: "반려동물을 선택해 주세요",
 
       canApply: false,
     };
   }
 
-  if (
-    pet.approveStatus === "WAITING" ||
-    pet.approveStatus ===
-      "REQUESTED"
-  ) {
+  if (pet.approveStatus === "WAITING" || pet.approveStatus === "REQUESTED") {
     return {
       status: "WAITING",
 
@@ -1264,9 +920,7 @@ function getPetInsuranceStatus(pet) {
     };
   }
 
-  if (
-    pet.approveStatus === "APPROVED"
-  ) {
+  if (pet.approveStatus === "APPROVED") {
     return {
       status: "APPROVED",
 
@@ -1294,124 +948,68 @@ function getProductPriceInfo({
   selectedPetAge,
   calculatedPriceMap,
 }) {
-  const baseMonthlyPrice =
-    Number(
-      product?.productMonthly ||
-        0,
-    );
+  const baseMonthlyPrice = Number(product?.productMonthly || 0);
 
   if (
-    selectedPet
-      ?.insuranceProductId &&
-    String(
-      selectedPet
-        .insuranceProductId,
-    ) ===
-      String(
-        product?.productId,
-      )
+    selectedPet?.insuranceProductId &&
+    String(selectedPet.insuranceProductId) === String(product?.productId)
   ) {
     const monthlyPrice =
-      Number(
-        selectedPet
-          .insuranceProductMonthly,
-      ) || baseMonthlyPrice;
+      Number(selectedPet.insuranceProductMonthly) || baseMonthlyPrice;
 
     return {
       monthlyPrice,
     };
   }
 
-  const calculatedPrice =
-    calculatedPriceMap[
-      String(
-        product?.productId,
-      )
-    ];
+  const calculatedPrice = calculatedPriceMap[String(product?.productId)];
 
   if (calculatedPrice) {
     return {
-      monthlyPrice:
-        Number(
-          calculatedPrice
-            .monthlyPrice,
-        ) ||
-        baseMonthlyPrice,
+      monthlyPrice: Number(calculatedPrice.monthlyPrice) || baseMonthlyPrice,
     };
   }
 
-  const additionalPrice =
-    calculateAdditionalPriceFromAge(
-      selectedPetAge,
-    );
+  const additionalPrice = calculateAdditionalPriceFromAge(selectedPetAge);
 
   return {
-    monthlyPrice:
-      baseMonthlyPrice +
-      additionalPrice,
+    monthlyPrice: baseMonthlyPrice + additionalPrice,
   };
 }
 
 // =========================================================
 // 프론트 fallback용 연령 기준 보험료 계산
 // =========================================================
-function calculateAdditionalPriceFromAge(
-  age,
-) {
-  if (
-    age === null ||
-    age < 3
-  ) {
+function calculateAdditionalPriceFromAge(age) {
+  if (age === null || age < 3) {
     return 0;
   }
 
-  return (
-    (Math.floor(
-      (age - 3) / 2,
-    ) +
-      1) *
-    10000
-  );
+  return (Math.floor((age - 3) / 2) + 1) * 10000;
 }
 
 // =========================================================
 // 저장된 생년월일 기준 만 나이 계산
 // =========================================================
-function calculateAgeFromBirthDate(
-  birthDateValue,
-) {
+function calculateAgeFromBirthDate(birthDateValue) {
   if (!birthDateValue) {
     return null;
   }
 
-  const value =
-    String(
-      birthDateValue,
-    ).trim();
+  const value = String(birthDateValue).trim();
 
   let year;
   let month;
   let day;
 
   if (/^\d{8}$/.test(value)) {
-    year = Number(
-      value.slice(0, 4),
-    );
+    year = Number(value.slice(0, 4));
 
-    month = Number(
-      value.slice(4, 6),
-    );
+    month = Number(value.slice(4, 6));
 
-    day = Number(
-      value.slice(6, 8),
-    );
-  } else if (
-    /^\d{4}-\d{2}-\d{2}$/.test(
-      value,
-    )
-  ) {
-    const parts =
-      value.split("-");
+    day = Number(value.slice(6, 8));
+  } else if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const parts = value.split("-");
 
     year = Number(parts[0]);
     month = Number(parts[1]);
@@ -1420,18 +1018,11 @@ function calculateAgeFromBirthDate(
     return null;
   }
 
-  const birthDate =
-    new Date(
-      year,
-      month - 1,
-      day,
-    );
+  const birthDate = new Date(year, month - 1, day);
 
   if (
-    birthDate.getFullYear() !==
-      year ||
-    birthDate.getMonth() !==
-      month - 1 ||
+    birthDate.getFullYear() !== year ||
+    birthDate.getMonth() !== month - 1 ||
     birthDate.getDate() !== day
   ) {
     return null;
@@ -1439,50 +1030,33 @@ function calculateAgeFromBirthDate(
 
   const today = new Date();
 
-  let age =
-    today.getFullYear() -
-    year;
+  let age = today.getFullYear() - year;
 
   const birthdayPassed =
-    today.getMonth() >
-      month - 1 ||
-    (today.getMonth() ===
-      month - 1 &&
-      today.getDate() >=
-        day);
+    today.getMonth() > month - 1 ||
+    (today.getMonth() === month - 1 && today.getDate() >= day);
 
   if (!birthdayPassed) {
     age -= 1;
   }
 
-  return age >= 0
-    ? age
-    : null;
+  return age >= 0 ? age : null;
 }
 
 // =========================================================
 // 공통 유틸
 // =========================================================
-function getErrorMessage(
-  error,
-  defaultMessage,
-) {
+function getErrorMessage(error, defaultMessage) {
   return (
-    error.response?.data
-      ?.message ||
-    error.response?.data
-      ?.error ||
+    error.response?.data?.message ||
+    error.response?.data?.error ||
     error.message ||
     defaultMessage
   );
 }
 
 function formatPrice(price) {
-  return Number(
-    price || 0,
-  ).toLocaleString(
-    "ko-KR",
-  );
+  return Number(price || 0).toLocaleString("ko-KR");
 }
 
 // =========================================================
@@ -1490,7 +1064,7 @@ function formatPrice(price) {
 // =========================================================
 const ProductSection = styled.section`
   width: 85%;
-  margin:auto;
+  margin: auto;
 `;
 
 const SectionHeader = styled.div`
@@ -1586,13 +1160,9 @@ const MenuArrow = styled.span`
   font-size: 15px;
   line-height: 1;
 
-  transform: ${({ $isOpen }) =>
-    $isOpen
-      ? "rotate(180deg)"
-      : "rotate(0deg)"};
+  transform: ${({ $isOpen }) => ($isOpen ? "rotate(180deg)" : "rotate(0deg)")};
 
-  transition:
-    transform 0.18s ease;
+  transition: transform 0.18s ease;
 `;
 
 const PetDropdown = styled.div`
@@ -1609,9 +1179,7 @@ const PetDropdown = styled.div`
 
   background: var(--color-white);
 
-  box-shadow:
-    0 10px 26px
-    rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.1);
 `;
 
 const PetOptionButton = styled.button`
@@ -1626,17 +1194,14 @@ const PetOptionButton = styled.button`
   border-radius: 7px;
 
   background: ${({ $isSelected }) =>
-    $isSelected
-      ? "var(--color-bg-light)"
-      : "var(--color-white)"};
+    $isSelected ? "var(--color-bg-light)" : "var(--color-white)"};
 
   text-align: left;
 
   cursor: pointer;
 
   &:hover {
-    background:
-      var(--color-bg-light);
+    background: var(--color-bg-light);
   }
 `;
 
@@ -1671,8 +1236,7 @@ const SelectedPetDot = styled.span`
 
   border-radius: 50%;
 
-  background:
-    var(--color-main);
+  background: var(--color-main);
 `;
 
 const PetAgeText = styled.span`
@@ -1684,8 +1248,7 @@ const PetAgeText = styled.span`
 const PetStatusText = styled.span`
   font-size: 11px;
 
-  color: ${({ $status }) =>
-    getStatusColor($status)};
+  color: ${({ $status }) => getStatusColor($status)};
 `;
 
 const EmptyPetMessage = styled.p`
@@ -1750,18 +1313,12 @@ const SummaryStatus = styled.span`
 
   border-radius: 999px;
 
-  background: ${({ $status }) =>
-    getStatusBackground(
-      $status,
-    )};
+  background: ${({ $status }) => getStatusBackground($status)};
 
   font-size: 11px;
   font-weight: 700;
 
-  color: ${({ $status }) =>
-    getStatusColor(
-      $status,
-    )};
+  color: ${({ $status }) => getStatusColor($status)};
 `;
 
 const SummaryPrice = styled.span`
@@ -1812,17 +1369,13 @@ const ProductGrid = styled.div`
   display: grid;
 
   grid-template-columns: ${({ $isSingle }) =>
-    $isSingle
-      ? "minmax(0, 540px)"
-      : "repeat(3, minmax(0, 1fr))"};
+    $isSingle ? "minmax(0, 540px)" : "repeat(3, minmax(0, 1fr))"};
 
   gap: 20px;
 
   @media (max-width: 1100px) {
     grid-template-columns: ${({ $isSingle }) =>
-      $isSingle
-        ? "minmax(0, 540px)"
-        : "repeat(2, minmax(0, 1fr))"};
+      $isSingle ? "minmax(0, 540px)" : "repeat(2, minmax(0, 1fr))"};
   }
 
   @media (max-width: 760px) {
@@ -1836,26 +1389,19 @@ const ProductCard = styled.div`
   display: flex;
   flex-direction: column;
 
-  min-height: 360px;
+  min-height: 450px;
   padding: 26px 24px 24px;
 
   overflow: hidden;
 
   border: 1px solid
-    ${({ $isSelected }) =>
-      $isSelected
-        ? "#bfe8d9"
-        : "#e2e7e5"};
+    ${({ $isSelected }) => ($isSelected ? "#bfe8d9" : "#e2e7e5")};
 
   border-radius: 18px;
 
-  background:
-    var(--color-white);
+  background: var(--color-white);
 
-  cursor: ${({ $isLocked }) =>
-    $isLocked
-      ? "default"
-      : "pointer"};
+  cursor: ${({ $isLocked }) => ($isLocked ? "default" : "pointer")};
 
   box-shadow: ${({ $isSelected }) =>
     $isSelected
@@ -1873,15 +1419,9 @@ const ProductCard = styled.div`
     box-shadow 0.18s ease;
 
   &:hover {
-    transform: ${({ $isLocked }) =>
-      $isLocked
-        ? "none"
-        : "translateY(-3px)"};
+    transform: ${({ $isLocked }) => ($isLocked ? "none" : "translateY(-3px)")};
 
-    border-color: ${({ $isLocked }) =>
-      $isLocked
-        ? "#e2e7e5"
-        : "#b6dfd1"};
+    border-color: ${({ $isLocked }) => ($isLocked ? "#e2e7e5" : "#b6dfd1")};
 
     box-shadow: ${({ $isLocked }) =>
       $isLocked
@@ -1901,27 +1441,7 @@ const CardHeader = styled.div`
   gap: 14px;
 `;
 
-const lampPulse = keyframes`
-  0% {
-    box-shadow:
-      0 0 0 0
-      rgba(0, 169, 123, 0.14);
-  }
-
-  50% {
-    box-shadow:
-      0 0 0 5px
-      rgba(0, 169, 123, 0.08);
-  }
-
-  100% {
-    box-shadow:
-      0 0 0 0
-      rgba(0, 169, 123, 0.14);
-  }
-`;
-
-const SelectedLamp = styled.span`
+const SelectedCheckbox = styled.span`
   flex-shrink: 0;
 
   display: inline-flex;
@@ -1931,34 +1451,30 @@ const SelectedLamp = styled.span`
   width: 22px;
   height: 22px;
 
-  border: 1px solid
-    rgba(0, 169, 123, 0.18);
-
-  border-radius: 50%;
-
-  background:
-    rgba(236, 253, 246, 0.9);
-`;
-
-const LampCore = styled.span`
-  display: block;
-
-  width: 9px;
-  height: 9px;
-
   border: 2px solid
-    var(--color-white);
+    ${({ $isSelected }) => ($isSelected ? "var(--color-main)" : "#cfdad6")};
 
-  border-radius: 50%;
+  border-radius: 6px;
 
-  background:
-    var(--color-main);
+  background: ${({ $isSelected }) =>
+    $isSelected ? "var(--color-main)" : "var(--color-white)"};
 
-  animation:
-    ${lampPulse}
-    2.2s
-    ease-in-out
-    infinite;
+  color: var(--color-white);
+
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.18s ease;
+
+  ${({ $isSelected }) =>
+    $isSelected &&
+    `
+      transform: scale(1.04);
+    `}
 `;
 
 const ProductName = styled.h3`
@@ -1968,9 +1484,7 @@ const ProductName = styled.h3`
   font-weight: 800;
 
   color: ${({ $isSelected }) =>
-    $isSelected
-      ? "var(--color-main)"
-      : "var(--color-main-dark)"};
+    $isSelected ? "var(--color-main)" : "var(--color-main-dark)"};
 
   transition: color 0.18s ease;
 `;
@@ -2054,25 +1568,21 @@ const ApplyButton = styled.button`
   border: none;
   border-radius: 8px;
 
-  background:
-    var(--color-main);
+  background: var(--color-main);
 
   font-size: 12px;
   font-weight: 700;
 
-  color:
-    var(--color-white);
+  color: var(--color-white);
 
   cursor: pointer;
 
   &:hover {
-    background:
-      var(--color-main-dark);
+    background: var(--color-main-dark);
   }
 
   &:disabled {
-    background:
-      var(--color-mint);
+    background: var(--color-mint);
 
     cursor: default;
   }
@@ -2085,18 +1595,12 @@ const CurrentProductStatus = styled.span`
 
   border-radius: 999px;
 
-  background: ${({ $status }) =>
-    getStatusBackground(
-      $status,
-    )};
+  background: ${({ $status }) => getStatusBackground($status)};
 
   font-size: 11px;
   font-weight: 700;
 
-  color: ${({ $status }) =>
-    getStatusColor(
-      $status,
-    )};
+  color: ${({ $status }) => getStatusColor($status)};
 `;
 
 const UnavailableBadge = styled.span`
@@ -2125,8 +1629,7 @@ const ModalOverlay = styled.div`
 
   padding: 20px;
 
-  background:
-    rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.45);
 `;
 
 const ModalBox = styled.div`
@@ -2140,12 +1643,9 @@ const ModalBox = styled.div`
 
   border-radius: 20px;
 
-  background:
-    var(--color-white);
+  background: var(--color-white);
 
-  box-shadow:
-    0 24px 60px
-    rgba(0, 0, 0, 0.2);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
 `;
 
 const ModalHeader = styled.div`
@@ -2156,8 +1656,7 @@ const ModalHeader = styled.div`
 
   padding: 24px 24px 18px;
 
-  border-bottom:
-    1px solid #eeeeee;
+  border-bottom: 1px solid #eeeeee;
 `;
 
 const FormBadge = styled.span`
@@ -2169,14 +1668,12 @@ const FormBadge = styled.span`
 
   border-radius: 999px;
 
-  background:
-    var(--color-bg-light);
+  background: var(--color-bg-light);
 
   font-size: 11px;
   font-weight: 700;
 
-  color:
-    var(--color-main-dark);
+  color: var(--color-main-dark);
 `;
 
 const ModalTitle = styled.h2`
@@ -2244,25 +1741,21 @@ const RequiredMark = styled.span`
 const InfoTable = styled.div`
   overflow: hidden;
 
-  border:
-    1px solid #e8eeeb;
+  border: 1px solid #e8eeeb;
 
   border-radius: 13px;
 
-  background:
-    var(--color-white);
+  background: var(--color-white);
 `;
 
 const InfoRow = styled.div`
   display: grid;
 
-  grid-template-columns:
-    120px 1fr;
+  grid-template-columns: 120px 1fr;
 
   min-height: 44px;
 
-  border-bottom:
-    1px solid #eeeeee;
+  border-bottom: 1px solid #eeeeee;
 
   &:last-child {
     border-bottom: none;
@@ -2304,8 +1797,7 @@ const PriceValue = styled.span`
   font-size: 16px;
   font-weight: 800;
 
-  color:
-    var(--color-main-dark);
+  color: var(--color-main-dark);
 `;
 
 const UploadCard = styled.div`
@@ -2314,8 +1806,7 @@ const UploadCard = styled.div`
   border: 1px solid #eeeeee;
   border-radius: 12px;
 
-  background:
-    var(--color-white);
+  background: var(--color-white);
 `;
 
 const UploadGuide = styled.p`
@@ -2343,8 +1834,7 @@ const FileInputLabel = styled.label`
   height: 38px;
   padding: 0 12px;
 
-  border:
-    1px solid #cfe5dc;
+  border: 1px solid #cfe5dc;
 
   border-radius: 8px;
 
@@ -2353,14 +1843,12 @@ const FileInputLabel = styled.label`
   font-size: 12px;
   font-weight: 700;
 
-  color:
-    var(--color-main-dark);
+  color: var(--color-main-dark);
 
   cursor: pointer;
 
   &:hover {
-    background:
-      var(--color-bg-light);
+    background: var(--color-bg-light);
   }
 `;
 
@@ -2376,25 +1864,16 @@ const SelectedFileName = styled.div`
 
   padding: 10px 12px;
 
-  border: 1px solid
-    ${({ $hasFile }) =>
-      $hasFile
-        ? "#b9e2d3"
-        : "#e3e3e3"};
+  border: 1px solid ${({ $hasFile }) => ($hasFile ? "#b9e2d3" : "#e3e3e3")};
 
   border-radius: 8px;
 
-  background: ${({ $hasFile }) =>
-    $hasFile
-      ? "#f4fbf8"
-      : "#fafafa"};
+  background: ${({ $hasFile }) => ($hasFile ? "#f4fbf8" : "#fafafa")};
 
   font-size: 12px;
 
   color: ${({ $hasFile }) =>
-    $hasFile
-      ? "var(--color-main-dark)"
-      : "var(--text-desc)"};
+    $hasFile ? "var(--color-main-dark)" : "var(--text-desc)"};
 
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2438,18 +1917,15 @@ const NoticeText = styled.p`
 const ModalFooter = styled.div`
   display: grid;
 
-  grid-template-columns:
-    1fr 1.5fr;
+  grid-template-columns: 1fr 1.5fr;
 
   gap: 10px;
 
   padding: 16px 24px 20px;
 
-  border-top:
-    1px solid #eeeeee;
+  border-top: 1px solid #eeeeee;
 
-  background:
-    var(--color-white);
+  background: var(--color-white);
 `;
 
 const ModalCancelButton = styled.button`
@@ -2458,8 +1934,7 @@ const ModalCancelButton = styled.button`
   border: 1px solid #dddddd;
   border-radius: 10px;
 
-  background:
-    var(--color-white);
+  background: var(--color-white);
 
   font-size: 13px;
   font-weight: 700;
@@ -2479,25 +1954,21 @@ const SubmitButton = styled.button`
   border: none;
   border-radius: 10px;
 
-  background:
-    var(--color-main);
+  background: var(--color-main);
 
   font-size: 13px;
   font-weight: 800;
 
-  color:
-    var(--color-white);
+  color: var(--color-white);
 
   cursor: pointer;
 
   &:hover {
-    background:
-      var(--color-main-dark);
+    background: var(--color-main-dark);
   }
 
   &:disabled {
-    background:
-      var(--color-mint);
+    background: var(--color-mint);
 
     cursor: default;
   }
@@ -2507,59 +1978,39 @@ const SubmitButton = styled.button`
 // 상태별 스타일
 // =========================================================
 function getStatusColor(status) {
-  if (
-    status === "AVAILABLE"
-  ) {
+  if (status === "AVAILABLE") {
     return "var(--color-main-dark)";
   }
 
-  if (
-    status === "WAITING" ||
-    status === "IN_PROGRESS"
-  ) {
+  if (status === "WAITING" || status === "IN_PROGRESS") {
     return "#c98500";
   }
 
-  if (
-    status === "APPROVED"
-  ) {
+  if (status === "APPROVED") {
     return "#2b70c9";
   }
 
-  if (
-    status === "RESTRICTED"
-  ) {
+  if (status === "RESTRICTED") {
     return "#d45a4d";
   }
 
   return "var(--text-desc)";
 }
 
-function getStatusBackground(
-  status,
-) {
-  if (
-    status === "AVAILABLE"
-  ) {
+function getStatusBackground(status) {
+  if (status === "AVAILABLE") {
     return "var(--color-bg-light)";
   }
 
-  if (
-    status === "WAITING" ||
-    status === "IN_PROGRESS"
-  ) {
+  if (status === "WAITING" || status === "IN_PROGRESS") {
     return "#fff6e4";
   }
 
-  if (
-    status === "APPROVED"
-  ) {
+  if (status === "APPROVED") {
     return "#eaf2ff";
   }
 
-  if (
-    status === "RESTRICTED"
-  ) {
+  if (status === "RESTRICTED") {
     return "#fff3f1";
   }
 
