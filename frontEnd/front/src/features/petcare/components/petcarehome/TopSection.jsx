@@ -3,9 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import mainImg from "../../img/건강검진 메인.png";
 import item1 from "../../img/십자가.png";
-import item2 from "../../img/하트.png";
 import item3 from "../../img/발자국.png";
-import item4 from "../../img/방패.png";
 
 function TopSection({ selectedPet }) {
   const navigate = useNavigate();
@@ -15,8 +13,7 @@ function TopSection({ selectedPet }) {
   const hasPet = selectedPet !== null && selectedPet !== undefined;
 
   // 현재 선택한 펫의 신청 상태
-  const isApplying =
-    selectedPet?.diagnosisInProgress === true;
+  const isApplying = selectedPet?.diagnosisInProgress === true;
 
   const handleApply = () => {
     if (isLoading || isApplying) {
@@ -33,12 +30,14 @@ function TopSection({ selectedPet }) {
 
   return (
     <HeroWrapper>
-      {/* 왼쪽 문구는 아래 콘텐츠와 동일한 85% 정렬선 사용 */}
+      <DotPattern />
+
       <HeroInner>
+        {/* =====================================================
+            왼쪽 문구
+        ===================================================== */}
         <HeroLeft>
-          <HeroSubtitle>
-            우리 아이의 건강을 미리 체크하세요
-          </HeroSubtitle>
+          <HeroSubtitle>우리 아이의 건강을 미리 체크하세요</HeroSubtitle>
 
           <HeroTitle>
             <BrandText>PET&I FOR</BrandText>
@@ -55,6 +54,8 @@ function TopSection({ selectedPet }) {
             type="button"
             disabled={isLoading || isApplying}
             onClick={handleApply}
+            $isApplying={isApplying}
+            $isLoading={isLoading}
           >
             {isLoading ? (
               <>
@@ -64,7 +65,7 @@ function TopSection({ selectedPet }) {
             ) : isApplying ? (
               <>
                 <StatusDot />
-                건강 진단 신청 중
+                건강 진단 진행 중
               </>
             ) : !hasPet ? (
               <>
@@ -79,38 +80,61 @@ function TopSection({ selectedPet }) {
             )}
           </ApplyButton>
         </HeroLeft>
+
+        {/* =====================================================
+            발자국 장식 영역
+        ===================================================== */}
+        <PawDecorationArea>
+          <PawItem $left="2%" $top="66%" $delay="0s">
+            <PawImage src={item3} alt="" $size="25px" $rotate="-18deg" />
+          </PawItem>
+
+          <PawItem $left="16%" $top="39%" $delay="0.45s">
+            <PawImage src={item3} alt="" $size="31px" $rotate="15deg" />
+          </PawItem>
+
+          <PawItem $left="30%" $top="68%" $delay="0.9s">
+            <PawImage src={item3} alt="" $size="27px" $rotate="-12deg" />
+          </PawItem>
+
+          <PawItem $left="44%" $top="34%" $delay="1.35s">
+            <PawImage src={item3} alt="" $size="34px" $rotate="18deg" />
+          </PawItem>
+
+          <PawItem $left="58%" $top="62%" $delay="1.8s">
+            <PawImage src={item3} alt="" $size="29px" $rotate="-14deg" />
+          </PawItem>
+
+          <PawItem $left="73%" $top="31%" $delay="2.25s">
+            <PawImage src={item3} alt="" $size="31px" $rotate="16deg" />
+          </PawItem>
+
+          <PawItem $left="88%" $top="58%" $delay="2.7s">
+            <PawImage src={item3} alt="" $size="25px" $rotate="-12deg" />
+          </PawItem>
+        </PawDecorationArea>
+
+        {/* =====================================================
+            의료 십자가 포인트
+        ===================================================== */}
+        <CrossIcon src={item1} alt="" />
+
+        {/* =====================================================
+            오른쪽 펫 이미지
+        ===================================================== */}
+        <ImageArea>
+          <HeroImage src={mainImg} alt="강아지와 고양이 건강진단 안내" />
+        </ImageArea>
       </HeroInner>
-
-      {/* 왼쪽 십자가 장식 */}
-      <CrossIcon src={item1} alt="" />
-
-      {/* 오른쪽 이미지는 하나의 묶음으로 관리 */}
-      <RightVisualGroup>
-        <PawIcon className="paw-large" src={item3} alt="" />
-        <PawIcon className="paw-medium" src={item3} alt="" />
-        <PawIcon className="paw-small" src={item3} alt="" />
-
-        <HeartIcon src={item2} alt="" />
-        <ShieldIcon src={item4} alt="" />
-
-        <PawIcon className="paw-right-top" src={item3} alt="" />
-        <PawIcon className="paw-right-bottom" src={item3} alt="" />
-
-        <HeroImage
-          src={mainImg}
-          alt="강아지와 고양이 건강진단 안내"
-        />
-      </RightVisualGroup>
     </HeroWrapper>
   );
 }
 
 export default TopSection;
 
-/* =====================================
-   애니메이션
-===================================== */
-
+// =========================================================
+// animation
+// =========================================================
 const statusPulse = keyframes`
   0% {
     box-shadow: 0 0 0 0 rgba(0, 169, 123, 0.24);
@@ -139,7 +163,24 @@ const loadingPulse = keyframes`
   }
 `;
 
-const iconFloat = keyframes`
+const pawFloat = keyframes`
+  0% {
+    transform: translateY(0);
+    opacity: 0.14;
+  }
+
+  50% {
+    transform: translateY(-6px);
+    opacity: 0.28;
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 0.14;
+  }
+`;
+
+const crossFloat = keyframes`
   0% {
     transform: translateY(0);
   }
@@ -153,27 +194,9 @@ const iconFloat = keyframes`
   }
 `;
 
-const pawFloat = keyframes`
-  0% {
-    transform: translateY(0);
-    opacity: 0.25;
-  }
-
-  50% {
-    transform: translateY(-8px);
-    opacity: 0.45;
-  }
-
-  100% {
-    transform: translateY(0);
-    opacity: 0.25;
-  }
-`;
-
-/* =====================================
-   배너 전체 영역
-===================================== */
-
+// =========================================================
+// styled-components
+// =========================================================
 const HeroWrapper = styled.section`
   position: relative;
 
@@ -182,11 +205,9 @@ const HeroWrapper = styled.section`
 
   overflow: hidden;
 
-  background: color-mix(
-    in srgb,
-    var(--color-bg-soft) 50%,
-    var(--color-white)
-  );
+  background: color-mix(in srgb, var(--color-bg-soft) 50%, var(--color-white));
+
+  box-sizing: border-box;
 
   @media (max-width: 900px) {
     height: 260px;
@@ -197,14 +218,19 @@ const HeroWrapper = styled.section`
   }
 `;
 
-/* 아래 콘텐츠와 동일한 왼쪽 정렬선 */
 const HeroInner = styled.div`
   position: relative;
 
-  width: 85%;
+  width: min(1730px, calc(100% - 180px));
   height: 100%;
 
   margin: 0 auto;
+
+  overflow: hidden;
+
+  @media (max-width: 1200px) {
+    width: calc(100% - 96px);
+  }
 
   @media (max-width: 900px) {
     width: calc(100% - 48px);
@@ -215,15 +241,14 @@ const HeroInner = styled.div`
   }
 `;
 
-/* =====================================
-   왼쪽 문구 영역
-===================================== */
-
+// =========================================================
+// 왼쪽 문구 영역
+// =========================================================
 const HeroLeft = styled.div`
   position: absolute;
   top: 28px;
   left: 0;
-  z-index: 5;
+  z-index: 6;
 
   width: min(530px, 55%);
 
@@ -241,41 +266,48 @@ const HeroLeft = styled.div`
 `;
 
 const HeroSubtitle = styled.p`
-  margin: 0 0 12px;
+  margin: 0;
 
-  color: var(--color-main);
+  color: var(--color-main-dark);
 
-  font-size: clamp(15px, 1.2vw, 18px);
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 2px;
 `;
 
 const HeroTitle = styled.h1`
-  margin: 0 0 12px;
+  margin: 8px 0 0;
 
   color: var(--text-main);
 
-  font-size: clamp(25px, 2vw, 30px);
-  font-weight: 800;
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1.18;
+  letter-spacing: -1.4px;
+
+  @media (max-width: 640px) {
+    font-size: 27px;
+  }
 `;
 
 const BrandText = styled.span`
   margin-right: 10px;
 
-  color: var(--color-main);
+  color: var(--color-main-dark);
 
-  font-weight: 700;
+  font-weight: 900;
 `;
 
 const HeroDesc = styled.p`
   width: min(500px, 100%);
 
-  margin: 0 0 22px;
+  margin: 12px 0 22px;
 
   color: var(--text-sub);
 
-  font-size: clamp(12px, 0.9vw, 13px);
+  font-size: 14px;
   font-weight: 400;
-  line-height: 1.55;
+  line-height: 1.75;
 
   word-break: keep-all;
 
@@ -285,13 +317,14 @@ const HeroDesc = styled.p`
     padding-right: 92px;
 
     box-sizing: border-box;
+
+    font-size: 12px;
   }
 `;
 
-/* =====================================
-   신청 버튼
-===================================== */
-
+// =========================================================
+// 신청 버튼
+// =========================================================
 const StatusDot = styled.span`
   width: 8px;
   height: 8px;
@@ -300,240 +333,246 @@ const StatusDot = styled.span`
 
   border-radius: 50%;
 
-  background: #00a97b;
+  background: ${({ $loading }) =>
+    $loading ? "rgba(255, 255, 255, 0.92)" : "#00a97b"};
 
-  animation: ${({ $loading }) =>
-      $loading ? loadingPulse : statusPulse}
-    ${({ $loading }) => ($loading ? "1.2s" : "1.8s")}
-    ease-in-out infinite;
+  animation: ${({ $loading }) => ($loading ? loadingPulse : statusPulse)}
+    ${({ $loading }) => ($loading ? "1.2s" : "1.8s")} ease-in-out infinite;
 `;
 
 const Arrow = styled.span`
   font-size: 18px;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1;
 
   transition: transform 0.2s ease;
 `;
 
 const ApplyButton = styled.button`
-  display: flex;
-
-  width: 205px;
-  height: 48px;
-
-  margin-top: -8px;
-
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 9px;
 
-  border: 1px solid var(--color-main);
-  border-radius: 10px;
+  min-width: ${({ $isApplying, $isLoading }) =>
+    $isApplying || $isLoading ? "214px" : "198px"};
+  height: 46px;
 
-  background: var(--color-white);
-  color: var(--color-main);
+  margin-top: -8px;
+  padding: 0 18px;
 
-  font-size: 16px;
-  font-weight: 700;
+  border: 1px solid
+    ${({ $isApplying, $isLoading }) =>
+      $isApplying || $isLoading ? "rgba(0, 169, 123, 0.18)" : "transparent"};
 
-  cursor: pointer;
+  border-radius: 999px;
+
+  background: ${({ $isApplying, $isLoading }) =>
+    $isApplying || $isLoading
+      ? "rgba(255, 255, 255, 0.72)"
+      : "linear-gradient(135deg, var(--color-main) 0%, var(--color-main-dark) 100%)"};
+
+  color: ${({ $isApplying, $isLoading }) =>
+    $isApplying || $isLoading
+      ? "var(--color-main-dark)"
+      : "var(--color-white)"};
+
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+
+  cursor: ${({ $isApplying, $isLoading }) =>
+    $isApplying || $isLoading ? "default" : "pointer"};
+
+  box-shadow: ${({ $isApplying, $isLoading }) =>
+    $isApplying || $isLoading
+      ? "0 8px 18px rgba(0, 169, 123, 0.07)"
+      : "0 10px 20px rgba(0, 169, 123, 0.18)"};
+
+  backdrop-filter: blur(8px);
 
   transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease,
+    transform 0.2s ease,
     box-shadow 0.2s ease,
-    transform 0.2s ease;
+    filter 0.2s ease;
 
   &:hover:not(:disabled) {
-    background: var(--color-main);
-    color: var(--color-white);
-
     transform: translateY(-2px);
+
+    box-shadow: 0 14px 24px rgba(0, 169, 123, 0.25);
+
+    filter: brightness(1.03);
 
     ${Arrow} {
       transform: translateX(4px);
     }
   }
 
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
   &:disabled {
-    border-color: rgba(0, 169, 123, 0.28);
-
-    background: rgba(0, 169, 123, 0.09);
-    color: #008f69;
-
-    cursor: default;
-
     opacity: 1;
-
-    box-shadow:
-      inset 0 0 0 1px rgba(0, 169, 123, 0.04),
-      0 4px 10px rgba(0, 169, 123, 0.06);
   }
 
   @media (max-width: 640px) {
-    width: 190px;
-    height: 44px;
+    min-width: 186px;
+    height: 43px;
 
-    font-size: 14px;
+    padding: 0 15px;
+
+    font-size: 13px;
   }
 `;
 
-/* =====================================
-   왼쪽 장식
-===================================== */
-
-const CrossIcon = styled.img`
+// =========================================================
+// 발자국 장식 영역
+// =========================================================
+const PawDecorationArea = styled.div`
   position: absolute;
-  left: clamp(350px, 23vw, 470px);
-  bottom: 22px;
 
-  width: 72px;
-  height: auto;
+  left: 410px;
+  right: 330px;
+  top: 0;
+  bottom: 0;
 
-  animation: ${iconFloat} 3.4s ease-in-out infinite;
+  z-index: 3;
 
-  @media (max-width: 900px) {
-    left: 48%;
+  pointer-events: none;
 
-    width: 54px;
+  @media (max-width: 1200px) {
+    left: 390px;
+    right: 300px;
   }
 
-  @media (max-width: 640px) {
+  @media (max-width: 900px) {
+    left: 330px;
+    right: 230px;
+  }
+
+  @media (max-width: 760px) {
     display: none;
   }
 `;
 
-/* =====================================
-   오른쪽 이미지 묶음
-===================================== */
-
-const RightVisualGroup = styled.div`
+const PawItem = styled.div`
   position: absolute;
-  right: clamp(150px, 12vw, 180px);
-  bottom: 0;
 
-  width: 650px;
+  left: ${({ $left }) => $left};
+  top: ${({ $top }) => $top};
+
+  animation: ${pawFloat} 3.8s ease-in-out infinite;
+  animation-delay: ${({ $delay }) => $delay};
+`;
+
+const PawImage = styled.img`
+  display: block;
+
+  width: ${({ $size }) => $size};
+  height: auto;
+
+  object-fit: contain;
+
+  transform: rotate(${({ $rotate }) => $rotate});
+`;
+
+// =========================================================
+// 의료 십자가 포인트
+// =========================================================
+const CrossIcon = styled.img`
+  position: absolute;
+  right: 54px;
+  top: 24px;
+  z-index: 6;
+
+  width: 44px;
+  height: auto;
+
+  opacity: 0.62;
+
+  animation: ${crossFloat} 3.4s ease-in-out infinite;
+
+  @media (max-width: 1100px) {
+    right: 6px;
+
+    width: 40px;
+  }
+
+  @media (max-width: 760px) {
+    display: none;
+  }
+`;
+
+// =========================================================
+// 오른쪽 이미지 영역
+// =========================================================
+const ImageArea = styled.div`
+  position: absolute;
+
+  right: 42px;
+  bottom: 0;
+  z-index: 5;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  width: 410px;
   height: 100%;
 
   pointer-events: none;
 
-  transform-origin: right bottom;
-
   @media (max-width: 1350px) {
-    right: 20px;
-
-    transform: scale(0.9);
+    right: 10px;
   }
 
   @media (max-width: 1100px) {
-    right: -25px;
+    right: -30px;
 
-    transform: scale(0.78);
+    width: 355px;
   }
 
   @media (max-width: 900px) {
     right: -55px;
 
-    transform: scale(0.66);
+    width: 310px;
   }
 
   @media (max-width: 640px) {
-    right: -90px;
+    right: -95px;
 
-    opacity: 0.3;
+    width: 245px;
 
-    transform: scale(0.55);
+    opacity: 0.28;
   }
 `;
 
 const HeroImage = styled.img`
-  position: absolute;
-  right: 35px;
-  bottom: 0;
+  position: relative;
+  z-index: 2;
 
-  width: 390px;
-  max-height: 225px;
+  display: block;
+
+  width: 100%;
+  max-height: 232px;
 
   object-fit: contain;
+  object-position: center bottom;
 `;
 
-const HeartIcon = styled.img`
+const DotPattern = styled.div`
   position: absolute;
-  left: 200px;
-  top: 40px;
+  inset: 0;
 
-  width: 42px;
-  height: auto;
+  opacity: 0.16;
 
-  animation: ${iconFloat} 3s ease-in-out infinite;
-  animation-delay: 0.5s;
-`;
+  background-image: radial-gradient(
+    rgba(0, 169, 123, 0.22) 1px,
+    transparent 1px
+  );
 
-const ShieldIcon = styled.img`
-  position: absolute;
-  right: 40px;
-  top: 16px;
+  background-size: 18px 18px;
 
-  width: 47px;
-  height: auto;
-
-  animation: ${iconFloat} 3.8s ease-in-out infinite;
-  animation-delay: 1s;
-`;
-
-const PawIcon = styled.img`
-  position: absolute;
-
-  height: auto;
-
-  opacity: 0.35;
-
-  animation: ${pawFloat} 3s ease-in-out infinite;
-
-  &.paw-large {
-    left: 0;
-    top: 38px;
-
-    width: 58px;
-
-    animation-delay: 0s;
-  }
-
-  &.paw-medium {
-    left: 92px;
-    top: 128px;
-
-    width: 48px;
-
-    animation-delay: 0.7s;
-  }
-
-  &.paw-small {
-    left: 185px;
-    top: 145px;
-
-    width: 26px;
-
-    animation-delay: 1.4s;
-  }
-
-  &.paw-right-top {
-    right: 0;
-    top: 90px;
-
-    width: 25px;
-
-    animation-delay: 0.4s;
-  }
-
-  &.paw-right-bottom {
-    right: -50px;
-    top: 158px;
-
-    width: 27px;
-
-    animation-delay: 1.1s;
-  }
+  pointer-events: none;
 `;

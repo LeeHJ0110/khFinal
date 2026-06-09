@@ -116,9 +116,11 @@ function InsuranceEstimateSection() {
         throw new Error("정기결제 내역 응답 형식이 올바르지 않습니다.");
       }
 
+      const latestPeriod = getLatestPaymentPeriod(data);
+
       setPaymentHistoryList(data);
-      setSelectedYear("ALL");
-      setSelectedMonth("ALL");
+      setSelectedYear(latestPeriod.year);
+      setSelectedMonth(latestPeriod.month);
       setIsModalOpen(true);
     } catch (error) {
       console.error("펫 보험 정기결제 내역 조회 실패:", error);
@@ -267,11 +269,14 @@ function InsuranceEstimateSection() {
                     <ResetFilterButton
                       type="button"
                       onClick={() => {
-                        setSelectedYear("ALL");
-                        setSelectedMonth("ALL");
+                        const latestPeriod =
+                          getLatestPaymentPeriod(paymentHistoryList);
+
+                        setSelectedYear(latestPeriod.year);
+                        setSelectedMonth(latestPeriod.month);
                       }}
                     >
-                      초기화
+                      최신 내역
                     </ResetFilterButton>
                   </FilterRow>
                 </div>
@@ -406,6 +411,25 @@ const MONTH_OPTION_LIST = [
   "12",
 ];
 
+function getLatestPaymentPeriod(paymentHistoryList) {
+  const latestDate = paymentHistoryList
+    .map((payment) => getValidDate(payment.paidAt))
+    .filter(Boolean)
+    .sort((a, b) => b.getTime() - a.getTime())[0];
+
+  if (!latestDate) {
+    return {
+      year: "ALL",
+      month: "ALL",
+    };
+  }
+
+  return {
+    year: String(latestDate.getFullYear()),
+    month: String(latestDate.getMonth() + 1).padStart(2, "0"),
+  };
+}
+
 function getValidDate(dateTimeValue) {
   if (!dateTimeValue) {
     return null;
@@ -502,7 +526,7 @@ const GuideSection = styled.section`
   flex-direction: column;
 
   width: 100%;
-  height: 620px;
+  height: 685px;
 
   padding: 42px 26px;
 
@@ -542,11 +566,14 @@ const GuideBadge = styled.span`
 const Title = styled.h2`
   margin: 15px 0 0;
 
+  color: var(--text-main);
+
   font-size: 22px;
   font-weight: 800;
   line-height: 1.35;
   letter-spacing: -0.7px;
-  color: var(--text-main);
+
+  word-break: keep-all;
 `;
 
 const Description = styled.p`
@@ -604,17 +631,23 @@ const GuideContent = styled.div`
 const GuideItemTitle = styled.p`
   margin: 1px 0 0;
 
+  color: var(--text-main);
+
   font-size: 13px;
   font-weight: 800;
-  color: var(--text-main);
+
+  word-break: keep-all;
 `;
 
 const GuideItemDescription = styled.p`
   margin: 4px 0 0;
 
+  color: var(--text-desc);
+
   font-size: 12px;
   line-height: 1.6;
-  color: var(--text-desc);
+
+  word-break: keep-all;
 `;
 
 const HistoryButton = styled.button`
@@ -633,9 +666,12 @@ const HistoryButton = styled.button`
 
   background: var(--color-white);
 
+  color: var(--color-main-dark);
+
   font-size: 12px;
   font-weight: 800;
-  color: var(--color-main-dark);
+
+  white-space: nowrap;
 
   cursor: pointer;
 
@@ -652,9 +688,18 @@ const HistoryButton = styled.button`
     opacity: 0.65;
     cursor: default;
   }
-`;
 
+  @media (max-width: 1150px) {
+    gap: 5px;
+
+    padding: 0 9px;
+
+    font-size: 11px;
+  }
+`;
 const ReceiptIcon = styled.span`
+  flex-shrink: 0;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -666,9 +711,10 @@ const ReceiptIcon = styled.span`
 
   background: var(--color-bg-light);
 
+  color: var(--color-main-dark);
+
   font-size: 12px;
   font-weight: 800;
-  color: var(--color-main-dark);
 `;
 
 const ArrowIcon = styled.span`
