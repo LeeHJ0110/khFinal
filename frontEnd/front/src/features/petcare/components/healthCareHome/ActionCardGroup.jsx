@@ -17,7 +17,7 @@ const CARDS = [
     description:
       "수의사가 작성한 진단 결과를\n확인해 건강상태를\n확인해 보세요",
     src: pawprint,
-    path: "/healthCare/resultList",
+    path: "/healthCare/result",
   },
 ];
 
@@ -29,11 +29,19 @@ const Card = styled.div`
   width: 340px;
   height: 150px;
   background: #ffffff;
+  border: 1px solid #d9eddf;
+
   border-radius: 16px;
   padding: 0 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
   gap: 16px;
   box-sizing: border-box;
+
+  transition: all 0.25s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  }
 `;
 
 const Thumbnail = styled.div`
@@ -96,7 +104,7 @@ const ArrowButton = styled.button`
 const FlexColum = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 `;
 
 // ── Sub Component ──────────────────────────────────────────────────
