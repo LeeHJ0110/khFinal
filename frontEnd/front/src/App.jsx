@@ -62,6 +62,7 @@ import AdminMemberPage from "./pages/admin/member/AdminMemberPage";
 import AdminMessageSendPage from "./pages/admin/message/AdminMessageSendPage";
 import AdminSentMessagePage from "./pages/admin/message/AdminSentMessagePage";
 import OrderHistoryPage from "./pages/mypage/OrderHistoryPage";
+import AdminDeliveryPage from "./pages/admin/delivery/AdminDeliveryPage";
 
 function App() {
   return (
@@ -188,6 +189,7 @@ function App() {
             <Route path="member" element={<AdminMemberPage />} />
             <Route path="message/send" element={<AdminMessageSendPage />} />
             <Route path="message/sent" element={<AdminSentMessagePage />} />
+            <Route path="delivery" element={<AdminDeliveryPage />} />
           </Route>
 
           {/* 공용페이지 (route path 수정해야함)*/}

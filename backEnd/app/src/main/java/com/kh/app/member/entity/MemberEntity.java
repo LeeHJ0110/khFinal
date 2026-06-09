@@ -86,13 +86,15 @@ public class MemberEntity extends BaseEntity {
             String email,
             String phone,
             String address,
-            String addressDetail
+            String addressDetail,
+            MemberMarketingAgreeYn memberMarketingAgreeYn
     ) {
         this.nickname = nickname;
         this.email = email;
         this.phone = phone;
         this.address = address;
         this.addressDetail = addressDetail;
+        this.memberMarketingAgreeYn = memberMarketingAgreeYn;
     }
     public void changeStatus(MemberStatus status) {
         this.status = status;
@@ -105,5 +107,6 @@ public class MemberEntity extends BaseEntity {
     public void changeNickname(String nickname) {
         this.nickname = nickname;
     }
+
 
 }

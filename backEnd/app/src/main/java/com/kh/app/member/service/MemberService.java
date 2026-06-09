@@ -171,7 +171,8 @@ public class MemberService {
                 request.getEmail(),
                 request.getPhone(),
                 request.getAddress(),
-                request.getAddressDetail()
+                request.getAddressDetail(),
+                MemberMarketingAgreeYn.valueOf(request.getMemberMarketingAgreeYn())
         );
     }
 

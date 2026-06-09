@@ -41,3 +41,7 @@ export function uploadPetImage(petId, file) {
     },
   });
 }
+
+export function getPetInsurancePayments(petId) {
+  return api.get(`/pet/${petId}/insurance/payments`);
+}

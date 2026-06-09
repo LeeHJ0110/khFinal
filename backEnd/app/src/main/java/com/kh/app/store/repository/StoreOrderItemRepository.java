@@ -9,4 +9,6 @@ public interface StoreOrderItemRepository extends JpaRepository<StoreOrderItemEn
     List<StoreOrderItemEntity> findByOrder_OrderId(
             Long orderId
     );
+
+    List<StoreOrderItemEntity> findAllByOrder_OrderId(Long orderId);
 }

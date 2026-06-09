@@ -1,6 +1,7 @@
 package com.kh.app.member.dto.request;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
@@ -22,8 +23,10 @@ public class MemberKakaoJoinReqDto {
     )
     private String phone;
 
+    @NotBlank(message = "주소를 입력해주세요.")
     private String address;
 
+    @NotBlank(message = "상세주소를 입력해주세요.")
     private String addressDetail;
 
     private String memberMarketingAgreeYn;
