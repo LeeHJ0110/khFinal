@@ -108,5 +108,25 @@ public class MemberEntity extends BaseEntity {
         this.nickname = nickname;
     }
 
+    public void earnPoint(Long amount) {
+        if (amount == null || amount <= 0) {
+            throw new IllegalArgumentException("적립 포인트는 0보다 커야 합니다.");
+        }
+
+        this.point += amount;
+    }
+
+    public void usePoint(Long amount) {
+        if (amount == null || amount <= 0) {
+            throw new IllegalArgumentException("사용 포인트는 0보다 커야 합니다.");
+        }
+
+        if (this.point < amount) {
+            throw new IllegalArgumentException("보유 포인트가 부족합니다.");
+        }
+
+        this.point -= amount;
+    }
+
 
 }
