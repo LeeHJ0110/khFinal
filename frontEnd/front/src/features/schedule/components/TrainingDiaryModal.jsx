@@ -204,7 +204,7 @@ const Input = styled.input`
 
   padding: 0 12px;
 
-  border: 1px solid #a7fd91;
+  border: 1px solid #5ec8a7;
   border-radius: 8px;
 `;
 
@@ -215,7 +215,7 @@ const Select = styled.select`
 
   padding: 0 12px;
 
-  border: 1px solid #a7fd91;
+  border: 1px solid #5ec8a7;
   border-radius: 8px;
 `;
 
@@ -224,7 +224,7 @@ const TextArea = styled.textarea`
 
   padding: 12px;
 
-  border: 1px solid #a7fd91;
+  border: 1px solid #5ec8a7;
   border-radius: 8px;
 
   resize: none;

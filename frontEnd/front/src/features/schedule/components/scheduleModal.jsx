@@ -21,18 +21,17 @@ export default function ScheduleModal({ open, onClose, data }) {
 
   //error userEffect로 처리하기
 
-  function displayEndDate(endDate) {
+  function displayEndDate(startDate, endDate) {
     if (!endDate) return "";
 
-    const date = new Date(endDate);
+    const start = new Date(startDate);
+    const end = new Date(endDate);
 
-    date.setDate(date.getDate() - 1);
+    if (end.getTime() - start.getTime() >= 24 * 60 * 60 * 1000) {
+      end.setDate(end.getDate() - 1);
+    }
 
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
+    return end.toISOString().split("T")[0];
   }
 
   return (
@@ -50,6 +49,14 @@ export default function ScheduleModal({ open, onClose, data }) {
               ...formData,
               backgroundColor: formData.backgroundColor.replace("#", ""),
             };
+            if (formData.title === "") {
+              alert("제목을 입력해주세요");
+              return;
+            }
+            if (formData.endDate < formData.startDate) {
+              alert("종료일이 시작일보다 큽니다");
+              return;
+            }
             if (data.isEdit) {
               handleEdit(payload);
               console.log("수정");
@@ -88,7 +95,7 @@ export default function ScheduleModal({ open, onClose, data }) {
               <Input
                 type="date"
                 name="endDate"
-                value={displayEndDate(formData.endDate)}
+                value={displayEndDate(formData.startDate, formData.endDate)}
                 onChange={handleChange}
               />
             </Field>
@@ -296,7 +303,7 @@ const Label = styled.label`
 
 const Input = styled.input`
   height: 46px;
-  border: 1px solid #a7fd91;
+  border: 1px solid #5ec8a7;
   border-radius: 14px;
   padding: 0 14px;
   font-size: 14px;
@@ -310,7 +317,7 @@ const Input = styled.input`
 const TextArea = styled.textarea`
   min-height: 180px;
 
-  border: 1px solid #a7fd91;
+  border: 1px solid #5ec8a7;
 
   border-radius: 14px;
 
@@ -419,6 +426,6 @@ const Select = styled.select`
 
   padding: 0 12px;
 
-  border: 1px solid #a7fd91;
+  border: 1px solid #5ec8a7;
   border-radius: 8px;
 `;
