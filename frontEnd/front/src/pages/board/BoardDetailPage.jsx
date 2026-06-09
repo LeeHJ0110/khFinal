@@ -12,6 +12,7 @@ import {
   deleteReplyApi,
   toggleLikeApi,
   reportBoardApi,
+  updateReplyApi,
 } from "../../features/board/api/boardApi";
 import BoardSubNavbar from "./components/BoardSubNavbar";
 
@@ -60,6 +61,10 @@ export default function BoardDetailPage() {
   // 대댓글용 상태
   const [activeReplyParentId, setActiveReplyParentId] = useState(null);
   const [replyContent, setReplyContent] = useState("");
+
+  // 댓글 수정용 상태
+  const [editingReplyId, setEditingReplyId] = useState(null);
+  const [editingContent, setEditingContent] = useState("");
 
   // 게시글 상세정보 수신 시 댓글 목록 및 좋아요 상태 동기화
   useEffect(() => {
@@ -158,6 +163,24 @@ export default function BoardDetailPage() {
       } else {
         alert("신고 처리에 실패했습니다.");
       }
+    }
+  };
+
+  // 댓글 수정 핸들러
+  const handleCommentEdit = async (e, replyId) => {
+    e.preventDefault();
+    if (!editingContent.trim()) {
+      alert("댓글 내용을 입력해주세요.");
+      return;
+    }
+    try {
+      await updateReplyApi(replyId, editingContent.trim());
+      setEditingReplyId(null);
+      setEditingContent("");
+      refetch();
+    } catch (err) {
+      console.error("댓글 수정 실패:", err);
+      alert("댓글 수정에 실패했습니다.");
     }
   };
 
@@ -457,9 +480,23 @@ export default function BoardDetailPage() {
                         <CommentAuthor>{comment.writerNickname}</CommentAuthor>
                         {comment.isAuthor && <AuthorBadge>작성자</AuthorBadge>}
                       </CommentMetaRow>
-                      <CommentText>{comment.content}</CommentText>
+                      {editingReplyId === comment.id ? (
+                        <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                          <CommentTextarea
+                            value={editingContent}
+                            onChange={(e) => setEditingContent(e.target.value)}
+                            style={{ borderRadius: "8px", minHeight: "60px" }}
+                          />
+                          <EditButtonGroup>
+                            <EditActionButton $save onClick={(e) => handleCommentEdit(e, comment.id)}>저장</EditActionButton>
+                            <EditActionButton onClick={() => { setEditingReplyId(null); setEditingContent(""); }}>취소</EditActionButton>
+                          </EditButtonGroup>
+                        </div>
+                      ) : (
+                        <CommentText>{comment.content}</CommentText>
+                      )}
                       <CommentFooterRow>
-                        {loginMember && (
+                        {editingReplyId !== comment.id && loginMember && (
                           <CommentActionLink
                             onClick={() => {
                               if (activeReplyParentId === comment.id) {
@@ -468,6 +505,7 @@ export default function BoardDetailPage() {
                                 setActiveReplyParentId(comment.id);
                                 setReplyContent("");
                               }
+                              setEditingReplyId(null);
                             }}
                           >
                             {activeReplyParentId === comment.id
@@ -475,7 +513,18 @@ export default function BoardDetailPage() {
                               : "답글달기"}
                           </CommentActionLink>
                         )}
-                        {(loginMember?.nickname === comment.writerNickname ||
+                        {editingReplyId !== comment.id && loginMember?.nickname === comment.writerNickname && (
+                          <CommentActionLink
+                            onClick={() => {
+                              setEditingReplyId(comment.id);
+                              setEditingContent(comment.content);
+                              setActiveReplyParentId(null);
+                            }}
+                          >
+                            수정
+                          </CommentActionLink>
+                        )}
+                        {editingReplyId !== comment.id && (loginMember?.nickname === comment.writerNickname ||
                           isSuperAdmin ||
                           isBoardAdmin) && (
                           <CommentReportLink
@@ -485,11 +534,13 @@ export default function BoardDetailPage() {
                             삭제
                           </CommentReportLink>
                         )}
-                        <CommentReportLink
-                          onClick={() => alert("신고되었습니다.")}
-                        >
-                          신고
-                        </CommentReportLink>
+                        {editingReplyId !== comment.id && (
+                          <CommentReportLink
+                            onClick={() => alert("신고되었습니다.")}
+                          >
+                            신고
+                          </CommentReportLink>
+                        )}
                       </CommentFooterRow>
                     </CommentContentBox>
                   </CommentItem>
@@ -538,9 +589,33 @@ export default function BoardDetailPage() {
                                 <AuthorBadge>작성자</AuthorBadge>
                               )}
                             </CommentMetaRow>
-                            <CommentText>{reply.content}</CommentText>
+                            {editingReplyId === reply.id ? (
+                              <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                                <CommentTextarea
+                                  value={editingContent}
+                                  onChange={(e) => setEditingContent(e.target.value)}
+                                  style={{ borderRadius: "8px", minHeight: "60px" }}
+                                />
+                                <EditButtonGroup>
+                                  <EditActionButton $save onClick={(e) => handleCommentEdit(e, reply.id)}>저장</EditActionButton>
+                                  <EditActionButton onClick={() => { setEditingReplyId(null); setEditingContent(""); }}>취소</EditActionButton>
+                                </EditButtonGroup>
+                              </div>
+                            ) : (
+                              <CommentText>{reply.content}</CommentText>
+                            )}
                             <CommentFooterRow>
-                              {(loginMember?.nickname ===
+                              {editingReplyId !== reply.id && loginMember?.nickname === reply.writerNickname && (
+                                <CommentActionLink
+                                  onClick={() => {
+                                    setEditingReplyId(reply.id);
+                                    setEditingContent(reply.content);
+                                  }}
+                                >
+                                  수정
+                                </CommentActionLink>
+                              )}
+                              {editingReplyId !== reply.id && (loginMember?.nickname ===
                                 reply.writerNickname ||
                                 isSuperAdmin ||
                                 isBoardAdmin) && (
@@ -551,11 +626,13 @@ export default function BoardDetailPage() {
                                   삭제
                                 </CommentReportLink>
                               )}
-                              <CommentReportLink
-                                onClick={() => alert("신고되었습니다")}
-                              >
-                                신고
-                              </CommentReportLink>
+                              {editingReplyId !== reply.id && (
+                                <CommentReportLink
+                                  onClick={() => alert("신고되었습니다")}
+                                >
+                                  신고
+                                </CommentReportLink>
+                              )}
                             </CommentFooterRow>
                           </CommentContentBox>
                         </ReplyContentCard>
@@ -1022,6 +1099,30 @@ const CommentSubmitButton = styled.button`
   &:disabled {
     background-color: #dee2e6;
     cursor: not-allowed;
+  }
+`;
+
+const EditButtonGroup = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  align-self: flex-end;
+`;
+
+const EditActionButton = styled.button`
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid ${(props) => (props.$save ? "var(--color-main)" : "#dee2e6")};
+  background-color: ${(props) => (props.$save ? "var(--color-main)" : "#ffffff")};
+  color: ${(props) => (props.$save ? "#ffffff" : "#495057")};
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: ${(props) => (props.$save ? "#008f68" : "#f1f3f5")};
+    border-color: ${(props) => (props.$save ? "#008f68" : "#dee2e6")};
   }
 `;
 

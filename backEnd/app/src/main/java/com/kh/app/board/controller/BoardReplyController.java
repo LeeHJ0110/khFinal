@@ -38,4 +38,15 @@ public class BoardReplyController {
         boardReplyService.deleteReply(replyId, username);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "댓글 수정", description = "댓글 작성자 본인만 댓글 수정")
+    @PutMapping("/reply/{replyId}")
+    public ResponseEntity<Void> updateReply(
+            @PathVariable Long replyId,
+            @RequestBody BoardReplyWriteReqDto reqDto,
+            @AuthenticationPrincipal String username
+    ) {
+        boardReplyService.updateReply(replyId, reqDto, username);
+        return ResponseEntity.ok().build();
+    }
 }
