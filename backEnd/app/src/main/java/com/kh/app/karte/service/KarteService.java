@@ -62,6 +62,7 @@ public class KarteService {
         return karteRepository.findKarteList(pageRequest, memberEntity); //TODO 조회여부 정렬, 특정 반려동물만 필터링
     }
 
+    @Transactional
     public KarteResDto selectOne(Long id) {
         KarteEntity karte = karteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("진단결과 없음"));
@@ -73,6 +74,7 @@ public class KarteService {
                 .toList();
 
         karte.visite();
+        log.warn(karte.getVisitedYn().toString());
         return KarteResDto.from(karte, diagReq.getPetEntity(), scoreDtos);
     }
 

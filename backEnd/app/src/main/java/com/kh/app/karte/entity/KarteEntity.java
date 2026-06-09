@@ -38,6 +38,6 @@ public class KarteEntity extends BaseEntity {
     private VisitedYn visitedYn = VisitedYn.N;
 
     public void visite(){
-        visitedYn = VisitedYn.Y;
+        this.visitedYn = VisitedYn.Y;
     }
 }
