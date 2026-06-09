@@ -2,10 +2,8 @@ package com.kh.app.board.controller;
 
 import com.kh.app.board.dto.request.BoardSearchCondition;
 import com.kh.app.board.dto.request.BoardWriteReqDto;
-import com.kh.app.board.dto.response.BoardDetailResDto;
-import com.kh.app.board.dto.response.BoardResDto;
-import com.kh.app.board.dto.response.BoardLikeResDto;
-import com.kh.app.board.dto.response.NaverNewsResDto;
+import com.kh.app.board.dto.request.BoardReportReqDto;
+import com.kh.app.board.dto.response.*;
 import com.kh.app.board.service.BoardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -131,6 +129,31 @@ public class BoardController {
         System.out.println("삭제 요청 들어온 boardId = " + id + ", username = " + username);
         boardService.delete(id, username);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "게시글 신고", description = "로그인 유저가 게시글을 신고하고, 누적 10회 이상 시 블라인드 처리")
+    @PostMapping("/{boardId}/report")
+    public ResponseEntity<Object> report(
+            @PathVariable Long boardId,
+            @RequestBody BoardReportReqDto reqDto,
+            @AuthenticationPrincipal String username
+    ) {
+        if (username == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            boardService.report(boardId, reqDto.getReason(), username);
+            return ResponseEntity.ok().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+    
+    @Operation(summary = "통합 검색", description = "카테고리 구분 없이 전체 게시글, 스토어 검색")
+    @GetMapping("/search/unified")
+    public ResponseEntity<UnifiedSearchResDto> searchUnified(@RequestParam(name = "keyword") String keyword) {
+        UnifiedSearchResDto result = boardService.searchUnified(keyword);
+        return ResponseEntity.ok(result);
     }
 
 }

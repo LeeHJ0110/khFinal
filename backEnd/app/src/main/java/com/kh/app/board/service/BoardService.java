@@ -2,11 +2,8 @@ package com.kh.app.board.service;
 
 import com.kh.app.board.dto.request.BoardSearchCondition;
 import com.kh.app.board.dto.request.BoardWriteReqDto;
-import com.kh.app.board.dto.response.BoardDetailResDto;
-import com.kh.app.board.dto.response.BoardFileResDto;
-import com.kh.app.board.dto.response.BoardResDto;
-import com.kh.app.board.entity.BoardEntity;
-import com.kh.app.board.entity.BoardFileEntity;
+import com.kh.app.board.dto.response.*;
+import com.kh.app.board.entity.*;
 import com.kh.app.board.exception.BoardErrorCode;
 import com.kh.app.board.repository.BoardFileRepository;
 import com.kh.app.board.repository.BoardRepository;
@@ -15,14 +12,18 @@ import com.kh.app.common.exception.CustomException;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.entity.MemberRole;
 import com.kh.app.aws.service.S3Service;
+import com.kh.app.member.entity.QMemberEntity;
 import com.kh.app.member.repository.MemberRepository;
-import com.kh.app.board.dto.response.BoardReplyResDto;
-import com.kh.app.board.entity.BoardReplyEntity;
 import com.kh.app.board.repository.BoardReplyRepository;
-import com.kh.app.board.entity.BoardLikeEntity;
 import com.kh.app.board.repository.BoardLikeRepository;
-import com.kh.app.board.dto.response.BoardLikeResDto;
-import com.kh.app.board.dto.response.NaverNewsResDto;
+import com.kh.app.board.repository.BoardReportRepository;
+import com.kh.app.member.entity.MemberStatus;
+import com.kh.app.store.entity.*;
+import com.kh.app.store.repository.StoreProductImageRepository;
+import com.querydsl.core.Tuple;
+import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityManager;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -59,7 +60,10 @@ public class BoardService {
     private final BoardFileRepository boardFileRepository;
     private final BoardReplyRepository boardReplyRepository;
     private final BoardLikeRepository boardLikeRepository;
+    private final BoardReportRepository boardReportRepository;
     private final S3Service s3Service;
+    private final JPAQueryFactory queryFactory;
+    private final StoreProductImageRepository storeProductImageRepository;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
@@ -85,6 +89,10 @@ public class BoardService {
     public BoardDetailResDto getBoardDetail(Long id, String username) {
         BoardEntity entity = boardRepository.findById(id)
                 .orElseThrow(() -> new CustomException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        if ("Y".equals(entity.getBlindYn())) {
+            throw new CustomException(BoardErrorCode.BOARD_NOT_FOUND);
+        }
 
         entity.increaseHit();
 
@@ -489,5 +497,167 @@ public class BoardService {
                     .totalElements(0L)
                     .build();
         }
+    }
+
+    @Transactional
+    public void report(Long boardId, String reason, String username) {
+        BoardEntity board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new CustomException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        MemberEntity reporter = memberRepository.findByUsernameAndDelYn(username, DelYn.N)
+                .orElseThrow(() -> new EntityNotFoundException("MEMBER NOT FOUND ........"));
+
+        if (board.getWriter().getId().equals(reporter.getId())) {
+            throw new IllegalStateException("You cannot report your own post.");
+        }
+
+        if (boardReportRepository.existsByBoardAndReporter(board, reporter)) {
+            throw new IllegalStateException("Already reported this post.");
+        }
+
+        BoardReportEntity report = BoardReportEntity.builder()
+                .board(board)
+                .reporter(reporter)
+                .reason(reason)
+                .build();
+        boardReportRepository.save(report);
+
+        long reportCount = boardReportRepository.countByBoardAndDelYn(board, DelYn.N);
+        if (reportCount >= 10) {
+            board.setBlindYn("Y");
+
+            MemberEntity writer = board.getWriter();
+            long blindCount = boardRepository.countByWriterAndBlindYnAndDelYn(writer, "Y", DelYn.N);
+            if (blindCount >= 5) {
+                writer.changeStatus(MemberStatus.S);
+            }
+        }
+    }
+
+    // 통합검색
+    @Transactional
+    public UnifiedSearchResDto searchUnified(String keyword) {
+        String cleanKeyword = keyword == null ? "" : keyword.trim();
+
+        QBoardEntity board = QBoardEntity.boardEntity;
+        QMemberEntity member = QMemberEntity.memberEntity;
+        QStoreProductEntity product = QStoreProductEntity.storeProductEntity;
+        QStoreProductTagEntity tag = QStoreProductTagEntity.storeProductTagEntity;
+        QStoreReviewEntity review = QStoreReviewEntity.storeReviewEntity;
+
+        // 커뮤니티 4개 글 조회 ( 자유게시판, 시설후기게시판, 상품후기게시판)
+        List<BoardEntity> boards = queryFactory
+                .selectFrom(board)
+                .join(board.writer, member).fetchJoin()
+                .where(
+                        board.delYn.eq(DelYn.N),
+                        board.blindYn.eq("N"),
+                        board.category.in(BoardCategory.FREE, BoardCategory.FAC_REVIEW, BoardCategory.PRODUCT_REVIEW),
+                        board.title.containsIgnoreCase(cleanKeyword)
+                                .or(board.content.containsIgnoreCase(cleanKeyword))
+                )
+                .orderBy(board.createdAt.desc(), board.id.desc())
+                .limit(4)
+                .fetch();
+
+        List<UnifiedSearchResDto.UnifiedBoardDto> boardList = boards.stream().map(b -> {
+            // HTML 태그 제거 및 최대 50자 요약
+            String cleanContent = "";
+            if (b.getContent() != null) {
+                cleanContent = b.getContent().replaceAll("<[^>]*>", " ").replaceAll("\\s+", " ").trim();
+                if (cleanContent.length() > 50) {
+                    cleanContent = cleanContent.substring(0, 50) + "...";
+                }
+            }
+
+            // 첫 번째 업로드된 파일을 대표 썸네일로 설정
+            String thumbnailUrl = null;
+            List<BoardFileEntity> files = boardFileRepository.findByBoardEntity(b);
+            if (files != null && !files.isEmpty()) {
+                thumbnailUrl = s3Service.getFileUrl(files.get(0).getImageChangedName());
+            }
+
+            //한글 카테고리명 매핑
+            String categoryName = "";
+            if (b.getCategory() != null) {
+                switch (b.getCategory()) {
+                    case FREE -> categoryName = "자유게시판";
+                    case FAC_REVIEW -> categoryName = "시설후기게시판";
+                    case PRODUCT_REVIEW -> categoryName = "상품후기게시판";
+                    default -> categoryName = b.getCategory().name();
+                }
+            }
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+            return UnifiedSearchResDto.UnifiedBoardDto.builder()
+                    .id(b.getId())
+                    .title(b.getTitle())
+                    .category(b.getCategory() != null ? b.getCategory().name() : null)
+                    .categoryName(categoryName)
+                    .content(cleanContent)
+                    .writerNickname(b.getWriter() != null ? b.getWriter().getNickname() : "")
+                    .createdAt(b.getCreatedAt() != null ? b.getCreatedAt().format(formatter) : "")
+                    .thumbnailUrl(thumbnailUrl)
+                    .build();
+        }).toList();
+
+        // 스토어 4개 상품 조회 (서브쿼리 사용 평균 별점, 리뷰스 산출)
+        List<Tuple> productResults = queryFactory
+                .select(
+                        product,
+                        JPAExpressions.select(review.reviewRating.avg().coalesce(0.0))
+                                .from(review)
+                                .where(review.product.eq(product)),
+                        JPAExpressions.select(review.count())
+                                .from(review)
+                                .where(review.product.eq(product))
+                )
+                .from(product)
+                .leftJoin(product.productTag, tag).fetchJoin()
+                .where(
+                        product.productSaleYn.eq("Y"),
+                        product.productName.containsIgnoreCase(cleanKeyword)
+                                .or(tag.tagName.containsIgnoreCase(cleanKeyword))
+                )
+                .orderBy(product.productId.desc())
+                .limit(4)
+                .fetch();
+
+        List<UnifiedSearchResDto.UnifiedProductDto> productList = productResults.stream().map(tuple -> {
+            StoreProductEntity p = tuple.get(product);
+            Double avgRating = tuple.get(1, Double.class);
+            Long reviewCount = tuple.get(2, Long.class);
+
+            if (avgRating == null) avgRating = 0.0;
+            if (reviewCount == null) reviewCount = 0L;
+
+            // 스토어 상품 썸네일 가져오기
+            String mainImageUrl = null;
+            StoreProductImageEntity mainImage = storeProductImageRepository
+                    .findFirstByProduct_ProductIdAndImageRepresentYnOrderBySortOrderAsc(p.getProductId(), "Y")
+                    .orElse(null);
+
+            if (mainImage != null) {
+                String changedName = mainImage.getImageChangedName();
+                String keyPath = changedName.startsWith("store/product/")
+                        ? changedName : "store/product/" + changedName;
+                mainImageUrl = s3Service.getFileUrl(keyPath);
+            }
+
+            return UnifiedSearchResDto.UnifiedProductDto.builder()
+                    .productId(p.getProductId())
+                    .productName(p.getProductName())
+                    .productPrice(p.getProductPrice())
+                    .reviewRatingAvg(Math.round(avgRating * 10.0) / 10.0)
+                    .reviewCount(reviewCount)
+                    .mainImageUrl(mainImageUrl)
+                    .build();
+        }).toList();
+
+        return UnifiedSearchResDto.builder()
+                .boardList(boardList)
+                .productList(productList)
+                .build();
     }
 }

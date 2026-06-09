@@ -74,4 +74,16 @@ public class BoardReplyService {
 
         reply.delete();
     }
+
+    @Transactional
+    public void updateReply(Long replyId, BoardReplyWriteReqDto reqDto, String username) {
+        BoardReplyEntity reply = boardReplyRepository.findById(replyId)
+                .orElseThrow(() -> new EntityNotFoundException("REPLY NOT FOUND"));
+
+        if (!reply.getMember().getUsername().equals(username)) {
+            throw new IllegalStateException("NO PERMISSION TO UPDATE REPLY");
+        }
+
+        reply.setContent(reqDto.getContent());
+    }
 }

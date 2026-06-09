@@ -70,7 +70,8 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
                         subCategoryEq(condition.getBoardSubCategory()),
                         starsGoe(condition.getBoardStars()),
                         hitsGoe(condition.getBoardHits()),
-                        board.delYn.eq(DelYn.N)
+                        board.delYn.eq(DelYn.N),
+                        board.blindYn.eq("N")
                 )
                 .orderBy(orderSpecifiers)
                 .offset(pageable.getOffset())
@@ -88,7 +89,8 @@ public class BoardRepositoryImpl implements BoardRepositoryCustom {
                         subCategoryEq(condition.getBoardSubCategory()),
                         starsGoe(condition.getBoardStars()),
                         hitsGoe(condition.getBoardHits()),
-                        board.delYn.eq(DelYn.N)
+                        board.delYn.eq(DelYn.N),
+                        board.blindYn.eq("N")
                 )
                 .fetchOne();
 
