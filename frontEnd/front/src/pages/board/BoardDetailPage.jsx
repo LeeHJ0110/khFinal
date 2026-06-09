@@ -289,6 +289,20 @@ export default function BoardDetailPage() {
             <CategoryBadge>{detail.boardSubCategory}</CategoryBadge>
           )}
           <PostTitle>{detail.title}</PostTitle>
+          {/* 리뷰 평점 별점 노출 */}
+          {(detail.boardCategory === "PRODUCT_REVIEW" ||
+            detail.boardCategory === "FAC_REVIEW") && (
+            <StarsRatingDisplay>
+              <StarsLabel>평점</StarsLabel>
+              <StarsList>
+                {[1, 2, 3, 4, 5].map((score) => (
+                  <StarIcon key={score} $filled={(detail.stars ?? 5) >= score}>
+                    ★
+                  </StarIcon>
+                ))}
+              </StarsList>
+            </StarsRatingDisplay>
+          )}
           {/* 작성자 정보 및 메타데이터 행 */}
           <PostMetaRow>
             <MetaLeft>
@@ -683,6 +697,36 @@ const PostTitle = styled.h2`
   color: #122d2e;
   margin: 0 0 20px 0;
   line-height: 1.4;
+`;
+
+const StarsRatingDisplay = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 8px 16px;
+  background-color: #f8fdfb;
+  border: 1px solid rgba(0, 169, 123, 0.15);
+  border-radius: 6px;
+  align-self: flex-start;
+`;
+
+const StarsLabel = styled.span`
+  font-size: 13px;
+  font-weight: 700;
+  color: #333333;
+`;
+
+const StarsList = styled.div`
+  display: flex;
+  gap: 4px;
+`;
+
+const StarIcon = styled.span`
+  font-size: 18px;
+  color: ${(props) => (props.$filled ? "#ffbc00" : "#dee2e6")};
+  filter: ${(props) =>
+    props.$filled ? "drop-shadow(0 0 1px rgba(255, 188, 0, 0.4))" : "none"};
 `;
 
 const PostMetaRow = styled.div`
