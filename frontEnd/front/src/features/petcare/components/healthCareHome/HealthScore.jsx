@@ -54,15 +54,23 @@ const dashAnimate = (score) => keyframes`
 // ── Styled Components ──────────────────────────────────────────────
 
 const Card = styled.div`
+  width: 100%;
+  height: 100vh;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   background: #ffffff;
   border-radius: 20px;
+  border: 1px solid #d9eddf;
   padding: 28px 32px 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   min-width: 200px;
   gap: 16px;
+  transition: all 0.25s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  }
 `;
 
 const GaugeWrapper = styled.div`
@@ -149,6 +157,12 @@ const LoadingCircle = styled.circle`
   stroke-width: 12;
 `;
 
+const EmptyText = styled.p`
+  font-size: 18px;
+  color: #aaa;
+  margin: auto;
+`;
+
 // ── Component ─────────────────────────────────────────────────────
 
 export default function HealthScore({ petId, petName }) {
@@ -163,36 +177,42 @@ export default function HealthScore({ petId, petName }) {
 
   return (
     <Card>
-      <GaugeWrapper>
-        <StyledSvg width="200" height="200" viewBox="0 0 200 200">
-          {isLoading ? (
-            <LoadingCircle cx="100" cy="100" r={CIRCLE_RADIUS} />
-          ) : (
-            <>
-              <TrackCircle cx="100" cy="100" r={CIRCLE_RADIUS} />
-              <ProgressCircle
-                cx="100"
-                cy="100"
-                r={CIRCLE_RADIUS}
-                $score={score}
-              />
-            </>
+      {score > 0 ? (
+        <>
+          <GaugeWrapper>
+            <StyledSvg width="200" height="200" viewBox="0 0 200 200">
+              {isLoading ? (
+                <LoadingCircle cx="100" cy="100" r={CIRCLE_RADIUS} />
+              ) : (
+                <>
+                  <TrackCircle cx="100" cy="100" r={CIRCLE_RADIUS} />
+                  <ProgressCircle
+                    cx="100"
+                    cy="100"
+                    r={CIRCLE_RADIUS}
+                    $score={score}
+                  />
+                </>
+              )}
+            </StyledSvg>
+
+            <ScoreTextBox>
+              <ScoreLabel>건강 점수</ScoreLabel>
+              <Divider />
+              <ScoreNumber>{isLoading ? "–" : score}</ScoreNumber>
+            </ScoreTextBox>
+          </GaugeWrapper>
+
+          {!isLoading && (
+            <MessageBox>
+              <MessageText>
+                <PetName>{petName}</PetName>의 {message}
+              </MessageText>
+            </MessageBox>
           )}
-        </StyledSvg>
-
-        <ScoreTextBox>
-          <ScoreLabel>건강 점수</ScoreLabel>
-          <Divider />
-          <ScoreNumber>{isLoading ? "–" : score}</ScoreNumber>
-        </ScoreTextBox>
-      </GaugeWrapper>
-
-      {!isLoading && (
-        <MessageBox>
-          <MessageText>
-            <PetName>{petName}</PetName>의 {message}
-          </MessageText>
-        </MessageBox>
+        </>
+      ) : (
+        <EmptyText>검사를 진행해주세요</EmptyText>
       )}
     </Card>
   );
