@@ -162,7 +162,9 @@ export default function PetStoreMyReviewListPage() {
                         <EditButton
                           type="button"
                           onClick={() =>
-                            alert("수정 기능은 다음 단계에서 연결")
+                            navigate(`/store/review/edit/${review.reviewId}`, {
+                              state: review,
+                            })
                           }
                         >
                           수정
@@ -175,7 +177,7 @@ export default function PetStoreMyReviewListPage() {
                           삭제
                         </DeleteButton>
 
-                        <ToggleIcon $open={isOpen}>▼</ToggleIcon>
+                        <ToggleIcon $open={isOpen}></ToggleIcon>
                       </ActionArea>
                     </ReviewSummary>
 
