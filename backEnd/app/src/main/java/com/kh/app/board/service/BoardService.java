@@ -23,6 +23,9 @@ import com.kh.app.board.entity.BoardLikeEntity;
 import com.kh.app.board.repository.BoardLikeRepository;
 import com.kh.app.board.dto.response.BoardLikeResDto;
 import com.kh.app.board.dto.response.NaverNewsResDto;
+import com.kh.app.board.entity.BoardReportEntity;
+import com.kh.app.board.repository.BoardReportRepository;
+import com.kh.app.member.entity.MemberStatus;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -59,6 +62,7 @@ public class BoardService {
     private final BoardFileRepository boardFileRepository;
     private final BoardReplyRepository boardReplyRepository;
     private final BoardLikeRepository boardLikeRepository;
+    private final BoardReportRepository boardReportRepository;
     private final S3Service s3Service;
 
     @Value("${cloud.aws.s3.bucket}")
@@ -85,6 +89,10 @@ public class BoardService {
     public BoardDetailResDto getBoardDetail(Long id, String username) {
         BoardEntity entity = boardRepository.findById(id)
                 .orElseThrow(() -> new CustomException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        if ("Y".equals(entity.getBlindYn())) {
+            throw new CustomException(BoardErrorCode.BOARD_NOT_FOUND);
+        }
 
         entity.increaseHit();
 
@@ -488,6 +496,41 @@ public class BoardService {
                     .totalPages(0)
                     .totalElements(0L)
                     .build();
+        }
+    }
+
+    @Transactional
+    public void report(Long boardId, String reason, String username) {
+        BoardEntity board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new CustomException(BoardErrorCode.BOARD_NOT_FOUND));
+
+        MemberEntity reporter = memberRepository.findByUsernameAndDelYn(username, DelYn.N)
+                .orElseThrow(() -> new EntityNotFoundException("MEMBER NOT FOUND ........"));
+
+        if (board.getWriter().getId().equals(reporter.getId())) {
+            throw new IllegalStateException("You cannot report your own post.");
+        }
+
+        if (boardReportRepository.existsByBoardAndReporter(board, reporter)) {
+            throw new IllegalStateException("Already reported this post.");
+        }
+
+        BoardReportEntity report = BoardReportEntity.builder()
+                .board(board)
+                .reporter(reporter)
+                .reason(reason)
+                .build();
+        boardReportRepository.save(report);
+
+        long reportCount = boardReportRepository.countByBoardAndDelYn(board, DelYn.N);
+        if (reportCount >= 10) {
+            board.setBlindYn("Y");
+
+            MemberEntity writer = board.getWriter();
+            long blindCount = boardRepository.countByWriterAndBlindYnAndDelYn(writer, "Y", DelYn.N);
+            if (blindCount >= 5) {
+                writer.changeStatus(MemberStatus.S);
+            }
         }
     }
 }

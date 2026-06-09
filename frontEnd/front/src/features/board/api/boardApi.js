@@ -61,3 +61,7 @@ export async function fetchNaverNewsApi(page = 0, search = "반려동물") {
     params: { page, search },
   });
 }
+
+export async function reportBoardApi(boardId, reason) {
+  return await api.post(`/board/${boardId}/report`, { reason });
+}

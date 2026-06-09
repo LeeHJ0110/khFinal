@@ -11,6 +11,7 @@ import {
   writeReplyApi,
   deleteReplyApi,
   toggleLikeApi,
+  reportBoardApi,
 } from "../../features/board/api/boardApi";
 import BoardSubNavbar from "./components/BoardSubNavbar";
 
@@ -131,6 +132,32 @@ export default function BoardDetailPage() {
     } catch (err) {
       console.error("댓글 삭제 실패:", err);
       alert("댓글 삭제에 실패했습니다.");
+    }
+  };
+
+  // 게시글 신고 핸들러
+  const handleReport = async () => {
+    if (!loginMember) {
+      alert("로그인이 필요한 서비스입니다.");
+      return;
+    }
+    const reason = window.prompt("신고 사유를 입력해주세요:");
+    if (reason === null) return;
+    if (!reason.trim()) {
+      alert("신고 사유를 입력해야 합니다.");
+      return;
+    }
+    try {
+      await reportBoardApi(id, reason.trim());
+      alert("신고가 접수되었습니다.");
+      refetch();
+    } catch (err) {
+      console.error("신고 실패:", err);
+      if (err.response && err.response.data) {
+        alert(err.response.data);
+      } else {
+        alert("신고 처리에 실패했습니다.");
+      }
     }
   };
 
@@ -326,7 +353,7 @@ export default function BoardDetailPage() {
               </LikeButtonBox>
 
               <ReportShareRow>
-                <ActionLinkButton onClick={() => alert("신고되었습니다.")}>
+                <ActionLinkButton onClick={handleReport}>
                   신고
                 </ActionLinkButton>
                 <ActionSeparator>|</ActionSeparator>
