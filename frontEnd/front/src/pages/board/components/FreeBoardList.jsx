@@ -110,7 +110,6 @@ export default function FreeBoardList({
                 <ItemTitle>{item.title}</ItemTitle>
 
                 <ItemMeta>
-                  <LevelBadge>Lv.{item.writerLevel || 1}</LevelBadge>
                   <WriterName>{item.writerNickname}</WriterName>
                   <RelativeTime>
                     {formatRelativeTime(item.createdAt)}
@@ -256,18 +255,6 @@ const ItemMeta = styled.div`
   gap: 12px;
   font-size: 12px;
   color: var(--text-desc);
-`;
-
-const LevelBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px 6px;
-  background-color: #ecfdf6;
-  color: #00a97b;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 800;
 `;
 
 const WriterName = styled.span`
