@@ -149,8 +149,14 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
       alert("이메일 형식이 올바르지 않습니다.");
       return;
     }
-    if (!formData.address) {
+
+    if (!formData.address.trim()) {
       alert("주소를 입력해주세요.");
+      return;
+    }
+
+    if (!formData.addressDetail.trim()) {
+      alert("상세주소를 입력해주세요.");
       return;
     }
 

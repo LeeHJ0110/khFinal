@@ -218,6 +218,16 @@ export default function useMemberJoinForm(marketingAgreeYn = "N") {
       return;
     }
 
+    if (!formData.address.trim()) {
+      alert("주소를 입력해주세요.");
+      return;
+    }
+
+    if (!formData.addressDetail.trim()) {
+      alert("상세주소를 입력해주세요.");
+      return;
+    }
+
     const requestData = {
       ...formData,
       phone: phoneOnlyNumber,

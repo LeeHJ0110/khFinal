@@ -12,4 +12,9 @@ public interface PetInsurancePaymentRepository
     findAllByApplication_Pet_Member_IdOrderByCreatedAtDesc(
             Long memberId
     );
+
+    List<PetInsurancePaymentEntity>
+    findAllByApplication_Pet_IdOrderByCreatedAtDesc(
+            Long petId
+    );
 }

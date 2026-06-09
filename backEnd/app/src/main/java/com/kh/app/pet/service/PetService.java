@@ -14,6 +14,8 @@ import com.kh.app.pet.dto.request.PetCreateReqDto;
 import com.kh.app.pet.dto.response.PetMyPageResDto;
 import com.kh.app.pet.entity.PetEntity;
 import com.kh.app.pet.repository.PetRepository;
+import com.kh.app.petinsurance.dto.response.PetInsurancePaymentHistoryResDto;
+import com.kh.app.petinsurance.repository.PetInsurancePaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,7 @@ public class PetService {
     private final MemberRepository memberRepository;
     private final BreedRepository breedRepository;
     private final S3Service s3Service;
+    private final PetInsurancePaymentRepository petInsurancePaymentRepository;
 
     public Long create(PetCreateReqDto request, String loginKey) {
 
@@ -193,5 +196,46 @@ public class PetService {
         pet.updateImageUrl(s3Key);
 
         return s3Service.getFileUrl(s3Key);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PetInsurancePaymentHistoryResDto> getPaymentHistory(
+            Long petId,
+            String loginKey
+    ) {
+        MemberEntity member = getLoginMember(loginKey);
+
+        PetEntity pet = petRepository.findById(petId)
+                .orElseThrow(() -> new IllegalStateException("반려동물이 존재하지 않습니다."));
+
+        if (!pet.getMember().getId().equals(member.getId())) {
+            throw new IllegalStateException("본인 반려동물의 보험 결제내역만 조회할 수 있습니다.");
+        }
+
+        List<PetInsurancePaymentHistoryResDto> result =petInsurancePaymentRepository
+                .findAllByApplication_Pet_IdOrderByCreatedAtDesc(petId)
+                .stream()
+                .map(payment -> PetInsurancePaymentHistoryResDto.builder()
+                        .paymentId(payment.getPaymentId())
+                        .applicationId(payment.getApplication().getApplicationId())
+                        .petName(payment.getApplication().getPet().getName())
+                        .productName(payment.getApplication().getProduct().getProductName())
+                        .paymentAmount(payment.getPaymentAmount())
+                        .paymentStatus(payment.getPaymentStatus())
+                        .paidAt(payment.getCreatedAt())
+                        .build()
+                )
+                .toList();
+
+        System.out.println("result size = " + result.size());
+        return result;
+    }
+
+    private MemberEntity getLoginMember(String loginKey) {
+        return memberRepository.findByUsername(loginKey)
+                .or(() -> memberRepository.findBySocialId(loginKey))
+                .orElseThrow(() ->
+                        new IllegalStateException("회원 정보가 존재하지 않습니다.")
+                );
     }
 }

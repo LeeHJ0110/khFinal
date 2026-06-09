@@ -35,6 +35,7 @@ export default function MemberEditPage() {
     phone: "",
     address: "",
     addressDetail: "",
+    memberMarketingAgreeYn: "N",
   });
 
   const [isNicknameChecked, setNicknameChecked] = useState(false);
@@ -52,6 +53,7 @@ export default function MemberEditPage() {
       phone: formatPhoneNumber(member.phone || ""),
       address: member.address || "",
       addressDetail: member.addressDetail || "",
+      memberMarketingAgreeYn: member.memberMarketingAgreeYn || "N",
     });
   }, [member]);
 
@@ -105,6 +107,16 @@ export default function MemberEditPage() {
 
     if (!formData.phone.trim()) {
       alert("전화번호를 입력하세요.");
+      return;
+    }
+
+    if (!formData.address.trim()) {
+      alert("주소를 입력해주세요.");
+      return;
+    }
+
+    if (!formData.addressDetail.trim()) {
+      alert("상세주소를 입력해주세요.");
       return;
     }
 
@@ -207,6 +219,34 @@ export default function MemberEditPage() {
             value={formData.addressDetail}
             onChange={handleChange}
           />
+        </FormRow>
+
+        <FormRow>
+          <Label>광고 수신</Label>
+
+          <AgreeBox>
+            <label>
+              <input
+                type="radio"
+                name="memberMarketingAgreeYn"
+                value="Y"
+                checked={formData.memberMarketingAgreeYn === "Y"}
+                onChange={handleChange}
+              />
+              동의
+            </label>
+
+            <label>
+              <input
+                type="radio"
+                name="memberMarketingAgreeYn"
+                value="N"
+                checked={formData.memberMarketingAgreeYn === "N"}
+                onChange={handleChange}
+              />
+              철회
+            </label>
+          </AgreeBox>
         </FormRow>
 
         <ButtonArea>
@@ -313,5 +353,22 @@ const SubmitButton = styled.button`
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+  }
+`;
+const AgreeBox = styled.div`
+  flex: 1;
+  display: flex;
+  gap: 24px;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: #555;
+  }
+
+  input {
+    accent-color: #00b894;
   }
 `;

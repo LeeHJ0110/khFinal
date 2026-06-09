@@ -5,6 +5,7 @@ import com.kh.app.pet.dto.request.PetUpdateReqDto;
 import com.kh.app.pet.dto.response.BreedListResDto;
 import com.kh.app.pet.dto.response.PetMyPageResDto;
 import com.kh.app.pet.service.PetService;
+import com.kh.app.petinsurance.dto.response.PetInsurancePaymentHistoryResDto;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -107,5 +108,18 @@ public class PetController {
         );
 
         return ResponseEntity.ok(imageUrl);
+    }
+
+    @GetMapping("/{petId}/insurance/payments")
+    public ResponseEntity<List<PetInsurancePaymentHistoryResDto>> getPaymentHistory(
+            @PathVariable Long petId,
+            Authentication authentication
+    ) {
+        return ResponseEntity.ok(
+                petService.getPaymentHistory(
+                        petId,
+                        authentication.getName()
+                )
+        );
     }
 }
