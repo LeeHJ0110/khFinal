@@ -8,6 +8,8 @@ import lombok.Getter;
 @Builder
 public class StoreOrderHistoryItemResDto {
 
+    private Long orderItemId;
+
     private Long productId;
 
     private String productName;
@@ -20,19 +22,26 @@ public class StoreOrderHistoryItemResDto {
 
     private Long totalPrice;
 
+    private Boolean reviewed;
+
+    private Long reviewId;
+
     public static StoreOrderHistoryItemResDto from(
             StoreOrderItemEntity item,
-            String imageUrl
+            String imageUrl,
+            Boolean reviewed,
+            Long reviewId
     ) {
         return StoreOrderHistoryItemResDto.builder()
+                .orderItemId(item.getOrderItemId())
                 .productId(item.getProduct().getProductId())
                 .productName(item.getOrderItemProductName())
                 .imageUrl(imageUrl)
                 .price(item.getOrderItemProductPrice())
                 .qty(item.getOrderItemQty())
                 .totalPrice(item.getOrderItemTotalPrice())
+                .reviewed(reviewed)
+                .reviewId(reviewId)
                 .build();
     }
-
-
 }

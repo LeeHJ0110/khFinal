@@ -1,5 +1,6 @@
 package com.kh.app.mypage.store.service;
 
+
 import com.kh.app.aws.service.S3Service;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.repository.MemberRepository;
@@ -8,9 +9,11 @@ import com.kh.app.mypage.store.dto.response.StoreOrderHistoryResDto;
 import com.kh.app.store.entity.StoreOrderEntity;
 import com.kh.app.store.entity.StoreOrderItemEntity;
 import com.kh.app.store.entity.StoreProductImageEntity;
+import com.kh.app.store.entity.StoreReviewEntity;
 import com.kh.app.store.repository.StoreOrderItemRepository;
 import com.kh.app.store.repository.StoreOrderRepository;
 import com.kh.app.store.repository.StoreProductImageRepository;
+import com.kh.app.store.repository.StoreReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +31,7 @@ public class MyPageStoreService {
     private final StoreOrderRepository storeOrderRepository;
     private final StoreOrderItemRepository storeOrderItemRepository;
     private final StoreProductImageRepository storeProductImageRepository;
+    private final StoreReviewRepository storeReviewRepository;
     private final S3Service s3Service;
 
     public Page<StoreOrderHistoryResDto> getMyOrders(
@@ -77,9 +81,18 @@ public class MyPageStoreService {
                         .map(s3Service::getFileUrl)
                         .orElse(null);
 
+        StoreReviewEntity review = storeReviewRepository
+                .findByOrderItem_OrderItemId(item.getOrderItemId())
+                .orElse(null);
+
+        boolean reviewed = review != null;
+        Long reviewId = review != null ? review.getReviewId() : null;
+
         return StoreOrderHistoryItemResDto.from(
                 item,
-                imageUrl
+                imageUrl,
+                reviewed,
+                reviewId
         );
     }
 }

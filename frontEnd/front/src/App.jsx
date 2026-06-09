@@ -37,8 +37,11 @@ import PetStoreCatSnackProductListPage from "./pages/petStore/PetStoreCatSnackPr
 import PetStoreCatSupplementProductListPage from "./pages/petStore/PetStoreCatSupplementProductListPage";
 import PetStoreCatToiletProductListPage from "./pages/petStore/PetStoreCatToiletProductListPage";
 import PetStoreProductDetailPage from "./pages/petStore/PetStoreProductDetailPage";
+import PetStoreWishListPage from "./pages/petStore/PetStoreWishListPage";
 import PetStoreCartListPage from "./pages/petStore/PetStoreCartListPage";
 import PetStoreOrderPage from "./pages/petStore/PetStoreOrderPage";
+import PetStoreOrderCompletePage from "./pages/petStore/PetStoreOrderCompletePage";
+import PetStoreMyReviewListPage from "./pages/petStore/PetStoreMyReviewListPage";
 
 // mypage
 import MyPageHomePage from "./pages/mypage/MyPageHomePage";
@@ -57,12 +60,12 @@ import CommunityHistoryPage from "./pages/mypage/CommunityHistoryPage";
 import BoardHome from "./pages/board/BoardHome";
 import BoardDetailPage from "./pages/board/BoardDetailPage";
 import DeliveryManagePage from "./pages/mypage/DeliveryManagePage";
-import PetStoreOrderCompletePage from "./pages/petStore/PetStoreOrderCompletePage";
 import AdminMemberPage from "./pages/admin/member/AdminMemberPage";
 import AdminMessageSendPage from "./pages/admin/message/AdminMessageSendPage";
 import AdminSentMessagePage from "./pages/admin/message/AdminSentMessagePage";
-import PetStoreWishListPage from "./pages/petStore/PetStoreWishListPage";
 import OrderHistoryPage from "./pages/mypage/OrderHistoryPage";
+import PetStoreReviewInsertPage from "./pages/petStore/PetStoreReviewInsertPage";
+import PetStoreReviewEditPage from "./pages/petStore/PetStoreReviewEditPage";
 
 function App() {
   return (
@@ -118,6 +121,17 @@ function App() {
             <Route
               path="product/admin"
               element={<PetStoreAdminProductListPage />}
+            />
+
+            {/* 리뷰 */}
+            <Route path="review/list" element={<PetStoreMyReviewListPage />} />
+            <Route
+              path="review/insert/:orderItemId"
+              element={<PetStoreReviewInsertPage />}
+            />
+            <Route
+              path="review/edit/:reviewId"
+              element={<PetStoreReviewEditPage />}
             />
 
             {/* 관심상품 */}
