@@ -3,10 +3,7 @@ package com.kh.app.board.controller;
 import com.kh.app.board.dto.request.BoardSearchCondition;
 import com.kh.app.board.dto.request.BoardWriteReqDto;
 import com.kh.app.board.dto.request.BoardReportReqDto;
-import com.kh.app.board.dto.response.BoardDetailResDto;
-import com.kh.app.board.dto.response.BoardResDto;
-import com.kh.app.board.dto.response.BoardLikeResDto;
-import com.kh.app.board.dto.response.NaverNewsResDto;
+import com.kh.app.board.dto.response.*;
 import com.kh.app.board.service.BoardService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -150,6 +147,13 @@ public class BoardController {
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+    
+    @Operation(summary = "통합 검색", description = "카테고리 구분 없이 전체 게시글, 스토어 검색")
+    @GetMapping("/search/unified")
+    public ResponseEntity<UnifiedSearchResDto> searchUnified(@RequestParam(name = "keyword") String keyword) {
+        UnifiedSearchResDto result = boardService.searchUnified(keyword);
+        return ResponseEntity.ok(result);
     }
 
 }
