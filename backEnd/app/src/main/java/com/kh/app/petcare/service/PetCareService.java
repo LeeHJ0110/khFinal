@@ -219,8 +219,10 @@ public class PetCareService {
     // 수의사 건강진단 신청 목록 조회
     // 신청 중인 데이터만 오래된 순서대로 페이징 조회
     // =========================================================
-    @Transactional(readOnly = true)
-    public Page<DiagnosisResDto> requestDiagnosisList(int pno) {
+    public Page<DiagnosisResDto> requestDiagnosisList(
+            int pno,
+            String petType
+    ) {
 
         Pageable pageable = PageRequest.of(
                 pno,
@@ -231,12 +233,59 @@ public class PetCareService {
                 )
         );
 
-        return diagnosisReqRepository
-                .findAllByDiagnosisReqStatus(
-                        DelYn.Y,
-                        pageable
-                )
-                .map(DiagnosisResDto::from);
+        Page<DiagnosisReqEntity> page;
+
+        if ("D".equalsIgnoreCase(petType)) {
+            page = diagnosisReqRepository
+                    .findAllByDiagnosisReqStatusAndPetEntity_Breed_PetType(
+                            DelYn.Y,
+                            PetType.D,
+                            pageable
+                    );
+        } else if ("C".equalsIgnoreCase(petType)) {
+            page = diagnosisReqRepository
+                    .findAllByDiagnosisReqStatusAndPetEntity_Breed_PetType(
+                            DelYn.Y,
+                            PetType.C,
+                            pageable
+                    );
+        } else {
+            page = diagnosisReqRepository
+                    .findAllByDiagnosisReqStatus(
+                            DelYn.Y,
+                            pageable
+                    );
+        }
+
+        return page.map(entity -> {
+
+            PetEntity pet = entity.getPetEntity();
+
+            return DiagnosisResDto.builder()
+                    .diagnosisReqId(entity.getDiagnosisReqId())
+
+                    .memberNickname(
+                            pet.getMember() != null
+                                    ? pet.getMember().getNickname()
+                                    : null
+                    )
+
+                    .petId(pet.getId())
+
+                    .petName(pet.getName())
+
+                    .petType(
+                            pet.getBreed() != null
+                                    ? pet.getBreed().getPetType().name()
+                                    : null
+                    )
+
+                    .diagnosisReqStatus(entity.getDiagnosisReqStatus())
+
+                    .createdAt(entity.getCreatedAt())
+
+                    .build();
+        });
     }
 
     // =========================================================
