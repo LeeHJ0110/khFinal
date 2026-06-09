@@ -44,8 +44,6 @@ function InsuranceProductSection() {
 
   const [priceErrorMessage, setPriceErrorMessage] = useState("");
 
-  
-
   // =========================================================
   // 현재 선택한 반려동물
   // =========================================================
@@ -296,23 +294,23 @@ function InsuranceProductSection() {
       } else {
         setSelectedPetId("");
       }
-} catch (error) {
-  console.error("펫 보험 초기 데이터 조회 실패:", error);
+    } catch (error) {
+      console.error("펫 보험 초기 데이터 조회 실패:", error);
 
-  const status = error.response?.status;
+      const status = error.response?.status;
 
-  if (status === 401 || status === 403) {
-    localStorage.removeItem("accessToken");
-    setIsLoggedIn(false);
+      if (status === 401 || status === 403) {
+        localStorage.removeItem("accessToken");
+        setIsLoggedIn(false);
 
-    return;
+        return;
+      }
+
+      setErrorMessage(
+        getErrorMessage(error, "보험 정보를 불러오지 못했습니다."),
+      );
+    }
   }
-
-  setErrorMessage(
-    getErrorMessage(error, "보험 정보를 불러오지 못했습니다."),
-  );
-}
-}
 
   // =========================================================
   // 가입 내역이 없는 경우에만 상품 선택 허용
@@ -500,34 +498,34 @@ function InsuranceProductSection() {
     }
   }
 
-if (!isLoggedIn) {
-  return (
-    <ProductSection>
-      <LoginRequiredWrapper>
-        <LoginRequiredBox>
-          <LoginBadge>LOGIN REQUIRED</LoginBadge>
+  if (!isLoggedIn) {
+    return (
+      <ProductSection>
+        <LoginRequiredWrapper>
+          <LoginRequiredBox>
+            <LoginBadge>LOGIN REQUIRED</LoginBadge>
 
-          <LoginRequiredTitle>
-            로그인이 필요한 서비스입니다
-          </LoginRequiredTitle>
+            <LoginRequiredTitle>
+              로그인이 필요한 서비스입니다
+            </LoginRequiredTitle>
 
-          <LoginRequiredDescription>
-            펫보험 상품 확인과 가입 신청을 위해
-            <br />
-            로그인 후 이용해 주세요.
-          </LoginRequiredDescription>
+            <LoginRequiredDescription>
+              펫보험 상품 확인과 가입 신청을 위해
+              <br />
+              로그인 후 이용해 주세요.
+            </LoginRequiredDescription>
 
-          <LoginButton
-            type="button"
-            onClick={() => navigate("/member/login")}
-          >
-            로그인하기
-          </LoginButton>
-        </LoginRequiredBox>
-      </LoginRequiredWrapper>
-    </ProductSection>
-  );
-}
+            <LoginButton
+              type="button"
+              onClick={() => navigate("/member/login")}
+            >
+              로그인하기
+            </LoginButton>
+          </LoginRequiredBox>
+        </LoginRequiredWrapper>
+      </ProductSection>
+    );
+  }
 
   return (
     <ProductSection>
@@ -707,7 +705,7 @@ if (!isLoggedIn) {
         <ErrorMessage>{errorMessage}</ErrorMessage>
       )}
 
-      <ProductGrid $isSingle={visibleProductList.length === 1}>
+      <ProductGrid $isSingleProduct={visibleProductList.length === 1}>
         {visibleProductList.map((product) => {
           const isSelected = selectedProduct?.productId === product.productId;
 
@@ -726,6 +724,7 @@ if (!isLoggedIn) {
               key={product.productId}
               $isSelected={isSelected}
               $isLocked={!selectedPetStatus.canApply || isAgeRestricted}
+              $isSingleProduct={visibleProductList.length === 1}
               onClick={() => handleSelectProduct(product)}
             >
               <CardHeader>
@@ -752,7 +751,11 @@ if (!isLoggedIn) {
 
               <Divider />
 
-              <ProductContent>{product.productContent}</ProductContent>
+              <ProductContent
+                $isSingleProduct={visibleProductList.length === 1}
+              >
+                {product.productContent}
+              </ProductContent>
 
               <ProductBottom>
                 {!isAgeRestricted && (
@@ -1114,17 +1117,19 @@ function formatPrice(price) {
 // styled-components
 // =========================================================
 const ProductSection = styled.section`
-  width: 85%;
-  margin: auto;
-`;
+  width: 100%;
 
+  margin: 0;
+
+  box-sizing: border-box;
+`;
 const LoginRequiredWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
 
-  min-height: 520px;
-  padding: 32px 20px;
+  min-height: 580px;
+  padding: 44px 28px;
 `;
 
 const LoginRequiredBox = styled.div`
@@ -1133,22 +1138,23 @@ const LoginRequiredBox = styled.div`
   align-items: center;
   justify-content: center;
 
-  width: min(100%, 560px);
-  min-height: 290px;
-  padding: 42px 34px;
+  width: min(100%, 760px);
+  min-height: 360px;
 
-  border: 1px solid #cdebe1;
-  border-radius: 20px;
+  padding: 52px 48px;
 
-  background: linear-gradient(
-    145deg,
-    var(--color-white) 0%,
-    #f8fdfb 100%
-  );
+  border: 1px solid rgba(0, 169, 123, 0.16);
+  border-radius: 22px;
 
-  box-shadow: 0 12px 34px rgba(0, 169, 123, 0.07);
+  background: linear-gradient(145deg, var(--color-white) 0%, #f8fdfb 100%);
+
+  box-shadow:
+    0 16px 36px rgba(0, 169, 123, 0.08),
+    0 4px 12px rgba(0, 0, 0, 0.025);
 
   text-align: center;
+
+  box-sizing: border-box;
 `;
 
 const LoginBadge = styled.span`
@@ -1173,33 +1179,34 @@ const LoginBadge = styled.span`
 const LoginRequiredTitle = styled.h3`
   margin: 0;
 
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 800;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.7px;
 
   color: var(--text-main);
 `;
 
 const LoginRequiredDescription = styled.p`
-  margin: 11px 0 0;
+  margin: 14px 0 0;
 
-  font-size: 13px;
-  line-height: 1.7;
+  font-size: 14px;
+  line-height: 1.75;
 
   color: var(--text-desc);
 `;
 
 const LoginButton = styled.button`
-  height: 42px;
-  margin-top: 22px;
-  padding: 0 21px;
+  height: 46px;
 
-  border: 1px solid var(--color-main);
-  border-radius: 9px;
+  margin-top: 26px;
+  padding: 0 24px;
+
+  border: none;
+  border-radius: 10px;
 
   background: var(--color-main);
 
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
 
   color: var(--color-white);
@@ -1216,10 +1223,9 @@ const LoginButton = styled.button`
 
     transform: translateY(-2px);
 
-    box-shadow: 0 8px 18px rgba(0, 169, 123, 0.16);
+    box-shadow: 0 9px 20px rgba(0, 169, 123, 0.2);
   }
 `;
-
 
 const SectionHeader = styled.div`
   margin-bottom: 18px;
@@ -1249,9 +1255,14 @@ const ProductToolbar = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
 
   margin-bottom: 12px;
+
+  @media (max-width: 700px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 const ToolbarGuide = styled.div`
@@ -1259,10 +1270,14 @@ const ToolbarGuide = styled.div`
   align-items: center;
   gap: 7px;
 
+  min-width: 0;
+
+  color: var(--text-desc);
+
   font-size: 12px;
   line-height: 1.5;
 
-  color: var(--text-desc);
+  word-break: keep-all;
 `;
 
 const GuideDot = styled.span`
@@ -1278,8 +1293,11 @@ const PetMenuWrapper = styled.div`
   position: relative;
 
   flex-shrink: 0;
-`;
 
+  @media (max-width: 700px) {
+    align-self: flex-end;
+  }
+`;
 const PetMenuButton = styled.button`
   display: flex;
   align-items: center;
@@ -1418,30 +1436,73 @@ const SelectedSummary = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
+
+  min-height: 50px;
 
   margin-bottom: 18px;
   padding: 11px 14px;
+
+  box-sizing: border-box;
 
   border: 1px solid #e2eee9;
   border-radius: 12px;
 
   background: #f7fcfa;
-`;
 
+  @media (max-width: 760px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
+`;
 const SummaryInfoGroup = styled.div`
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 11px;
+  gap: 10px 11px;
+
+  min-width: 0;
+`;
+const CancelInsuranceButton = styled.button`
+  flex-shrink: 0;
+
+  height: 32px;
+  padding: 0 11px;
+
+  border: 1px solid #e3b7b2;
+  border-radius: 7px;
+
+  background: var(--color-white);
+
+  color: #d45a4d;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  &:hover {
+    background: #fff6f5;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+
+    cursor: default;
+  }
+
+  @media (max-width: 760px) {
+    align-self: flex-end;
+  }
 `;
 
 const SummaryItem = styled.div`
   display: flex;
   align-items: center;
   gap: 7px;
-`;
 
+  min-width: 0;
+`;
 const SummaryLabel = styled.span`
   font-size: 11px;
 
@@ -1449,19 +1510,27 @@ const SummaryLabel = styled.span`
 `;
 
 const SummaryText = styled.span`
+  min-width: 0;
+
+  color: var(--text-main);
+
   font-size: 12px;
   font-weight: 800;
 
-  color: var(--text-main);
+  word-break: keep-all;
 `;
-
 const SummaryDivider = styled.span`
   width: 1px;
   height: 14px;
 
-  background: #d8e9e3;
-`;
+  flex-shrink: 0;
 
+  background: #d8e9e3;
+
+  @media (max-width: 620px) {
+    display: none;
+  }
+`;
 const SummaryStatus = styled.span`
   padding: 4px 8px;
 
@@ -1482,35 +1551,6 @@ const SummaryPrice = styled.span`
   color: var(--color-main-dark);
 `;
 
-const CancelInsuranceButton = styled.button`
-  flex-shrink: 0;
-
-  height: 32px;
-  padding: 0 11px;
-
-  border: 1px solid #e3b7b2;
-  border-radius: 7px;
-
-  background: var(--color-white);
-
-  font-size: 11px;
-  font-weight: 700;
-
-  color: #d45a4d;
-
-  cursor: pointer;
-
-  &:hover {
-    background: #fff6f5;
-  }
-
-  &:disabled {
-    opacity: 0.6;
-
-    cursor: default;
-  }
-`;
-
 const ErrorMessage = styled.p`
   margin: 0 0 14px;
 
@@ -1518,32 +1558,29 @@ const ErrorMessage = styled.p`
 
   color: #e74c3c;
 `;
-
+///가입완료 카드
 const ProductGrid = styled.div`
   display: grid;
 
-  grid-template-columns: ${({ $isSingle }) =>
-    $isSingle ? "minmax(0, 540px)" : "repeat(3, minmax(0, 1fr))"};
+  grid-template-columns: ${({ $isSingleProduct }) =>
+    $isSingleProduct
+      ? "1fr"
+      : "repeat(auto-fit, minmax(min(100%, 280px), 1fr))"};
+
+  width: ${({ $isSingleProduct }) =>
+    $isSingleProduct ? "min(100%, 460px)" : "100%"};
 
   gap: 20px;
-
-  @media (max-width: 1100px) {
-    grid-template-columns: ${({ $isSingle }) =>
-      $isSingle ? "minmax(0, 540px)" : "repeat(2, minmax(0, 1fr))"};
-  }
-
-  @media (max-width: 760px) {
-    grid-template-columns: 1fr;
-  }
 `;
-
 const ProductCard = styled.div`
   position: relative;
 
   display: flex;
   flex-direction: column;
 
-  min-height: 450px;
+  min-width: 0;
+  min-height: 500px;
+
   padding: 26px 24px 24px;
 
   overflow: hidden;
@@ -1556,6 +1593,8 @@ const ProductCard = styled.div`
   background: var(--color-white);
 
   cursor: ${({ $isLocked }) => ($isLocked ? "default" : "pointer")};
+
+  box-sizing: border-box;
 
   box-shadow: ${({ $isSelected }) =>
     $isSelected
@@ -1586,8 +1625,14 @@ const ProductCard = styled.div`
           0 11px 25px rgba(0, 169, 123, 0.08)
         `};
   }
-`;
 
+  @media (max-width: 500px) {
+    min-height: ${({ $isSingleProduct }) =>
+      $isSingleProduct ? "260px" : "420px"};
+
+    padding: 22px 18px 20px;
+  }
+`;
 const CardHeader = styled.div`
   display: flex;
   align-items: flex-start;
@@ -1676,6 +1721,7 @@ const ProductBottom = styled.div`
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
 
   margin-top: 24px;
@@ -1688,11 +1734,13 @@ const PriceArea = styled.div`
 const ProductPrice = styled.p`
   margin: 0;
 
-  font-size: 29px;
+  color: var(--text-main);
+
+  font-size: clamp(23px, 2.2vw, 29px);
   font-weight: 800;
   letter-spacing: -0.7px;
 
-  color: var(--text-main);
+  word-break: keep-all;
 `;
 
 const PriceUnit = styled.span`
@@ -1724,10 +1772,12 @@ const ApplyButton = styled.button`
 
   background: var(--color-main);
 
+  color: var(--color-white);
+
   font-size: 12px;
   font-weight: 700;
 
-  color: var(--color-white);
+  white-space: nowrap;
 
   cursor: pointer;
 

@@ -43,10 +43,10 @@ const Wrapper = styled.div`
 `;
 
 const BottomArea = styled.div`
-  width: 85%;
+  width: 83%;
 
   display: grid;
- grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
   gap: 24px;
 
   margin: 0 auto;

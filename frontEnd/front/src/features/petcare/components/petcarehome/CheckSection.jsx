@@ -167,6 +167,7 @@ export default CheckSection;
 
 const CheckWrapper = styled.section`
   width: 100%;
+  min-width: 850px;
   height: 100%;
 
   margin: 0 auto;
@@ -178,9 +179,11 @@ const CheckWrapper = styled.section`
 
   box-sizing: border-box;
 
-  border-radius: 12px;
+  border-radius: 16px;
 
   background: var(--color-white);
+
+  overflow-x: auto;
 `;
 
 /* =========================================
@@ -218,6 +221,7 @@ const ProcessFragment = styled.div`
 
 const ProcessItem = styled.div`
   width: 120px;
+  flex-shrink: 0;
 
   display: flex;
   flex-direction: column;
@@ -233,10 +237,14 @@ const ProcessImageBox = styled.div`
   align-items: center;
   justify-content: center;
 
-  border: 2px solid rgba(0, 169, 123, 0.25);
-  border-radius: 10px;
+  border: 1px solid rgba(0, 169, 123, 0.12);
+  border-radius: 12px;
 
-  background: var(--color-white);
+  background: rgba(255, 255, 255, 0.98);
+
+  box-shadow:
+    0 4px 12px rgba(0, 169, 123, 0.035),
+    0 1px 3px rgba(0, 0, 0, 0.018);
 
   transition:
     border-color 0.25s ease,
@@ -245,11 +253,17 @@ const ProcessImageBox = styled.div`
     transform 0.25s ease;
 
   &:hover {
-    border-color: rgba(0, 169, 123, 0.55);
+    border-color: rgba(0, 169, 123, 0.3);
 
-    background: var(--color-bg-light);
+    background: color-mix(
+      in srgb,
+      var(--color-bg-light) 22%,
+      var(--color-white)
+    );
 
-    box-shadow: 0 6px 14px rgba(0, 169, 123, 0.12);
+    box-shadow:
+      0 8px 16px rgba(0, 169, 123, 0.085),
+      0 2px 5px rgba(0, 0, 0, 0.02);
 
     transform: translateY(-3px);
   }
@@ -278,6 +292,8 @@ const ProcessText = styled.p`
 `;
 
 const Arrow = styled.span`
+  flex-shrink: 0;
+
   margin-bottom: 18px;
 
   color: var(--color-main);
@@ -293,8 +309,10 @@ const Arrow = styled.span`
 const DiagnosisArea = styled.div``;
 
 const DiagnosisGrid = styled.div`
+  min-width: 760px;
+
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(240px, 1fr));
   gap: 10px;
 `;
 
@@ -309,10 +327,14 @@ const DiagnosisCard = styled.div`
 
   box-sizing: border-box;
 
-  border: 1px solid rgba(0, 169, 123, 0.24);
-  border-radius: 9px;
+  border: 1px solid rgba(0, 169, 123, 0.12);
+  border-radius: 12px;
 
-  background: var(--color-white);
+  background: rgba(255, 255, 255, 0.98);
+
+  box-shadow:
+    0 4px 12px rgba(0, 169, 123, 0.035),
+    0 1px 3px rgba(0, 0, 0, 0.018);
 
   transition:
     border-color 0.25s ease,
@@ -321,11 +343,17 @@ const DiagnosisCard = styled.div`
     transform 0.25s ease;
 
   &:hover {
-    border-color: rgba(0, 169, 123, 0.48);
+    border-color: rgba(0, 169, 123, 0.3);
 
-    background: var(--color-bg-light);
+    background: color-mix(
+      in srgb,
+      var(--color-bg-light) 22%,
+      var(--color-white)
+    );
 
-    box-shadow: 0 5px 12px rgba(0, 169, 123, 0.09);
+    box-shadow:
+      0 8px 16px rgba(0, 169, 123, 0.085),
+      0 2px 5px rgba(0, 0, 0, 0.02);
 
     transform: translateY(-2px);
   }
@@ -356,11 +384,12 @@ const DiagnosisImage = styled.img`
 `;
 
 const DiagnosisTextBox = styled.div`
+  min-width: 0;
+
   display: flex;
   flex-direction: column;
   gap: 3px;
 `;
-
 const DiagnosisTitle = styled.h3`
   margin: 0 0 2px;
 
@@ -368,6 +397,8 @@ const DiagnosisTitle = styled.h3`
 
   font-size: 15px;
   font-weight: 800;
+
+  white-space: nowrap;
 `;
 
 const DiagnosisDesc = styled.p`

@@ -269,7 +269,7 @@ function PreviewSection({ selectedPet, onChangeSelectedPet }) {
                     }
                   }}
                 >
-                  {isApplying ? "신청 중" : "신청 가능"}
+                  {isApplying ? "● 신청 중" : "신청 가능"}
                 </ApplyButton>
               </ProfileButtonGroup>
             </ProfileContent>
@@ -334,9 +334,9 @@ export default PreviewSection;
 /* =====================================
    전체 영역
 ===================================== */
-
 const PreviewWrapper = styled.aside`
   width: 100%;
+  min-width: 570px;
   height: 100%;
 
   display: flex;
@@ -344,13 +344,15 @@ const PreviewWrapper = styled.aside`
   gap: 20px;
 
   box-sizing: border-box;
-`;
 
+  overflow-x: auto;
+`;
 /* =====================================
    반려동물 정보
 ===================================== */
 
 const PetProfileArea = styled.section`
+  min-width: 570px;
   min-height: 300px;
   margin-top: 57px;
 
@@ -362,11 +364,14 @@ const PetProfileArea = styled.section`
 
   box-sizing: border-box;
 
-  border: 1px solid rgba(0, 169, 123, 0.2);
+  border: 1px solid rgba(0, 169, 123, 0.1);
+  border-radius: 16px;
 
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
 
-  background: var(--color-white);
+  box-shadow:
+    0 10px 28px rgba(0, 169, 123, 0.06),
+    0 2px 8px rgba(0, 0, 0, 0.025);
 
   transition:
     transform 0.25s ease,
@@ -374,11 +379,13 @@ const PetProfileArea = styled.section`
     border-color 0.25s ease;
 
   &:hover {
-    border-color: rgba(0, 169, 123, 0.38);
+    border-color: rgba(0, 169, 123, 0.18);
 
-    box-shadow: 0 10px 24px rgba(0, 169, 123, 0.1);
+    box-shadow:
+      0 14px 30px rgba(0, 169, 123, 0.1),
+      0 4px 10px rgba(0, 0, 0, 0.035);
 
-    transform: translateY(-3px);
+    transform: translateY(-2px);
   }
 `;
 
@@ -594,6 +601,8 @@ const PetInfoBadge = styled.span`
   font-size: 12px;
   font-weight: 600;
 
+  white-space: nowrap;
+
   transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
@@ -665,34 +674,46 @@ const PointText = styled.p`
 
 const ProfileButtonGroup = styled.div`
   display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  gap: 4px;
 
-  grid-template-columns: 1fr 1fr;
+  padding: 4px;
+
+  border: 1px solid rgba(0, 169, 123, 0.16);
+  border-radius: 12px;
+
+  background: rgba(0, 169, 123, 0.045);
+
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.025);
 `;
 
 const SubButton = styled.button`
-  height: 43px;
+  height: 37px;
 
-  border: 1px solid var(--text-disabled);
+  border: none;
+  border-radius: 8px;
 
-  border-radius: 7px 0 0 7px;
-
-  background: var(--color-white);
-
+  background: transparent;
   color: var(--text-sub);
 
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
 
   cursor: pointer;
 
   transition:
     background-color 0.2s ease,
-    color 0.2s ease;
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 
   &:hover {
-    background: var(--color-bg-light);
+    background: var(--color-white);
+    color: var(--color-main-dark);
 
-    color: var(--color-main);
+    box-shadow: 0 3px 8px rgba(0, 169, 123, 0.08);
+
+    transform: translateY(-1px);
   }
 `;
 
@@ -700,25 +721,52 @@ const ApplyButton = styled.button`
   height: 43px;
 
   border: none;
+  border-radius: 10px;
 
-  border-radius: 0 7px 7px 0;
-
-  background: var(--color-main);
+  background: linear-gradient(
+    135deg,
+    var(--color-main) 0%,
+    var(--color-main-dark) 100%
+  );
 
   color: var(--color-white);
 
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
 
   cursor: pointer;
 
-  &:disabled {
-    background: #c5d4cf;
+  box-shadow: 0 6px 14px rgba(0, 169, 123, 0.18);
 
-    cursor: not-allowed;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 9px 18px rgba(0, 169, 123, 0.26);
+    filter: brightness(1.04);
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    border: 1px solid rgba(0, 169, 123, 0.28);
+
+    background: linear-gradient(
+      135deg,
+      rgba(0, 169, 123, 0.18) 0%,
+      rgba(0, 169, 123, 0.1) 100%
+    );
+
+    color: var(--color-main-dark);
+
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+
+    cursor: default;
+    opacity: 1;
   }
 `;
-
 /* =====================================
    등록된 반려동물이 없는 경우
 ===================================== */
@@ -766,6 +814,8 @@ const RegisterButton = styled.button`
 
 const NeedDiagnosisArea = styled.section`
   width: 100%;
+  min-width: 570px;
+
   height: 240px;
   min-height: 243px;
 
@@ -786,7 +836,7 @@ const NeedDiagnosisArea = styled.section`
 `;
 
 const NeedTextArea = styled.div`
-  min-width: 0;
+  min-width: 285px;
 `;
 
 const TitleRow = styled.div`
@@ -836,6 +886,8 @@ const NeedItem = styled.li`
   font-size: 14px;
   font-weight: 500;
   line-height: 1.35;
+
+  white-space: nowrap;
 `;
 
 const CheckIcon = styled.span`

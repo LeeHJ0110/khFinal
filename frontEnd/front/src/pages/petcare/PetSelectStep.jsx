@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import DEFAULT_PET_IMAGE from "../../features/petcare/img/건강진단 서브.png";
 
 // 프로필 이미지 필드명이 확정되면 실제 필드 하나만 남겨도 됨
 function getPetProfileImage(pet) {
@@ -9,7 +8,7 @@ function getPetProfileImage(pet) {
     pet.profileImg ||
     pet.imgProfile ||
     pet.imageUrl ||
-    DEFAULT_PET_IMAGE
+    null
   );
 }
 
@@ -43,14 +42,14 @@ function PetSelectStep({
       ) : (
         <PetCardList $compact={isCompact}>
           {petList.map((pet) => {
+            // 펫별 프로필 이미지
+            const petProfileImage = getPetProfileImage(pet);
+
             // 진행 중인 건강진단 신청이 있는 펫
-            const isApplying =
-              pet.diagnosisInProgress === true;
+            const isApplying = pet.diagnosisInProgress === true;
 
             // 신청 중인 펫은 선택 상태가 될 수 없음
-            const isSelected =
-              !isApplying &&
-              selectedPet?.petId === pet.petId;
+            const isSelected = !isApplying && selectedPet?.petId === pet.petId;
 
             return (
               <PetCard
@@ -69,27 +68,34 @@ function PetSelectStep({
                 }}
               >
                 {isApplying ? (
-                  <ApplyingBadge>
-                    신청 중
-                  </ApplyingBadge>
+                  <ApplyingBadge>신청 중</ApplyingBadge>
                 ) : (
                   <SelectedMark $selected={isSelected}>
                     {isSelected ? "♥" : "♡"}
                   </SelectedMark>
                 )}
 
-                <PetImageWrapper
-                  $compact={isCompact}
-                  $applying={isApplying}
-                >
-                  <PetImage
-                    src={getPetProfileImage(pet)}
-                    alt={`${pet.name ?? "반려동물"} 프로필 이미지`}
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = DEFAULT_PET_IMAGE;
-                    }}
-                  />
+                <PetImageWrapper $compact={isCompact} $applying={isApplying}>
+                  {petProfileImage ? (
+                    <PetImage
+                      src={petProfileImage}
+                      alt={`${pet.name ?? "반려동물"} 프로필 이미지`}
+                      onError={(event) => {
+                        event.currentTarget.style.display = "none";
+
+                        const fallbackEmoji =
+                          event.currentTarget.nextElementSibling;
+
+                        if (fallbackEmoji) {
+                          fallbackEmoji.style.display = "flex";
+                        }
+                      }}
+                    />
+                  ) : null}
+
+                  <DefaultPetEmoji $hasImage={Boolean(petProfileImage)}>
+                    🐾
+                  </DefaultPetEmoji>
                 </PetImageWrapper>
 
                 <PetName
@@ -109,9 +115,7 @@ function PetSelectStep({
                 </PetInfo>
 
                 {isApplying && (
-                  <ApplyingText>
-                    건강진단이 진행 중입니다.
-                  </ApplyingText>
+                  <ApplyingText>건강진단이 진행 중입니다.</ApplyingText>
                 )}
               </PetCard>
             );
@@ -141,9 +145,7 @@ function PetSelectStep({
             </WeightInfoBox>
 
             <WeightInputBox>
-              <WeightLabel htmlFor="currentWeight">
-                현재 체중
-              </WeightLabel>
+              <WeightLabel htmlFor="currentWeight">현재 체중</WeightLabel>
 
               <WeightInputRow>
                 <WeightInput
@@ -152,9 +154,7 @@ function PetSelectStep({
                   min="0"
                   step="0.1"
                   value={currentWeight}
-                  onChange={(e) =>
-                    onChangeWeight(e.target.value)
-                  }
+                  onChange={(e) => onChangeWeight(e.target.value)}
                 />
 
                 <WeightUnit>kg</WeightUnit>
@@ -164,9 +164,7 @@ function PetSelectStep({
                   disabled={isWeightSaving}
                   onClick={onSaveWeight}
                 >
-                  {isWeightSaving
-                    ? "저장 중"
-                    : "저장"}
+                  {isWeightSaving ? "저장 중" : "저장"}
                 </WeightSaveButton>
               </WeightInputRow>
             </WeightInputBox>
@@ -199,10 +197,8 @@ const EmptyMessage = styled.div`
 const PetCardList = styled.section`
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: ${({ $compact }) =>
-    $compact ? "16px" : "20px"};
-  padding: ${({ $compact }) =>
-    $compact ? "18px" : "20px"};
+  gap: ${({ $compact }) => ($compact ? "16px" : "20px")};
+  padding: ${({ $compact }) => ($compact ? "18px" : "20px")};
   border: 1px solid #dfe8e4;
   border-radius: 14px;
   background: #ffffff;
@@ -218,13 +214,9 @@ const PetCard = styled.button`
 
   width: 100%;
   min-width: 0;
-  min-height: ${({ $compact }) =>
-    $compact ? "190px" : "224px"};
+  min-height: ${({ $compact }) => ($compact ? "190px" : "224px")};
 
-  padding: ${({ $compact }) =>
-    $compact
-      ? "16px 12px"
-      : "22px 16px 18px"};
+  padding: ${({ $compact }) => ($compact ? "16px 12px" : "22px 16px 18px")};
 
   border: 1px solid
     ${({ $selected, $applying }) => {
@@ -248,11 +240,9 @@ const PetCard = styled.button`
       ? "0 8px 18px rgba(0, 169, 123, 0.2)"
       : "0 3px 10px rgba(0, 0, 0, 0.04)"};
 
-  cursor: ${({ $applying }) =>
-    $applying ? "default" : "pointer"};
+  cursor: ${({ $applying }) => ($applying ? "default" : "pointer")};
 
-  opacity: ${({ $applying }) =>
-    $applying ? "0.88" : "1"};
+  opacity: ${({ $applying }) => ($applying ? "0.88" : "1")};
 
   transition:
     border-color 0.2s ease,
@@ -283,8 +273,7 @@ const SelectedMark = styled.span`
 
   background: #ffffff;
 
-  color: ${({ $selected }) =>
-    $selected ? "#00a97b" : "#b7d8ce"};
+  color: ${({ $selected }) => ($selected ? "#00a97b" : "#b7d8ce")};
 
   font-size: 17px;
   font-weight: 900;
@@ -312,11 +301,9 @@ const ApplyingBadge = styled.span`
 const PetImageWrapper = styled.div`
   display: flex;
 
-  width: ${({ $compact }) =>
-    $compact ? "96px" : "128px"};
+  width: ${({ $compact }) => ($compact ? "96px" : "128px")};
 
-  height: ${({ $compact }) =>
-    $compact ? "96px" : "128px"};
+  height: ${({ $compact }) => ($compact ? "96px" : "128px")};
 
   margin: 0 auto;
 
@@ -327,9 +314,7 @@ const PetImageWrapper = styled.div`
 
   border: 4px solid
     ${({ $applying }) =>
-      $applying
-        ? "rgba(0, 169, 123, 0.12)"
-        : "rgba(255, 255, 255, 0.88)"};
+      $applying ? "rgba(0, 169, 123, 0.12)" : "rgba(255, 255, 255, 0.88)"};
 
   border-radius: 50%;
 
@@ -344,11 +329,23 @@ const PetImage = styled.img`
   object-fit: cover;
 `;
 
+const DefaultPetEmoji = styled.span`
+  display: ${({ $hasImage }) => ($hasImage ? "none" : "flex")};
+
+  width: 100%;
+  height: 100%;
+
+  align-items: center;
+  justify-content: center;
+
+  background: #dddddd;
+
+  font-size: 34px;
+  line-height: 1;
+`;
+
 const PetName = styled.p`
-  margin: ${({ $compact }) =>
-    $compact
-      ? "11px 0 0"
-      : "15px 0 0"};
+  margin: ${({ $compact }) => ($compact ? "11px 0 0" : "15px 0 0")};
 
   color: ${({ $selected, $applying }) => {
     if ($selected) return "#ffffff";
@@ -357,8 +354,7 @@ const PetName = styled.p`
     return "#222";
   }};
 
-  font-size: ${({ $compact }) =>
-    $compact ? "15px" : "18px"};
+  font-size: ${({ $compact }) => ($compact ? "15px" : "18px")};
 
   font-weight: 800;
 
@@ -382,8 +378,7 @@ const PetInfo = styled.p`
     return "#777";
   }};
 
-  font-size: ${({ $compact }) =>
-    $compact ? "12px" : "13px"};
+  font-size: ${({ $compact }) => ($compact ? "12px" : "13px")};
 
   text-align: center;
   word-break: keep-all;
