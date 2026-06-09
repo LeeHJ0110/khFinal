@@ -54,6 +54,8 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
                 }
               }}
             >
+              <Label>운동 시간</Label>
+
               <Row>
                 <Select
                   value={formData.trainingTime?.split(":")[0] || "00"}
@@ -105,18 +107,20 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
               ) : (
                 <>
                   {console.log(formData)}
-                  {petList.map((pet) => (
-                    <label key={pet.petId}>
-                      <input
-                        type="checkbox"
-                        checked={formData.trainingPetList.includes(pet.petId)}
-                        onChange={(e) => {
-                          const nextPetList = e.target.checked
-                            ? [...formData.trainingPetList, pet.petId]
-                            : formData.trainingPetList.filter(
+                  <PetCheckList>
+                    {petList.map((pet) => (
+                      <PetCheckItem
+                        key={pet.petId}
+                        $checked={formData.trainingPetList.includes(pet.petId)}
+                        onClick={() => {
+                          const isChecked = formData.trainingPetList.includes(
+                            pet.petId,
+                          );
+                          const nextPetList = isChecked
+                            ? formData.trainingPetList.filter(
                                 (id) => id !== pet.petId,
-                              );
-
+                              )
+                            : [...formData.trainingPetList, pet.petId];
                           handleChange({
                             target: {
                               name: "trainingPetList",
@@ -124,34 +128,33 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
                             },
                           });
                         }}
-                      />
-                      {pet.name}
-                    </label>
-                  ))}
+                      >
+                        {pet.name}
+                      </PetCheckItem>
+                    ))}
+                  </PetCheckList>
                 </>
               )}
 
               <ButtonGroup>
                 <CancelButton onClick={onClose}>취소</CancelButton>
                 {formData.isEdit ? (
-                  isToday && (
-                    <>
-                      <DeleteButton
-                        type="button"
-                        onClick={() => {
-                          const finalFormData = {
-                            ...formData,
-                            petList: checkedPetIds,
-                          };
-                          deleteDiary(finalFormData);
-                          console.log("삭제");
-                        }}
-                      >
-                        삭제
-                      </DeleteButton>
-                      <SubmitButton type="submit">수정</SubmitButton>
-                    </>
-                  )
+                  <>
+                    <DeleteButton
+                      type="button"
+                      onClick={() => {
+                        const finalFormData = {
+                          ...formData,
+                          petList: checkedPetIds,
+                        };
+                        deleteDiary(finalFormData);
+                        console.log("삭제");
+                      }}
+                    >
+                      삭제
+                    </DeleteButton>
+                    <SubmitButton type="submit">수정</SubmitButton>
+                  </>
                 ) : (
                   <SubmitButton type="submit">저장</SubmitButton>
                 )}
@@ -201,7 +204,7 @@ const Input = styled.input`
 
   padding: 0 12px;
 
-  border: 1px solid #ddd;
+  border: 1px solid #a7fd91;
   border-radius: 8px;
 `;
 
@@ -212,7 +215,7 @@ const Select = styled.select`
 
   padding: 0 12px;
 
-  border: 1px solid #ddd;
+  border: 1px solid #a7fd91;
   border-radius: 8px;
 `;
 
@@ -221,7 +224,7 @@ const TextArea = styled.textarea`
 
   padding: 12px;
 
-  border: 1px solid #ddd;
+  border: 1px solid #a7fd91;
   border-radius: 8px;
 
   resize: none;
@@ -282,4 +285,39 @@ const DeleteButton = styled.button`
   &:hover {
     background: #e60000;
   }
+`;
+
+// 채크리스트
+const PetCheckList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 168px; /* 한 줄 약 40px * 4줄 + gap → 5개 정도 노출 */
+  overflow-y: auto;
+  padding: 4px 2px;
+`;
+
+const PetCheckItem = styled.div`
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1.5px solid #5ec8a7;
+  background: ${({ $checked }) => ($checked ? "#5ec8a7" : "#fff")};
+  color: ${({ $checked }) => ($checked ? "#fff" : "#5ec8a7")};
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background 0.15s,
+    color 0.15s;
+
+  &:hover {
+    opacity: 0.85;
+  }
+`;
+const Label = styled.label`
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #666;
 `;

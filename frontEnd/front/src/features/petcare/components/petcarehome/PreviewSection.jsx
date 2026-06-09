@@ -43,11 +43,7 @@ function calculateAge(birthDateValue) {
     return null;
   }
 
-  const birthDate = new Date(
-    birthYear,
-    birthMonth - 1,
-    birthDay,
-  );
+  const birthDate = new Date(birthYear, birthMonth - 1, birthDay);
 
   // 잘못된 날짜 방어
   // 예: 20201345
@@ -65,8 +61,7 @@ function calculateAge(birthDateValue) {
 
   const birthdayPassed =
     today.getMonth() > birthMonth - 1 ||
-    (today.getMonth() === birthMonth - 1 &&
-      today.getDate() >= birthDay);
+    (today.getMonth() === birthMonth - 1 && today.getDate() >= birthDay);
 
   if (!birthdayPassed) {
     age -= 1;
@@ -90,28 +85,28 @@ function getProfileImageUrl(petInfo) {
   );
 }
 
-function PreviewSection({
-  selectedPet,
-  onChangeSelectedPet,
-}) {
+function PreviewSection({ selectedPet, onChangeSelectedPet }) {
   const navigate = useNavigate();
 
   const [petList, setPetList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isPetMenuOpen, setIsPetMenuOpen] =
-    useState(false);
+
+  const [isPetMenuOpen, setIsPetMenuOpen] = useState(false);
+
+  const [hasProfileImageError, setHasProfileImageError] = useState(false);
 
   // 부모 컴포넌트에서 관리하는 선택 펫
   const petInfo = selectedPet;
 
+  // =====================================
+  // 로그인한 회원의 반려동물 목록 조회
+  // =====================================
   useEffect(() => {
     async function loadPetInfo() {
       try {
         const response = await fetchMyPetList();
 
-        const fetchedPetList = Array.isArray(
-          response.data,
-        )
+        const fetchedPetList = Array.isArray(response.data)
           ? response.data
           : [];
 
@@ -120,16 +115,12 @@ function PreviewSection({
         // 대표 펫이 있으면 대표 펫 선택
         // 없으면 목록의 첫 번째 펫 선택
         const representPet =
-          fetchedPetList.find(
-            (pet) => pet.representYn === "Y",
-          ) ?? fetchedPetList[0];
+          fetchedPetList.find((pet) => pet.representYn === "Y") ??
+          fetchedPetList[0];
 
         onChangeSelectedPet(representPet ?? null);
       } catch (error) {
-        console.error(
-          "반려동물 정보 조회 실패:",
-          error,
-        );
+        console.error("반려동물 정보 조회 실패:", error);
 
         onChangeSelectedPet(null);
       } finally {
@@ -140,29 +131,33 @@ function PreviewSection({
     loadPetInfo();
   }, [onChangeSelectedPet]);
 
+  // 현재 선택된 펫 이미지 URL
+  const profileImageUrl = getProfileImageUrl(petInfo);
+
+  // =====================================
+  // 펫 또는 이미지 주소 변경 시
+  // 기존 이미지 오류 상태 초기화
+  // =====================================
+  useEffect(() => {
+    setHasProfileImageError(false);
+  }, [petInfo?.petId, profileImageUrl]);
+
   if (isLoading) {
     return (
       <PreviewWrapper>
-        <LoadingText>
-          반려동물 정보를 불러오는 중입니다.
-        </LoadingText>
+        <LoadingText>반려동물 정보를 불러오는 중입니다.</LoadingText>
       </PreviewWrapper>
     );
   }
 
-  // 현재 선택된 펫 정보
-  const profileImageUrl =
-    getProfileImageUrl(petInfo);
-
-  const age = calculateAge(
-    petInfo?.birthDate,
-  );
+  const age = calculateAge(petInfo?.birthDate);
 
   // 현재 선택된 펫의 건강진단 진행 여부
-  const isApplying =
-    petInfo?.diagnosisInProgress === true;
+  const isApplying = petInfo?.diagnosisInProgress === true;
 
+  // =====================================
   // 선택한 펫 변경
+  // =====================================
   function handleSelectPet(pet) {
     onChangeSelectedPet(pet);
     setIsPetMenuOpen(false);
@@ -175,33 +170,30 @@ function PreviewSection({
         {petInfo ? (
           <>
             <ProfileImageBox>
-              {profileImageUrl ? (
+              {profileImageUrl && !hasProfileImageError ? (
                 <ProfileImage
                   src={profileImageUrl}
                   alt={`${petInfo.name ?? "반려동물"} 프로필`}
+                  onError={() => setHasProfileImageError(true)}
                 />
               ) : (
-                <NoProfileImage>
-                  이미지 없음
-                </NoProfileImage>
+                <DefaultProfileEmoji
+                  aria-label="기본 반려동물 프로필"
+                  role="img"
+                >
+                  🐾
+                </DefaultProfileEmoji>
               )}
             </ProfileImageBox>
 
             <ProfileContent>
               <ProfileHeader>
-                <PetName>
-                  {petInfo.name ??
-                    "이름 정보 없음"}
-                </PetName>
+                <PetName>{petInfo.name ?? "이름 정보 없음"}</PetName>
 
                 <PetChangeArea>
                   <ChangePetButton
                     type="button"
-                    onClick={() =>
-                      setIsPetMenuOpen(
-                        (previous) => !previous,
-                      )
-                    }
+                    onClick={() => setIsPetMenuOpen((previous) => !previous)}
                   >
                     펫 바꾸기
                   </ChangePetButton>
@@ -212,22 +204,15 @@ function PreviewSection({
                         <PetSelectItem
                           key={pet.petId}
                           type="button"
-                          $selected={
-                            pet.petId ===
-                            petInfo.petId
-                          }
-                          onClick={() =>
-                            handleSelectPet(pet)
-                          }
+                          $selected={pet.petId === petInfo.petId}
+                          onClick={() => handleSelectPet(pet)}
                         >
                           <PetSelectName>
-                            {pet.name ??
-                              "이름 없음"}
+                            {pet.name ?? "이름 없음"}
                           </PetSelectName>
 
                           <PetSelectBreed>
-                            {pet.breedName ??
-                              "품종 정보 없음"}
+                            {pet.breedName ?? "품종 정보 없음"}
                           </PetSelectBreed>
                         </PetSelectItem>
                       ))}
@@ -236,23 +221,16 @@ function PreviewSection({
                 </PetChangeArea>
               </ProfileHeader>
 
-              <PetBreed>
-                {petInfo.breedName ??
-                  "품종 정보 없음"}
-              </PetBreed>
+              <PetBreed>{petInfo.breedName ?? "품종 정보 없음"}</PetBreed>
 
               <PetInfoList>
                 <PetInfoBadge>
-                  💚{" "}
-                  {age !== null
-                    ? `만 ${age}세`
-                    : "나이 정보 없음"}
+                  💚 {age !== null ? `만 ${age}세` : "나이 정보 없음"}
                 </PetInfoBadge>
 
                 <PetInfoBadge>
                   ⚖️{" "}
-                  {petInfo.weight !== null &&
-                  petInfo.weight !== undefined
+                  {petInfo.weight !== null && petInfo.weight !== undefined
                     ? `${petInfo.weight}kg`
                     : "체중 정보 없음"}
                 </PetInfoBadge>
@@ -270,20 +248,14 @@ function PreviewSection({
                 <PointIcon>P</PointIcon>
 
                 <PointText>
-                  건강 진단 신청 시{" "}
-                  <strong>2,000P</strong>가
-                  차감됩니다.
+                  건강 진단 신청 시 <strong>2,000P</strong>가 차감됩니다.
                 </PointText>
               </PointNotice>
 
               <ProfileButtonGroup>
                 <SubButton
                   type="button"
-                  onClick={() =>
-                    navigate(
-                      "/healthcare/history",
-                    )
-                  }
+                  onClick={() => navigate("/healthcare/result")}
                 >
                   지난 기록 보기
                 </SubButton>
@@ -293,32 +265,22 @@ function PreviewSection({
                   disabled={isApplying}
                   onClick={() => {
                     if (!isApplying) {
-                      navigate(
-                        "/healthcare/request",
-                      );
+                      navigate("/healthcare/request");
                     }
                   }}
                 >
-                  {isApplying
-                    ? "신청 중"
-                    : "신청 가능"}
+                  {isApplying ? "신청 중" : "신청 가능"}
                 </ApplyButton>
               </ProfileButtonGroup>
             </ProfileContent>
           </>
         ) : (
           <EmptyPetArea>
-            <EmptyPetText>
-              등록된 반려동물이 없습니다.
-            </EmptyPetText>
+            <EmptyPetText>등록된 반려동물이 없습니다.</EmptyPetText>
 
             <RegisterButton
               type="button"
-              onClick={() =>
-                navigate(
-                  "/mypage/pet-manage",
-                )
-              }
+              onClick={() => navigate("/mypage/pet-manage")}
             >
               반려동물 등록하기
             </RegisterButton>
@@ -330,14 +292,9 @@ function PreviewSection({
       <NeedDiagnosisArea>
         <NeedTextArea>
           <TitleRow>
-            <BellIcon
-              src={bell}
-              alt="알림"
-            />
+            <BellIcon src={bell} alt="알림" />
 
-            <NeedTitle>
-              진단이 필요한 경우
-            </NeedTitle>
+            <NeedTitle>진단이 필요한 경우</NeedTitle>
           </TitleRow>
 
           <NeedList>
@@ -405,8 +362,7 @@ const PetProfileArea = styled.section`
 
   box-sizing: border-box;
 
-  border: 1px solid
-    rgba(0, 169, 123, 0.2);
+  border: 1px solid rgba(0, 169, 123, 0.2);
 
   border-radius: 12px;
 
@@ -418,12 +374,9 @@ const PetProfileArea = styled.section`
     border-color 0.25s ease;
 
   &:hover {
-    border-color:
-      rgba(0, 169, 123, 0.38);
+    border-color: rgba(0, 169, 123, 0.38);
 
-    box-shadow:
-      0 10px 24px
-      rgba(0, 169, 123, 0.1);
+    box-shadow: 0 10px 24px rgba(0, 169, 123, 0.1);
 
     transform: translateY(-3px);
   }
@@ -443,16 +396,14 @@ const ProfileImageBox = styled.div`
 
   border-radius: 50%;
 
-  background: var(--color-bg-light);
+  background: #dddddd;
 
   transition:
     transform 0.25s ease,
     box-shadow 0.25s ease;
 
   ${PetProfileArea}:hover & {
-    box-shadow:
-      0 6px 16px
-      rgba(0, 169, 123, 0.14);
+    box-shadow: 0 6px 16px rgba(0, 169, 123, 0.14);
 
     transform: scale(1.04);
   }
@@ -464,19 +415,25 @@ const ProfileImage = styled.img`
 
   object-fit: cover;
 
-  transition:
-    transform 0.3s ease;
+  transition: transform 0.3s ease;
 
   ${PetProfileArea}:hover & {
     transform: scale(1.08);
   }
 `;
 
-const NoProfileImage = styled.span`
-  color: var(--text-desc);
+const DefaultProfileEmoji = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  font-size: 13px;
-  font-weight: 600;
+  width: 100%;
+  height: 100%;
+
+  background: #dddddd;
+
+  font-size: 34px;
+  line-height: 1;
 `;
 
 const ProfileContent = styled.div`
@@ -501,8 +458,7 @@ const PetName = styled.h2`
   font-size: 27px;
   font-weight: 800;
 
-  transition:
-    color 0.2s ease;
+  transition: color 0.2s ease;
 
   ${PetProfileArea}:hover & {
     color: var(--color-main);
@@ -520,8 +476,7 @@ const ChangePetButton = styled.button`
 
   padding: 6px 10px;
 
-  border: 1px solid
-    rgba(0, 169, 123, 0.34);
+  border: 1px solid rgba(0, 169, 123, 0.34);
 
   border-radius: 7px;
 
@@ -541,8 +496,7 @@ const ChangePetButton = styled.button`
   &:hover {
     border-color: var(--color-main);
 
-    background:
-      var(--color-bg-light);
+    background: var(--color-bg-light);
 
     transform: translateY(-1px);
   }
@@ -561,16 +515,13 @@ const PetSelectMenu = styled.div`
   flex-direction: column;
   gap: 4px;
 
-  border: 1px solid
-    rgba(0, 169, 123, 0.22);
+  border: 1px solid rgba(0, 169, 123, 0.22);
 
   border-radius: 9px;
 
   background: var(--color-white);
 
-  box-shadow:
-    0 8px 20px
-    rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 `;
 
 const PetSelectItem = styled.button`
@@ -587,18 +538,14 @@ const PetSelectItem = styled.button`
   border-radius: 6px;
 
   background: ${({ $selected }) =>
-    $selected
-      ? "rgba(0, 169, 123, 0.1)"
-      : "var(--color-white)"};
+    $selected ? "rgba(0, 169, 123, 0.1)" : "var(--color-white)"};
 
   cursor: pointer;
 
-  transition:
-    background-color 0.2s ease;
+  transition: background-color 0.2s ease;
 
   &:hover {
-    background:
-      rgba(0, 169, 123, 0.08);
+    background: rgba(0, 169, 123, 0.08);
   }
 `;
 
@@ -636,12 +583,12 @@ const PetInfoList = styled.div`
 const PetInfoBadge = styled.span`
   padding: 5px 9px;
 
-  border: 1px solid
-    rgba(0, 169, 123, 0.18);
+  border: 1px solid rgba(0, 169, 123, 0.18);
 
   border-radius: 6px;
 
   background: var(--color-white);
+
   color: var(--text-sub);
 
   font-size: 12px;
@@ -653,11 +600,9 @@ const PetInfoBadge = styled.span`
     transform 0.2s ease;
 
   ${PetProfileArea}:hover & {
-    border-color:
-      rgba(0, 169, 123, 0.3);
+    border-color: rgba(0, 169, 123, 0.3);
 
-    background:
-      var(--color-bg-light);
+    background: var(--color-bg-light);
   }
 
   &:hover {
@@ -679,8 +624,7 @@ const PointNotice = styled.div`
 
   border-radius: 7px;
 
-  background:
-    rgba(255, 184, 0, 0.1);
+  background: rgba(255, 184, 0, 0.1);
 `;
 
 const PointIcon = styled.span`
@@ -721,18 +665,19 @@ const PointText = styled.p`
 
 const ProfileButtonGroup = styled.div`
   display: grid;
+
   grid-template-columns: 1fr 1fr;
 `;
 
 const SubButton = styled.button`
   height: 43px;
 
-  border: 1px solid
-    var(--text-disabled);
+  border: 1px solid var(--text-disabled);
 
   border-radius: 7px 0 0 7px;
 
   background: var(--color-white);
+
   color: var(--text-sub);
 
   font-size: 12px;
@@ -745,8 +690,7 @@ const SubButton = styled.button`
     color 0.2s ease;
 
   &:hover {
-    background:
-      var(--color-bg-light);
+    background: var(--color-bg-light);
 
     color: var(--color-main);
   }
@@ -756,9 +700,11 @@ const ApplyButton = styled.button`
   height: 43px;
 
   border: none;
+
   border-radius: 0 7px 7px 0;
 
   background: var(--color-main);
+
   color: var(--color-white);
 
   font-size: 14px;
@@ -800,12 +746,12 @@ const EmptyPetText = styled.p`
 const RegisterButton = styled.button`
   padding: 11px 17px;
 
-  border: 1px solid
-    var(--color-main);
+  border: 1px solid var(--color-main);
 
   border-radius: 8px;
 
   background: var(--color-white);
+
   color: var(--color-main);
 
   font-size: 14px;
@@ -836,11 +782,7 @@ const NeedDiagnosisArea = styled.section`
 
   border-radius: 11px;
 
-  background: color-mix(
-    in srgb,
-    var(--color-bg-soft) 55%,
-    var(--color-white)
-  );
+  background: color-mix(in srgb, var(--color-bg-soft) 55%, var(--color-white));
 `;
 
 const NeedTextArea = styled.div`
@@ -909,6 +851,7 @@ const CheckIcon = styled.span`
   border-radius: 50%;
 
   background: var(--color-main);
+
   color: var(--color-white);
 
   font-size: 15px;

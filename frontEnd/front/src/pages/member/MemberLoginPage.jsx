@@ -8,7 +8,7 @@ import useMemberLogin from "../../features/member/hooks/useMemberLogin";
 import "./LoginPage.css";
 import bg from "../../assets/images/로그인용.mp4";
 import logo from "../../assets/images/login_logo1.png";
-import logo2 from "../../assets/images/login_logo2.png";
+import logo2 from "../../assets/images/배경제거로고.png";
 
 export default function MemberLoginPage() {
   const initState = {
@@ -71,7 +71,14 @@ export default function MemberLoginPage() {
       <div className="login-overlay" />
 
       <section className="login-hero">
-        <img src={logo} alt="PET&I FOR" className="main-logo" />
+        <button
+          type="button"
+          className="main-logo-button"
+          onClick={() => navigate("/home")}
+          aria-label="홈으로 이동"
+        >
+          <img src={logo} alt="PET&I FOR" className="main-logo" />
+        </button>
 
         <h2>반려동물과 함께하는</h2>
         <h1>건강한 하루의 시작</h1>

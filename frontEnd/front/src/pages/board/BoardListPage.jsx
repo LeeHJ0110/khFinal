@@ -25,12 +25,22 @@ export default function BoardListPage() {
     const token = localStorage.getItem("accessToken");
     if (token) {
       try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        return {
-          username: payload.username || payload.sub,
-          nickname: payload.nickname || payload.username || payload.sub,
-          role: payload.role || "USER",
-        };
+        const payloadPart = token.split(".")[1];
+        if (payloadPart) {
+          const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+          const decodedPayload = decodeURIComponent(
+            atob(base64)
+              .split("")
+              .map((char) => `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`)
+              .join("")
+          );
+          const payload = JSON.parse(decodedPayload);
+          return {
+            username: payload.username || payload.sub,
+            nickname: payload.nickname || payload.username || payload.sub,
+            role: payload.role || "USER",
+          };
+        }
       } catch (e) {
         console.error("Token decode error", e);
       }
@@ -158,7 +168,9 @@ export default function BoardListPage() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (activeTab === "NEWS" && searchType === "writer") {
-      alert("뉴스게시판에서는 작성자 검색을 지원하지 않습니다. 제목 또는 제목+내용을 이용해 주세요.");
+      alert(
+        "뉴스게시판에서는 작성자 검색을 지원하지 않습니다. 제목 또는 제목+내용을 이용해 주세요.",
+      );
       return;
     }
     setCurrentPage(0);
@@ -170,7 +182,12 @@ export default function BoardListPage() {
   const handleSortChange = (sortType) => {
     setActiveSort(sortType);
     setCurrentPage(0);
-    const condition = buildSearchCondition(searchKeyword, searchType, subCategory, sortType);
+    const condition = buildSearchCondition(
+      searchKeyword,
+      searchType,
+      subCategory,
+      sortType,
+    );
     asyncFetchBoardList(activeTab, 0, condition);
   };
 
@@ -191,14 +208,17 @@ export default function BoardListPage() {
           <BoardHeader>
             <BoardTitleInfo>
               <BoardTitle>{boardMeta[activeTab]?.title || "게시판"}</BoardTitle>
-              <BoardSubtitle>{boardMeta[activeTab]?.subtitle || ""}</BoardSubtitle>
+              <BoardSubtitle>
+                {boardMeta[activeTab]?.subtitle || ""}
+              </BoardSubtitle>
             </BoardTitleInfo>
 
-            {((activeTab !== "FAQ" && activeTab !== "NEWS") ||
-              loginMember?.role === "ADMIN" ||
-              loginMember?.role === "A" ||
-              loginMember?.role === "BOARD" ||
-              loginMember?.role === "B") && (
+            {activeTab !== "NEWS" &&
+              (activeTab !== "FAQ" ||
+                loginMember?.role === "ADMIN" ||
+                loginMember?.role === "A" ||
+                loginMember?.role === "BOARD" ||
+                loginMember?.role === "B") && (
               <WriteButton
                 onClick={() => {
                   if (!loginMember) {

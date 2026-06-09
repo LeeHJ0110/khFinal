@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import BoardSubNavbar from "./components/BoardSubNavbar";
-import { fetchBoardList, fetchNaverNewsApi } from "../../features/board/api/boardApi";
+import {
+  fetchBoardList,
+  fetchNaverNewsApi,
+} from "../../features/board/api/boardApi";
 import {
   PopularPostsWidget,
   LatestFreePostsWidget,
@@ -18,7 +21,7 @@ const EVENT_BANNER_URL =
 const HEALTH_BANNER_URL =
   "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/Group+295.png";
 const SHORTCUTS_BANNER_URL =
-  "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/Group+315.png";
+  "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/board/Group+917.png";
 
 export default function BoardHome() {
   const navigate = useNavigate();
@@ -135,13 +138,13 @@ export default function BoardHome() {
             {/* 2단: 쇼핑몰 & 포인트 샵 숏컷 버튼 */}
             <ShortcutRow>
               <ShortcutButton
-                onClick={() => navigate("/store")}
-                aria-label="PET&I FOR 쇼핑몰: 사료, 간식, 용품까지 완비! 바로가기"
+                onClick={() => navigate("/store/dog")}
+                aria-label="PET&I FOR 쇼핑몰: 강아지 사료, 간식, 용품까지 완비! 바로가기"
                 $type="store"
               />
               <ShortcutButton
-                onClick={() => navigate("/mypage")}
-                aria-label="PET&I FOR 포인트 샵: 모은 포인트로 특별 득템! 바로가기"
+                onClick={() => navigate("/store/cat")}
+                aria-label="PET&I FOR 쇼핑몰: 고양이 사료, 간식, 용품까지 완비! 바로가기"
                 $type="point"
               />
             </ShortcutRow>

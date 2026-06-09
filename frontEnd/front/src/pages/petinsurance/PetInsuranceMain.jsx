@@ -69,7 +69,7 @@ const BottomLayout = styled.main`
     calc(100% - (var(--layout-padding-x) * 2))
   );
 
-  margin: 30px auto 72px;
+  margin: 50px auto 100px;
 
   box-sizing: border-box;
 
@@ -86,14 +86,13 @@ const BottomLayout = styled.main`
 
 const EstimateArea = styled.aside`
   width: 100%;
-  margin-left:100px;
+  margin-left: 100px;
 
   box-sizing: border-box;
 
   @media (min-width: 1101px) {
     position: sticky;
     top: 24px;
-    
   }
 `;
 

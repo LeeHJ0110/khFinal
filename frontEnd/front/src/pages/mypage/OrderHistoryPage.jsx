@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import MyPageLayout from "./components/MyPageLayout";
 import useOrderHistory from "../../features/mypage/store/hooks/useOrderHistory";
@@ -28,6 +29,7 @@ function formatPrice(value) {
 }
 
 export default function OrderHistoryPage() {
+  const navigate = useNavigate();
   const { orderList, loading, currentPage, setCurrentPage, totalPages } =
     useOrderHistory();
 
@@ -42,9 +44,29 @@ export default function OrderHistoryPage() {
   }
 
   function handleWriteReview(item) {
-    alert(
-      `리뷰작성 기능은 API 연결 후 처리됩니다. 상품명: ${item.productName}`,
-    );
+    if (item.reviewed) {
+      alert("이미 리뷰를 작성한 상품입니다.");
+      return;
+    }
+
+    if (!item.orderItemId) {
+      alert(
+        "주문상품 ID가 없습니다. 주문내역 응답에 orderItemId가 필요합니다.",
+      );
+      return;
+    }
+
+    navigate(`/store/review/insert/${item.orderItemId}`, {
+      state: {
+        orderItemId: item.orderItemId,
+        productId: item.productId,
+        productName: item.productName,
+        productImageUrl: item.imageUrl,
+        price: item.price,
+        qty: item.qty,
+        totalPrice: item.totalPrice,
+      },
+    });
   }
 
   return (
@@ -106,7 +128,7 @@ export default function OrderHistoryPage() {
                     <DetailTitle>주문 상품</DetailTitle>
 
                     {order.items?.map((item) => (
-                      <ItemRow key={item.productId}>
+                      <ItemRow key={item.orderItemId ?? item.productId}>
                         <ItemThumb>
                           {item.imageUrl ? (
                             <img src={item.imageUrl} alt={item.productName} />
@@ -125,7 +147,11 @@ export default function OrderHistoryPage() {
                         <ItemRight>
                           <strong>{formatPrice(item.totalPrice)}원</strong>
 
-                          {canReview(order.orderStatus) && (
+                          {item.reviewed ? (
+                            <ReviewDoneButton type="button" disabled>
+                              리뷰완료
+                            </ReviewDoneButton>
+                          ) : (
                             <ReviewButton
                               type="button"
                               onClick={() => handleWriteReview(item)}
@@ -481,4 +507,14 @@ const PageBtn = styled.button`
     opacity: 0.4;
     cursor: not-allowed;
   }
+`;
+
+const ReviewDoneButton = styled.button`
+  border: 1px solid #d6d6d6;
+  border-radius: 999px;
+  padding: 7px 14px;
+  background: #f1f3f5;
+  color: #999;
+  font-weight: 700;
+  cursor: not-allowed;
 `;

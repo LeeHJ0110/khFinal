@@ -23,14 +23,6 @@ export default function BoardDetailPage() {
     state.member.accessToken ? state.member : null,
   );
 
-  console.log("=== Board Detail Auth Debug ===");
-  console.log("loginMember (Redux):", loginMember);
-  console.log("detail (Backend):", detail);
-  console.log(
-    "hasEditPermission:",
-    loginMember?.username === detail?.writerUsername,
-  );
-
   //카테고리별 메타 정보
   const boardMeta = {
     FREE: {
@@ -193,12 +185,53 @@ export default function BoardDetailPage() {
     );
   }
 
+  const userRole = (() => {
+    const saved = localStorage.getItem("loginMember");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed?.role) return parsed.role;
+      } catch (e) {
+        console.error("loginMember parse error", e);
+      }
+    }
+    const token =
+      loginMember?.accessToken || localStorage.getItem("accessToken");
+    if (token) {
+      try {
+        const payloadPart = token.split(".")[1];
+        if (payloadPart) {
+          const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+          const decodedPayload = decodeURIComponent(
+            atob(base64)
+              .split("")
+              .map(
+                (char) =>
+                  `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`,
+              )
+              .join(""),
+          );
+          const payload = JSON.parse(decodedPayload);
+          return payload.role;
+        }
+      } catch (e) {
+        console.error("Token decode error", e);
+      }
+    }
+    return loginMember?.role;
+  })();
+  const isSuperAdmin = userRole === "A" || userRole === "ADMIN";
+  const isBoardAdmin = userRole === "B" || userRole === "BOARD";
+
   //본인글 또는 관리자 권한 확인 (백엔드 추가 연동 완료)
-  const hasEditPermission = loginMember?.username === detail.writerUsername;
+  const hasEditPermission =
+    loginMember?.username === detail.writerUsername ||
+    (activeCategory === "FAQ" && (isSuperAdmin || isBoardAdmin));
+
   const hasDeletepermission =
     loginMember?.username === detail.writerUsername ||
-    (loginMember &&
-      JSON.parse(localStorage.getItem("loginMember"))?.role == "ADMIN");
+    isSuperAdmin ||
+    isBoardAdmin;
 
   return (
     <Container>
@@ -233,7 +266,9 @@ export default function BoardDetailPage() {
           <PostMetaRow>
             <MetaLeft>
               <AuthorAvatarWrapper>
-                {detail.writerProfileImageUrl && detail.writerProfileImageUrl !== "/images/default-profile.png" ? (
+                {detail.writerProfileImageUrl &&
+                detail.writerProfileImageUrl !==
+                  "/images/default-profile.png" ? (
                   <img src={detail.writerProfileImageUrl} alt="작성자 프로필" />
                 ) : (
                   <DefaultAvatarChar>🐾</DefaultAvatarChar>
@@ -281,29 +316,31 @@ export default function BoardDetailPage() {
           </PostBody>
 
           {/*좋아요 액션 버튼 */}
-          <LikeActionArea>
-            <LikeButtonBox onClick={handleLikeToggle} $liked={isLiked}>
-              <LikeIconWrapper $liked={isLiked}>
-                <SvgHeartFilled />
-              </LikeIconWrapper>
-              <LikeCountText>{likesCount}</LikeCountText>
-            </LikeButtonBox>
+          {activeCategory !== "FAQ" && (
+            <LikeActionArea>
+              <LikeButtonBox onClick={handleLikeToggle} $liked={isLiked}>
+                <LikeIconWrapper $liked={isLiked}>
+                  <SvgHeartFilled />
+                </LikeIconWrapper>
+                <LikeCountText>{likesCount}</LikeCountText>
+              </LikeButtonBox>
 
-            <ReportShareRow>
-              <ActionLinkButton onClick={() => alert("신고되었습니다.")}>
-                신고
-              </ActionLinkButton>
-              <ActionSeparator>|</ActionSeparator>
-              <ActionLinkButton
-                onClick={() => {
-                  navigator.clipboard.writeText(window.location.href);
-                  alert("현재 게시글 주소가 클립보드에 복사되었습니다.");
-                }}
-              >
-                공유
-              </ActionLinkButton>
-            </ReportShareRow>
-          </LikeActionArea>
+              <ReportShareRow>
+                <ActionLinkButton onClick={() => alert("신고되었습니다.")}>
+                  신고
+                </ActionLinkButton>
+                <ActionSeparator>|</ActionSeparator>
+                <ActionLinkButton
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    alert("현재 게시글 주소가 클립보드에 복사되었습니다.");
+                  }}
+                >
+                  공유
+                </ActionLinkButton>
+              </ReportShareRow>
+            </LikeActionArea>
+          )}
 
           {/* 목록 / 수정 / 삭제 액션바 */}
           <PostActionBar>
@@ -361,8 +398,13 @@ export default function BoardDetailPage() {
                   {/* 메인 댓글 */}
                   <CommentItem>
                     <CommentAvatarWrapper>
-                      {comment.profileImageUrl && comment.profileImageUrl !== "/images/default-profile.png" ? (
-                        <img src={comment.profileImageUrl} alt={comment.writerNickname} />
+                      {comment.profileImageUrl &&
+                      comment.profileImageUrl !==
+                        "/images/default-profile.png" ? (
+                        <img
+                          src={comment.profileImageUrl}
+                          alt={comment.writerNickname}
+                        />
                       ) : (
                         <DefaultCommentAvatarChar>🐾</DefaultCommentAvatarChar>
                       )}
@@ -393,8 +435,8 @@ export default function BoardDetailPage() {
                           </CommentActionLink>
                         )}
                         {(loginMember?.nickname === comment.writerNickname ||
-                          JSON.parse(localStorage.getItem("loginMember"))
-                            ?.role === "ADMIN") && (
+                          isSuperAdmin ||
+                          isBoardAdmin) && (
                           <CommentReportLink
                             style={{ color: "#ff6b6b" }}
                             onClick={() => handleCommentDelete(comment.id)}
@@ -432,10 +474,17 @@ export default function BoardDetailPage() {
                         <ReplyIndentArrow>↳</ReplyIndentArrow>
                         <ReplyContentCard>
                           <CommentAvatarWrapper>
-                            {reply.profileImageUrl && reply.profileImageUrl !== "/images/default-profile.png" ? (
-                              <img src={reply.profileImageUrl} alt={reply.writerNickname} />
+                            {reply.profileImageUrl &&
+                            reply.profileImageUrl !==
+                              "/images/default-profile.png" ? (
+                              <img
+                                src={reply.profileImageUrl}
+                                alt={reply.writerNickname}
+                              />
                             ) : (
-                              <DefaultCommentAvatarChar>🐾</DefaultCommentAvatarChar>
+                              <DefaultCommentAvatarChar>
+                                🐾
+                              </DefaultCommentAvatarChar>
                             )}
                           </CommentAvatarWrapper>
                           <CommentContentBox>
@@ -452,8 +501,8 @@ export default function BoardDetailPage() {
                             <CommentFooterRow>
                               {(loginMember?.nickname ===
                                 reply.writerNickname ||
-                                JSON.parse(localStorage.getItem("loginMember"))
-                                  ?.role === "ADMIN") && (
+                                isSuperAdmin ||
+                                isBoardAdmin) && (
                                 <CommentReportLink
                                   style={{ color: "#ff6b6b" }}
                                   onClick={() => handleCommentDelete(reply.id)}
@@ -475,8 +524,6 @@ export default function BoardDetailPage() {
               ))
             )}
           </CommentList>
-
-
         </CommentsSection>
       </ContentWrapper>
     </Container>
@@ -1044,8 +1091,6 @@ const ReplyContentCard = styled.div`
   gap: 14px;
   margin: 10px 0;
 `;
-
-
 
 const ReplyInputForm = styled.form`
   display: flex;

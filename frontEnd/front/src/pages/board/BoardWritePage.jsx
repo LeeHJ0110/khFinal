@@ -17,12 +17,22 @@ const getLoginMember = () => {
   const token = localStorage.getItem("accessToken");
   if (token) {
     try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      return {
-        username: payload.username || payload.sub,
-        nickname: payload.nickname || payload.username || payload.sub,
-        role: payload.role || "USER",
-      };
+      const payloadPart = token.split(".")[1];
+      if (payloadPart) {
+        const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+        const decodedPayload = decodeURIComponent(
+          atob(base64)
+            .split("")
+            .map((char) => `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`)
+            .join("")
+        );
+        const payload = JSON.parse(decodedPayload);
+        return {
+          username: payload.username || payload.sub,
+          nickname: payload.nickname || payload.username || payload.sub,
+          role: payload.role || "USER",
+        };
+      }
     } catch (e) {
       console.error("Token decode error", e);
     }
@@ -49,7 +59,11 @@ export default function BoardWritePage() {
 
   const location = useLocation();
   const loginMember = getLoginMember();
-  const isAdmin = loginMember?.role === "ADMIN" || loginMember?.role === "A" || loginMember?.role === "BOARD" || loginMember?.role === "B";
+  const isAdmin =
+    loginMember?.role === "ADMIN" ||
+    loginMember?.role === "A" ||
+    loginMember?.role === "BOARD" ||
+    loginMember?.role === "B";
 
   // 사용자 로그인 권한 체크 및 리다이렉트
   useEffect(() => {
@@ -60,11 +74,21 @@ export default function BoardWritePage() {
       return;
     }
 
-    const currentIsAdmin = loginMemberObj.role === "ADMIN" || loginMemberObj.role === "A" || loginMemberObj.role === "BOARD" || loginMemberObj.role === "B";
-    
+    const currentIsAdmin =
+      loginMemberObj.role === "ADMIN" ||
+      loginMemberObj.role === "A" ||
+      loginMemberObj.role === "BOARD" ||
+      loginMemberObj.role === "B";
+
     // 비관리자가 FAQ나 NEWS 글쓰기/수정 진입 시도 시 차단
-    const targetCategory = location.state?.defaultCategory || location.state?.board?.category || boardCategory;
-    if (!currentIsAdmin && (targetCategory === "FAQ" || targetCategory === "NEWS")) {
+    const targetCategory =
+      location.state?.defaultCategory ||
+      location.state?.board?.category ||
+      boardCategory;
+    if (
+      !currentIsAdmin &&
+      (targetCategory === "FAQ" || targetCategory === "NEWS")
+    ) {
       alert("관리자만 이용할 수 있는 기능입니다.");
       navigate(-1);
     }

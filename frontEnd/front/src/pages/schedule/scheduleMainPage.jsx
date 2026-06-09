@@ -5,6 +5,7 @@ import useTraining from "../../features/schedule/hooks/useTraining";
 import { useEffect, useState } from "react";
 import ScheduleModal from "../../features/schedule/components/scheduleModal";
 import useFormData from "../../shared/hooks/useFormData";
+import ScheduleCard from "../../features/schedule/components/ScheduleCard";
 
 export default function ScheduleMainPage() {
   const trainingInit = {
@@ -15,10 +16,22 @@ export default function ScheduleMainPage() {
     trainingPetList: [],
     isEdit: false,
   };
+  const scheduleInit = {
+    id: "",
+    title: "",
+    content: "",
+    at: "00:00",
+    startDate: "",
+    endDate: "",
+    backgroundColor: "#5EC8A7",
+    isEdit: false,
+  };
   const { checkToday, isSuccess, isDuple } = useTraining();
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [modalType, setModalType] = useState(null);
+
+  const today = new Date().toLocaleDateString("sv-SE");
 
   const handleOpenModal = ({ type, data }) => {
     setModalType(type);
@@ -44,7 +57,19 @@ export default function ScheduleMainPage() {
 
   return (
     <Wrapper>
-      <button onClick={handleTraininClick}>훈련일기작성</button>
+      <CenterContainer>
+        <VerticalDiv>
+          <ScheduleCard
+            onButtonClick={() => {
+              handleOpenModal({
+                type: "schedule",
+                data: { ...scheduleInit, startDate: today, endDate: today },
+              });
+            }}
+          />
+          <ScheduleCard isTraining={true} onButtonClick={handleTraininClick} />
+        </VerticalDiv>
+      </CenterContainer>
       <ScheduleMain onOpenModal={handleOpenModal} detailOpen={detailOpen} />
       {modalType === "schedule" && (
         <ScheduleModal
@@ -69,9 +94,21 @@ const Wrapper = styled.main`
   max-width: 1800px;
   margin: 0 auto;
   padding: 20px;
-  text-align: center;
-  font-family:
-    "Pretendard",
-    -apple-system,
-    sans-serif;
+  display: flex; // 추가
+  flex-direction: column; // 추가
+  align-items: center; // 추가 - 자식 요소 가운데 정렬
+`;
+
+const CenterContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: fit-content; // 캘린더 너비에 맞게 자동 조절
+`;
+
+const VerticalDiv = styled.div`
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  margin-bottom: 20px;
 `;
