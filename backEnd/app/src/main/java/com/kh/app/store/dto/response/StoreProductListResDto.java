@@ -23,9 +23,17 @@ public class StoreProductListResDto {
 
     private String mainImageUrl;
 
+    // 관심상품 여부
+    private Boolean wished;
+
+    // 관심상품 ID
+    private Long wishlistId;
+
     public static StoreProductListResDto from(
             StoreProductEntity product,
-            String mainImageUrl
+            String mainImageUrl,
+            Boolean wished,
+            Long wishlistId
     ) {
         return StoreProductListResDto.builder()
                 .productId(product.getProductId())
@@ -39,6 +47,8 @@ public class StoreProductListResDto {
                 .productTargetPetType(product.getProductTargetPetType())
                 .productPrice(product.getProductPrice())
                 .mainImageUrl(mainImageUrl)
+                .wished(wished)
+                .wishlistId(wishlistId)
                 .build();
     }
 }

@@ -132,7 +132,6 @@ export async function fetchProductList({
 
   return await api.get(`/store/product${queryString ? `?${queryString}` : ""}`);
 }
-
 //9. 사용자 : 관심상품 등록
 export async function insertWishProduct({ productId }) {
   return await api.post(`/store/product/wish/insert`, {
@@ -155,7 +154,12 @@ export async function fetchWishList({ page = 0, category } = {}) {
   return await api.get(`/store/product/wish/list?${params.toString()}`);
 }
 
-//11. 사용자 : 관심상품 삭제
+//11. 사용자 : 관심상품 삭제 - wishlistId 기준 (관심상품 페이지에서)
 export async function deleteWishProduct(wishlistId) {
   return await api.delete(`/store/product/wish/delete/${wishlistId}`);
+}
+
+//12. 사용자 : 관심상품 삭제 - productId 기준 (목록 페이지에서)
+export async function deleteWishProductByProductId(productId) {
+  return await api.delete(`/store/product/wish/delete/product/${productId}`);
 }

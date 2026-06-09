@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreProductDetail from "../../features/petStore/hooks/usePetStoreProudctDetail";
 import { insertCartProduct } from "../../features/petStore/api/petStoreOrderApi";
+import usePetStoreWishToggle from "../../features/petStore/hooks/usePetStoreWishToggle";
 
 import foodImg from "../../assets/images/petStore/사료홍보.png";
 import snackImg from "../../assets/images/petStore/간식홍보.png";
@@ -15,8 +16,13 @@ import tagCard from "../../assets/images/petStore/상품태그카드.png";
 export default function PetStoreProductDetailPage() {
   const { productId } = useParams();
 
-  const { product, isLoading, error } = usePetStoreProductDetail(productId);
+  const {
+    product: productDetail,
+    isLoading,
+    error,
+  } = usePetStoreProductDetail(productId);
 
+  const [product, setProduct] = useState(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState("");
   const [imageFadeKey, setImageFadeKey] = useState(0);
   const [activeTab, setActiveTab] = useState("analysis");
@@ -36,6 +42,11 @@ export default function PetStoreProductDetailPage() {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const { wishSubmittingId, handleToggleWishlist } = usePetStoreWishToggle();
+
+  useEffect(() => {
+    setProduct(productDetail ?? null);
+  }, [productDetail]);
 
   const imageList = useMemo(() => {
     if (!product) {
@@ -291,6 +302,30 @@ export default function PetStoreProductDetailPage() {
     );
   }
 
+  function updateProductWishState(nextProductId, wished, wishlistId = null) {
+    setProduct((prev) => {
+      if (!prev || prev.productId !== nextProductId) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        wished,
+        wishlistId,
+      };
+    });
+  }
+
+  async function handleWishClick(evt) {
+    await handleToggleWishlist(evt, product, (updatedProduct) => {
+      updateProductWishState(
+        updatedProduct.productId,
+        updatedProduct.wished,
+        updatedProduct.wishlistId,
+      );
+    });
+  }
+
   async function handleAddCart() {
     if (!product?.productId) {
       alert("상품 정보를 찾을 수 없습니다.");
@@ -534,7 +569,22 @@ export default function PetStoreProductDetailPage() {
               </TopTotalRow>
 
               <ButtonRow>
-                <WishButton type="button">♡</WishButton>
+                <WishButton
+                  type="button"
+                  $active={!!product.wished}
+                  disabled={wishSubmittingId === product.productId}
+                  onClick={(evt) =>
+                    handleToggleWishlist(evt, product, (updatedProduct) => {
+                      setProduct((prev) => ({
+                        ...prev,
+                        wished: updatedProduct.wished,
+                        wishlistId: updatedProduct.wishlistId,
+                      }));
+                    })
+                  }
+                >
+                  {product.wished ? "♥" : "♡"}
+                </WishButton>
 
                 <CartButtonWrap>
                   {showCartBubble && (
@@ -1593,10 +1643,13 @@ const WishButton = styled.button`
   align-items: center;
   justify-content: center;
 
-  border: 1px solid #cfd8d3;
+  border: 1px solid
+    ${({ $active }) => ($active ? "var(--color-main)" : "#cfd8d3")};
   border-radius: 4px;
-  background-color: var(--color-white);
-  color: var(--text-main);
+  background-color: ${({ $active }) =>
+    $active ? "var(--color-main-soft)" : "var(--color-white)"};
+  color: ${({ $active }) =>
+    $active ? "var(--color-main)" : "var(--text-main)"};
 
   font-size: 31px;
   line-height: 1;
@@ -1615,6 +1668,13 @@ const WishButton = styled.button`
     color: var(--color-main);
     background-color: #f8fffc;
     box-shadow: 0 8px 18px rgba(18, 45, 46, 0.08);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: wait;
+    transform: none;
+    box-shadow: none;
   }
 `;
 

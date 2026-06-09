@@ -13,6 +13,11 @@ public interface StoreWishRepository extends JpaRepository<StoreWishEntity, Long
 
     boolean existsByMember_IdAndProduct_ProductId(Long memberId, Long productId);
 
+    Optional<StoreWishEntity> findByMember_IdAndProduct_ProductId(
+            Long memberId,
+            Long productId
+    );
+
     Page<StoreWishEntity> findByMemberOrderByWishlistIdDesc(
             MemberEntity member,
             Pageable pageable

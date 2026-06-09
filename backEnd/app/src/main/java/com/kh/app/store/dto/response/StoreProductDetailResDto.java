@@ -35,6 +35,10 @@ public class StoreProductDetailResDto {
     // 영양성분
     private StoreNutritionResDto nutrition;
 
+    // 관심상품
+    private Boolean wished;
+    private Long wishlistId;
+
     // 맞춤 급여 추천
     private String feedingRecommendStatus;
     private String feedingRecommendMessage;
@@ -75,6 +79,10 @@ public class StoreProductDetailResDto {
                                 ? null
                                 : StoreNutritionResDto.from(nutrition)
                 )
+
+                // 기본값: 비로그인 또는 관심상품 아님
+                .wished(false)
+                .wishlistId(null)
 
                 // 기본값: 로그인 안 한 상태로 내려줌
                 // 나중에 서비스에서 로그인 회원이면 SUCCESS 등으로 덮어씀
