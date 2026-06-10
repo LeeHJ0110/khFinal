@@ -56,6 +56,7 @@ const Thumbnail = styled.div`
   justify-content: center;
 
   img {
+    padding: 10px;
     width: 100%;
     height: 100%;
     object-fit: cover;
