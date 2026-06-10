@@ -93,7 +93,7 @@ const NewsListWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
-  width: 1174px;
+  width: 930px;
 `;
 
 const NewsCard = styled.div`

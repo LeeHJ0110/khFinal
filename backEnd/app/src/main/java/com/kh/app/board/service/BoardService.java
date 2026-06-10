@@ -665,9 +665,13 @@ public class BoardService {
 
             if (mainImage != null) {
                 String changedName = mainImage.getImageChangedName();
-                String keyPath = changedName.startsWith("store/product/")
-                        ? changedName : "store/product/" + changedName;
-                mainImageUrl = s3Service.getFileUrl(keyPath);
+                if (changedName != null && (changedName.startsWith("http://") || changedName.startsWith("https://"))) {
+                    mainImageUrl = changedName;
+                } else {
+                    String keyPath = changedName.startsWith("store/product/")
+                            ? changedName : "store/product/" + changedName;
+                    mainImageUrl = s3Service.getFileUrl(keyPath);
+                }
             }
 
             return UnifiedSearchResDto.UnifiedProductDto.builder()

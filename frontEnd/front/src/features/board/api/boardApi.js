@@ -70,8 +70,8 @@ export async function updateReplyApi(replyId, content) {
   return await api.put(`/board/reply/${replyId}`, { content });
 }
 
-export async function searchBoardApi(keyword, page = 0) {
-  return await api.get("/board/search", {
-    params: { keyword, page },
+export async function fetchUnifiedSearchApi(keyword) {
+  return await api.get("/board/search/unified", {
+    params: { keyword },
   });
 }
