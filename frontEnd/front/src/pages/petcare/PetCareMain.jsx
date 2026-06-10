@@ -1,10 +1,10 @@
 import { useState } from "react";
 import styled from "styled-components";
 
-import TopSection from "./TopSection";
-import CheckSection from "./CheckSection";
-import PreviewSection from "./PreviewSection";
-import PetCareNav from "./PetCareNav";
+import TopSection from "../../features/petcare/components/petcarehome/TopSection";
+import CheckSection from "../../features/petcare/components/petcarehome/CheckSection";
+import PreviewSection from "../../features/petcare/components/petcarehome/PreviewSection";
+import PetCareNav from "../../features/petcare/components/petcarehome/PetCareNav";
 
 function PetCareMain() {
   // PreviewSection과 TopSection이 함께 사용할 선택된 펫
