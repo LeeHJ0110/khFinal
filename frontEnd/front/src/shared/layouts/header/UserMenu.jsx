@@ -3,9 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../../../features/member/store/memberSlice";
 
+// 포인트 관련
+import usePointEffect from "../../../features/point/hooks/usePointEffect";
+
 export default function UserMenu({ loginMember }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { runDailyAttendancePoint } = usePointEffect();
 
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
@@ -51,6 +55,15 @@ export default function UserMenu({ loginMember }) {
     navigate("/mypage/message");
   }
 
+  async function handleDailyAttendance() {
+    try {
+      setIsOpen(false);
+      await runDailyAttendancePoint();
+    } catch (error) {
+      console.error("출석체크 실패:", error);
+    }
+  }
+
   return (
     <div className="user-menu" ref={menuRef}>
       <button type="button" className="header-alarm" aria-label="알림">
@@ -84,6 +97,10 @@ export default function UserMenu({ loginMember }) {
 
           <button type="button" onClick={handleGoMessageBox}>
             쪽지함
+          </button>
+
+          <button type="button" onClick={handleDailyAttendance}>
+            출석체크
           </button>
 
           <button type="button" onClick={handleLogout}>

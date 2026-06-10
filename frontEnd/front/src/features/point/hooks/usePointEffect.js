@@ -1,4 +1,4 @@
-import { fetchMyPoint } from "../api/pointApi";
+import { fetchDailyAttendancePoint, fetchMyPoint } from "../api/pointApi";
 import {
   getEarnPointMessage,
   getPointErrorMessage,
@@ -8,6 +8,61 @@ import {
 import { POINT_ACTION_POLICY } from "../utils/pointPolicy";
 
 export default function usePointEffect() {
+  async function runDailyAttendancePoint() {
+    const policy = POINT_ACTION_POLICY.DAILY_ATTENDANCE;
+
+    try {
+      const response = await fetchDailyAttendancePoint();
+
+      const message =
+        policy.successMessage ||
+        response.data?.message ||
+        "일일 출석체크 포인트가 지급되었습니다.";
+
+      showPointMessage(message);
+
+      return response;
+    } catch (error) {
+      const message = getPointErrorMessage(error, policy.errorMessage);
+
+      showPointMessage(message);
+      throw error;
+    }
+  }
+
+  async function checkPointBeforeStart(actionType) {
+    const policy = POINT_ACTION_POLICY[actionType];
+
+    if (!policy) {
+      console.warn(`등록되지 않은 포인트 액션 타입입니다: ${actionType}`);
+      return true;
+    }
+
+    try {
+      const pointRes = await fetchMyPoint();
+      const currentPoint = Number(pointRes.data || 0);
+
+      if (policy.mode === "USE" && currentPoint < policy.amount) {
+        showPointMessage(
+          policy.blockMessage ||
+            `${policy.amount.toLocaleString()}P 이상 보유해야 이용할 수 있습니다.`,
+        );
+
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      const message = getPointErrorMessage(
+        error,
+        "포인트 정보를 확인하지 못했습니다.",
+      );
+
+      showPointMessage(message);
+      return false;
+    }
+  }
+
   async function startPointAction(actionType) {
     const policy = POINT_ACTION_POLICY[actionType];
 
@@ -52,7 +107,6 @@ export default function usePointEffect() {
               afterPoint,
               earnAmount: policy.amount,
               successMessage: policy.successMessage,
-              skipMessage: policy.skipMessage,
             });
           }
 
@@ -76,5 +130,7 @@ export default function usePointEffect() {
 
   return {
     startPointAction,
+    checkPointBeforeStart,
+    runDailyAttendancePoint,
   };
 }

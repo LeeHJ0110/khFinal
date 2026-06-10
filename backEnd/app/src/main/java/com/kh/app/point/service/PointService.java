@@ -1,7 +1,7 @@
 package com.kh.app.point.service;
 
 import com.kh.app.common.exception.CustomException;
-import com.kh.app.point.exception.PointErrorCode;
+import com.kh.app.common.exception.PointErrorCode;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.point.dto.response.PointHistoryResDto;

@@ -19,6 +19,10 @@ import ScoreQuestionStep from "./ScoreQuestionStep";
 import ConsultStep from "./ConsultStep";
 import ImageUploadStep from "./ImageUploadStep";
 
+// 포인트 관련
+import usePointEffect from "../../features/point/hooks/usePointEffect";
+import { POINT_ACTION_TYPE } from "../../features/point/utils/pointPolicy";
+
 // =========================================================
 // 자가진단 카테고리 이동 순서
 // =========================================================
@@ -55,6 +59,10 @@ function formatQuestionCategory(category) {
 function DiagnosisRequestPage() {
   const navigate = useNavigate();
 
+  // 포인트 관련
+  const { checkPointBeforeStart } = usePointEffect();
+  const [isPointChecking, setIsPointChecking] = useState(true);
+
   // =========================================================
   // 건강진단 신청 요청 훅
   // =========================================================
@@ -63,6 +71,27 @@ function DiagnosisRequestPage() {
     isSubmitting,
     errorMessage: submitErrorMessage,
   } = useRequestDiagnosis();
+
+  // =========================================================
+  // 건강진단 페이지 진입 전 포인트 확인
+  // 2,000P 미만이면 신청 페이지 진입 차단
+  // =========================================================
+  useEffect(() => {
+    async function checkHealthcarePoint() {
+      const canStart = await checkPointBeforeStart(
+        POINT_ACTION_TYPE.HEALTHCARE_USE,
+      );
+
+      if (!canStart) {
+        navigate("/healthcare/requesthome", { replace: true });
+        return;
+      }
+
+      setIsPointChecking(false);
+    }
+
+    checkHealthcarePoint();
+  }, []);
 
   /*
    * 상단 진행 단계
@@ -522,7 +551,7 @@ function DiagnosisRequestPage() {
     }
   }
 
-  if (isLoading) {
+  if (isPointChecking || isLoading) {
     return <Wrapper>정보를 불러오는 중입니다.</Wrapper>;
   }
 

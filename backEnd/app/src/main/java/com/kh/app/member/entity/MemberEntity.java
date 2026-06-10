@@ -1,10 +1,10 @@
 package com.kh.app.member.entity;
 
 import com.kh.app.common.entity.BaseEntity;
+import com.kh.app.common.exception.PointErrorCode;
 import jakarta.persistence.*;
 import lombok.*;
 import com.kh.app.common.exception.CustomException;
-import com.kh.app.point.exception.PointErrorCode;
 
 @Entity
 @Table(name = "MEMBER")
