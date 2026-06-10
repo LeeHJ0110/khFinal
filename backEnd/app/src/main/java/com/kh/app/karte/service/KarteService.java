@@ -64,7 +64,7 @@ public class KarteService {
         systemMessageService.sendByAdmin(
                 username,
                 reqMember,
-                MessageReasonType.NOTICE,
+                MessageReasonType.INSURANCE,
                 "펫 진단 완료 알림",
                 petName + "의 온라인 진단이 완료되었습니다. 진단확인페이지에서 확인해주세요."
         );
