@@ -2,7 +2,6 @@ package com.kh.app.schedule.controller;
 
 import com.kh.app.schedule.dto.request.EventReqDto;
 import com.kh.app.schedule.dto.response.EventResDto;
-import com.kh.app.schedule.dto.response.SimpleEventResDto;
 import com.kh.app.schedule.service.ScheduleService;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -48,7 +47,7 @@ public class ScheduleController {
         return ResponseEntity.ok(resDtoList);
     }
 
-    //상세조회
+    //상세조회 아직 안씀
     @GetMapping("{id}")
     public ResponseEntity<EventResDto> selectOne(
             @PathVariable Long id,
@@ -56,6 +55,15 @@ public class ScheduleController {
     ){
         EventResDto resDto = scheduleService.selectOne(id);
         return ResponseEntity.ok(resDto);
+    }
+
+    //오늘일정 조회
+    @GetMapping("today")
+    public ResponseEntity<List<EventResDto>> selectToday(
+            @AuthenticationPrincipal String username
+    ){
+        List<EventResDto> resDtoList = scheduleService.selectToday(username);
+        return ResponseEntity.ok(resDtoList);
     }
 
     //삭제

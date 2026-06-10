@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 import useScheduleWrite from "../hooks/useScheduleWrite";
-import useScheduleDetail from "../hooks/useScheduleDetail";
 import useScheduleEdit from "../hooks/useScheduleEdit";
 import useScheduleDelete from "../hooks/useScheduleDelete";
 import useFormData from "../../../shared/hooks/useFormData";
