@@ -23,6 +23,31 @@ import {
 import PetScoreChart from "../../features/karte/components/ScoreAvgChart";
 import pawprint from "../../features/petcare/img/pawprint 18.png";
 import heart from "../../features/petcare/img/하트.png";
+import StoreList from "../../features/karte/components/StoreList";
+
+function getLowestHealthCategory(scores) {
+  if (!scores || scores.length === 0) return null;
+
+  const TARGET_MAPPING = {
+    EYE: { category: "SNACK", tagId: 12 },
+    SKIN: { category: "FOOD", tagId: 3 },
+    DISEASE: { category: "SUPPLEMENT", tagId: 11 },
+    TEETH: { category: "SNACK", tagId: 5 },
+    MEAL: { category: "FOOD", tagId: 4 },
+  };
+
+  const targetScores = scores.filter((item) =>
+    Object.keys(TARGET_MAPPING).includes(item.category),
+  );
+
+  if (targetScores.length === 0) return null;
+
+  const lowestItem = targetScores.reduce((lowest, current) => {
+    return current.score < lowest.score ? current : lowest;
+  }, targetScores[0]);
+
+  return TARGET_MAPPING[lowestItem.category];
+}
 
 export default function KarteDetailPage() {
   const { isLoading, data, asyncFetchKarteDetail } = useKarte();
@@ -65,35 +90,6 @@ export default function KarteDetailPage() {
     return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, "0")}월 ${String(date.getDate()).padStart(2, "0")}일`;
   };
 
-  const scoresWithoutTotal = data.scores
-    ?.filter((score) => score.category !== "TOTAL")
-    .map((score) => ({
-      ...score,
-      category: CATEGORY_LABELS[score.category] ?? score.category,
-    }));
-
-  const sortedHistory = [...(listHis ?? [])].sort(
-    (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
-  );
-
-  // 최신 vs 이전 점수 비교
-  const latestScore = sortedHistory.at(-1)?.score;
-  const prevScore = sortedHistory.at(-2)?.score;
-  console.log(latestScore);
-  console.log(prevScore);
-
-  const scoreDiff =
-    latestScore != null && prevScore != null ? latestScore - prevScore : null;
-
-  const diffText =
-    scoreDiff === null
-      ? ""
-      : scoreDiff > 0
-        ? `저번 검사보다 ${scoreDiff}점 올랐어요 🐾`
-        : scoreDiff < 0
-          ? `저번 검사보다 ${Math.abs(scoreDiff)}점 내려갔어요`
-          : "저번 검사와 동일해요";
-
   const getAge = (birthDate) => {
     if (!birthDate) return "-";
 
@@ -113,6 +109,35 @@ export default function KarteDetailPage() {
     return age;
   };
 
+  const scoresWithoutTotal = data.scores
+    ?.filter((score) => score.category !== "TOTAL")
+    .map((score) => ({
+      ...score,
+      category: CATEGORY_LABELS[score.category] ?? score.category,
+    }));
+
+  const sortedHistory = [...(listHis ?? [])].sort(
+    (a, b) => new Date(a.createdAt) - new Date(b.createdAt),
+  );
+
+  // 최신 vs 이전 점수 비교
+  const latestScore = sortedHistory.at(-1)?.score;
+  const prevScore = sortedHistory.at(-2)?.score;
+
+  const scoreDiff =
+    latestScore != null && prevScore != null ? latestScore - prevScore : null;
+
+  const diffText =
+    scoreDiff === null
+      ? ""
+      : scoreDiff > 0
+        ? `저번 검사보다 ${scoreDiff}점 올랐어요 🐾`
+        : scoreDiff < 0
+          ? `저번 검사보다 ${Math.abs(scoreDiff)}점 내려갔어요`
+          : "저번 검사와 동일해요";
+
+  const storeCategory = getLowestHealthCategory(data.scores);
+
   return (
     <Wrapper>
       {isLoading ? (
@@ -129,7 +154,6 @@ export default function KarteDetailPage() {
                 )}
               </PetThumb>
               <PetInfo>
-                {console.log(data.pet)}
                 <PetName>{data.pet?.name ?? "반려동물을"}</PetName>
                 <BreedName>{data.pet?.breed.name ?? "입력해주세요"}</BreedName>
                 <InfoRow>
@@ -180,7 +204,6 @@ export default function KarteDetailPage() {
                 />
               </RadarChart>
             </ChartCard>
-            {console.log(sortedHistory)}
             <ChartCard>
               <ChartTitle>현재 건강점수 추이</ChartTitle>
               {diffText && (
@@ -214,6 +237,13 @@ export default function KarteDetailPage() {
               <OpinionHeader>의사소견</OpinionHeader>
               <OpinionContent>{data.opinion}</OpinionContent>
             </OpinionContainer>
+          </ContentRow>
+          <ContentRow>
+            <StoreList
+              targetPetType={data.pet?.breed.petType}
+              category={storeCategory?.category}
+              tagId={storeCategory?.tagId}
+            />
           </ContentRow>
         </>
       )}
