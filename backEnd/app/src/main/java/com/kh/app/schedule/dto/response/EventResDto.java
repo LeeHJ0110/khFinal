@@ -2,14 +2,18 @@ package com.kh.app.schedule.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.kh.app.schedule.entity.ScheduleEntity;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Getter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class EventResDto {
     private Long id;
     private String title;

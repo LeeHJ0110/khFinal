@@ -43,7 +43,10 @@ public class KarteRepositoryImpl implements KarteRepositoryCustom{
                 .where(
                     eqMember(member)
                 )
-                .orderBy(qKarteEntity.id.desc())
+                .orderBy(
+                    qKarteEntity.visitedYn.asc(),
+                    qKarteEntity.id.desc()
+                )
                 .offset(pageRequest.getOffset())
                 .limit(pageRequest.getPageSize())
                 .fetch();

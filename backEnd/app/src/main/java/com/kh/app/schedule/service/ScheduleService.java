@@ -52,6 +52,12 @@ public class ScheduleService {
         return EventResDto.from(entity);
     }
 
+    public List<EventResDto> selectToday(String username) {
+        MemberEntity memberEntity = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("그런 username 없음"));
+        return scheduleRepository.findTodaySchedule(memberEntity.getUsername());
+    }
+
     @Transactional
     public void delete(Long id) {
         scheduleRepository.deleteById(id);
@@ -64,4 +70,6 @@ public class ScheduleService {
                 .orElseThrow(EntityNotFoundException::new);
         entity.update(reqDto);
     }
+
+
 }

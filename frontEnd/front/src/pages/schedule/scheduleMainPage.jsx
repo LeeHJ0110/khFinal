@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import ScheduleModal from "../../features/schedule/components/scheduleModal";
 import useFormData from "../../shared/hooks/useFormData";
 import ScheduleCard from "../../features/schedule/components/ScheduleCard";
+import TodaySchedule from "../../features/schedule/components/TodaySchedule";
 
 export default function ScheduleMainPage() {
   const trainingInit = {
@@ -57,20 +58,30 @@ export default function ScheduleMainPage() {
 
   return (
     <Wrapper>
-      <CenterContainer>
-        <VerticalDiv>
-          <ScheduleCard
-            onButtonClick={() => {
-              handleOpenModal({
-                type: "schedule",
-                data: { ...scheduleInit, startDate: today, endDate: today },
-              });
-            }}
-          />
-          <ScheduleCard isTraining={true} onButtonClick={handleTraininClick} />
-        </VerticalDiv>
-      </CenterContainer>
-      <ScheduleMain onOpenModal={handleOpenModal} detailOpen={detailOpen} />
+      <VerticalDiv>
+        <TodayCard>
+          <CardTitle>오늘 일정</CardTitle>
+          <hr />
+          <TodaySchedule open={detailOpen} />
+        </TodayCard>
+        <div>
+          <VerticalDiv>
+            <ScheduleCard
+              onButtonClick={() => {
+                handleOpenModal({
+                  type: "schedule",
+                  data: { ...scheduleInit, startDate: today, endDate: today },
+                });
+              }}
+            />
+            <ScheduleCard
+              isTraining={true}
+              onButtonClick={handleTraininClick}
+            />
+          </VerticalDiv>
+          <ScheduleMain onOpenModal={handleOpenModal} detailOpen={detailOpen} />
+        </div>
+      </VerticalDiv>
       {modalType === "schedule" && (
         <ScheduleModal
           open={detailOpen}
@@ -91,7 +102,7 @@ export default function ScheduleMainPage() {
 
 const Wrapper = styled.main`
   width: 100%;
-  max-width: 1800px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 20px;
   display: flex; // 추가
@@ -99,16 +110,31 @@ const Wrapper = styled.main`
   align-items: center; // 추가 - 자식 요소 가운데 정렬
 `;
 
-const CenterContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  width: fit-content; // 캘린더 너비에 맞게 자동 조절
-`;
-
 const VerticalDiv = styled.div`
+  width: 100%;
   display: flex;
   flex-direction: row;
   gap: 16px;
   margin-bottom: 20px;
+`;
+
+const TodayCard = styled.div`
+  width: 400px;
+  max-height: 920px;
+  border: 1px solid var(--color-mint);
+  border-radius: 16px;
+  padding: 12px;
+  & hr {
+    background-color: var(--color-mint);
+    height: 1px;
+    border: 0;
+  }
+`;
+
+const CardTitle = styled.h3`
+  margin: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
 `;

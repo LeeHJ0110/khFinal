@@ -23,6 +23,7 @@ import schedule from "../../features/petcare/img/calendar 1.png";
 import graph from "../../features/petcare/img/GGgraph 1.png";
 import pawprint from "../../features/petcare/img/pawprint 18.png";
 import heart from "../../features/petcare/img/하트.png";
+import TodaySchedule from "../../features/schedule/components/TodaySchedule";
 
 function getTotalChartData(score, listArr, currentPet) {
   if (!listArr) return [];
@@ -282,6 +283,7 @@ export default function HealthCareHome() {
               <CardTitle>오늘 일정</CardTitle>
             </FlexDiv>
             <Label>오늘 해야 할 일들을 볼 수 있어요.</Label>
+            <TodaySchedule />
           </Card>
 
           {/* 건강점수 비교 */}
@@ -321,9 +323,9 @@ export default function HealthCareHome() {
           </Card>
 
           {/* 캘린더 */}
-          <Card $flex={1} $noPad>
+          <ScrollableCard $flex={1} $noPad>
             <ScheduleMain small={true} />
-          </Card>
+          </ScrollableCard>
 
           {/* 배너 */}
           <HealthCard>
@@ -478,6 +480,25 @@ const PetThumb = styled.div`
 
   span {
     font-size: 30px;
+  }
+`;
+
+const ScrollableCard = styled(Card)`
+  padding: 10px;
+  overflow-y: auto; /* 세로 스크롤은 정상 작동하도록 유지 */
+
+  /* ── 스크롤을 막지 않고 둥근 모서리 뚫림 해결 ── */
+  border-radius: 16px;
+  /* 부모 카드와 동일한 곡률로 내부 요소를 강제로 깎아내는 마스크 레이어 적용 */
+  clip-path: inset(0 round 16px);
+
+  /* 커스텀 스크롤바 트랙 장식 */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #ddd;
+    border-radius: 4px;
   }
 `;
 

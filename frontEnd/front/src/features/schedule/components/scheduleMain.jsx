@@ -4,7 +4,6 @@ import interactionPlugin from "@fullcalendar/interaction";
 import useScheduleList from "../hooks/useScheduleList";
 import { useEffect, useRef, useState } from "react";
 import FullCalendar from "@fullcalendar/react";
-import useScheduleDetail from "../hooks/useScheduleDetail";
 import useTrainingList from "../hooks/useTrainingList";
 import pawPrint from "../../petcare/img/pawprint 18.png";
 import { useNavigate } from "react-router-dom";
@@ -50,8 +49,6 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
     fetchDiaryList();
   }, [detailOpen]);
 
-  const mergedEvents = scheduleList;
-
   // ── Long Press 상태 ───────────────────────────────────────────────
   const longPressTimer = useRef(null);
   const isLongPress = useRef(false);
@@ -60,8 +57,6 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
   const getDateStr = (date) => date.toLocaleDateString("sv-SE");
 
   const handleCellMouseDown = () => {
-    console.log("누름");
-
     isLongPress.current = false;
     longPressTimer.current = setTimeout(() => {
       isLongPress.current = true;
@@ -193,6 +188,8 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
 
   // ── eventClick (일반 일정 조회) ────────────────────────────────────
   const onEventClick = (info) => {
+    console.log(info.event);
+
     onOpenModal({
       type: "schedule",
       data: {
@@ -201,8 +198,9 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
         title: info.event.title,
         content: info.event.extendedProps?.content,
         at: info.event.extendedProps?.at,
-        startDate: info.event.startStr,
-        endDate: info.event.endStr,
+        startDate: info.event?.startStr,
+        endDate: info.event?.endStr || info.event?.startStr,
+        backgroundColor: info.event.backgroundColor,
         isEdit: true,
       },
     });
@@ -236,8 +234,8 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
             plugins={[dayGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
             locale="ko"
-            height={small ? 500 : 800}
-            events={mergedEvents}
+            height={small ? 480 : 780}
+            events={scheduleList}
             headerToolbar={{
               left: "prev",
               center: "title",
@@ -258,7 +256,41 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
 }
 
 const Wrapper = styled.div`
-  width: ${({ $small }) => ($small ? "370px" : "1200px")};
+  width: ${({ $small }) => ($small ? "100%" : "1200px")};
+
+  /* 1. 달력 내부 메인 스크롤러 및 요소를 대상으로 스크롤바 전면 차단 */
+  .fc-scroller,
+  .fc-scroller-liquid-absolute {
+    overflow: hidden !important;
+    scrollbar-width: none; /* Firefox 스크롤바 제거 */
+    &::-webkit-scrollbar {
+      display: none !important; /* Chrome, Safari, Whale 스크롤바 제거 */
+    }
+  }
+
+  /* 2. 테이블 가로축이 깨지며 가로 스크롤 유발하는 현상 방지 */
+  .fc .fc-scrollgrid-sync-table {
+    table-layout: fixed !important;
+    width: 100% !important;
+  }
+
+  /* 3. 날짜 격자 내부 프레임 오버플로우 제한 */
+  .fc-daygrid-day-frame {
+    height: 100% !important;
+    min-height: 0 !important;
+    display: block !important;
+    position: relative;
+  }
+
+  /* 4. 일자 텍스트 줄 정돈 */
+  .fc-daygrid-day-top {
+    padding: 2px 0 !important;
+  }
+
+  /* 5. 이벤트 컨테이너 내 과도한 스크롤 방지 */
+  .fc-daygrid-day-events {
+    padding: 2px !important;
+  }
   .fc-daygrid-day-number {
     width: 32px;
     height: 32px;
@@ -271,6 +303,11 @@ const Wrapper = styled.div`
     color: #222;
     transition: 0.2s;
   }
+
+  .fc-daygrid-bg-harness {
+    max-height: 180px;
+  }
+
   .fc-view-harness {
     cursor: ${({ $small }) => ($small ? "pointer" : "default")};
   }
