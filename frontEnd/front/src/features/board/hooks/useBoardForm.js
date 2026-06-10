@@ -9,6 +9,10 @@ import {
   resetStatus,
 } from "../store/boardSlice";
 
+// 포인트 관련임
+import usePointEffect from "../../point/hooks/usePointEffect";
+import { POINT_ACTION_TYPE } from "../../point/utils/pointPolicy";
+
 export default function useBoardForm() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -18,13 +22,16 @@ export default function useBoardForm() {
   const error = useSelector((state) => state.board.error);
   const success = useSelector((state) => state.board.success);
 
+  // 포인트 관련
+  const { startPointAction } = usePointEffect();
+
   // 수정 모드 상태 관리
   const [isEdit, setIsEdit] = useState(false);
   const [boardId, setBoardId] = useState(null);
 
   // 폼 상태 관리
   const [boardCategory, setBoardCategory] = useState(
-    location.state?.defaultCategory || "FREE"
+    location.state?.defaultCategory || "FREE",
   );
   const [boardSubCategory, setBoardSubCategory] = useState("잡담");
   const [title, setTitle] = useState("");
@@ -107,7 +114,16 @@ export default function useBoardForm() {
         await updateBoardApi(boardId, formData);
         alert("게시글이 성공적으로 수정되었습니다!");
       } else {
+        // 포인트 관련: 게시글 등록 전 포인트 저장
+        const pointWatcher = await startPointAction(
+          POINT_ACTION_TYPE.WEEKLY_COMMUNITY_POST,
+        );
+
         await writeBoardApi(formData);
+
+        // 포인트 관련: 게시글 등록 후 포인트 비교 + 적립됐을 때만 알림
+        await pointWatcher.finish();
+
         alert("게시글이 성공적으로 등록되었습니다!");
       }
       dispatch(setSuccess(true));
