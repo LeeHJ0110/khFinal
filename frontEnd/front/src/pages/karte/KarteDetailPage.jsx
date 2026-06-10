@@ -129,8 +129,9 @@ export default function KarteDetailPage() {
                 )}
               </PetThumb>
               <PetInfo>
+                {console.log(data.pet)}
                 <PetName>{data.pet?.name ?? "반려동물을"}</PetName>
-                <BreedName>{data.pet?.breedName ?? "입력해주세요"}</BreedName>
+                <BreedName>{data.pet?.breed.name ?? "입력해주세요"}</BreedName>
                 <InfoRow>
                   <InfoBadge>
                     <InfoIcon src={heart} alt="" />

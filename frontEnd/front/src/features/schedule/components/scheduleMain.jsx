@@ -49,8 +49,6 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
     fetchDiaryList();
   }, [detailOpen]);
 
-  const mergedEvents = scheduleList;
-
   // ── Long Press 상태 ───────────────────────────────────────────────
   const longPressTimer = useRef(null);
   const isLongPress = useRef(false);
@@ -59,8 +57,6 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
   const getDateStr = (date) => date.toLocaleDateString("sv-SE");
 
   const handleCellMouseDown = () => {
-    console.log("누름");
-
     isLongPress.current = false;
     longPressTimer.current = setTimeout(() => {
       isLongPress.current = true;
@@ -192,6 +188,8 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
 
   // ── eventClick (일반 일정 조회) ────────────────────────────────────
   const onEventClick = (info) => {
+    console.log(info.event);
+
     onOpenModal({
       type: "schedule",
       data: {
@@ -202,6 +200,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
         at: info.event.extendedProps?.at,
         startDate: info.event?.startStr,
         endDate: info.event?.endStr || info.event?.startStr,
+        backgroundColor: info.event.backgroundColor,
         isEdit: true,
       },
     });
@@ -236,7 +235,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
             initialView="dayGridMonth"
             locale="ko"
             height={small ? 480 : 780}
-            events={mergedEvents}
+            events={scheduleList}
             headerToolbar={{
               left: "prev",
               center: "title",
