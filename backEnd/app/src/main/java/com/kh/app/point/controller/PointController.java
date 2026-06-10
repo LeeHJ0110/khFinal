@@ -1,5 +1,6 @@
 package com.kh.app.point.controller;
 
+import com.kh.app.point.dto.response.PointEventJoinResDto;
 import com.kh.app.point.dto.response.PointHistoryResDto;
 import com.kh.app.point.service.PointService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -73,5 +74,18 @@ public class PointController {
 
         return ResponseEntity.ok(result);
     }
+
+//    /**
+//     * 사용자 : 최초 회원가입 감사 이벤트 포인트 적립
+//     */
+//    @Operation(summary = "회원가입 감사 이벤트 참여 포인트 적립", description = "사용자가 회원가입 후 최초 1회 포인트를 받는 기능")
+//    @PostMapping("/event-join")
+//    public ResponseEntity<PointEventJoinResDto> earnEventJoinPoint(
+//            @AuthenticationPrincipal String username
+//    ) {
+//        PointEventJoinResDto result = pointService.earnEventJoinPoint(username);
+//
+//        return ResponseEntity.ok(result);
+//    }
 
 }
