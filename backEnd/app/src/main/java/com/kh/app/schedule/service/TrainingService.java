@@ -66,13 +66,15 @@ public class TrainingService {
         }
     }
 
-    public String checkDate(LocalDate date) {
+    public String checkDate(LocalDate date, String username) {
+        MemberEntity memberEntity = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("그런 username 없음"));
         String message = "등록가능";
 
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = date.plusDays(1).atStartOfDay();
 
-        boolean exists = trainingRepository.existsByDate(start, end);
+        boolean exists = trainingRepository.existsByDate(start, end, memberEntity.getUsername());
 
         if (exists) {
             if (date.equals(LocalDate.now())) {

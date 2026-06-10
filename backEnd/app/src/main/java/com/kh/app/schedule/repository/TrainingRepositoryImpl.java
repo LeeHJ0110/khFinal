@@ -11,15 +11,18 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class TrainingRepositoryImpl implements TrainingRepositoryCustom{
     private final QTrainingDiaryEntity t = QTrainingDiaryEntity.trainingDiaryEntity;
+    private final QMemberEntity m = QMemberEntity.memberEntity;
     private final JPAQueryFactory QueryFactory;
 
     @Override
-    public boolean existsByDate(LocalDateTime start, LocalDateTime end) {
+    public boolean existsByDate(LocalDateTime start, LocalDateTime end, String username) {
 
         Integer result = QueryFactory
                 .selectOne()
                 .from(t)
+                .join(t.member, m)
                 .where(
+                        m.username.eq(username),
                         t.createdAt.goe(start),
                         t.createdAt.lt(end)
                 )
