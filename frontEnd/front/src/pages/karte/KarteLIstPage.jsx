@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import useKarte from "../../features/karte/hooks/useKarte";
 import MailOpen from "../../features/karte/components/MailOpen";
 import MailClosed from "../../features/karte/components/MailClosed";
+import PetCareNav from "../../features/petcare/components/petcarehome/PetCareNav";
 
 export default function KarteListPage() {
   const navigate = useNavigate();
