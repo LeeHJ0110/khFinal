@@ -3,6 +3,8 @@ package com.kh.app.member.entity;
 import com.kh.app.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import com.kh.app.common.exception.CustomException;
+import com.kh.app.point.exception.PointErrorCode;
 
 @Entity
 @Table(name = "MEMBER")
@@ -110,7 +112,7 @@ public class MemberEntity extends BaseEntity {
 
     public void earnPoint(Long amount) {
         if (amount == null || amount <= 0) {
-            throw new IllegalArgumentException("적립 포인트는 0보다 커야 합니다.");
+            throw new CustomException(PointErrorCode.INVALID_EARN_POINT);
         }
 
         this.point += amount;
@@ -118,11 +120,11 @@ public class MemberEntity extends BaseEntity {
 
     public void usePoint(Long amount) {
         if (amount == null || amount <= 0) {
-            throw new IllegalArgumentException("사용 포인트는 0보다 커야 합니다.");
+            throw new CustomException(PointErrorCode.INVALID_USE_POINT);
         }
 
         if (this.point < amount) {
-            throw new IllegalArgumentException("보유 포인트가 부족합니다.");
+            throw new CustomException(PointErrorCode.NOT_ENOUGH_POINT);
         }
 
         this.point -= amount;

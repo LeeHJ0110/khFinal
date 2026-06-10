@@ -24,6 +24,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+
+import com.kh.app.point.service.PointService;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -33,6 +36,9 @@ public class TrainingService {
     private final TrainingPetRepository trainingPetRepository;
     private final PetRepository petRepository;
     private final MemberRepository memberRepository;
+
+
+    private final PointService pointService;
 
     @Transactional
     public void write(TrainReqDto reqDto, String username) {
@@ -47,6 +53,16 @@ public class TrainingService {
                     .orElseThrow(() -> new IllegalArgumentException("pet 검색 실패"));
             trainingPetRepository.save(TrainingPetEntity.from(petEntity, diaryEntity));
             log.info("[펫, 일기]:"+ petEntity.getName() + ", "+ diaryEntity.getId());
+        }
+
+
+        // 주간 훈련일기 작성 포인트 지급
+        boolean pointEarned = pointService.tryEarnWeeklyTrainingDiaryPoint(memberEntity);
+
+        if (pointEarned) {
+            log.info("[포인트 지급] 주간 훈련일기 작성 포인트 500P 지급");
+        } else {
+            log.info("[포인트 미지급] 이번 주 훈련일기 작성 포인트 이미 지급됨");
         }
     }
 
