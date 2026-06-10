@@ -169,7 +169,7 @@ export default function DiagnosisManagePage() {
                   key={item.diagnosisReqId}
                   type="button"
                   onClick={() =>
-                    navigate(`/healthcare/manage/${item.diagnosisReqId}`)
+                    navigate(`/healthcare/doctor/${item.diagnosisReqId}`)
                   }
                 >
                   <RequestContent>
