@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface PetInsuranceApplicationRepository
         extends JpaRepository<PetInsuranceApplicationEntity, Long> {
@@ -32,4 +34,13 @@ public interface PetInsuranceApplicationRepository
             List<PetInsuranceApproveStatus> approveStatuses,
             DelYn delYn
     );
+
+    Page<PetInsuranceApplicationEntity>
+    findByApproveStatusAndKakaoPaySidIsNotNullOrderByCreatedAtAsc(
+            PetInsuranceApproveStatus approveStatus,
+            Pageable pageable
+    );
+
+    List<PetInsuranceApplicationEntity>
+    findAllByApplicationIdIn(List<Long> applicationIds);
 }
