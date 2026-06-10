@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
+
 import { getMyInfo } from "../../features/mypage/member/api/mypageMemberApi";
+
 import {
   fetchMyPetList,
   fetchQuestionList,
-  requestDiagnosis,
   updatePetWeight,
 } from "../../features/petcare/api/petCareApi";
-import { useNavigate } from "react-router-dom";
+
+import useRequestDiagnosis from "../../features/petcare/hooks/useRequestDiagnosis";
+
 import DiagnosisProgress from "./DiagnosisProgress";
 import PetSelectStep from "./PetSelectStep";
 import YnQuestionStep from "./YnQuestionStep";
@@ -15,7 +19,9 @@ import ScoreQuestionStep from "./ScoreQuestionStep";
 import ConsultStep from "./ConsultStep";
 import ImageUploadStep from "./ImageUploadStep";
 
+// =========================================================
 // 자가진단 카테고리 이동 순서
+// =========================================================
 const SELF_CATEGORY_ORDER = [
   "STRESS",
   "SLEEP",
@@ -27,7 +33,9 @@ const SELF_CATEGORY_ORDER = [
   "CONSULT",
 ];
 
+// =========================================================
 // 카테고리 한글 표시
+// =========================================================
 function formatQuestionCategory(category) {
   if (category === "STRESS") return "스트레스";
   if (category === "SLEEP") return "수면";
@@ -41,9 +49,21 @@ function formatQuestionCategory(category) {
   return category;
 }
 
+// =========================================================
 // 진단 신청 총괄 페이지
+// =========================================================
 function DiagnosisRequestPage() {
   const navigate = useNavigate();
+
+  // =========================================================
+  // 건강진단 신청 요청 훅
+  // =========================================================
+  const {
+    submitDiagnosis,
+    isSubmitting,
+    errorMessage: submitErrorMessage,
+  } = useRequestDiagnosis();
+
   /*
    * 상단 진행 단계
    * BASIC    : 기본정보
@@ -93,10 +113,9 @@ function DiagnosisRequestPage() {
   // 체중 저장 중 여부
   const [isWeightSaving, setIsWeightSaving] = useState(false);
 
-  // 건강진단 신청 요청 중 여부
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+  // =========================================================
   // 회원 정보 + 펫 목록 조회
+  // =========================================================
   useEffect(() => {
     async function loadInitialData() {
       try {
@@ -124,8 +143,9 @@ function DiagnosisRequestPage() {
           setSelectedPet(null);
           setCurrentWeight("");
         }
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error("초기 데이터 조회 실패:", error);
+
         alert("회원 또는 반려동물 정보를 불러오지 못했습니다.");
       } finally {
         setIsLoading(false);
@@ -135,7 +155,9 @@ function DiagnosisRequestPage() {
     loadInitialData();
   }, []);
 
+  // =========================================================
   // 선택한 펫이 바뀌면 해당 동물의 질문 목록 조회
+  // =========================================================
   useEffect(() => {
     if (!selectedPet?.petId) {
       return;
@@ -143,8 +165,9 @@ function DiagnosisRequestPage() {
 
     async function loadQuestions() {
       try {
-        const res = await fetchQuestionList(selectedPet.petType);
-        const questions = res.data ?? [];
+        const response = await fetchQuestionList(selectedPet.petType);
+
+        const questions = response.data ?? [];
 
         setQuestionList(questions);
 
@@ -156,43 +179,54 @@ function DiagnosisRequestPage() {
             answerValue: question.questionType === "YN" ? "N" : "",
           })),
         );
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error("질문 목록 조회 실패:", error);
+
         alert("질문을 불러오지 못했습니다.");
       }
     }
 
     loadQuestions();
-  }, [selectedPet?.petId]);
+  }, [selectedPet?.petId, selectedPet?.petType]);
 
+  // =========================================================
   // 예방접종 YN 질문
+  // =========================================================
   const vaccineQuestionList = questionList.filter(
     (question) =>
       question.questionCategory === "VACCINE" && question.questionType === "YN",
   );
 
+  // =========================================================
   // 질병 이력 YN 질문
+  // =========================================================
   const diseaseQuestionList = questionList.filter(
     (question) =>
       question.questionCategory === "DISEASE" && question.questionType === "YN",
   );
 
+  // =========================================================
   // 현재 자가진단 SCORE 질문
+  // =========================================================
   const currentScoreQuestionList = questionList.filter(
     (question) =>
       question.questionCategory === selfStep &&
       question.questionType === "SCORE",
   );
 
+  // =========================================================
   // 상담 내용 TEXT 질문
+  // =========================================================
   const consultQuestion = questionList.find(
     (question) =>
       question.questionCategory === "CONSULT" &&
       question.questionType === "TEXT",
   );
 
+  // =========================================================
   // 반려동물 선택
-  const handleSelectPet = (pet) => {
+  // =========================================================
+  function handleSelectPet(pet) {
     setSelectedPet(pet);
     setCurrentWeight(pet.weight ?? "");
 
@@ -200,12 +234,15 @@ function DiagnosisRequestPage() {
     setEyeFiles([]);
     setSkinFiles([]);
     setTeethFiles([]);
-  };
+  }
 
+  // =========================================================
   // 현재 체중 저장
-  const handleUpdateWeight = async () => {
+  // =========================================================
+  async function handleUpdateWeight() {
     if (!selectedPet) {
       alert("반려동물을 먼저 선택해 주세요.");
+
       return;
     }
 
@@ -213,6 +250,7 @@ function DiagnosisRequestPage() {
 
     if (currentWeight === "" || Number.isNaN(nextWeight) || nextWeight <= 0) {
       alert("현재 체중을 올바르게 입력해 주세요.");
+
       return;
     }
 
@@ -223,8 +261,8 @@ function DiagnosisRequestPage() {
       await updatePetWeight(selectedPet, nextWeight);
 
       // 화면에 표시되는 목록 값 수정
-      setPetList((prev) =>
-        prev.map((pet) =>
+      setPetList((previousPetList) =>
+        previousPetList.map((pet) =>
           pet.petId === selectedPet.petId
             ? {
                 ...pet,
@@ -235,28 +273,30 @@ function DiagnosisRequestPage() {
       );
 
       // 현재 선택한 펫 값도 수정
-      setSelectedPet((prev) => ({
-        ...prev,
+      setSelectedPet((previousPet) => ({
+        ...previousPet,
         weight: nextWeight,
       }));
 
       alert("현재 체중이 저장되었습니다.");
-    } catch (err) {
-      console.error("몸무게 수정 실패:", err);
-      console.error("응답 상태:", err.response?.status);
-      console.error("응답 데이터:", err.response?.data);
+    } catch (error) {
+      console.error("몸무게 수정 실패:", error);
+      console.error("응답 상태:", error.response?.status);
+      console.error("응답 데이터:", error.response?.data);
 
       alert("현재 체중을 저장하지 못했습니다.");
     } finally {
       setIsWeightSaving(false);
     }
-  };
+  }
 
+  // =========================================================
   // YN 답변 토글
   // N → Y → N
-  const handleYnToggle = (questionId) => {
-    setAnswerList((prev) =>
-      prev.map((answer) =>
+  // =========================================================
+  function handleYnToggle(questionId) {
+    setAnswerList((previousAnswerList) =>
+      previousAnswerList.map((answer) =>
         answer.questionId === questionId
           ? {
               ...answer,
@@ -265,20 +305,24 @@ function DiagnosisRequestPage() {
           : answer,
       ),
     );
-  };
+  }
 
+  // =========================================================
   // 현재 YN 답변이 Y인지 확인
-  const isYnSelected = (questionId) => {
+  // =========================================================
+  function isYnSelected(questionId) {
     return (
       answerList.find((answer) => answer.questionId === questionId)
         ?.answerValue === "Y"
     );
-  };
+  }
 
+  // =========================================================
   // SCORE 또는 TEXT 답변 변경
-  const handleAnswerChange = (questionId, value) => {
-    setAnswerList((prev) =>
-      prev.map((answer) =>
+  // =========================================================
+  function handleAnswerChange(questionId, value) {
+    setAnswerList((previousAnswerList) =>
+      previousAnswerList.map((answer) =>
         answer.questionId === questionId
           ? {
               ...answer,
@@ -287,39 +331,48 @@ function DiagnosisRequestPage() {
           : answer,
       ),
     );
-  };
+  }
 
+  // =========================================================
   // 특정 질문의 현재 답변값 조회
-  const getAnswerValue = (questionId) => {
+  // =========================================================
+  function getAnswerValue(questionId) {
     return (
       answerList.find((answer) => answer.questionId === questionId)
         ?.answerValue ?? ""
     );
-  };
+  }
 
+  // =========================================================
   // 현재 SCORE 카테고리의 문항을 모두 선택했는지 검사
-  const hasEmptyScoreAnswer = () => {
+  // =========================================================
+  function hasEmptyScoreAnswer() {
     return currentScoreQuestionList.some(
       (question) => getAnswerValue(question.questionId) === "",
     );
-  };
+  }
 
+  // =========================================================
   // 다음 버튼
-  const handleNext = () => {
+  // =========================================================
+  function handleNext() {
     // 기본정보 1: 펫 선택
     if (mainStep === "BASIC" && basicStep === "PET") {
       if (!selectedPet) {
         alert("반려동물을 선택해 주세요.");
+
         return;
       }
 
       setBasicStep("VACCINE");
+
       return;
     }
 
     // 기본정보 2: 예방접종
     if (mainStep === "BASIC" && basicStep === "VACCINE") {
       setBasicStep("DISEASE");
+
       return;
     }
 
@@ -327,6 +380,7 @@ function DiagnosisRequestPage() {
     if (mainStep === "BASIC" && basicStep === "DISEASE") {
       setMainStep("SELF");
       setSelfStep("STRESS");
+
       return;
     }
 
@@ -336,18 +390,22 @@ function DiagnosisRequestPage() {
         alert(
           `${formatQuestionCategory(selfStep)} 문항이 등록되어 있지 않습니다.`,
         );
+
         return;
       }
 
       if (hasEmptyScoreAnswer()) {
         alert("모든 문항에 답변해 주세요.");
+
         return;
       }
 
       const currentIndex = SELF_CATEGORY_ORDER.indexOf(selfStep);
+
       const nextCategory = SELF_CATEGORY_ORDER[currentIndex + 1];
 
       setSelfStep(nextCategory);
+
       return;
     }
 
@@ -355,37 +413,38 @@ function DiagnosisRequestPage() {
     if (mainStep === "SELF" && selfStep === "CONSULT") {
       setMainStep("IMAGE");
     }
-  };
+  }
 
+  // =========================================================
   // 건강진단 최종 신청
-  const handleSubmit = async () => {
-    console.log("신청 직전 선택 펫:", selectedPet);
-    console.log("신청 직전 답변 목록:", answerList);
-    console.log("답변 개수:", answerList.length);
+  // =========================================================
+  async function handleSubmit() {
     if (!selectedPet) {
       alert("반려동물을 선택해 주세요.");
+
       return;
     }
 
     if (eyeFiles.length === 0) {
       alert("눈 이미지를 1장 이상 등록해 주세요.");
+
       return;
     }
 
     if (skinFiles.length === 0) {
       alert("피부 이미지를 1장 이상 등록해 주세요.");
+
       return;
     }
 
     if (teethFiles.length === 0) {
       alert("치아 이미지를 1장 이상 등록해 주세요.");
+
       return;
     }
 
     try {
-      setIsSubmitting(true);
-
-      await requestDiagnosis({
+      await submitDiagnosis({
         petId: selectedPet.petId,
         answerList,
         eyeFiles,
@@ -396,31 +455,39 @@ function DiagnosisRequestPage() {
       setMainStep("COMPLETE");
 
       alert("건강진단 신청이 완료되었습니다.");
-    } catch (err) {
-      console.error(err);
-      alert("건강진단 신청에 실패했습니다.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    } catch (error) {
+      console.error("건강진단 최종 신청 실패:", error);
 
+      alert(
+        error.response?.data?.message ||
+          submitErrorMessage ||
+          "건강진단 신청에 실패했습니다.",
+      );
+    }
+  }
+
+  // =========================================================
   // 이전 버튼
-  const handlePrevious = () => {
+  // =========================================================
+  function handlePrevious() {
     // 펫 선택 화면 → 이전 페이지
     if (mainStep === "BASIC" && basicStep === "PET") {
       window.history.back();
+
       return;
     }
 
     // 예방접종 → 펫 선택
     if (mainStep === "BASIC" && basicStep === "VACCINE") {
       setBasicStep("PET");
+
       return;
     }
 
     // 질병 이력 → 예방접종
     if (mainStep === "BASIC" && basicStep === "DISEASE") {
       setBasicStep("VACCINE");
+
       return;
     }
 
@@ -432,10 +499,12 @@ function DiagnosisRequestPage() {
       if (currentIndex === 0) {
         setMainStep("BASIC");
         setBasicStep("DISEASE");
+
         return;
       }
 
       setSelfStep(SELF_CATEGORY_ORDER[currentIndex - 1]);
+
       return;
     }
 
@@ -443,6 +512,7 @@ function DiagnosisRequestPage() {
     if (mainStep === "IMAGE") {
       setMainStep("SELF");
       setSelfStep("CONSULT");
+
       return;
     }
 
@@ -450,7 +520,7 @@ function DiagnosisRequestPage() {
     if (mainStep === "COMPLETE") {
       setMainStep("IMAGE");
     }
-  };
+  }
 
   if (isLoading) {
     return <Wrapper>정보를 불러오는 중입니다.</Wrapper>;
@@ -545,6 +615,7 @@ function DiagnosisRequestPage() {
           </TemporaryBox>
         )}
       </StepContent>
+
       <ButtonGroup>
         {mainStep === "COMPLETE" ? (
           <NavigationButton
@@ -581,16 +652,23 @@ function DiagnosisRequestPage() {
 
 export default DiagnosisRequestPage;
 
+// =========================================================
+// styled-components
+// =========================================================
 const Wrapper = styled.main`
   width: min(1100px, calc(100% - 48px));
+
   margin: 0 auto;
   padding: 54px 0 50px;
+
   box-sizing: border-box;
 `;
 
 const Title = styled.h1`
   margin: 0 0 22px;
+
   color: #00a97b;
+
   font-size: 36px;
   font-weight: 800;
   text-align: center;
@@ -599,21 +677,27 @@ const Title = styled.h1`
 
 const TemporaryBox = styled.section`
   padding: 58px 24px;
+
   border: 1px solid #e0ebe7;
   border-radius: 14px;
+
   background: #f8fcfa;
+
   text-align: center;
 `;
 
 const TemporaryTitle = styled.h2`
   margin: 0 0 12px;
+
   color: #00a97b;
+
   font-size: 26px;
   font-weight: 800;
 `;
 
 const TemporaryText = styled.p`
   margin: 0;
+
   color: #666;
 `;
 
@@ -621,33 +705,46 @@ const ButtonGroup = styled.div`
   display: flex;
   justify-content: center;
   gap: 12px;
+
   margin-top: 34px;
 `;
 
 const NavigationButton = styled.button`
   min-width: 132px;
   height: 42px;
+
   padding: 0 18px;
+
   border: 1px solid ${({ $primary }) => ($primary ? "#00a97b" : "#d5e8e1")};
+
   border-radius: 8px;
+
   background: ${({ $primary }) => ($primary ? "#00a97b" : "#e7f4ef")};
+
   color: ${({ $primary }) => ($primary ? "#ffffff" : "#00a97b")};
+
   font-size: 14px;
   font-weight: 800;
+
   cursor: pointer;
+
   transition: 0.2s ease;
 
   &:hover {
     transform: translateY(-2px);
+
     box-shadow: 0 5px 12px rgba(0, 169, 123, 0.14);
   }
 
   &:disabled {
     background: #9dcfc0;
+
     cursor: not-allowed;
+
     transform: none;
   }
 `;
+
 const StepContent = styled.section`
   min-height: 400px;
 `;
