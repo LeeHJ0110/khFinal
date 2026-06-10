@@ -68,6 +68,7 @@ import AdminDeliveryPage from "./pages/admin/delivery/AdminDeliveryPage";
 import PetStoreReviewInsertPage from "./pages/petStore/PetStoreReviewInsertPage";
 import PetStoreReviewEditPage from "./pages/petStore/PetStoreReviewEditPage";
 import AdminInsurancePage from "./pages/admin/insurance/AdminInsurancePage";
+import PointHistoryPage from "./pages/mypage/PointHistoryPage";
 
 function App() {
   return (
@@ -210,6 +211,7 @@ function App() {
             <Route path="community" element={<CommunityHistoryPage />} />
             <Route path="delivery" element={<DeliveryManagePage />} />
             <Route path="orders" element={<OrderHistoryPage />} />
+            <Route path="points" element={<PointHistoryPage />} />
           </Route>
           <Route path="admin">
             <Route path="member" element={<AdminMemberPage />} />
