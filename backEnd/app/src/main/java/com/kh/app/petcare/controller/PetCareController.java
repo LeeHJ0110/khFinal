@@ -76,15 +76,15 @@ public class PetCareController {
         );
     }
 //페이징 목록조회
-    @GetMapping("/diagnosis/list")
-    public ResponseEntity<Object> requestDiagnosisList(
-            @RequestParam(defaultValue = "0") int pno
-    ) {
-
-        return ResponseEntity.ok(
-                petCareService.requestDiagnosisList(pno)
-        );
-    }
+@GetMapping("/diagnosis/list")
+public ResponseEntity<Object> requestDiagnosisList(
+        @RequestParam(defaultValue = "0") int pno,
+        @RequestParam(defaultValue = "ALL") String petType
+) {
+    return ResponseEntity.ok(
+            petCareService.requestDiagnosisList(pno, petType)
+    );
+}
 
     //상세보기
     @GetMapping("/diagnosis/{diagnosisReqId}")

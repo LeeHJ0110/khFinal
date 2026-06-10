@@ -37,11 +37,12 @@ public class StoreReviewEntity extends BaseEntity {
     private String reviewContent;
 
     @Column(name = "REVIEW_RATING", nullable = false)
-    private Integer reviewRating;
+    private Long reviewRating;
 
-    public void update(String reviewTitle, String reviewContent, Integer reviewRating) {
+    public void update(String reviewTitle, String reviewContent, Long reviewRating) {
         this.reviewTitle = reviewTitle;
         this.reviewContent = reviewContent;
         this.reviewRating = reviewRating;
     }
+
 }

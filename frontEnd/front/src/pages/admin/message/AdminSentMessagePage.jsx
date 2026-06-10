@@ -31,18 +31,24 @@ export default function AdminSentMessagePage() {
           content: message.content,
           createdAt: message.createdAt,
           receivers: [],
+          readReceivers: [],
+          unreadReceivers: [],
           readCount: 0,
           unreadCount: 0,
         });
       }
 
       const group = map.get(key);
-      group.receivers.push(message.receiverNickname || "-");
+      const receiverNickname = message.receiverNickname || "-";
+
+      group.receivers.push(receiverNickname);
 
       if (message.readYn === "Y") {
         group.readCount += 1;
+        group.readReceivers.push(receiverNickname);
       } else {
         group.unreadCount += 1;
+        group.unreadReceivers.push(receiverNickname);
       }
     });
 
@@ -91,6 +97,12 @@ export default function AdminSentMessagePage() {
                         <ReceiverList>
                           받는 사람: {message.receivers.join(", ")}
                         </ReceiverList>
+                        <UnreadList>
+                          안읽은 회원:{" "}
+                          {message.unreadReceivers.length > 0
+                            ? message.unreadReceivers.join(", ")
+                            : "없음"}
+                        </UnreadList>
 
                         <MessageContent>{message.content}</MessageContent>
                       </ContentBox>
@@ -196,4 +208,10 @@ const ReceiverList = styled.div`
 const MessageContent = styled.div`
   white-space: pre-wrap;
   line-height: 1.6;
+`;
+const UnreadList = styled.div`
+  margin-bottom: 14px;
+  color: #d93636;
+  font-size: 13px;
+  font-weight: 700;
 `;

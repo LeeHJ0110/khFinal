@@ -1,8 +1,11 @@
 package com.kh.app.petinsurance.controller;
 
 import com.kh.app.petinsurance.dto.request.PetInsuranceCalculateReqDto;
-import com.kh.app.petinsurance.dto.response.*;
-import com.kh.app.petinsurance.kakao.dto.KakaoPayApproveRespDto;
+import com.kh.app.petinsurance.dto.response.PetInsuranceAdminApplicationResDto;
+import com.kh.app.petinsurance.dto.response.PetInsuranceApplicationResDto;
+import com.kh.app.petinsurance.dto.response.PetInsuranceCalculateResDto;
+import com.kh.app.petinsurance.dto.response.PetInsurancePaymentHistoryResDto;
+import com.kh.app.petinsurance.dto.response.PetInsurancePetResDto;
 import com.kh.app.petinsurance.kakao.dto.KakaoPayReadyRespDto;
 import com.kh.app.petinsurance.service.PetInsuranceService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,10 +15,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 
 @Tag(
@@ -27,6 +39,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class PetInsuranceController {
+
+    private static final String FRONT_BASE_URL =
+            "http://localhost:5173";
 
     private final PetInsuranceService petInsuranceService;
 
@@ -42,13 +57,9 @@ public class PetInsuranceController {
     }
 
     // =========================================================
-    // 생년월일과 선택한 상품을 기준으로 예상 보험료 계산
-    // 계산 결과는 저장하지 않고 화면에 반환만 함
+    // 저장된 생년월일과 선택 상품 기준 예상 보험료 계산
+    // 화면 표시용이며 DB에는 저장하지 않음
     // =========================================================
-// =========================================================
-// 저장된 생년월일과 선택 상품 기준 예상 보험료 계산
-// 화면 표시용이며 DB에는 저장하지 않음
-// =========================================================
     @PostMapping("/calculate")
     public ResponseEntity<PetInsuranceCalculateResDto>
     calculateMonthlyPrice(
@@ -75,11 +86,12 @@ public class PetInsuranceController {
                         .getMyPetListForInsurance(username)
         );
     }
+
     // =========================================================
-// 보험 가입 신청
-// JSON 데이터와 진료확인서 파일을 multipart/form-data로 받음
-// 생성된 applicationId를 반환함
-// =========================================================
+    // 보험 가입 신청
+    // JSON 데이터와 진료확인서 파일을 multipart/form-data로 받음
+    // 생성된 applicationId를 반환함
+    // =========================================================
     @PostMapping(
             value = "/application",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
@@ -158,62 +170,77 @@ public class PetInsuranceController {
     }
 
     // =========================================================
-    // 결제창 인증 완료 후 정기결제 수단 등록 승인
+    // 카카오페이 결제수단 등록 성공 콜백
+    //
+    // 카카오페이 인증 완료
+    // → pg_token 수신
+    // → SID 저장
+    // → 프론트 성공 페이지로 이동
     // =========================================================
     @GetMapping("/payment/success")
-    public ResponseEntity<KakaoPayApproveRespDto>
-    paymentSuccess(
+    public ResponseEntity<Void> paymentSuccess(
             @RequestParam Long applicationId,
             @RequestParam("pg_token") String pgToken
     ) {
 
-        KakaoPayApproveRespDto result =
-                petInsuranceService
-                        .approveSubscriptionPayment(
-                                applicationId,
-                                pgToken
-                        );
+        petInsuranceService
+                .approveSubscriptionPayment(
+                        applicationId,
+                        pgToken
+                );
 
-        return ResponseEntity.ok(result);
+        return ResponseEntity
+                .status(HttpStatus.FOUND)
+                .location(
+                        URI.create(
+                                FRONT_BASE_URL
+                                        + "/healthcare/petinsurance/payment/success"
+                        )
+                )
+                .build();
     }
 
     // =========================================================
     // 사용자가 카카오페이 결제창에서 취소
+    // 아직 별도 프론트 페이지가 없으므로 문자열 응답
     // =========================================================
     @GetMapping("/payment/cancel")
     public ResponseEntity<String> paymentCancel() {
 
         return ResponseEntity.ok(
-                "카카오페이 결제가 취소되었습니다."
+                "카카오페이 결제수단 등록이 취소되었습니다."
         );
     }
 
     // =========================================================
-    // 카카오페이 결제 실패
+    // 카카오페이 결제수단 등록 실패
+    // 아직 별도 프론트 페이지가 없으므로 문자열 응답
     // =========================================================
     @GetMapping("/payment/fail")
     public ResponseEntity<String> paymentFail() {
 
         return ResponseEntity.ok(
-                "카카오페이 결제에 실패했습니다."
+                "카카오페이 결제수단 등록에 실패했습니다."
         );
     }
+
     // =========================================================
-// =========================================================
-// 관리자용 보험 가입 신청 목록 조회
-// 카드 등록을 완료한 대기 상태 신청만 조회
-// =========================================================
+    // 관리자용 보험 가입 신청 목록 조회
+    // 카드 등록을 완료한 대기 상태 신청만 조회
+    // =========================================================
     @GetMapping("/admin/applications")
     public ResponseEntity<List<PetInsuranceAdminApplicationResDto>>
     getWaitingApplicationList() {
 
         return ResponseEntity.ok(
-                petInsuranceService.getWaitingApplicationList()
+                petInsuranceService
+                        .getWaitingApplicationList()
         );
     }
+
     // =========================================================
-// 사용자 본인의 펫 보험 결제 내역 조회
-// =========================================================
+    // 사용자 본인의 펫 보험 결제 내역 조회
+    // =========================================================
     @GetMapping("/payment/history")
     public ResponseEntity<List<PetInsurancePaymentHistoryResDto>>
     getMyPaymentHistory(

@@ -2,10 +2,8 @@ package com.kh.app.store.controller;
 
 import com.kh.app.store.dto.request.StoreInsertReqDto;
 import com.kh.app.store.dto.request.StoreUpdateReqDto;
-import com.kh.app.store.dto.response.StoreProductAdminDetailResDto;
-import com.kh.app.store.dto.response.StoreProductAdminListResDto;
-import com.kh.app.store.dto.response.StoreProductDetailResDto;
-import com.kh.app.store.dto.response.StoreProductListResDto;
+import com.kh.app.store.dto.request.StoreWishInsertReqDto;
+import com.kh.app.store.dto.response.*;
 import com.kh.app.store.entity.StoreProductCategory;
 import com.kh.app.store.service.StoreProductService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,13 +31,12 @@ import java.util.List;
 //사용자 : 상품 목록 조회
 //사용자 : 베스트 상품 4개 목록 조회 (공통홈/ 강아지 홈/ 고양이 홈)
 // 이미지 추가 등 s3관련 부분
-
+//사용자 : 관심상품 등록
+//사용자 : 관심상품 목록 조회
+//사용자 : 관심상품 삭제
 
 //<미완성>
 //최근 본 상품 등록/조회
-//관심상품 등록
-//관심상품 목록 조회
-//관심상품 삭제
 
 //<etc>
 // 현재 관리자와 사용자 권한 등 디테일이 안들어가있음 (api손보고 권한 추가해야함)
@@ -140,7 +137,8 @@ public class StoreProductController {
             @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "tagId", required = false) Long tagId,
             @RequestParam(name = "tagName", required = false) String tagName,
-            @RequestParam(name = "sort", defaultValue = "latest") String sort
+            @RequestParam(name = "sort", defaultValue = "latest") String sort,
+            @AuthenticationPrincipal String username
     ) {
         List<StoreProductListResDto> result =
                 storeProductService.getProductList(
@@ -149,7 +147,8 @@ public class StoreProductController {
                         keyword,
                         tagId,
                         tagName,
-                        sort
+                        sort,
+                        username
                 );
 
         return ResponseEntity.ok(result);
@@ -219,13 +218,67 @@ public class StoreProductController {
     @Operation(summary = "사용자 베스트 상품 조회", description = "판매중인 상품 중 조회수 상위 4개 상품을 조회하는 기능")
     @GetMapping("/best")
     public ResponseEntity<List<StoreProductListResDto>> getBestProductList(
-            @RequestParam(name = "targetPetType", required = false) String targetPetType
+            @RequestParam(name = "targetPetType", required = false) String targetPetType,
+            @AuthenticationPrincipal String username
     ) {
-        List<StoreProductListResDto> result = storeProductService.getBestProductList(targetPetType);
+        List<StoreProductListResDto> result =
+                storeProductService.getBestProductList(targetPetType, username);
 
         return ResponseEntity.ok(result);
     }
 
+    //10. 사용자 : 관심상품 등록
+    @Operation(summary = "관심상품 등록", description = "사용자가 관심상품에 상품을 등록하는 기능")
+    @PostMapping("/wish/insert")
+    public ResponseEntity<Void> wishInsert(
+            @RequestBody StoreWishInsertReqDto reqDto,
+            @AuthenticationPrincipal String username
+    ){
 
+        storeProductService.wishInsert(reqDto, username);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .build();
+    }
+
+    //11. 사용자 : 관심상품 목록 조회
+    @Operation(summary = "관심상품 목록 조회", description = "사용자가 관심상품 목록을 조회하는 기능")
+    @GetMapping("/wish/list")
+    public ResponseEntity<Page<StoreWishListResDto>> getWishList(
+            @AuthenticationPrincipal String username,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "category", required = false) StoreProductCategory category
+    ) {
+        Page<StoreWishListResDto> result =
+                storeProductService.getWishList(username, page, category);
+
+        return ResponseEntity.ok(result);
+    }
+
+    //12. 사용자 : 관심상품 삭제 (in 관심상품 페이지)
+    @Operation(summary = "관심상품 삭제", description = "사용자가 관심상품을 삭제하는 기능")
+    @DeleteMapping("/wish/delete/{wishlistId}")
+    public ResponseEntity<Void> wishDelete(
+            @PathVariable Long wishlistId,
+            @AuthenticationPrincipal String username
+    ) {
+        storeProductService.wishDelete(wishlistId, username);
+
+        return ResponseEntity.noContent()
+                .build();
+    }
+
+    //13. 사용자 : 관심상품 상품ID 기준 삭제 (in 상품목록 페이지)
+    @Operation(summary = "관심상품 상품ID 기준 삭제", description = "사용자가 상품ID 기준으로 관심상품을 삭제하는 기능")
+    @DeleteMapping("/wish/delete/product/{productId}")
+    public ResponseEntity<Void> wishDeleteByProductId(
+            @PathVariable Long productId,
+            @AuthenticationPrincipal String username
+    ) {
+        storeProductService.wishDeleteByProductId(productId, username);
+
+        return ResponseEntity.noContent()
+                .build();
+    }
 
 }

@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+
 import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreBestProductList from "../../features/petStore/hooks/usePetStoreBestProductList";
+import usePetStoreWishToggle from "../../features/petStore/hooks/usePetStoreWishToggle";
 
 import dogStoreBanner from "../../assets/images/petStore/강아지홈배너.png";
 import foodCard from "../../assets/images/petStore/사료카드.png";
@@ -22,7 +24,6 @@ const categoryList = [
     image: foodCard,
     path: "/store/dog/food",
   },
-
   {
     id: "snack",
     title: "간식",
@@ -89,18 +90,29 @@ function getCategoryLabel(category) {
 
 export default function PetStoreDogHomePage() {
   const navigate = useNavigate();
+
   const { bestProductList, isBestLoading } = usePetStoreBestProductList("D");
+  const { wishSubmittingId, handleToggleWishlist } = usePetStoreWishToggle();
 
-  const [wishlistMap, setWishlistMap] = useState({});
+  const [bestProductViewList, setBestProductViewList] = useState([]);
 
-  function handleToggleWishlist(evt, productId) {
-    evt.stopPropagation();
+  useEffect(() => {
+    setBestProductViewList(bestProductList ?? []);
+  }, [bestProductList]);
 
-    setWishlistMap((prev) => ({
-      ...prev,
-      [productId]: !prev[productId],
-    }));
+  function updateBestProductWishState(productId, wished) {
+    setBestProductViewList((prev) =>
+      prev.map((product) =>
+        product.productId === productId
+          ? {
+              ...product,
+              wished,
+            }
+          : product,
+      ),
+    );
   }
+
   return (
     <>
       <PetStoreUserNav />
@@ -184,10 +196,10 @@ export default function PetStoreDogHomePage() {
                 <BestProductEmpty>
                   베스트 상품을 불러오는 중입니다...
                 </BestProductEmpty>
-              ) : bestProductList.length === 0 ? (
+              ) : bestProductViewList.length === 0 ? (
                 <BestProductEmpty>베스트 상품이 없습니다.</BestProductEmpty>
               ) : (
-                bestProductList.slice(0, 4).map((product, index) => {
+                bestProductViewList.slice(0, 4).map((product, index) => {
                   const tempReview = getTempReviewInfo(index);
 
                   return (
@@ -202,12 +214,22 @@ export default function PetStoreDogHomePage() {
                       <WishButton
                         type="button"
                         aria-label="관심상품"
-                        $active={!!wishlistMap[product.productId]}
+                        $active={!!product.wished}
+                        disabled={wishSubmittingId === product.productId}
                         onClick={(evt) =>
-                          handleToggleWishlist(evt, product.productId)
+                          handleToggleWishlist(
+                            evt,
+                            product,
+                            (updatedProduct) => {
+                              updateBestProductWishState(
+                                updatedProduct.productId,
+                                updatedProduct.wished,
+                              );
+                            },
+                          )
                         }
                       >
-                        {wishlistMap[product.productId] ? "♥" : "♡"}
+                        {product.wished ? "♥" : "♡"}
                       </WishButton>
 
                       <ProductImageBox>
@@ -713,6 +735,11 @@ const WishButton = styled.button`
 
   &:active {
     transform: scale(0.94);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: wait;
   }
 `;
 

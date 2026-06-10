@@ -22,7 +22,7 @@ import DiagnosisManagePage from "./pages/petcare/DiagnosisManagePage";
 import DiagnosisDetailPage from "./pages/petcare/DiagnosisDetailPage";
 import PetInsuranceMain from "./pages/petinsurance/PetInsuranceMain";
 import InsuranceAdminApplicationPage from "./pages/petinsurance/InsuranceAdminApplicationPage";
-
+import InsurancePaymentSuccessPage from "./pages/petinsurance/InsurancePaymentSuccessPage";
 // store
 import PetStoreAdminProductListPage from "./pages/petStore/PetStoreAdminProductListPage";
 import PetStoreHomePage from "./pages/petStore/PetStoreHomePage";
@@ -37,8 +37,11 @@ import PetStoreCatSnackProductListPage from "./pages/petStore/PetStoreCatSnackPr
 import PetStoreCatSupplementProductListPage from "./pages/petStore/PetStoreCatSupplementProductListPage";
 import PetStoreCatToiletProductListPage from "./pages/petStore/PetStoreCatToiletProductListPage";
 import PetStoreProductDetailPage from "./pages/petStore/PetStoreProductDetailPage";
+import PetStoreWishListPage from "./pages/petStore/PetStoreWishListPage";
 import PetStoreCartListPage from "./pages/petStore/PetStoreCartListPage";
 import PetStoreOrderPage from "./pages/petStore/PetStoreOrderPage";
+import PetStoreOrderCompletePage from "./pages/petStore/PetStoreOrderCompletePage";
+import PetStoreMyReviewListPage from "./pages/petStore/PetStoreMyReviewListPage";
 
 // mypage
 import MyPageHomePage from "./pages/mypage/MyPageHomePage";
@@ -57,10 +60,14 @@ import CommunityHistoryPage from "./pages/mypage/CommunityHistoryPage";
 import BoardHome from "./pages/board/BoardHome";
 import BoardDetailPage from "./pages/board/BoardDetailPage";
 import DeliveryManagePage from "./pages/mypage/DeliveryManagePage";
-import PetStoreOrderCompletePage from "./pages/petStore/PetStoreOrderCompletePage";
 import AdminMemberPage from "./pages/admin/member/AdminMemberPage";
 import AdminMessageSendPage from "./pages/admin/message/AdminMessageSendPage";
 import AdminSentMessagePage from "./pages/admin/message/AdminSentMessagePage";
+import OrderHistoryPage from "./pages/mypage/OrderHistoryPage";
+import AdminDeliveryPage from "./pages/admin/delivery/AdminDeliveryPage";
+import PetStoreReviewInsertPage from "./pages/petStore/PetStoreReviewInsertPage";
+import PetStoreReviewEditPage from "./pages/petStore/PetStoreReviewEditPage";
+import AdminInsurancePage from "./pages/admin/insurance/AdminInsurancePage";
 
 function App() {
   return (
@@ -96,14 +103,20 @@ function App() {
             <Route path="request" element={<DiagnosisRequestPage />} />
 
             {/* vet/admin */}
-            <Route path="manage" element={<DiagnosisManagePage />} />
-            <Route path="manage/:id" element={<DiagnosisDetailPage />} />
+            <Route path="doctor" element={<DiagnosisManagePage />} />
+            <Route path="doctor/:id" element={<DiagnosisDetailPage />} />
 
             {/* 펫보험 */}
             <Route path="petinsurance" element={<PetInsuranceMain />} />
+
             <Route
               path="petinsurance/admin"
               element={<InsuranceAdminApplicationPage />}
+            />
+
+            <Route
+              path="petinsurance/payment/success"
+              element={<InsurancePaymentSuccessPage />}
             />
           </Route>
 
@@ -117,6 +130,20 @@ function App() {
               path="product/admin"
               element={<PetStoreAdminProductListPage />}
             />
+
+            {/* 리뷰 */}
+            <Route path="review/list" element={<PetStoreMyReviewListPage />} />
+            <Route
+              path="review/insert/:orderItemId"
+              element={<PetStoreReviewInsertPage />}
+            />
+            <Route
+              path="review/edit/:reviewId"
+              element={<PetStoreReviewEditPage />}
+            />
+
+            {/* 관심상품 */}
+            <Route path="wish/list" element={<PetStoreWishListPage />} />
 
             {/* 장바구니 */}
             <Route path="cart/list" element={<PetStoreCartListPage />} />
@@ -182,11 +209,14 @@ function App() {
             <Route path="message" element={<MessageBoxPage />} />
             <Route path="community" element={<CommunityHistoryPage />} />
             <Route path="delivery" element={<DeliveryManagePage />} />
+            <Route path="orders" element={<OrderHistoryPage />} />
           </Route>
           <Route path="admin">
             <Route path="member" element={<AdminMemberPage />} />
             <Route path="message/send" element={<AdminMessageSendPage />} />
             <Route path="message/sent" element={<AdminSentMessagePage />} />
+            <Route path="delivery" element={<AdminDeliveryPage />} />
+            <Route path="insurance" element={<AdminInsurancePage />} />
           </Route>
 
           {/* 공용페이지 (route path 수정해야함)*/}

@@ -11,6 +11,8 @@ import {
   writeReplyApi,
   deleteReplyApi,
   toggleLikeApi,
+  reportBoardApi,
+  updateReplyApi,
 } from "../../features/board/api/boardApi";
 import BoardSubNavbar from "./components/BoardSubNavbar";
 
@@ -59,6 +61,10 @@ export default function BoardDetailPage() {
   // 대댓글용 상태
   const [activeReplyParentId, setActiveReplyParentId] = useState(null);
   const [replyContent, setReplyContent] = useState("");
+
+  // 댓글 수정용 상태
+  const [editingReplyId, setEditingReplyId] = useState(null);
+  const [editingContent, setEditingContent] = useState("");
 
   // 게시글 상세정보 수신 시 댓글 목록 및 좋아요 상태 동기화
   useEffect(() => {
@@ -134,6 +140,50 @@ export default function BoardDetailPage() {
     }
   };
 
+  // 게시글 신고 핸들러
+  const handleReport = async () => {
+    if (!loginMember) {
+      alert("로그인이 필요한 서비스입니다.");
+      return;
+    }
+    const reason = window.prompt("신고 사유를 입력해주세요:");
+    if (reason === null) return;
+    if (!reason.trim()) {
+      alert("신고 사유를 입력해야 합니다.");
+      return;
+    }
+    try {
+      await reportBoardApi(id, reason.trim());
+      alert("신고가 접수되었습니다.");
+      refetch();
+    } catch (err) {
+      console.error("신고 실패:", err);
+      if (err.response && err.response.data) {
+        alert(err.response.data);
+      } else {
+        alert("신고 처리에 실패했습니다.");
+      }
+    }
+  };
+
+  // 댓글 수정 핸들러
+  const handleCommentEdit = async (e, replyId) => {
+    e.preventDefault();
+    if (!editingContent.trim()) {
+      alert("댓글 내용을 입력해주세요.");
+      return;
+    }
+    try {
+      await updateReplyApi(replyId, editingContent.trim());
+      setEditingReplyId(null);
+      setEditingContent("");
+      refetch();
+    } catch (err) {
+      console.error("댓글 수정 실패:", err);
+      alert("댓글 수정에 실패했습니다.");
+    }
+  };
+
   // 게시글 수정 이동 핸들러
   const handleEditRedirect = () => {
     if (!detail) return;
@@ -195,11 +245,25 @@ export default function BoardDetailPage() {
         console.error("loginMember parse error", e);
       }
     }
-    const token = loginMember?.accessToken || localStorage.getItem("accessToken");
+    const token =
+      loginMember?.accessToken || localStorage.getItem("accessToken");
     if (token) {
       try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        return payload.role;
+        const payloadPart = token.split(".")[1];
+        if (payloadPart) {
+          const base64 = payloadPart.replace(/-/g, "+").replace(/_/g, "/");
+          const decodedPayload = decodeURIComponent(
+            atob(base64)
+              .split("")
+              .map(
+                (char) =>
+                  `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`,
+              )
+              .join(""),
+          );
+          const payload = JSON.parse(decodedPayload);
+          return payload.role;
+        }
       } catch (e) {
         console.error("Token decode error", e);
       }
@@ -248,6 +312,20 @@ export default function BoardDetailPage() {
             <CategoryBadge>{detail.boardSubCategory}</CategoryBadge>
           )}
           <PostTitle>{detail.title}</PostTitle>
+          {/* 리뷰 평점 별점 노출 */}
+          {(detail.boardCategory === "PRODUCT_REVIEW" ||
+            detail.boardCategory === "FAC_REVIEW") && (
+            <StarsRatingDisplay>
+              <StarsLabel>평점</StarsLabel>
+              <StarsList>
+                {[1, 2, 3, 4, 5].map((score) => (
+                  <StarIcon key={score} $filled={(detail.stars ?? 5) >= score}>
+                    ★
+                  </StarIcon>
+                ))}
+              </StarsList>
+            </StarsRatingDisplay>
+          )}
           {/* 작성자 정보 및 메타데이터 행 */}
           <PostMetaRow>
             <MetaLeft>
@@ -312,7 +390,7 @@ export default function BoardDetailPage() {
               </LikeButtonBox>
 
               <ReportShareRow>
-                <ActionLinkButton onClick={() => alert("신고되었습니다.")}>
+                <ActionLinkButton onClick={handleReport}>
                   신고
                 </ActionLinkButton>
                 <ActionSeparator>|</ActionSeparator>
@@ -402,9 +480,23 @@ export default function BoardDetailPage() {
                         <CommentAuthor>{comment.writerNickname}</CommentAuthor>
                         {comment.isAuthor && <AuthorBadge>작성자</AuthorBadge>}
                       </CommentMetaRow>
-                      <CommentText>{comment.content}</CommentText>
+                      {editingReplyId === comment.id ? (
+                        <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                          <CommentTextarea
+                            value={editingContent}
+                            onChange={(e) => setEditingContent(e.target.value)}
+                            style={{ borderRadius: "8px", minHeight: "60px" }}
+                          />
+                          <EditButtonGroup>
+                            <EditActionButton $save onClick={(e) => handleCommentEdit(e, comment.id)}>저장</EditActionButton>
+                            <EditActionButton onClick={() => { setEditingReplyId(null); setEditingContent(""); }}>취소</EditActionButton>
+                          </EditButtonGroup>
+                        </div>
+                      ) : (
+                        <CommentText>{comment.content}</CommentText>
+                      )}
                       <CommentFooterRow>
-                        {loginMember && (
+                        {editingReplyId !== comment.id && loginMember && (
                           <CommentActionLink
                             onClick={() => {
                               if (activeReplyParentId === comment.id) {
@@ -413,6 +505,7 @@ export default function BoardDetailPage() {
                                 setActiveReplyParentId(comment.id);
                                 setReplyContent("");
                               }
+                              setEditingReplyId(null);
                             }}
                           >
                             {activeReplyParentId === comment.id
@@ -420,7 +513,18 @@ export default function BoardDetailPage() {
                               : "답글달기"}
                           </CommentActionLink>
                         )}
-                        {(loginMember?.nickname === comment.writerNickname ||
+                        {editingReplyId !== comment.id && loginMember?.nickname === comment.writerNickname && (
+                          <CommentActionLink
+                            onClick={() => {
+                              setEditingReplyId(comment.id);
+                              setEditingContent(comment.content);
+                              setActiveReplyParentId(null);
+                            }}
+                          >
+                            수정
+                          </CommentActionLink>
+                        )}
+                        {editingReplyId !== comment.id && (loginMember?.nickname === comment.writerNickname ||
                           isSuperAdmin ||
                           isBoardAdmin) && (
                           <CommentReportLink
@@ -430,11 +534,13 @@ export default function BoardDetailPage() {
                             삭제
                           </CommentReportLink>
                         )}
-                        <CommentReportLink
-                          onClick={() => alert("신고되었습니다.")}
-                        >
-                          신고
-                        </CommentReportLink>
+                        {editingReplyId !== comment.id && (
+                          <CommentReportLink
+                            onClick={() => alert("신고되었습니다.")}
+                          >
+                            신고
+                          </CommentReportLink>
+                        )}
                       </CommentFooterRow>
                     </CommentContentBox>
                   </CommentItem>
@@ -483,9 +589,33 @@ export default function BoardDetailPage() {
                                 <AuthorBadge>작성자</AuthorBadge>
                               )}
                             </CommentMetaRow>
-                            <CommentText>{reply.content}</CommentText>
+                            {editingReplyId === reply.id ? (
+                              <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                                <CommentTextarea
+                                  value={editingContent}
+                                  onChange={(e) => setEditingContent(e.target.value)}
+                                  style={{ borderRadius: "8px", minHeight: "60px" }}
+                                />
+                                <EditButtonGroup>
+                                  <EditActionButton $save onClick={(e) => handleCommentEdit(e, reply.id)}>저장</EditActionButton>
+                                  <EditActionButton onClick={() => { setEditingReplyId(null); setEditingContent(""); }}>취소</EditActionButton>
+                                </EditButtonGroup>
+                              </div>
+                            ) : (
+                              <CommentText>{reply.content}</CommentText>
+                            )}
                             <CommentFooterRow>
-                              {(loginMember?.nickname ===
+                              {editingReplyId !== reply.id && loginMember?.nickname === reply.writerNickname && (
+                                <CommentActionLink
+                                  onClick={() => {
+                                    setEditingReplyId(reply.id);
+                                    setEditingContent(reply.content);
+                                  }}
+                                >
+                                  수정
+                                </CommentActionLink>
+                              )}
+                              {editingReplyId !== reply.id && (loginMember?.nickname ===
                                 reply.writerNickname ||
                                 isSuperAdmin ||
                                 isBoardAdmin) && (
@@ -496,11 +626,13 @@ export default function BoardDetailPage() {
                                   삭제
                                 </CommentReportLink>
                               )}
-                              <CommentReportLink
-                                onClick={() => alert("신고되었습니다")}
-                              >
-                                신고
-                              </CommentReportLink>
+                              {editingReplyId !== reply.id && (
+                                <CommentReportLink
+                                  onClick={() => alert("신고되었습니다")}
+                                >
+                                  신고
+                                </CommentReportLink>
+                              )}
                             </CommentFooterRow>
                           </CommentContentBox>
                         </ReplyContentCard>
@@ -642,6 +774,36 @@ const PostTitle = styled.h2`
   color: #122d2e;
   margin: 0 0 20px 0;
   line-height: 1.4;
+`;
+
+const StarsRatingDisplay = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 8px 16px;
+  background-color: #f8fdfb;
+  border: 1px solid rgba(0, 169, 123, 0.15);
+  border-radius: 6px;
+  align-self: flex-start;
+`;
+
+const StarsLabel = styled.span`
+  font-size: 13px;
+  font-weight: 700;
+  color: #333333;
+`;
+
+const StarsList = styled.div`
+  display: flex;
+  gap: 4px;
+`;
+
+const StarIcon = styled.span`
+  font-size: 18px;
+  color: ${(props) => (props.$filled ? "#ffbc00" : "#dee2e6")};
+  filter: ${(props) =>
+    props.$filled ? "drop-shadow(0 0 1px rgba(255, 188, 0, 0.4))" : "none"};
 `;
 
 const PostMetaRow = styled.div`
@@ -937,6 +1099,30 @@ const CommentSubmitButton = styled.button`
   &:disabled {
     background-color: #dee2e6;
     cursor: not-allowed;
+  }
+`;
+
+const EditButtonGroup = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  align-self: flex-end;
+`;
+
+const EditActionButton = styled.button`
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid ${(props) => (props.$save ? "var(--color-main)" : "#dee2e6")};
+  background-color: ${(props) => (props.$save ? "var(--color-main)" : "#ffffff")};
+  color: ${(props) => (props.$save ? "#ffffff" : "#495057")};
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: ${(props) => (props.$save ? "#008f68" : "#f1f3f5")};
+    border-color: ${(props) => (props.$save ? "#008f68" : "#dee2e6")};
   }
 `;
 

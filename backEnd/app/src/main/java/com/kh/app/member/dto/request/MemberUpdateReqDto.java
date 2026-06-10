@@ -19,4 +19,5 @@ public class MemberUpdateReqDto {
     private String phone;
     private String address;
     private String addressDetail;
+    private String memberMarketingAgreeYn;
 }

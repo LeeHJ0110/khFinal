@@ -28,7 +28,10 @@ public class MemberJoinReqDto {
             message = "전화번호 형식이 올바르지 않습니다."
     )
     private String phone;
+    @NotBlank(message = "주소를 입력해주세요.")
     private String address;
+
+    @NotBlank(message = "상세주소를 입력해주세요.")
     private String addressDetail;
     private String zipCode;
     private MemberMarketingAgreeYn memberMarketingAgreeYn;

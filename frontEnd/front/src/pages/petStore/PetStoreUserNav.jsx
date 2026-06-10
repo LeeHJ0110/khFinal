@@ -83,8 +83,9 @@ export default function PetStoreUserNav({ targetPetType, activeCategory }) {
   }
 
   const rightMenus = [
+    { label: "리뷰내역", path: "/store/review/list" },
     { label: "장바구니", path: "/store/cart/list", count: cartItemCount },
-    { label: "관심상품", path: "/store/wish" },
+    { label: "관심상품", path: "/store/wish/list" },
   ];
 
   return (

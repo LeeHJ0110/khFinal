@@ -90,11 +90,17 @@ function PreviewSection({ selectedPet, onChangeSelectedPet }) {
 
   const [petList, setPetList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
   const [isPetMenuOpen, setIsPetMenuOpen] = useState(false);
+
+  const [hasProfileImageError, setHasProfileImageError] = useState(false);
 
   // 부모 컴포넌트에서 관리하는 선택 펫
   const petInfo = selectedPet;
 
+  // =====================================
+  // 로그인한 회원의 반려동물 목록 조회
+  // =====================================
   useEffect(() => {
     async function loadPetInfo() {
       try {
@@ -125,6 +131,17 @@ function PreviewSection({ selectedPet, onChangeSelectedPet }) {
     loadPetInfo();
   }, [onChangeSelectedPet]);
 
+  // 현재 선택된 펫 이미지 URL
+  const profileImageUrl = getProfileImageUrl(petInfo);
+
+  // =====================================
+  // 펫 또는 이미지 주소 변경 시
+  // 기존 이미지 오류 상태 초기화
+  // =====================================
+  useEffect(() => {
+    setHasProfileImageError(false);
+  }, [petInfo?.petId, profileImageUrl]);
+
   if (isLoading) {
     return (
       <PreviewWrapper>
@@ -133,15 +150,14 @@ function PreviewSection({ selectedPet, onChangeSelectedPet }) {
     );
   }
 
-  // 현재 선택된 펫 정보
-  const profileImageUrl = getProfileImageUrl(petInfo);
-
   const age = calculateAge(petInfo?.birthDate);
 
   // 현재 선택된 펫의 건강진단 진행 여부
   const isApplying = petInfo?.diagnosisInProgress === true;
 
+  // =====================================
   // 선택한 펫 변경
+  // =====================================
   function handleSelectPet(pet) {
     onChangeSelectedPet(pet);
     setIsPetMenuOpen(false);
@@ -154,13 +170,19 @@ function PreviewSection({ selectedPet, onChangeSelectedPet }) {
         {petInfo ? (
           <>
             <ProfileImageBox>
-              {profileImageUrl ? (
+              {profileImageUrl && !hasProfileImageError ? (
                 <ProfileImage
                   src={profileImageUrl}
                   alt={`${petInfo.name ?? "반려동물"} 프로필`}
+                  onError={() => setHasProfileImageError(true)}
                 />
               ) : (
-                <NoProfileImage>이미지 없음</NoProfileImage>
+                <DefaultProfileEmoji
+                  aria-label="기본 반려동물 프로필"
+                  role="img"
+                >
+                  🐾
+                </DefaultProfileEmoji>
               )}
             </ProfileImageBox>
 
@@ -336,13 +358,12 @@ const PetProfileArea = styled.section`
   align-items: center;
   gap: 20px;
 
-  padding: 18px 20px;
+  padding: 20px;
 
   box-sizing: border-box;
 
   border: 1px solid rgba(0, 169, 123, 0.2);
-
-  border-radius: 12px;
+  border-radius: 14px;
 
   background: var(--color-white);
 
@@ -357,6 +378,16 @@ const PetProfileArea = styled.section`
     box-shadow: 0 10px 24px rgba(0, 169, 123, 0.1);
 
     transform: translateY(-3px);
+  }
+
+  @media (max-width: 720px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+
+    min-height: auto;
+    margin-top: 30px;
+    padding: 18px;
   }
 `;
 
@@ -374,7 +405,7 @@ const ProfileImageBox = styled.div`
 
   border-radius: 50%;
 
-  background: var(--color-bg-light);
+  background: #dddddd;
 
   transition:
     transform 0.25s ease,
@@ -384,6 +415,13 @@ const ProfileImageBox = styled.div`
     box-shadow: 0 6px 16px rgba(0, 169, 123, 0.14);
 
     transform: scale(1.04);
+  }
+
+  @media (max-width: 720px) {
+    width: 112px;
+    height: 112px;
+
+    align-self: center;
   }
 `;
 
@@ -400,11 +438,18 @@ const ProfileImage = styled.img`
   }
 `;
 
-const NoProfileImage = styled.span`
-  color: var(--text-desc);
+const DefaultProfileEmoji = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  font-size: 13px;
-  font-weight: 600;
+  width: 100%;
+  height: 100%;
+
+  background: #dddddd;
+
+  font-size: 34px;
+  line-height: 1;
 `;
 
 const ProfileContent = styled.div`
@@ -419,20 +464,35 @@ const ProfileHeader = styled.div`
   gap: 10px;
 
   margin-bottom: 5px;
+
+  @media (max-width: 420px) {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 `;
 
 const PetName = styled.h2`
+  min-width: 0;
   margin: 0;
+
+  overflow: hidden;
 
   color: var(--text-main);
 
   font-size: 27px;
   font-weight: 800;
 
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
   transition: color 0.2s ease;
 
   ${PetProfileArea}:hover & {
     color: var(--color-main);
+  }
+
+  @media (max-width: 720px) {
+    font-size: 23px;
   }
 `;
 
@@ -445,17 +505,19 @@ const PetChangeArea = styled.div`
 const ChangePetButton = styled.button`
   flex-shrink: 0;
 
-  padding: 6px 10px;
+  padding: 7px 11px;
 
   border: 1px solid rgba(0, 169, 123, 0.34);
-
-  border-radius: 7px;
+  border-radius: 8px;
 
   background: var(--color-white);
+
   color: var(--color-main);
 
   font-size: 12px;
   font-weight: 700;
+
+  white-space: nowrap;
 
   cursor: pointer;
 
@@ -559,6 +621,7 @@ const PetInfoBadge = styled.span`
   border-radius: 6px;
 
   background: var(--color-white);
+
   color: var(--text-sub);
 
   font-size: 12px;
@@ -635,21 +698,34 @@ const PointText = styled.p`
 
 const ProfileButtonGroup = styled.div`
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1.15fr;
+
+  margin-top: 4px;
+
+  overflow: hidden;
+
+  border: 1px solid #d9e3df;
+  border-radius: 10px;
+
+  background: var(--color-white);
+
+  @media (max-width: 420px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const SubButton = styled.button`
-  height: 43px;
+  height: 44px;
 
-  border: 1px solid var(--text-disabled);
-
-  border-radius: 7px 0 0 7px;
+  border: none;
+  border-right: 1px solid #d9e3df;
 
   background: var(--color-white);
+
   color: var(--text-sub);
 
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
 
   cursor: pointer;
 
@@ -662,29 +738,45 @@ const SubButton = styled.button`
 
     color: var(--color-main);
   }
+
+  @media (max-width: 420px) {
+    border-right: none;
+    border-bottom: 1px solid #d9e3df;
+  }
 `;
 
 const ApplyButton = styled.button`
-  height: 43px;
+  height: 44px;
 
   border: none;
-  border-radius: 0 7px 7px 0;
 
   background: var(--color-main);
+
   color: var(--color-white);
 
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 800;
 
   cursor: pointer;
 
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--color-main-dark);
+
+    box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.04);
+  }
+
   &:disabled {
-    background: #c5d4cf;
+    background: #d5e0dc;
+
+    color: var(--color-white);
 
     cursor: not-allowed;
   }
 `;
-
 /* =====================================
    등록된 반려동물이 없는 경우
 ===================================== */
@@ -717,6 +809,7 @@ const RegisterButton = styled.button`
   border-radius: 8px;
 
   background: var(--color-white);
+
   color: var(--color-main);
 
   font-size: 14px;
@@ -730,8 +823,12 @@ const RegisterButton = styled.button`
 ===================================== */
 
 const NeedDiagnosisArea = styled.section`
+  position: relative;
+  z-index: 1;
+
   width: 100%;
-  height: 240px;
+  min-width: 0;
+
   min-height: 243px;
 
   flex-shrink: 0;
@@ -748,8 +845,27 @@ const NeedDiagnosisArea = styled.section`
   border-radius: 11px;
 
   background: color-mix(in srgb, var(--color-bg-soft) 55%, var(--color-white));
-`;
 
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+
+  &:hover {
+    z-index: 5;
+
+    transform: scale(1.015);
+
+    box-shadow: 0 14px 32px rgba(0, 169, 123, 0.12);
+  }
+
+  @media (max-width: 720px) {
+    align-items: flex-start;
+    flex-direction: column;
+
+    min-height: auto;
+    padding: 18px;
+  }
+`;
 const NeedTextArea = styled.div`
   min-width: 0;
 `;
@@ -816,6 +932,7 @@ const CheckIcon = styled.span`
   border-radius: 50%;
 
   background: var(--color-main);
+
   color: var(--color-white);
 
   font-size: 15px;
@@ -829,6 +946,12 @@ const NeedImage = styled.img`
   flex-shrink: 0;
 
   object-fit: contain;
+
+  @media (max-width: 720px) {
+    width: min(210px, 70%);
+
+    align-self: flex-end;
+  }
 `;
 
 const LoadingText = styled.p`

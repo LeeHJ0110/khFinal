@@ -56,52 +56,71 @@ const HeroArea = styled.section`
   box-sizing: border-box;
 `;
 
-// 배너 내부 컨테이너와 동일한 기준으로 정렬
+// =========================================================
+// 하단 레이아웃
+//
+// 왼쪽 안내 카드 + 오른쪽 보험 상품 목록
+// 오른쪽 영역은 무한정 늘어나지 않도록 최대 너비 제한
+// =========================================================
 const BottomLayout = styled.main`
   display: grid;
-  grid-template-columns: 350px minmax(0, 1fr);
-  gap: 100px;
+
+  grid-template-columns:
+    400px
+    minmax(0, 1fr);
 
   align-items: start;
 
-  width: min(
-    var(--layout-max-width),
-    calc(100% - (var(--layout-padding-x) * 2))
-  );
+  gap: 70px;
 
-  margin: 30px auto 72px;
+  width: min(1600px, calc(100% - 48px));
+
+  margin: 38px auto 100px;
 
   box-sizing: border-box;
 
   @media (max-width: 1100px) {
-    grid-template-columns: 1fr;
+    grid-template-columns:
+      220px
+      minmax(0, 1fr);
+
+
+    width: calc(100% - 32px);
   }
 
   @media (max-width: 760px) {
-    width: min(100% - 30px, var(--layout-max-width));
+    grid-template-columns:
+      minmax(210px, 220px)
+      minmax(0, 1fr);
+
+    gap: 8px;
+
+    width: calc(100% - 24px);
 
     margin: 22px auto 46px;
   }
 `;
-
+// =========================================================
+// 왼쪽 보험 이용 안내 카드
+// =========================================================
 const EstimateArea = styled.aside`
+  position: sticky;
+  top: 24px;
+ 
   width: 100%;
-  margin-left:100px;
 
   box-sizing: border-box;
-
-  @media (min-width: 1101px) {
-    position: sticky;
-    top: 24px;
-    
-  }
 `;
 
+// =========================================================
+// 오른쪽 보험 상품 목록
+// =========================================================
 const InsuranceArea = styled.section`
   display: flex;
   flex-direction: column;
 
   width: 100%;
+  max-width: 1330px;
   min-width: 0;
 
   box-sizing: border-box;

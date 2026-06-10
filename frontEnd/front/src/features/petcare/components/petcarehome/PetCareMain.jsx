@@ -46,11 +46,10 @@ const BottomArea = styled.div`
   width: 85%;
 
   display: grid;
- grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-  gap: 24px;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 20px;
 
   margin: 0 auto;
-  padding: 20px 5px;
 
   align-items: start;
 

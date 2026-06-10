@@ -7,6 +7,7 @@ import {
   updatePet,
   changeRepresentPet,
   uploadPetImage,
+  getPetInsurancePayments,
 } from "../api/petApi";
 export default function usePet() {
   const [petList, setPetList] = useState([]);
@@ -14,6 +15,7 @@ export default function usePet() {
   const [selectedPetIndex, setSelectedPetIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [insurancePaymentList, setInsurancePaymentList] = useState([]);
 
   async function fetchMyPetList() {
     try {
@@ -147,6 +149,21 @@ export default function usePet() {
       return false;
     }
   }
+  async function fetchInsurancePayments(petId) {
+    try {
+      const response = await getPetInsurancePayments(petId);
+
+      setInsurancePaymentList(response.data || []);
+
+      return response.data || [];
+    } catch (err) {
+      console.error(err);
+
+      setInsurancePaymentList([]);
+
+      return [];
+    }
+  }
 
   return {
     petList,
@@ -166,5 +183,8 @@ export default function usePet() {
     handleDeletePet,
     handleRepresentPet,
     handleUploadPetImage,
+
+    insurancePaymentList,
+    fetchInsurancePayments,
   };
 }

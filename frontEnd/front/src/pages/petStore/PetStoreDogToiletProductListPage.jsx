@@ -1,5 +1,5 @@
-import { useState } from "react";
 import styled from "styled-components";
+import usePetStoreWishToggle from "../../features/petStore/hooks/usePetStoreWishToggle";
 import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreProductList from "../../features/petStore/hooks/usePetStoreProductList";
 import PetStoreRecentAside from "./PetStoreRecentAside";
@@ -92,18 +92,10 @@ export default function PetStoreDogToiletProductListPage() {
     handleSearch,
     handleChangeSort,
     handleChangeTagId,
+    updateProductWishState,
   } = usePetStoreProductList("D", "TOILET");
 
-  const [wishlistMap, setWishlistMap] = useState({});
-
-  function handleToggleWishlist(evt, productId) {
-    evt.stopPropagation();
-
-    setWishlistMap((prev) => ({
-      ...prev,
-      [productId]: !prev[productId],
-    }));
-  }
+  const { wishSubmittingId, handleToggleWishlist } = usePetStoreWishToggle();
 
   return (
     <>
@@ -215,12 +207,22 @@ export default function PetStoreDogToiletProductListPage() {
                         <WishButton
                           type="button"
                           aria-label="관심상품"
-                          $active={!!wishlistMap[product.productId]}
+                          $active={!!product.wished}
+                          disabled={wishSubmittingId === product.productId}
                           onClick={(evt) =>
-                            handleToggleWishlist(evt, product.productId)
+                            handleToggleWishlist(
+                              evt,
+                              product,
+                              (updatedProduct) => {
+                                updateProductWishState(
+                                  updatedProduct.productId,
+                                  updatedProduct.wished,
+                                );
+                              },
+                            )
                           }
                         >
-                          {wishlistMap[product.productId] ? "♥" : "♡"}
+                          {product.wished ? "♥" : "♡"}
                         </WishButton>
 
                         <ProductImageBox>
@@ -293,12 +295,6 @@ const HeroBannerImage = styled.img`
 
   display: block;
   object-fit: cover;
-
-  /*
-    배변 배너는 동물과 상품이 낮게 배치된 이미지라
-    center 50% 기준이 가장 무난합니다.
-    만약 아래쪽이 너무 많이 보이면 45%, 위가 잘리면 55%로 조절하세요.
-  */
   object-position: center 80%;
 `;
 
@@ -647,6 +643,11 @@ const WishButton = styled.button`
 
   &:active {
     transform: scale(0.94);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: wait;
   }
 `;
 

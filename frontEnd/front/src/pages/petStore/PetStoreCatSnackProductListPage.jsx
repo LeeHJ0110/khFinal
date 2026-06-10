@@ -1,5 +1,5 @@
-import { useState } from "react";
 import styled from "styled-components";
+import usePetStoreWishToggle from "../../features/petStore/hooks/usePetStoreWishToggle";
 import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreProductList from "../../features/petStore/hooks/usePetStoreProductList";
 import PetStoreRecentAside from "./PetStoreRecentAside";
@@ -92,18 +92,10 @@ export default function PetStoreCatSnackProductListPage() {
     handleSearch,
     handleChangeSort,
     handleChangeTagId,
+    updateProductWishState,
   } = usePetStoreProductList("C", "SNACK");
 
-  const [wishlistMap, setWishlistMap] = useState({});
-
-  function handleToggleWishlist(evt, productId) {
-    evt.stopPropagation();
-
-    setWishlistMap((prev) => ({
-      ...prev,
-      [productId]: !prev[productId],
-    }));
-  }
+  const { wishSubmittingId, handleToggleWishlist } = usePetStoreWishToggle();
 
   return (
     <>
@@ -151,6 +143,7 @@ export default function PetStoreCatSnackProductListPage() {
                     }}
                     placeholder="제품명을 입력하세요."
                   />
+
                   <SearchButton type="button" onClick={handleSearch}>
                     🔍
                   </SearchButton>
@@ -211,12 +204,22 @@ export default function PetStoreCatSnackProductListPage() {
                         <WishButton
                           type="button"
                           aria-label="관심상품"
-                          $active={!!wishlistMap[product.productId]}
+                          $active={!!product.wished}
+                          disabled={wishSubmittingId === product.productId}
                           onClick={(evt) =>
-                            handleToggleWishlist(evt, product.productId)
+                            handleToggleWishlist(
+                              evt,
+                              product,
+                              (updatedProduct) => {
+                                updateProductWishState(
+                                  updatedProduct.productId,
+                                  updatedProduct.wished,
+                                );
+                              },
+                            )
                           }
                         >
-                          {wishlistMap[product.productId] ? "♥" : "♡"}
+                          {product.wished ? "♥" : "♡"}
                         </WishButton>
 
                         <ProductImageBox>
@@ -638,6 +641,11 @@ const WishButton = styled.button`
   &:active {
     transform: scale(0.94);
   }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: wait;
+  }
 `;
 
 const ProductImageBox = styled.div`
@@ -659,10 +667,10 @@ const ProductImageBox = styled.div`
 const ProductTagBadge = styled.span`
   position: absolute;
   left: 2px;
-  top: 0px;
+  top: 0;
   z-index: 2;
 
-  width: 50px;
+  width: fit-content;
   min-width: 40px;
   height: 21px;
   padding: 0 9px;

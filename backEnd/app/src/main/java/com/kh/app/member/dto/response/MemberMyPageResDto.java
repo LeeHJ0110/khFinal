@@ -30,6 +30,8 @@ public class MemberMyPageResDto {
 
     private String profileImageUrl;
 
+    private String memberMarketingAgreeYn;
+
     public static MemberMyPageResDto from(
             MemberEntity member,
             String profileImageUrl
@@ -48,6 +50,11 @@ public class MemberMyPageResDto {
                 .address(member.getAddress())
                 .addressDetail(member.getAddressDetail())
                 .profileImageUrl(profileImageUrl)
+                .memberMarketingAgreeYn(
+                        member.getMemberMarketingAgreeYn() != null
+                                ? member.getMemberMarketingAgreeYn().name()
+                                : "N"
+                )
                 .build();
     }
 

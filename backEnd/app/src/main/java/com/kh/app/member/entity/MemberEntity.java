@@ -86,13 +86,15 @@ public class MemberEntity extends BaseEntity {
             String email,
             String phone,
             String address,
-            String addressDetail
+            String addressDetail,
+            MemberMarketingAgreeYn memberMarketingAgreeYn
     ) {
         this.nickname = nickname;
         this.email = email;
         this.phone = phone;
         this.address = address;
         this.addressDetail = addressDetail;
+        this.memberMarketingAgreeYn = memberMarketingAgreeYn;
     }
     public void changeStatus(MemberStatus status) {
         this.status = status;
@@ -105,5 +107,26 @@ public class MemberEntity extends BaseEntity {
     public void changeNickname(String nickname) {
         this.nickname = nickname;
     }
+
+    public void earnPoint(Long amount) {
+        if (amount == null || amount <= 0) {
+            throw new IllegalArgumentException("적립 포인트는 0보다 커야 합니다.");
+        }
+
+        this.point += amount;
+    }
+
+    public void usePoint(Long amount) {
+        if (amount == null || amount <= 0) {
+            throw new IllegalArgumentException("사용 포인트는 0보다 커야 합니다.");
+        }
+
+        if (this.point < amount) {
+            throw new IllegalArgumentException("보유 포인트가 부족합니다.");
+        }
+
+        this.point -= amount;
+    }
+
 
 }

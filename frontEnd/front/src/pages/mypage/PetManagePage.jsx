@@ -19,6 +19,9 @@ export default function PetManagePage() {
     handleDeletePet,
     handleRepresentPet,
     handleUploadPetImage,
+
+    insurancePaymentList,
+    fetchInsurancePayments,
   } = usePet();
 
   const emptyForm = {
@@ -34,7 +37,6 @@ export default function PetManagePage() {
   const [isCreateMode, setCreateMode] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
   const fileInputRef = useRef(null);
-  const insuranceList = [];
 
   useEffect(() => {
     if (!selectedPet || isCreateMode) return;
@@ -52,7 +54,7 @@ export default function PetManagePage() {
     });
 
     fetchBreedList(petType);
-  }, [selectedPet, isCreateMode]);
+  }, [selectedPet?.petId, isCreateMode]);
   useEffect(() => {
     if (loading) {
       return;
@@ -81,6 +83,13 @@ export default function PetManagePage() {
       await fetchBreedList(value);
     }
   }
+  useEffect(() => {
+    if (!selectedPet?.petId || isCreateMode) {
+      return;
+    }
+
+    fetchInsurancePayments(selectedPet.petId);
+  }, [selectedPet?.petId, isCreateMode]);
   function handleSelectPet(index) {
     selectPet(index);
     setCreateMode(false);
@@ -122,6 +131,15 @@ export default function PetManagePage() {
 
     if (!formData.breedName.trim()) {
       alert("품종을 입력하세요.");
+      return;
+    }
+
+    const isValidBreed = breedList.some(
+      (breed) => breed.breedName === formData.breedName,
+    );
+
+    if (!isValidBreed) {
+      alert("목록에 있는 품종을 선택해주세요.");
       return;
     }
 
@@ -223,7 +241,7 @@ export default function PetManagePage() {
                     {!isCreateMode && selectedPet?.imageUrl ? (
                       <img src={selectedPet.imageUrl} alt={selectedPet.name} />
                     ) : (
-                      <span>🐶</span>
+                      <span>🐾</span>
                     )}
                   </PetProfileImage>
 
@@ -262,19 +280,19 @@ export default function PetManagePage() {
                 </InfoRow>
                 <InfoRow>
                   <span>품종</span>
-                  <Select
+                  <Input
                     name="breedName"
                     value={formData.breedName}
                     onChange={handleChange}
-                  >
-                    <option value="">품종 선택</option>
+                    placeholder="품종을 검색하세요"
+                    list="breed-options"
+                  />
 
+                  <datalist id="breed-options">
                     {breedList.map((breed) => (
-                      <option key={breed.breedId} value={breed.breedName}>
-                        {breed.breedName}
-                      </option>
+                      <option key={breed.breedId} value={breed.breedName} />
                     ))}
-                  </Select>
+                  </datalist>
                 </InfoRow>
 
                 <InfoRow>
@@ -334,10 +352,33 @@ export default function PetManagePage() {
               </PetFormCard>
 
               <InsuranceCard>
-                <SectionTitle>반려동물 보험</SectionTitle>
+                <SectionTitle>보험 결제 내역</SectionTitle>
 
-                {insuranceList.length > 0 ? (
-                  <div>보험 정보 영역</div>
+                {insurancePaymentList.length > 0 ? (
+                  <PaymentList>
+                    {insurancePaymentList.map((payment) => (
+                      <PaymentItem key={payment.paymentId}>
+                        <PaymentProduct>{payment.productName}</PaymentProduct>
+                        <PaymentDate>
+                          {payment.paidAt
+                            ? String(payment.paidAt)
+                                .replace("T", " ")
+                                .slice(0, 16)
+                            : "-"}
+                        </PaymentDate>
+
+                        <PaymentAmount>
+                          {payment.paymentAmount?.toLocaleString()}원
+                        </PaymentAmount>
+
+                        <PaymentStatus $status={payment.paymentStatus}>
+                          {payment.paymentStatus === "SUCCESS" && "결제완료"}
+                          {payment.paymentStatus === "FAILED" && "결제실패"}
+                          {payment.paymentStatus === "CANCELLED" && "결제취소"}
+                        </PaymentStatus>
+                      </PaymentItem>
+                    ))}
+                  </PaymentList>
                 ) : (
                   <EmptyInsurance>가입한 보험이 없습니다</EmptyInsurance>
                 )}
@@ -568,4 +609,64 @@ const ImageButton = styled.button`
 
   font-weight: 700;
   cursor: pointer;
+`;
+
+const PaymentList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  max-height: 420px;
+  overflow-y: auto;
+`;
+
+const PaymentItem = styled.div`
+  background: white;
+  border-radius: 10px;
+  padding: 14px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  border: 1px solid #e8e8e8;
+`;
+
+const PaymentDate = styled.div`
+  font-size: 13px;
+  color: #888;
+`;
+
+const PaymentAmount = styled.div`
+  font-size: 18px;
+  font-weight: 800;
+  color: #222;
+`;
+
+const PaymentStatus = styled.div`
+  align-self: flex-start;
+
+  padding: 4px 10px;
+
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  color: ${({ $status }) => {
+    if ($status === "SUCCESS") return "#00a982";
+    if ($status === "FAILED") return "#fa5252";
+    return "#666";
+  }};
+
+  background: ${({ $status }) => {
+    if ($status === "SUCCESS") return "#d9f6ec";
+    if ($status === "FAILED") return "#fff0f0";
+    return "#f1f3f5";
+  }};
+`;
+const PaymentProduct = styled.div`
+  font-size: 15px;
+  font-weight: 700;
+  color: #222;
 `;
