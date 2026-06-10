@@ -24,6 +24,7 @@ import PetScoreChart from "../../features/karte/components/ScoreAvgChart";
 import pawprint from "../../features/petcare/img/pawprint 18.png";
 import heart from "../../features/petcare/img/하트.png";
 import StoreList from "../../features/karte/components/StoreList";
+import PetCareNav from "../../features/petcare/components/petcarehome/PetCareNav";
 
 function getLowestHealthCategory(scores) {
   if (!scores || scores.length === 0) return null;
@@ -139,115 +140,120 @@ export default function KarteDetailPage() {
   const storeCategory = getLowestHealthCategory(data.scores);
 
   return (
-    <Wrapper>
-      {isLoading ? (
-        <p>로딩중</p>
-      ) : (
-        <>
-          <ContentRow>
-            <PetCard>
-              <PetThumb>
-                {data.pet?.imageUrl ? (
-                  <img src={data.pet?.imageUrl} alt={data.pet.name} />
-                ) : (
-                  <span>🐾</span>
-                )}
-              </PetThumb>
-              <PetInfo>
-                <PetName>{data.pet?.name ?? "반려동물을"}</PetName>
-                <BreedName>{data.pet?.breed.name ?? "입력해주세요"}</BreedName>
-                <InfoRow>
-                  <InfoBadge>
-                    <InfoIcon src={heart} alt="" />
-                    <span>{getAge(data.pet?.birthDate) ?? "-"}살</span>
-                  </InfoBadge>
+    <>
+      <PetCareNav />
+      <Wrapper>
+        {isLoading ? (
+          <p>로딩중</p>
+        ) : (
+          <>
+            <ContentRow>
+              <PetCard>
+                <PetThumb>
+                  {data.pet?.imageUrl ? (
+                    <img src={data.pet?.imageUrl} alt={data.pet.name} />
+                  ) : (
+                    <span>🐾</span>
+                  )}
+                </PetThumb>
+                <PetInfo>
+                  <PetName>{data.pet?.name ?? "반려동물을"}</PetName>
+                  <BreedName>
+                    {data.pet?.breed.name ?? "입력해주세요"}
+                  </BreedName>
+                  <InfoRow>
+                    <InfoBadge>
+                      <InfoIcon src={heart} alt="" />
+                      <span>{getAge(data.pet?.birthDate) ?? "-"}살</span>
+                    </InfoBadge>
 
-                  <InfoBadge>
-                    <InfoIcon src={pawprint} alt="" />
-                    <span>{data.pet?.weight ?? "-"}kg</span>
-                  </InfoBadge>
-                </InfoRow>
-              </PetInfo>
-            </PetCard>
+                    <InfoBadge>
+                      <InfoIcon src={pawprint} alt="" />
+                      <span>{data.pet?.weight ?? "-"}kg</span>
+                    </InfoBadge>
+                  </InfoRow>
+                </PetInfo>
+              </PetCard>
 
-            <RightSection>
-              <DateBadge>{formatDate(data.createdAt)}</DateBadge>
+              <RightSection>
+                <DateBadge>{formatDate(data.createdAt)}</DateBadge>
 
-              <OpinionContainer>
-                <OpinionHeader>진단 요약 내용</OpinionHeader>
-                <OpinionContent>{data.summary}</OpinionContent>
-              </OpinionContainer>
-            </RightSection>
-          </ContentRow>
-          <ContentRow>
-            <ChartCard style={{ maxWidth: "500px" }}>
-              <ChartTitle>카테고리별 건강 점수</ChartTitle>
-              <RadarChart
-                style={{
-                  width: "100%",
-                  maxHeight: "80vh",
-                  aspectRatio: 1.2,
-                }}
-                responsive
-                outerRadius="80%"
-                data={scoresWithoutTotal}
-              >
-                <PolarGrid />
-                <PolarAngleAxis dataKey="category" />
-                <PolarRadiusAxis angle={90} domain={[0, 100]} />
-                <Tooltip />
-                <Radar
-                  dataKey="score"
-                  stroke="#5EC8A7"
-                  fill="#5EC8A7"
-                  fillOpacity={0.6}
-                />
-              </RadarChart>
-            </ChartCard>
-            <ChartCard>
-              <ChartTitle>현재 건강점수 추이</ChartTitle>
-              {diffText && (
-                <DiffBadge $positive={scoreDiff > 0}>{diffText}</DiffBadge>
-              )}
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart
-                  data={sortedHistory}
-                  onContextMenu={(_, e) => e.preventDefault()}
+                <OpinionContainer>
+                  <OpinionHeader>진단 요약 내용</OpinionHeader>
+                  <OpinionContent>{data.summary}</OpinionContent>
+                </OpinionContainer>
+              </RightSection>
+            </ContentRow>
+            <ContentRow>
+              <ChartCard style={{ maxWidth: "500px" }}>
+                <ChartTitle>카테고리별 건강 점수</ChartTitle>
+                <RadarChart
+                  style={{
+                    width: "100%",
+                    maxHeight: "80vh",
+                    aspectRatio: 1.2,
+                  }}
+                  responsive
+                  outerRadius="80%"
+                  data={scoresWithoutTotal}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="createdAt" />
-                  <YAxis width={40} domain={[0, 100]} />
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="category" />
+                  <PolarRadiusAxis angle={90} domain={[0, 100]} />
                   <Tooltip />
-                  <Area
-                    type="monotone"
+                  <Radar
                     dataKey="score"
                     stroke="#5EC8A7"
                     fill="#5EC8A7"
+                    fillOpacity={0.6}
                   />
-                </AreaChart>
-              </ResponsiveContainer>
+                </RadarChart>
+              </ChartCard>
+              <ChartCard>
+                <ChartTitle>현재 건강점수 추이</ChartTitle>
+                {diffText && (
+                  <DiffBadge $positive={scoreDiff > 0}>{diffText}</DiffBadge>
+                )}
+                <ResponsiveContainer width="100%" height={300}>
+                  <AreaChart
+                    data={sortedHistory}
+                    onContextMenu={(_, e) => e.preventDefault()}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="createdAt" />
+                    <YAxis width={40} domain={[0, 100]} />
+                    <Tooltip />
+                    <Area
+                      type="monotone"
+                      dataKey="score"
+                      stroke="#5EC8A7"
+                      fill="#5EC8A7"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </ChartCard>
+            </ContentRow>
+            <ChartCard>
+              <ChartTitle>{data.pet?.name}와 평균 비교</ChartTitle>
+              <PetScoreChart petData={data} listArr={listArr} />
             </ChartCard>
-          </ContentRow>
-          <ChartCard>
-            <ChartTitle>{data.pet?.name}와 평균 비교</ChartTitle>
-            <PetScoreChart petData={data} listArr={listArr} />
-          </ChartCard>
-          <ContentRow>
-            <OpinionContainer>
-              <OpinionHeader>의사소견</OpinionHeader>
-              <OpinionContent>{data.opinion}</OpinionContent>
-            </OpinionContainer>
-          </ContentRow>
-          <ContentRow>
-            <StoreList
-              targetPetType={data.pet?.breed.petType}
-              category={storeCategory?.category}
-              tagId={storeCategory?.tagId}
-            />
-          </ContentRow>
-        </>
-      )}
-    </Wrapper>
+            <ContentRow>
+              <OpinionContainer>
+                <OpinionHeader>의사소견</OpinionHeader>
+                <OpinionContent>{data.opinion}</OpinionContent>
+              </OpinionContainer>
+            </ContentRow>
+            <ContentRow>
+              <StoreList
+                targetPetType={data.pet?.breed.petType}
+                category={storeCategory?.category}
+                tagId={storeCategory?.tagId}
+              />
+            </ContentRow>
+          </>
+        )}
+      </Wrapper>
+    </>
   );
 }
 

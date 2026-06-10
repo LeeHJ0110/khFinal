@@ -1,4 +1,4 @@
-import { Route, Routes, Navigate } from "react-router-dom";
+import { Route, Routes, Navigate, Outlet } from "react-router-dom";
 import "./App.css";
 
 import DefaultLayout from "./app/layouts/DefaultLayout";
@@ -69,6 +69,7 @@ import PetStoreReviewEditPage from "./pages/petStore/PetStoreReviewEditPage";
 import PetCareMain from "./pages/petcare/PetCareMain";
 import AdminInsurancePage from "./pages/admin/insurance/AdminInsurancePage";
 import PointHistoryPage from "./pages/mypage/PointHistoryPage";
+import ProtectedRoute from "./shared/components/security/ProtectedRoute";
 
 function App() {
   return (
@@ -90,7 +91,14 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="home" element={<HomePage />} />
           {/* 헬스케어 */}
-          <Route path="healthcare">
+          <Route
+            path="healthcare"
+            element={
+              <ProtectedRoute>
+                <Outlet />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<HealthCareHome />} />
             {/* 스케줄 */}
             <Route path="schedule" element={<ScheduleMainPage />} />
