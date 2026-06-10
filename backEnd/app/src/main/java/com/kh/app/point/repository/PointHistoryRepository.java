@@ -36,4 +36,17 @@ public interface PointHistoryRepository extends JpaRepository<PointHistoryEntity
             LocalDateTime startDateTime,
             LocalDateTime endDateTime
     );
+
+    long countByMemberAndPointReasonType(
+            MemberEntity member,
+            PointReasonType pointReasonType
+    );
+
+    boolean existsByMemberAndPointReasonTypeAndCreatedAtBetween(
+            MemberEntity member,
+            PointReasonType pointReasonType,
+            LocalDateTime start,
+            LocalDateTime end
+    );
+
 }
