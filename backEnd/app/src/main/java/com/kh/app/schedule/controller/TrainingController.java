@@ -44,8 +44,11 @@ public class TrainingController {
 
     @Operation(summary = "날짜 중복 확인")
     @GetMapping("/checkDate")
-    public ResponseEntity<String> checkDate(@RequestParam LocalDate date) {
-        return ResponseEntity.ok(trainingService.checkDate(date));
+    public ResponseEntity<String> checkDate(
+            @AuthenticationPrincipal String username,
+            @RequestParam LocalDate date
+    ) {
+        return ResponseEntity.ok(trainingService.checkDate(date, username));
     }
 
     //목록조회
