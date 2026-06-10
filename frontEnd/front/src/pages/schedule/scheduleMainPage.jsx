@@ -7,6 +7,7 @@ import ScheduleModal from "../../features/schedule/components/scheduleModal";
 import useFormData from "../../shared/hooks/useFormData";
 import ScheduleCard from "../../features/schedule/components/ScheduleCard";
 import TodaySchedule from "../../features/schedule/components/TodaySchedule";
+import PetCareNav from "../../features/petcare/components/petcarehome/PetCareNav";
 
 export default function ScheduleMainPage() {
   const trainingInit = {
