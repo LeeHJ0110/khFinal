@@ -9,5 +9,4 @@ function DiagnosisRequestHomePage() {
     </>
   );
 }
-
 export default DiagnosisRequestHomePage;
