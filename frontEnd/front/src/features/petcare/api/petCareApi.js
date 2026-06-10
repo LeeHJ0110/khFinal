@@ -60,18 +60,14 @@ export async function requestDiagnosis({
 // 건강진단 완료 처리
 // =========================================================
 export async function completeDiagnosis(diagnosisReqId) {
-  return await api.patch(
-    `/petcare/diagnosis/${diagnosisReqId}/complete`,
-  );
+  return await api.patch(`/petcare/diagnosis/${diagnosisReqId}/complete`);
 }
 
 // =========================================================
 // 건강진단 신청 반려 처리
 // =========================================================
 export async function rejectDiagnosis(diagnosisReqId) {
-  return await api.patch(
-    `/petcare/diagnosis/${diagnosisReqId}/reject`,
-  );
+  return await api.patch(`/petcare/diagnosis/${diagnosisReqId}/reject`);
 }
 
 // =========================================================
@@ -98,10 +94,7 @@ export async function updatePetWeight(pet, weight) {
 //   D   = 강아지
 //   C   = 고양이
 // =========================================================
-export async function fetchPetCareList(
-  pno = 0,
-  petType = "ALL",
-) {
+export async function fetchPetCareList(pno = 0, petType = "ALL") {
   return await api.get("/petcare/diagnosis/list", {
     params: {
       pno,
@@ -114,7 +107,5 @@ export async function fetchPetCareList(
 // 건강진단 신청 상세 조회
 // =========================================================
 export async function fetchPetCareDetail(diagnosisReqId) {
-  return await api.get(
-    `/petcare/diagnosis/${diagnosisReqId}`,
-  );
+  return await api.get(`/petcare/diagnosis/${diagnosisReqId}`);
 }
