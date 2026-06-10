@@ -3,6 +3,10 @@ import styled from "styled-components";
 import MyPageLayout from "./components/MyPageLayout";
 import usePet from "../../features/mypage/pet/hooks/usePet";
 
+const PET_CARD_WIDTH = 98;
+const PET_CARD_GAP = 16;
+const PET_VISIBLE_COUNT = 5;
+
 export default function PetManagePage() {
   const {
     petList,
@@ -12,14 +16,12 @@ export default function PetManagePage() {
     hasPet,
     loading,
     selectPet,
-    nextPet,
     handleCreatePet,
     fetchBreedList,
     handleUpdatePet,
     handleDeletePet,
     handleRepresentPet,
     handleUploadPetImage,
-
     insurancePaymentList,
     fetchInsurancePayments,
   } = usePet();
@@ -33,13 +35,24 @@ export default function PetManagePage() {
     weight: "",
     representYn: "N",
   };
+
   const [isDetailOpen, setDetailOpen] = useState(false);
   const [isCreateMode, setCreateMode] = useState(false);
   const [formData, setFormData] = useState(emptyForm);
+  const [petPage, setPetPage] = useState(0);
+
   const fileInputRef = useRef(null);
 
+  const totalPetTabCount = petList.length + 1;
+  const maxPetPage = Math.max(
+    Math.ceil(totalPetTabCount / PET_VISIBLE_COUNT) - 1,
+    0,
+  );
+
   useEffect(() => {
-    if (!selectedPet || isCreateMode) return;
+    if (!selectedPet || isCreateMode) {
+      return;
+    }
 
     const petType = selectedPet.petType || "D";
 
@@ -55,6 +68,7 @@ export default function PetManagePage() {
 
     fetchBreedList(petType);
   }, [selectedPet?.petId, isCreateMode]);
+
   useEffect(() => {
     if (loading) {
       return;
@@ -70,6 +84,21 @@ export default function PetManagePage() {
     setCreateMode(false);
     setDetailOpen(true);
   }, [loading, hasPet]);
+
+  useEffect(() => {
+    if (!selectedPet?.petId || isCreateMode) {
+      return;
+    }
+
+    fetchInsurancePayments(selectedPet.petId);
+  }, [selectedPet?.petId, isCreateMode]);
+
+  useEffect(() => {
+    if (petPage > maxPetPage) {
+      setPetPage(maxPetPage);
+    }
+  }, [maxPetPage, petPage]);
+
   async function handleChange(evt) {
     const { name, value } = evt.target;
 
@@ -83,13 +112,7 @@ export default function PetManagePage() {
       await fetchBreedList(value);
     }
   }
-  useEffect(() => {
-    if (!selectedPet?.petId || isCreateMode) {
-      return;
-    }
 
-    fetchInsurancePayments(selectedPet.petId);
-  }, [selectedPet?.petId, isCreateMode]);
   function handleSelectPet(index) {
     selectPet(index);
     setCreateMode(false);
@@ -100,6 +123,14 @@ export default function PetManagePage() {
     setCreateMode(true);
     setDetailOpen(true);
     setFormData(emptyForm);
+  }
+
+  function handlePrevPets() {
+    setPetPage((prev) => Math.max(prev - 1, 0));
+  }
+
+  function handleNextPets() {
+    setPetPage((prev) => Math.min(prev + 1, maxPetPage));
   }
 
   async function handleDelete() {
@@ -117,10 +148,10 @@ export default function PetManagePage() {
 
     if (isSuccess) {
       alert("삭제되었습니다.");
-
       setDetailOpen(false);
     }
   }
+
   async function handleSubmit(evt) {
     evt.preventDefault();
 
@@ -147,6 +178,7 @@ export default function PetManagePage() {
       alert("성별을 선택하세요.");
       return;
     }
+
     if (formData.birthDate > new Date().toISOString().slice(0, 10)) {
       alert("생년월일은 오늘 이후 날짜를 선택할 수 없습니다.");
       return;
@@ -169,9 +201,11 @@ export default function PetManagePage() {
       alert("수정되었습니다.");
     }
   }
+
   function handleImageClick() {
     fileInputRef.current?.click();
   }
+
   async function handleImageChange(evt) {
     const file = evt.target.files?.[0];
 
@@ -202,40 +236,68 @@ export default function PetManagePage() {
       ) : (
         <>
           <PetTabs>
-            {petList.map((pet, index) => (
-              <PetTab
-                key={pet.petId}
-                $active={!isCreateMode && selectedPetIndex === index}
-                onClick={() => handleSelectPet(index)}
+            {totalPetTabCount > PET_VISIBLE_COUNT && (
+              <SlideBtn
+                type="button"
+                onClick={handlePrevPets}
+                disabled={petPage === 0}
               >
-                <PetThumb>
-                  {pet.imageUrl ? (
-                    <img src={pet.imageUrl} alt={pet.name} />
-                  ) : (
-                    <span>🐾</span>
-                  )}
-                </PetThumb>
-                <PetName>{pet.name}</PetName>
-                {pet.representYn === "Y" && <RepresentBadge>♥</RepresentBadge>}
-              </PetTab>
-            ))}
+                ‹
+              </SlideBtn>
+            )}
 
-            <AddPetBox
-              type="button"
-              $active={isCreateMode}
-              onClick={handleCreateMode}
-            >
-              +
-            </AddPetBox>
+            <PetTabViewport>
+              <PetTabTrack $page={petPage}>
+                {petList.map((pet, index) => (
+                  <PetTab
+                    key={pet.petId}
+                    $active={!isCreateMode && selectedPetIndex === index}
+                    onClick={() => handleSelectPet(index)}
+                  >
+                    <PetThumb>
+                      {pet.imageUrl ? (
+                        <img src={pet.imageUrl} alt={pet.name} />
+                      ) : (
+                        <span>🐾</span>
+                      )}
+                    </PetThumb>
 
-            {petList.length > 1 && <NextBtn onClick={nextPet}>›</NextBtn>}
+                    <PetName>{pet.name}</PetName>
+
+                    {pet.representYn === "Y" && (
+                      <RepresentBadge>♥</RepresentBadge>
+                    )}
+                  </PetTab>
+                ))}
+
+                <AddPetBox
+                  type="button"
+                  $active={isCreateMode}
+                  onClick={handleCreateMode}
+                >
+                  +
+                </AddPetBox>
+              </PetTabTrack>
+            </PetTabViewport>
+
+            {totalPetTabCount > PET_VISIBLE_COUNT && (
+              <SlideBtn
+                type="button"
+                onClick={handleNextPets}
+                disabled={petPage >= maxPetPage}
+              >
+                ›
+              </SlideBtn>
+            )}
           </PetTabs>
+
           {isDetailOpen && (
             <DetailGrid>
               <PetFormCard onSubmit={handleSubmit}>
                 <SectionTitle>
                   {isCreateMode ? "반려동물 등록" : "반려동물 수정"}
                 </SectionTitle>
+
                 <PetProfileArea>
                   <PetProfileImage>
                     {!isCreateMode && selectedPet?.imageUrl ? (
@@ -250,6 +312,7 @@ export default function PetManagePage() {
                       사진 변경
                     </ImageButton>
                   )}
+
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -267,6 +330,7 @@ export default function PetManagePage() {
                     onChange={handleChange}
                   />
                 </InfoRow>
+
                 <InfoRow>
                   <span>종류</span>
                   <Select
@@ -278,6 +342,7 @@ export default function PetManagePage() {
                     <option value="C">고양이</option>
                   </Select>
                 </InfoRow>
+
                 <InfoRow>
                   <span>품종</span>
                   <Input
@@ -342,7 +407,9 @@ export default function PetManagePage() {
                           대표동물 지정
                         </Button>
                       )}
+
                       <Button type="submit">수정하기</Button>
+
                       <Button type="button" onClick={handleDelete}>
                         삭제하기
                       </Button>
@@ -359,6 +426,7 @@ export default function PetManagePage() {
                     {insurancePaymentList.map((payment) => (
                       <PaymentItem key={payment.paymentId}>
                         <PaymentProduct>{payment.productName}</PaymentProduct>
+
                         <PaymentDate>
                           {payment.paidAt
                             ? String(payment.paidAt)
@@ -414,21 +482,66 @@ const PetTabs = styled.div`
   margin-bottom: 24px;
 `;
 
+const PetTabViewport = styled.div`
+  width: ${PET_CARD_WIDTH * PET_VISIBLE_COUNT +
+  PET_CARD_GAP * (PET_VISIBLE_COUNT - 1)}px;
+  overflow: hidden;
+`;
+
+const PetTabTrack = styled.div`
+  display: flex;
+  gap: ${PET_CARD_GAP}px;
+
+  transform: translateX(
+    ${({ $page }) =>
+      `-${$page * (PET_CARD_WIDTH + PET_CARD_GAP) * PET_VISIBLE_COUNT}px`}
+  );
+
+  transition: transform 0.25s ease;
+`;
+
 const PetTab = styled.button`
-  position: relative;
-  width: 130px;
+  flex: 0 0 ${PET_CARD_WIDTH}px;
+  width: ${PET_CARD_WIDTH}px;
   height: 145px;
+  position: relative;
   border-radius: 10px;
   border: 2px solid ${({ $active }) => ($active ? "#00a982" : "#cdeee4")};
   background: ${({ $active }) => ($active ? "#00b894" : "white")};
   cursor: pointer;
 `;
 
+const AddPetBox = styled.button`
+  flex: 0 0 ${PET_CARD_WIDTH}px;
+  width: ${PET_CARD_WIDTH}px;
+  height: 145px;
+  border-radius: 10px;
+  border: 2px solid ${({ $active }) => ($active ? "#00a982" : "#bbb")};
+  background: ${({ $active }) => ($active ? "#d9f6ec" : "#eee")};
+  font-size: 32px;
+  cursor: pointer;
+`;
+
+const SlideBtn = styled.button`
+  width: 36px;
+  height: 145px;
+  border: none;
+  border-radius: 10px;
+  background: #f1f3f5;
+  font-size: 28px;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+`;
+
 const PetThumb = styled.div`
-  width: 82px;
-  height: 82px;
+  width: 70px;
+  height: 70px;
   border-radius: 50%;
-  margin: 12px auto 10px;
+  margin: 16px auto 10px;
   background: #ddd;
   overflow: hidden;
 
@@ -443,12 +556,13 @@ const PetThumb = styled.div`
   }
 
   span {
-    font-size: 30px;
+    font-size: 28px;
   }
 `;
 
 const PetName = styled.div`
   font-weight: 700;
+  font-size: 13px;
 `;
 
 const RepresentBadge = styled.div`
@@ -459,27 +573,6 @@ const RepresentBadge = styled.div`
   color: #00b894;
   border-radius: 50%;
   padding: 3px 7px;
-`;
-
-const AddPetBox = styled.button`
-  width: 130px;
-  height: 145px;
-  border-radius: 10px;
-  border: 2px solid ${({ $active }) => ($active ? "#00a982" : "#bbb")};
-  background: ${({ $active }) => ($active ? "#d9f6ec" : "#eee")};
-  font-size: 32px;
-  cursor: pointer;
-`;
-
-const NextBtn = styled.button`
-  width: 36px;
-  height: 36px;
-  border: none;
-  border-radius: 50%;
-  background: white;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-  font-size: 28px;
-  cursor: pointer;
 `;
 
 const DetailGrid = styled.div`
@@ -521,10 +614,8 @@ const InfoRow = styled.div`
 const Input = styled.input`
   width: 420px;
   height: 38px;
-
   border: none;
   border-radius: 999px;
-
   background: #d9f2e7;
   padding: 0 18px;
   outline: none;
@@ -533,10 +624,8 @@ const Input = styled.input`
 const Select = styled.select`
   width: 420px;
   height: 38px;
-
   border: none;
   border-radius: 999px;
-
   background: #d9f2e7;
   padding: 0 18px;
   outline: none;
@@ -567,16 +656,17 @@ const EmptyInsurance = styled.div`
   color: #777;
   font-weight: 700;
 `;
+
 const PetProfileArea = styled.div`
   display: flex;
   align-items: center;
   gap: 24px;
   margin-bottom: 28px;
 `;
+
 const PetProfileImage = styled.div`
   width: 130px;
   height: 130px;
-
   border-radius: 50%;
   background: #ddd;
 
@@ -596,17 +686,14 @@ const PetProfileImage = styled.div`
     font-size: 42px;
   }
 `;
+
 const ImageButton = styled.button`
   height: 40px;
-
   padding: 0 18px;
-
   border: none;
   border-radius: 999px;
-
   background: white;
   color: #00a982;
-
   font-weight: 700;
   cursor: pointer;
 `;
@@ -615,7 +702,6 @@ const PaymentList = styled.div`
   display: flex;
   flex-direction: column;
   gap: 12px;
-
   max-height: 420px;
   overflow-y: auto;
 `;
@@ -632,6 +718,12 @@ const PaymentItem = styled.div`
   border: 1px solid #e8e8e8;
 `;
 
+const PaymentProduct = styled.div`
+  font-size: 15px;
+  font-weight: 700;
+  color: #222;
+`;
+
 const PaymentDate = styled.div`
   font-size: 13px;
   color: #888;
@@ -645,11 +737,8 @@ const PaymentAmount = styled.div`
 
 const PaymentStatus = styled.div`
   align-self: flex-start;
-
   padding: 4px 10px;
-
   border-radius: 999px;
-
   font-size: 12px;
   font-weight: 700;
 
@@ -664,9 +753,4 @@ const PaymentStatus = styled.div`
     if ($status === "FAILED") return "#fff0f0";
     return "#f1f3f5";
   }};
-`;
-const PaymentProduct = styled.div`
-  font-size: 15px;
-  font-weight: 700;
-  color: #222;
 `;
