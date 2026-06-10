@@ -158,6 +158,7 @@ const pawFloat = keyframes`
 // =========================================================
 const HeroWrapper = styled.section`
   position: relative;
+  z-index: 1;
 
   width: 100%;
   margin: 0;
@@ -172,6 +173,34 @@ const HeroWrapper = styled.section`
   );
 
   box-sizing: border-box;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    filter 0.3s ease;
+
+  &:hover {
+    z-index: 5;
+
+    transform: scale(1.015);
+
+    box-shadow: 0 14px 32px rgba(0, 169, 123, 0.12);
+
+    filter: brightness(1.015);
+  }
+
+  &:active {
+    transform: scale(1.008);
+  }
+
+  @media (max-width: 640px) {
+    &:hover,
+    &:active {
+      transform: none;
+    }
+  }
 `;
 
 const HeroInner = styled.div`

@@ -8,11 +8,20 @@ export default function usePetCareList() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
 
-  async function asyncFetchPetCareList(pno = currentPage) {
+  // =========================================================
+  // 건강진단 신청 목록 조회
+  //
+  // pno: 현재 페이지 번호
+  // petType: ALL / D / C
+  // =========================================================
+  async function asyncFetchPetCareList(
+    pno = currentPage,
+    petType = "ALL",
+  ) {
     try {
       setLoading(true);
 
-      const resp = await fetchPetCareList(pno);
+      const resp = await fetchPetCareList(pno, petType);
 
       console.log("진단목록 응답:", resp.data);
 
@@ -21,6 +30,10 @@ export default function usePetCareList() {
       setTotalElements(resp.data.totalElements ?? 0);
     } catch (err) {
       console.error("진단목록 조회 실패:", err);
+
+      setList([]);
+      setTotalPages(0);
+      setTotalElements(0);
     } finally {
       setLoading(false);
     }

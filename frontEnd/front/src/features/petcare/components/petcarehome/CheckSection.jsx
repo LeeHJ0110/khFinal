@@ -428,6 +428,29 @@ const GuideArea = styled.div`
   border-radius: 10px;
 
   background: color-mix(in srgb, var(--color-bg-soft) 45%, var(--color-white));
+transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+
+  &:hover {
+    z-index: 5;
+
+    transform: scale(1.015);
+
+    box-shadow: 0 14px 32px rgba(0, 169, 123, 0.12);
+  }
+
+  @media (max-width: 900px) {
+    height: 260px;
+  }
+
+  @media (max-width: 640px) {
+    height: 280px;
+
+    &:hover {
+      transform: none;
+    }
+  }
 `;
 
 const GuideTitle = styled.h2`

@@ -1,15 +1,28 @@
 import api from "../../../app/api/axios";
 
-// 질문 목록 조회
+// =========================================================
+// 건강진단 질문 목록 조회
+// petType: D 또는 C
+// =========================================================
 export async function fetchQuestionList(petType) {
-  return await api.get(`/petcare/diagnosis/questions?petType=${petType}`);
+  return await api.get("/petcare/diagnosis/questions", {
+    params: {
+      petType,
+    },
+  });
 }
 
-//반려동물 정보불러오기
+// =========================================================
+// 건강진단 신청 화면용 내 반려동물 목록 조회
+// =========================================================
 export async function fetchMyPetList() {
-  return await api.get(`petcare/diagnosis/pets`);
+  return await api.get("/petcare/diagnosis/pets");
 }
-//건강진단 신청
+
+// =========================================================
+// 건강진단 신청
+// JSON 데이터와 이미지를 multipart/form-data로 전송
+// =========================================================
 export async function requestDiagnosis({
   petId,
   answerList,
@@ -24,33 +37,46 @@ export async function requestDiagnosis({
     answerList,
   };
 
-  console.log("백엔드로 전송할 data:", data);
+  console.log("백엔드로 전송할 건강진단 신청 데이터:", data);
 
   fd.append("data", JSON.stringify(data));
 
-  eyeFiles?.forEach((file) => fd.append("eyeFiles", file));
-  skinFiles?.forEach((file) => fd.append("skinFiles", file));
-  teethFiles?.forEach((file) => fd.append("teethFiles", file));
+  eyeFiles?.forEach((file) => {
+    fd.append("eyeFiles", file);
+  });
+
+  skinFiles?.forEach((file) => {
+    fd.append("skinFiles", file);
+  });
+
+  teethFiles?.forEach((file) => {
+    fd.append("teethFiles", file);
+  });
 
   return await api.post("/petcare/diagnosis", fd);
 }
 
+// =========================================================
 // 건강진단 완료 처리
+// =========================================================
 export async function completeDiagnosis(diagnosisReqId) {
   return await api.patch(
-    `petcare/diagnosis/${diagnosisReqId}/complete`,
+    `/petcare/diagnosis/${diagnosisReqId}/complete`,
   );
 }
 
 // =========================================================
-// 건강진단 신청 반려
+// 건강진단 신청 반려 처리
 // =========================================================
-export async function rejectDiagnosis(id) {
+export async function rejectDiagnosis(diagnosisReqId) {
   return await api.patch(
-    `/petcare/diagnosis/${id}/reject`,
+    `/petcare/diagnosis/${diagnosisReqId}/reject`,
   );
 }
-//펫몸무게 수정 요청 백엔드 구현예정 
+
+// =========================================================
+// 반려동물 몸무게 수정
+// =========================================================
 export async function updatePetWeight(pet, weight) {
   return await api.put(`/pet/${pet.petId}`, {
     petType: pet.petType,
@@ -63,12 +89,32 @@ export async function updatePetWeight(pet, weight) {
   });
 }
 
-//목록보기
-export async function fetchPetCareList(pno) {
-  return await api.get(`/petcare/diagnosis/list?pno=${pno}`);
+// =========================================================
+// 건강진단 신청 목록 조회
+//
+// pno: 페이지 번호
+// petType:
+//   ALL = 전체
+//   D   = 강아지
+//   C   = 고양이
+// =========================================================
+export async function fetchPetCareList(
+  pno = 0,
+  petType = "ALL",
+) {
+  return await api.get("/petcare/diagnosis/list", {
+    params: {
+      pno,
+      petType,
+    },
+  });
 }
 
-//상세보기
-export async function fetchPetCareDetail(id) {
-  return await api.get(`/petcare/diagnosis/${id}`);
+// =========================================================
+// 건강진단 신청 상세 조회
+// =========================================================
+export async function fetchPetCareDetail(diagnosisReqId) {
+  return await api.get(
+    `/petcare/diagnosis/${diagnosisReqId}`,
+  );
 }

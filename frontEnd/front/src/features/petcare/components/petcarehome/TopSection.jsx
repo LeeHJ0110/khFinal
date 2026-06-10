@@ -199,6 +199,7 @@ const crossFloat = keyframes`
 // =========================================================
 const HeroWrapper = styled.section`
   position: relative;
+  z-index: 1;
 
   width: 100%;
   height: 245px;
@@ -209,19 +210,35 @@ const HeroWrapper = styled.section`
 
   box-sizing: border-box;
 
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+
+  &:hover {
+    z-index: 5;
+
+    transform: scale(1.015);
+
+    box-shadow: 0 14px 32px rgba(0, 169, 123, 0.12);
+  }
+
   @media (max-width: 900px) {
     height: 260px;
   }
 
   @media (max-width: 640px) {
     height: 280px;
+
+    &:hover {
+      transform: none;
+    }
   }
 `;
 
 const HeroInner = styled.div`
   position: relative;
 
-  width: min(1730px, calc(100% - 180px));
+  width: min(1600px, calc(100% - 180px));
   height: 100%;
 
   margin: 0 auto;
@@ -238,6 +255,7 @@ const HeroInner = styled.div`
 
   @media (max-width: 640px) {
     width: calc(100% - 32px);
+    
   }
 `;
 

@@ -75,19 +75,11 @@ function InsuranceProductSection() {
   // =========================================================
   // 화면에 보여줄 상품 목록
   //
-  // 보험 미가입: 판매 상품 전체 표시
-  // 신청 중 또는 가입 완료: 실제 신청 상품 하나만 표시
+  // 가입 여부와 관계없이 전체 상품 표시
+  // 신청 중 또는 가입 완료 상태에서는 가입 신청 버튼과 체크박스를 숨김
+  // 실제 가입 상품에는 상태 배지만 표시
   // =========================================================
-  const visibleProductList = useMemo(() => {
-    if (!selectedPet?.insuranceProductId) {
-      return productList;
-    }
-
-    return productList.filter(
-      (product) =>
-        String(product.productId) === String(selectedPet.insuranceProductId),
-    );
-  }, [productList, selectedPet]);
+  const visibleProductList = productList;
 
   // =========================================================
   // 현재 선택 상품의 최종 표시 가격
@@ -707,7 +699,13 @@ function InsuranceProductSection() {
 
       <ProductGrid $isSingleProduct={visibleProductList.length === 1}>
         {visibleProductList.map((product) => {
-          const isSelected = selectedProduct?.productId === product.productId;
+          const isSelected =
+            selectedProduct?.productId === product.productId;
+
+          const isAppliedProduct =
+            selectedPet?.insuranceProductId &&
+            String(selectedPet.insuranceProductId) ===
+              String(product.productId);
 
           const priceInfo = getProductPriceInfo({
             product,
@@ -722,23 +720,39 @@ function InsuranceProductSection() {
           return (
             <ProductCard
               key={product.productId}
-              $isSelected={isSelected}
+              $isSelected={
+                selectedPetStatus.canApply
+                  ? isSelected
+                  : Boolean(isAppliedProduct)
+              }
               $isLocked={!selectedPetStatus.canApply || isAgeRestricted}
               $isSingleProduct={visibleProductList.length === 1}
               onClick={() => handleSelectProduct(product)}
             >
               <CardHeader>
-                <ProductName $isSelected={isSelected}>
+                <ProductName
+                  $isSelected={
+                    selectedPetStatus.canApply
+                      ? isSelected
+                      : Boolean(isAppliedProduct)
+                  }
+                >
                   {product.productName}
                 </ProductName>
 
-                {!isAgeRestricted && (
+                {selectedPetStatus.canApply && !isAgeRestricted && (
                   <SelectedCheckbox
                     $isSelected={isSelected}
                     aria-label={
-                      isSelected ? "선택된 상품" : "선택되지 않은 상품"
+                      isSelected
+                        ? "선택된 상품"
+                        : "선택되지 않은 상품"
                     }
-                    title={isSelected ? "선택된 상품" : "상품 선택"}
+                    title={
+                      isSelected
+                        ? "선택된 상품"
+                        : "상품 선택"
+                    }
                   >
                     {isSelected && "✓"}
                   </SelectedCheckbox>
@@ -778,29 +792,31 @@ function InsuranceProductSection() {
 
                 {selectedPetStatus.canApply ? (
                   isAgeRestricted ? (
-                    <UnavailableBadge>만 10세 이상 가입 불가</UnavailableBadge>
+                    <UnavailableBadge>
+                      만 10세 이상 가입 불가
+                    </UnavailableBadge>
                   ) : isBirthDateMissing ? (
-                    <UnavailableBadge>생년월일 확인 필요</UnavailableBadge>
+                    <UnavailableBadge>
+                      생년월일 확인 필요
+                    </UnavailableBadge>
                   ) : (
                     <ApplyButton
                       type="button"
                       disabled={isPriceLoading}
                       onClick={(event) =>
-                        handleOpenApplyModal(
-                          event,
-
-                          product,
-                        )
+                        handleOpenApplyModal(event, product)
                       }
                     >
                       가입 신청
                     </ApplyButton>
                   )
-                ) : (
-                  <CurrentProductStatus $status={selectedPetStatus.status}>
+                ) : isAppliedProduct ? (
+                  <CurrentProductStatus
+                    $status={selectedPetStatus.status}
+                  >
                     {selectedPetStatus.label}
                   </CurrentProductStatus>
-                )}
+                ) : null}
               </ProductBottom>
             </ProductCard>
           );
@@ -1438,10 +1454,11 @@ const SelectedSummary = styled.div`
   justify-content: space-between;
   gap: 14px;
 
-  min-height: 50px;
+  width: 100%;
+  height: 52px;
 
   margin-bottom: 18px;
-  padding: 11px 14px;
+  padding: 0 14px;
 
   box-sizing: border-box;
 
@@ -1450,18 +1467,57 @@ const SelectedSummary = styled.div`
 
   background: #f7fcfa;
 
+  @media (max-width: 900px) {
+    height: auto;
+    min-height: 52px;
+    padding: 11px 14px;
+  }
+
   @media (max-width: 760px) {
     flex-direction: column;
     align-items: stretch;
   }
 `;
+
 const SummaryInfoGroup = styled.div`
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 10px 11px;
 
   min-width: 0;
+
+  @media (max-width: 900px) {
+    flex-wrap: wrap;
+  }
+`;
+
+const SummaryText = styled.span`
+  min-width: 0;
+
+  color: var(--text-main);
+
+  font-size: 12px;
+  font-weight: 800;
+
+  white-space: nowrap;
+`;
+
+const SummaryStatus = styled.span`
+  flex-shrink: 0;
+
+  padding: 4px 8px;
+
+  border-radius: 999px;
+
+  background: ${({ $status }) => getStatusBackground($status)};
+
+  font-size: 11px;
+  font-weight: 700;
+
+  color: ${({ $status }) => getStatusColor($status)};
+
+  white-space: nowrap;
 `;
 const CancelInsuranceButton = styled.button`
   flex-shrink: 0;
@@ -1478,6 +1534,8 @@ const CancelInsuranceButton = styled.button`
 
   font-size: 11px;
   font-weight: 700;
+
+  white-space: nowrap;
 
   cursor: pointer;
 
@@ -1509,16 +1567,7 @@ const SummaryLabel = styled.span`
   color: #7d8a85;
 `;
 
-const SummaryText = styled.span`
-  min-width: 0;
 
-  color: var(--text-main);
-
-  font-size: 12px;
-  font-weight: 800;
-
-  word-break: keep-all;
-`;
 const SummaryDivider = styled.span`
   width: 1px;
   height: 14px;
@@ -1531,18 +1580,7 @@ const SummaryDivider = styled.span`
     display: none;
   }
 `;
-const SummaryStatus = styled.span`
-  padding: 4px 8px;
 
-  border-radius: 999px;
-
-  background: ${({ $status }) => getStatusBackground($status)};
-
-  font-size: 11px;
-  font-weight: 700;
-
-  color: ${({ $status }) => getStatusColor($status)};
-`;
 
 const SummaryPrice = styled.span`
   font-size: 13px;
