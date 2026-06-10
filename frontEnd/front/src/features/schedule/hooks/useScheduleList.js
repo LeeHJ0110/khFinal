@@ -11,17 +11,11 @@ export default function useScheduleList() {
 
     const parsedList = resp.data.map((item) => ({
       id: item.id,
-
       title: item.title,
-
       start: item.startDate,
-
       end: item.endDate,
-
       backgroundColor: `#${item.backgroundColor}`,
-
       borderColor: `#${item.backgroundColor}`,
-
       allDay: true,
       extendedProps: {
         content: item.content,

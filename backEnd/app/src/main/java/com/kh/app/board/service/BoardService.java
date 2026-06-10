@@ -49,6 +49,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
+import com.kh.app.point.service.PointService;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -65,6 +68,7 @@ public class BoardService {
     private final JPAQueryFactory queryFactory;
     private final StoreProductImageRepository storeProductImageRepository;
 
+
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
@@ -73,6 +77,8 @@ public class BoardService {
 
     @Value("${naver.client-secret}")
     private String naverClientSecret;
+
+    private final PointService pointService;
 
     public Page<BoardResDto> getList(String category, BoardSearchCondition condition, int page) {
         Pageable pageable = PageRequest.of(page, 10);
@@ -204,6 +210,25 @@ public class BoardService {
         String content = processImagesAndFiles(boardEntity, reqDto.getContent(), fileList);
         boardEntity.setContent(content);
         log.info("[S3 업로드 및 치환 성공 완료] boardId : {}", boardEntity.getId());
+
+
+        // 주간 커뮤니티 게시글 작성 포인트 지급
+        if (isCommunityPointTargetCategory(categoryEnum)) {
+            boolean pointEarned = pointService.tryEarnWeeklyCommunityPostPoint(memberEntity);
+
+            if (pointEarned) {
+                log.info("[포인트 지급] 주간 커뮤니티 게시글 작성 포인트 500P 지급");
+            } else {
+                log.info("[포인트 미지급] 이번 주 커뮤니티 게시글 작성 포인트 이미 지급됨");
+            }
+        }
+    }
+
+    //포인트가 지급되는 게시판인지 확인
+    private boolean isCommunityPointTargetCategory(BoardCategory category) {
+        return category == BoardCategory.FREE
+                || category == BoardCategory.PRODUCT_REVIEW
+                || category == BoardCategory.FAC_REVIEW;
     }
 
     @Transactional

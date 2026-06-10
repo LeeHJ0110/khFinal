@@ -8,7 +8,6 @@ export default function useTrainingList() {
   async function fetchDiaryList() {
     setLoading(true);
     const resp = await fetchTrainingList();
-    console.log(resp.data);
 
     const parsedList = resp.data.map((item) => ({
       title: "training",

@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import { useEffect } from "react";
 import useKarte from "../../features/karte/hooks/useKarte";
+import MailOpen from "../../features/karte/components/MailOpen";
+import MailClosed from "../../features/karte/components/MailClosed";
 
 export default function KarteListPage() {
   const navigate = useNavigate();
@@ -51,43 +53,6 @@ export default function KarteListPage() {
           전체 <strong>{totalElements}</strong>건
         </TotalCount>
       </Header>
-      {/* <div>
-        {isLoading ? (
-          <p>불러오는 중...</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>번호</th>
-                <th>제목</th>
-                <th>생성일</th>
-                <th>작성자</th>
-                <th>열람여부</th>
-              </tr>
-            </thead>
-            <tbody>
-              {list.length === 0 ? (
-                <tr>
-                  <td colSpan={5}>등록된 진단결과가 없습니다.</td>
-                </tr>
-              ) : (
-                list.map((item, idx) => (
-                  <tr
-                    key={item.id}
-                    onClick={() => navigate(`/healthcare/result/${item.id}`)}
-                  >
-                    <td>{getRowNumber(idx)}</td>
-                    <td>{item.petName} 건강검진 결과</td>
-                    <td>{formatDate(item.createdAt)}</td>
-                    <td>{item.writer}</td>
-                    <td>{item.visited}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        )} */}
-
       <TableCard>
         {isLoading ? (
           <LoadingArea>
@@ -130,20 +95,12 @@ export default function KarteListPage() {
                     <td>{item.petName} 건강검진 결과</td>
                     <DateCell>{formatDate(item.createdAt)}</DateCell>
                     <td>{item.writer}</td>
-                    <td>{item.visited}</td>
-                    {/* 그림으로 바꾸기 */}
                     <td>
-                      <DetailButton
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-
-                          navigate(`/healthcare/result/${item.id}`);
-                        }}
-                      >
-                        상세보기
-                        <span>›</span>
-                      </DetailButton>
+                      {item.visited === "Y" ? (
+                        <MailOpen />
+                      ) : (
+                        <MailClosed color="#5ec8a7" />
+                      )}
                     </td>
                   </TableRow>
                 ))
@@ -383,7 +340,7 @@ const Table = styled.table`
   }
 
   th:nth-child(2) {
-    width: 20%;
+    width: 30%;
   }
 
   th:nth-child(3) {
@@ -395,11 +352,7 @@ const Table = styled.table`
   }
 
   th:nth-child(5) {
-    width: 20%;
-  }
-
-  th:nth-child(6) {
-    width: 16%;
+    width: 8%;
   }
 
   tbody tr:last-child td {
