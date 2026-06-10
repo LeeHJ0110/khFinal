@@ -65,7 +65,7 @@ function DiagnosisRequestPage() {
   } = useRequestDiagnosis();
 
   /*
-   * 상단 진행 단계
+   * 상단 진행 단계(큰화면 단계 관리)
    * BASIC    : 기본정보
    * SELF     : 자가진단
    * IMAGE    : 이미지 분석
@@ -83,23 +83,15 @@ function DiagnosisRequestPage() {
 
   // 자가진단 내부 카테고리
   const [selfStep, setSelfStep] = useState("STRESS");
-
+  // 화면에서 사용하는 데이터 저장
   // 로그인 회원 정보
   const [memberInfo, setMemberInfo] = useState(null);
-
-  // 로그인한 회원의 반려동물 목록
   const [petList, setPetList] = useState([]);
-
-  // 현재 선택한 반려동물
   const [selectedPet, setSelectedPet] = useState(null);
-
-  // 사용자가 입력한 현재 체중
   const [currentWeight, setCurrentWeight] = useState("");
 
-  // 전체 질문 목록
+  // 질문과 답변도 따로 저장
   const [questionList, setQuestionList] = useState([]);
-
-  // 전체 답변 목록
   const [answerList, setAnswerList] = useState([]);
 
   // 이미지 분석 단계 업로드 파일

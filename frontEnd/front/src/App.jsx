@@ -16,7 +16,6 @@ import HealthCareHome from "./pages/petcare/HealthCareHome";
 import ScheduleMainPage from "./pages/schedule/ScheduleMainPage";
 import KarteListPage from "./pages/karte/KarteListPage";
 import KarteDetailPage from "./pages/karte/KarteDetailPage";
-import DiagnosisRequestHomePage from "./pages/petcare/DiagnosisRequestHomePage";
 import DiagnosisRequestPage from "./pages/petcare/DiagnosisRequestPage";
 import DiagnosisManagePage from "./pages/petcare/DiagnosisManagePage";
 import DiagnosisDetailPage from "./pages/petcare/DiagnosisDetailPage";
@@ -67,6 +66,7 @@ import OrderHistoryPage from "./pages/mypage/OrderHistoryPage";
 import AdminDeliveryPage from "./pages/admin/delivery/AdminDeliveryPage";
 import PetStoreReviewInsertPage from "./pages/petStore/PetStoreReviewInsertPage";
 import PetStoreReviewEditPage from "./pages/petStore/PetStoreReviewEditPage";
+import PetCareMain from "./pages/petcare/PetCareMain";
 import AdminInsurancePage from "./pages/admin/insurance/AdminInsurancePage";
 import PointHistoryPage from "./pages/mypage/PointHistoryPage";
 
@@ -100,7 +100,7 @@ function App() {
             <Route path="result/:id" element={<KarteDetailPage />} />
 
             {/* user */}
-            <Route path="requesthome" element={<DiagnosisRequestHomePage />} />
+            <Route path="requesthome" element={<PetCareMain />} />
             <Route path="request" element={<DiagnosisRequestPage />} />
 
             {/* vet/admin */}
