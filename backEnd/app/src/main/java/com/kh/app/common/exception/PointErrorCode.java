@@ -1,4 +1,4 @@
-package com.kh.app.point.exception;
+package com.kh.app.common.exception;
 
 import com.kh.app.common.exception.ErrorCode;
 import lombok.Getter;

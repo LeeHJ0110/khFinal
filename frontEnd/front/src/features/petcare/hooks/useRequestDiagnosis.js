@@ -1,11 +1,18 @@
 import { useState } from "react";
 import { requestDiagnosis } from "../api/petCareApi";
 
+// 포인트 관련
+import usePointEffect from "../../point/hooks/usePointEffect";
+import { POINT_ACTION_TYPE } from "../../point/utils/pointPolicy";
+
 export default function useRequestDiagnosis() {
-  //신청상태 관리
-  const [isSubmitting, setIsSubmitting] = useState(false); //신청중true 버튼 비활성화
-  const [isSuccess, setIsSuccess] = useState(false); //신청이 정상적으로 완료되었는지 여부
+  // 신청상태 관리
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  // 포인트 관련
+  const { startPointAction } = usePointEffect();
 
   async function submitDiagnosis({
     petId,
@@ -15,12 +22,17 @@ export default function useRequestDiagnosis() {
     teethFiles,
   }) {
     try {
-      //신창여청보내면 처리중상태 시작, 성공상태 초기화
+      // 신청 요청 보내면 처리중 상태 시작, 성공상태 초기화
       setIsSubmitting(true);
       setIsSuccess(false);
       setErrorMessage("");
 
-      //api 호출
+      // 포인트 관련: 신청 전 포인트 저장
+      const pointWatcher = await startPointAction(
+        POINT_ACTION_TYPE.HEALTHCARE_USE,
+      );
+
+      // api 호출
       const response = await requestDiagnosis({
         petId,
         answerList,
@@ -28,15 +40,18 @@ export default function useRequestDiagnosis() {
         skinFiles,
         teethFiles,
       });
-      //성공여부 확인
+
+      // 성공 여부 확인
       if (response.status !== 201) {
         throw new Error("건강진단 신청 처리에 실패했습니다.");
       }
 
+      // 포인트 관련: 신청 후 포인트 비교 + 차감 알림
+      await pointWatcher.finish();
+
       setIsSuccess(true);
 
       return response;
-      //실패메서드 저장
     } catch (error) {
       console.error("건강진단 신청 실패:", error);
 
@@ -49,12 +64,12 @@ export default function useRequestDiagnosis() {
       setErrorMessage(message);
 
       throw error;
-      //요청종료
     } finally {
       setIsSubmitting(false);
     }
   }
-  //상태 초기화 함수
+
+  // 상태 초기화 함수
   function resetRequestState() {
     setIsSuccess(false);
     setErrorMessage("");
