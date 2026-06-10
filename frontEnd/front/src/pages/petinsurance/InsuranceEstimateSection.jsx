@@ -1,10 +1,17 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { useSelector } from "react-redux";
 import styled from "styled-components";
 
 import { fetchMyInsurancePaymentHistory } from "../../features/petInsurance/api/petInsuranceApi";
 
 function InsuranceEstimateSection() {
+  // =========================================================
+  // 로그인 여부 확인
+  // 로그인 전에는 이 컴포넌트 전체를 렌더링하지 않음
+  // =========================================================
+  const accessToken = useSelector((state) => state.member.accessToken);
+
   const [paymentHistoryList, setPaymentHistoryList] = useState([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -142,6 +149,13 @@ function InsuranceEstimateSection() {
     }
 
     setIsModalOpen(false);
+  }
+
+  // =========================================================
+  // 로그인 전에는 영역 전체 숨김
+  // =========================================================
+  if (!accessToken) {
+    return null;
   }
 
   return (
@@ -444,12 +458,6 @@ function getValidDate(dateTimeValue) {
   return date;
 }
 
-function getYearValue(dateTimeValue) {
-  const date = getValidDate(dateTimeValue);
-
-  return date ? date.getFullYear() : null;
-}
-
 function getMonthKey(dateTimeValue) {
   const date = getValidDate(dateTimeValue);
 
@@ -653,23 +661,24 @@ const GuideItemDescription = styled.p`
 const HistoryButton = styled.button`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 
   width: 100%;
-  min-height: 44px;
+  min-height: 52px;
 
   margin-top: auto;
-  padding: 0 13px;
+  padding: 0 15px;
 
-  border: 1px solid var(--color-mint);
-  border-radius: 9px;
+  border: 1px solid #bfe9dd;
+  border-radius: 11px;
 
-  background: var(--color-white);
+  background: #f1fbf8;
 
   color: var(--color-main-dark);
 
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
+  letter-spacing: -0.2px;
 
   white-space: nowrap;
 
@@ -677,26 +686,39 @@ const HistoryButton = styled.button`
 
   transition:
     background 0.18s ease,
-    border-color 0.18s ease;
+    border-color 0.18s ease,
+    transform 0.18s ease;
 
   &:hover {
     border-color: var(--color-main);
-    background: var(--color-bg-light);
+    background: #e7f8f3;
+
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 
   &:disabled {
-    opacity: 0.65;
+    opacity: 0.6;
+
     cursor: default;
+
+    transform: none;
   }
 
   @media (max-width: 1150px) {
-    gap: 5px;
+    gap: 8px;
 
-    padding: 0 9px;
+    min-height: 48px;
 
-    font-size: 11px;
+    padding: 0 12px;
+
+    font-size: 12px;
   }
 `;
+
 const ReceiptIcon = styled.span`
   flex-shrink: 0;
 
@@ -704,26 +726,33 @@ const ReceiptIcon = styled.span`
   align-items: center;
   justify-content: center;
 
-  width: 23px;
-  height: 23px;
+  width: 28px;
+  height: 28px;
 
-  border-radius: 50%;
+  border-radius: 8px;
 
-  background: var(--color-bg-light);
+  background: var(--color-main);
 
-  color: var(--color-main-dark);
+  color: var(--color-white);
 
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 14px;
+  font-weight: 900;
 `;
 
 const ArrowIcon = styled.span`
   margin-left: auto;
 
-  font-size: 21px;
-  font-weight: 400;
-  line-height: 1;
   color: var(--color-main-dark);
+
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1;
+
+  transition: transform 0.18s ease;
+
+  ${HistoryButton}:hover & {
+    transform: translateX(2px);
+  }
 `;
 
 const ErrorMessage = styled.p`
