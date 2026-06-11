@@ -11,4 +11,7 @@ public class StorePayReadyReqDto {
     private Long deliveryAddressId;
 
     private String deliveryRequest;
+
+    //사용 포인트
+    private Long usedPoint;
 }
