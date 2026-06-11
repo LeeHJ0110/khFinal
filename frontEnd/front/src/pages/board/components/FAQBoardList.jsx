@@ -85,9 +85,7 @@ export default function FAQBoardList({
             <ListItem
               key={item.boardId}
               onClick={() =>
-                onItemClick
-                  ? onItemClick(item)
-                  : alert("FAQ 상세 펼치기 준비 중!")
+                onItemClick ? onItemClick(item) : alert("다시 시도해주세요!")
               }
             >
               <ItemContent>
