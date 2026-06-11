@@ -3,7 +3,6 @@ package com.kh.app.point.service;
 import com.kh.app.common.exception.CustomException;
 import com.kh.app.common.exception.PointErrorCode;
 import com.kh.app.member.entity.MemberEntity;
-import com.kh.app.member.exception.MemberErrorCode;
 import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.point.dto.response.PointAttendanceResDto;
 import com.kh.app.point.dto.response.PointEventJoinResDto;
@@ -137,8 +136,8 @@ public class PointService {
         );
     }
 
-    // 주간 훈련일기 작성 포인트 적립
-    // 매주 월요일 00:00 기준 초기화
+    //주간 훈련일기 작성 포인트 적립
+    //매주 월요일 00:00 기준 초기화
     public void earnWeeklyTrainingDiaryPoint(MemberEntity member) {
         LocalDate today = LocalDate.now(KOREA_ZONE);
 
@@ -243,6 +242,76 @@ public class PointService {
 
 
     // =========================================================
+    // 예외 없이 시도하는 적립 메서드
+    // 다른 도메인에서 저장은 성공시키고 포인트만 미지급 처리할 때 사용
+    // =========================================================
+
+    //주간 훈련일기 작성 포인트 적립 시도
+    //이미 이번 주에 받았으면 예외 없이 지급하지 않음
+    public boolean tryEarnWeeklyTrainingDiaryPoint(MemberEntity member) {
+        LocalDate today = LocalDate.now(KOREA_ZONE);
+
+        LocalDate monday = today.with(DayOfWeek.MONDAY);
+        LocalDate nextMonday = monday.plusWeeks(1);
+
+        LocalDateTime start = monday.atStartOfDay();
+        LocalDateTime end = nextMonday.atStartOfDay();
+
+        boolean alreadyEarned = pointHistoryRepository.existsPointHistoryInPeriod(
+                member,
+                PointReasonType.WEEKLY_TRAINING_DIARY,
+                start,
+                end
+        );
+
+        if (alreadyEarned) {
+            return false;
+        }
+
+        earnPoint(
+                member,
+                WEEKLY_TRAINING_DIARY_POINT,
+                PointReasonType.WEEKLY_TRAINING_DIARY,
+                "주간 훈련일기 작성 포인트 지급"
+        );
+
+        return true;
+    }
+
+    //주간 커뮤니티 게시글 작성 포인트 적립 시도
+    //자유게시판 / 상품후기게시판 / 시설후기게시판 통합 주 1회
+    public boolean tryEarnWeeklyCommunityPostPoint(MemberEntity member) {
+        LocalDate today = LocalDate.now(KOREA_ZONE);
+
+        LocalDate monday = today.with(DayOfWeek.MONDAY);
+        LocalDate nextMonday = monday.plusWeeks(1);
+
+        LocalDateTime start = monday.atStartOfDay();
+        LocalDateTime end = nextMonday.atStartOfDay();
+
+        boolean alreadyEarned = pointHistoryRepository.existsPointHistoryInPeriod(
+                member,
+                PointReasonType.WEEKLY_COMMUNITY_POST,
+                start,
+                end
+        );
+
+        if (alreadyEarned) {
+            return false;
+        }
+
+        earnPoint(
+                member,
+                WEEKLY_COMMUNITY_POST_POINT,
+                PointReasonType.WEEKLY_COMMUNITY_POST,
+                "주간 게시글 작성 포인트 지급"
+        );
+
+        return true;
+    }
+
+
+    // =========================================================
     // 도메인 내부에서 호출하는 차감/환불 메서드
     // =========================================================
 
@@ -291,97 +360,6 @@ public class PointService {
 
 
     // =========================================================
-    // 예외 없이 시도하는 적립 메서드
-    // 다른 도메인에서 저장은 성공시키고 포인트만 미지급 처리할 때 사용
-    // =========================================================
-    /**
-     * 로그인 username으로 회원 조회
-     */
-    private MemberEntity getMemberByUsername(String username) {
-        if (username == null || username.isBlank() || "anonymousUser".equals(username)) {
-            throw new CustomException(MemberErrorCode.LOGIN_REQUIRED);
-        }
-
-        return memberRepository.findByUsername(username)
-                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
-    }
-
-    /**
-     * 주간 훈련일기 작성 포인트 적립 시도
-     * 이미 이번 주에 받았으면 예외 없이 지급하지 않음
-     *
-     * return true  = 포인트 지급됨
-     * return false = 이미 지급받아서 이번에는 미지급
-     */
-    public boolean tryEarnWeeklyTrainingDiaryPoint(MemberEntity member) {
-        LocalDate today = LocalDate.now(KOREA_ZONE);
-
-        LocalDate monday = today.with(DayOfWeek.MONDAY);
-        LocalDate nextMonday = monday.plusWeeks(1);
-
-        LocalDateTime start = monday.atStartOfDay();
-        LocalDateTime end = nextMonday.atStartOfDay();
-
-        boolean alreadyEarned = pointHistoryRepository.existsPointHistoryInPeriod(
-                member,
-                PointReasonType.WEEKLY_TRAINING_DIARY,
-                start,
-                end
-        );
-
-        if (alreadyEarned) {
-            return false;
-        }
-
-        earnPoint(
-                member,
-                WEEKLY_TRAINING_DIARY_POINT,
-                PointReasonType.WEEKLY_TRAINING_DIARY,
-                "주간 훈련일기 작성 포인트 지급"
-        );
-
-        return true;
-    }
-
-    /**
-     * 주간 커뮤니티 게시글 작성 포인트 적립 시도
-     * 자유게시판 / 상품후기게시판 / 시설후기게시판 통합 주 1회
-     *
-     * return true  = 포인트 지급됨
-     * return false = 이미 지급받아서 이번에는 미지급
-     */
-    public boolean tryEarnWeeklyCommunityPostPoint(MemberEntity member) {
-        LocalDate today = LocalDate.now(KOREA_ZONE);
-
-        LocalDate monday = today.with(DayOfWeek.MONDAY);
-        LocalDate nextMonday = monday.plusWeeks(1);
-
-        LocalDateTime start = monday.atStartOfDay();
-        LocalDateTime end = nextMonday.atStartOfDay();
-
-        boolean alreadyEarned = pointHistoryRepository.existsPointHistoryInPeriod(
-                member,
-                PointReasonType.WEEKLY_COMMUNITY_POST,
-                start,
-                end
-        );
-
-        if (alreadyEarned) {
-            return false;
-        }
-
-        earnPoint(
-                member,
-                WEEKLY_COMMUNITY_POST_POINT,
-                PointReasonType.WEEKLY_COMMUNITY_POST,
-                "주간 게시글 작성 포인트 지급"
-        );
-
-        return true;
-    }
-
-
-    // =========================================================
     // 공통 적립/사용 처리 메서드
     // =========================================================
 
@@ -395,7 +373,7 @@ public class PointService {
         earnPoint(member, amount, reasonType, memo, null);
     }
 
-    //내부 공통 적립 메서드 - 주문번호 연결 가능/
+    //내부 공통 적립 메서드 - 주문번호 연결 가능
     public void earnPoint(
             MemberEntity member,
             Long amount,
