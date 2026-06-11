@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../../../features/member/store/memberSlice";
+import useMessage from "../../../features/mypage/message/hooks/useMessage";
 
 // 포인트 관련
 import usePointEffect from "../../../features/point/hooks/usePointEffect";
@@ -10,12 +11,17 @@ export default function UserMenu({ loginMember }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { runDailyAttendancePoint } = usePointEffect();
+  const { messageList, loading, fetchMyMessages } = useMessage();
 
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
 
   const nickname = loginMember?.nickname || "회원";
   const profileImageUrl = loginMember?.profileImageUrl;
+
+  useEffect(() => {
+    fetchMyMessages();
+  }, [location.pathname]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -64,12 +70,27 @@ export default function UserMenu({ loginMember }) {
     }
   }
 
+  function messageCounter(msgList) {
+    return msgList.filter((msg) => msg.readYn === "N").length;
+  }
+
+  const msgCount = messageCounter(messageList);
+
   return (
     <div className="user-menu" ref={menuRef}>
-      <button type="button" className="header-alarm" aria-label="알림">
-        <span className="header-alarm-icon">🔔</span>
-        <span className="alarm-badge">5</span>
-      </button>
+      {!loading && msgCount > 0 && (
+        <button
+          type="button"
+          className="header-alarm"
+          aria-label="알림"
+          onClick={() => {
+            navigate("/mypage/message");
+          }}
+        >
+          <span className="header-alarm-icon">🔔</span>
+          <span className="alarm-badge">{msgCount}</span>
+        </button>
+      )}
 
       <button
         type="button"

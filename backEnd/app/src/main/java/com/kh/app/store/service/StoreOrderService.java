@@ -5,6 +5,7 @@ import com.kh.app.delivery.entity.DeliveryAddressEntity;
 import com.kh.app.delivery.repository.DeliveryAddressRepository;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.repository.MemberRepository;
+import com.kh.app.point.service.PointService;
 import com.kh.app.store.dto.request.StoreCartInsertReqDto;
 import com.kh.app.store.dto.request.StoreCartQtyUpdateReqDto;
 import com.kh.app.store.dto.request.StorePayReadyReqDto;
@@ -44,6 +45,9 @@ public class StoreOrderService {
     private final StoreOrderItemRepository storeOrderItemRepository;
     private final StorePaymentRepository storePaymentRepository;
     private final StoreKakaoPayService storeKakaoPayService;
+
+    //포인트 관련
+    private final PointService pointService;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
@@ -296,7 +300,6 @@ public class StoreOrderService {
         MemberEntity member = getLoginMember(username);
 
         //배송지 검증
-
         if (reqDto.getDeliveryAddressId() == null) {
             throw new IllegalArgumentException("배송지를 선택해주세요.");
         }
@@ -323,14 +326,26 @@ public class StoreOrderService {
                 .sum();
 
         Long deliveryFee = calculateDeliveryFee(totalProductAmount);
-        Long finalAmount = totalProductAmount + deliveryFee;
+
+        //포인트 차감 전 결제 대상 금액
+        Long paymentTargetAmount = totalProductAmount + deliveryFee;
+
+        //사용 포인트 검증
+        Long usedPoint = validateUsedPoint(
+                reqDto.getUsedPoint(),
+                member,
+                paymentTargetAmount
+        );
+
+        //최종 결제금액
+        Long finalAmount = paymentTargetAmount - usedPoint;
 
         String deliveryRequest = reqDto.getDeliveryRequest();
 
         StoreOrderEntity order = StoreOrderEntity.builder()
                 .member(member)
                 .orderDeliveryFee(deliveryFee)
-                .orderUsedPoint(0L)
+                .orderUsedPoint(usedPoint)
                 .orderFinalAmount(finalAmount)
                 .deliveryAddressId(deliveryAddress.getId())
                 .orderReceiverName(deliveryAddress.getReceiverName())
@@ -437,8 +452,16 @@ public class StoreOrderService {
             payment.fail();
             throw new IllegalStateException("카카오페이 결제 승인에 실패했습니다.");
         }
-
         order.paid();
+
+        //주문 포인트 사용 처리
+        pointService.useOrderPoint(
+                order.getMember(),
+                order.getOrderUsedPoint(),
+                order.getOrderId()
+        );
+
+
 
         payment.approve(
                 approveRes.getTid(),
@@ -451,6 +474,73 @@ public class StoreOrderService {
                 order.getOrderId(),
                 payment.getPaymentId(),
                 payment.getPaymentAmount()
+        );
+    }
+
+    //사용 포인트 검증
+    private Long validateUsedPoint(Long requestedPoint, MemberEntity member, Long paymentTargetAmount) {
+        Long usedPoint = requestedPoint == null ? 0L : requestedPoint;
+
+        if (usedPoint < 0) {
+            throw new IllegalArgumentException("사용 포인트는 0 이상이어야 합니다.");
+        }
+
+        if (usedPoint == 0) {
+            return 0L;
+        }
+
+        if (usedPoint % 100 != 0) {
+            throw new IllegalArgumentException("포인트는 100P 단위로만 사용할 수 있습니다.");
+        }
+
+        if (usedPoint > member.getPoint()) {
+            throw new IllegalStateException("보유 포인트보다 많이 사용할 수 없습니다.");
+        }
+
+        if (usedPoint > paymentTargetAmount) {
+            throw new IllegalArgumentException("결제금액보다 많은 포인트는 사용할 수 없습니다.");
+        }
+
+        return usedPoint;
+    }
+
+    @Transactional
+    public void cancelOrder(Long orderId, String username) {
+        if (isNotLogin(username)) {
+            throw new IllegalStateException("로그인 후 주문을 취소할 수 있습니다.");
+        }
+
+        MemberEntity member = getLoginMember(username);
+
+        StoreOrderEntity order = storeOrderRepository.findById(orderId)
+                .orElseThrow(() -> new EntityNotFoundException("주문을 찾을 수 없습니다."));
+
+        if (!order.getMember().getId().equals(member.getId())) {
+            throw new IllegalStateException("본인의 주문만 취소할 수 있습니다.");
+        }
+
+        if (!order.isPaid()) {
+            throw new IllegalStateException("결제 완료된 주문만 취소할 수 있습니다.");
+        }
+
+        if (order.isCanceled()) {
+            throw new IllegalStateException("이미 취소된 주문입니다.");
+        }
+
+        //배송 상태 기능 붙이기 전까지는 PAID 상태 주문만 취소 가능하게 처리
+        order.cancel();
+
+        //사용 포인트 환불
+        pointService.refundOrderUsedPoint(
+                order.getMember(),
+                order.getOrderUsedPoint(),
+                order.getOrderId()
+        );
+
+        log.info("[스토어 주문 취소] orderId={}, memberId={}, refundPoint={}",
+                order.getOrderId(),
+                member.getId(),
+                order.getOrderUsedPoint()
         );
     }
 }

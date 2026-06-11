@@ -78,6 +78,13 @@ export async function approveInsuranceApplication(applicationId) {
   return api.patch(`/petinsurance/application/${applicationId}/approve`);
 }
 // =========================================================
+// 관리자 보험 가입 반려
+// 반려 처리 후 회원에게 자동 쪽지 발송
+// =========================================================
+export async function rejectInsuranceApplication(applicationId) {
+  return api.patch(`/petinsurance/application/${applicationId}/reject`);
+}
+// =========================================================
 // 사용자 본인의 펫 보험 정기결제 내역 조회
 // =========================================================
 export async function fetchMyInsurancePaymentHistory() {

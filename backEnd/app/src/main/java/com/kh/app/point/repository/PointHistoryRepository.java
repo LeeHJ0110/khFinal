@@ -22,19 +22,10 @@ public interface PointHistoryRepository extends JpaRepository<PointHistoryEntity
             PointReasonType pointReasonType
     );
 
-    @Query("""
-            select count(ph) > 0
-            from PointHistoryEntity ph
-            where ph.member = :member
-              and ph.pointReasonType = :pointReasonType
-              and ph.createdAt >= :startDateTime
-              and ph.createdAt < :endDateTime
-            """)
-    boolean existsPointHistoryInPeriod(
+    boolean existsByMemberAndPointReasonTypeAndRelatedOrderId(
             MemberEntity member,
             PointReasonType pointReasonType,
-            LocalDateTime startDateTime,
-            LocalDateTime endDateTime
+            Long relatedOrderId
     );
 
     long countByMemberAndPointReasonType(
@@ -49,4 +40,18 @@ public interface PointHistoryRepository extends JpaRepository<PointHistoryEntity
             LocalDateTime end
     );
 
+    @Query("""
+            select count(ph) > 0
+            from PointHistoryEntity ph
+            where ph.member = :member
+              and ph.pointReasonType = :pointReasonType
+              and ph.createdAt >= :startDateTime
+              and ph.createdAt < :endDateTime
+            """)
+    boolean existsPointHistoryInPeriod(
+            MemberEntity member,
+            PointReasonType pointReasonType,
+            LocalDateTime startDateTime,
+            LocalDateTime endDateTime
+    );
 }

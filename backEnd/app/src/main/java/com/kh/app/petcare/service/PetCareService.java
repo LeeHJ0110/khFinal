@@ -5,6 +5,8 @@ import com.kh.app.aws.service.S3Service;
 import com.kh.app.common.entity.DelYn;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.repository.MemberRepository;
+import com.kh.app.message.entity.MessageReasonType;
+import com.kh.app.message.service.SystemMessageService;
 import com.kh.app.pet.entity.PetEntity;
 import com.kh.app.pet.entity.PetType;
 import com.kh.app.pet.repository.PetRepository;
@@ -52,6 +54,7 @@ public class PetCareService {
     private final MemberRepository memberRepository;
     private final S3Service s3Service;
     private final PointService pointService;
+    private final SystemMessageService systemMessageService;
 
     // =========================================================
     // 건강진단 신청
@@ -437,17 +440,22 @@ public class PetCareService {
     }
 
     // =========================================================
-    // 건강진단 신청 반려
-    //
-    // 현재 구조에서는 diagnosisReqStatus가
-    // Y = 진행 중
-    // N = 진행 종료
-    //
-    // 반려 시 N으로 변경하여
-    // 사용자가 동일한 펫으로 다시 신청할 수 있도록 함
-    // =========================================================
+// 건강진단 신청 반려
+//
+// 현재 구조에서는 diagnosisReqStatus가
+// Y = 진행 중
+// N = 진행 종료
+//
+// 반려 시 N으로 변경하여
+// 사용자가 동일한 펫으로 다시 신청할 수 있도록 처리
+//
+// 반려 처리 후 회원에게 자동 쪽지 발송
+// =========================================================
     @Transactional
-    public void rejectDiagnosis(Long diagnosisReqId) {
+    public void rejectDiagnosis(
+            Long diagnosisReqId,
+            String adminUsername
+    ) {
 
         DiagnosisReqEntity diagnosisReq =
                 diagnosisReqRepository.findById(diagnosisReqId)
@@ -457,13 +465,34 @@ public class PetCareService {
                                 )
                         );
 
+        PetEntity pet = diagnosisReq.getPetEntity();
+
+        if (pet == null || pet.getMember() == null) {
+            throw new IllegalStateException(
+                    "쪽지를 받을 회원 정보를 찾을 수 없습니다."
+            );
+        }
+
+        MemberEntity receiverMember = pet.getMember();
+
         // 반려 시 진행 상태 해제
         // 다시 건강진단 신청 가능
         diagnosisReq.closeDiagnosis();
 
+        // 회원에게 반려 안내 쪽지 자동 발송
+        systemMessageService.sendByAdmin(
+                adminUsername,
+                receiverMember,
+                MessageReasonType.NOTICE,
+                "건강진단 신청 반려 안내",
+                pet.getName() + "의 건강진단 신청이 반려되었습니다."
+        );
+
         log.info(
-                "건강진단 신청 반려 처리 완료 - diagnosisReqId={}",
-                diagnosisReqId
+                "건강진단 신청 반려 처리 및 쪽지 발송 완료 - diagnosisReqId={}, petId={}",
+                diagnosisReqId,
+                pet.getId()
         );
     }
+
 }
