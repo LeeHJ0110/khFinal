@@ -3,8 +3,8 @@ package com.kh.app.point.service;
 import com.kh.app.common.exception.CustomException;
 import com.kh.app.common.exception.PointErrorCode;
 import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.member.exception.MemberErrorCode;
 import com.kh.app.member.repository.MemberRepository;
-import com.kh.app.point.dto.response.PointEventJoinResDto;
 import com.kh.app.point.dto.response.PointHistoryResDto;
 import com.kh.app.point.entity.PointHistoryEntity;
 import com.kh.app.point.entity.PointHistoryType;
@@ -337,11 +337,11 @@ public class PointService {
      */
     private MemberEntity getMemberByUsername(String username) {
         if (username == null || username.isBlank() || "anonymousUser".equals(username)) {
-            throw new CustomException(PointErrorCode.LOGIN_REQUIRED);
+            throw new CustomException(MemberErrorCode.LOGIN_REQUIRED);
         }
 
         return memberRepository.findByUsername(username)
-                .orElseThrow(() -> new CustomException(PointErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
     }
 
     /**

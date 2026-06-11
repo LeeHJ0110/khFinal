@@ -7,5 +7,6 @@ import lombok.Getter;
 @Builder
 public class ErrorResponseDto {
 
+    private String code;
     private String message;
 }
