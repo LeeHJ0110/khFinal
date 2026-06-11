@@ -137,4 +137,17 @@ public class StoreOrderController {
                 .header("Location", "http://localhost:5173/store/order/fail?orderId=" + orderId)
                 .build();
     }
+
+
+    // 7. 사용자 : 주문 취소
+    @Operation(summary = "주문 취소", description = "배송준비중 상태의 주문을 취소하고 사용 포인트를 환불하는 기능")
+    @PatchMapping("/cancel/{orderId}")
+    public ResponseEntity<Void> cancelOrder(
+            @PathVariable Long orderId,
+            @AuthenticationPrincipal String username
+    ) {
+        storeOrderService.cancelOrder(orderId, username);
+
+        return ResponseEntity.ok().build();
+    }
 }

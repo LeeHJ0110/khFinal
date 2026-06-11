@@ -5,6 +5,7 @@ import com.kh.app.common.entity.DelYn;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.entity.MemberRole;
 import com.kh.app.member.repository.MemberRepository;
+import com.kh.app.point.service.PointService;
 import com.kh.app.store.dto.request.StoreReviewUpdateReqDto;
 import com.kh.app.store.dto.request.StoreReviewWriteReqDto;
 import com.kh.app.store.dto.response.StoreMyReviewListResDto;
@@ -46,6 +47,9 @@ public class StoreReviewService {
 
     private final S3Service s3Service;
 
+    //포인트 관련
+    private final PointService pointService;
+
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
@@ -79,6 +83,14 @@ public class StoreReviewService {
         storeReviewRepository.save(review);
 
         saveReviewImages(review, fileList);
+
+        //리뷰 작성 포인트 지급
+        //회원 + 상품 기준 최초 1회만 지급
+        pointService.tryEarnReviewWritePoint(
+                member,
+                review.getProduct().getProductId()
+        );
+
 
         log.info("[스토어 리뷰 작성 완료] reviewId : {}, orderItemId : {}, memberId : {}",
                 review.getReviewId(),
