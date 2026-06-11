@@ -13,8 +13,6 @@ import MemberKakaoCallbackPage from "./pages/member/MemberKakaoCallbackPage";
 
 // healthcare
 import HealthCareHome from "./pages/petcare/HealthCareHome";
-import ScheduleMainPage from "./pages/schedule/ScheduleMainPage";
-import KarteListPage from "./pages/karte/KarteListPage";
 import KarteDetailPage from "./pages/karte/KarteDetailPage";
 import DiagnosisRequestPage from "./pages/petcare/DiagnosisRequestPage";
 import DiagnosisManagePage from "./pages/petcare/DiagnosisManagePage";
@@ -74,6 +72,8 @@ import AdminInsurancePage from "./pages/admin/insurance/AdminInsurancePage";
 import BoardSearchPage from "./pages/board/BoardSearchPage";
 import PointHistoryPage from "./pages/mypage/PointHistoryPage";
 import ProtectedRoute from "./shared/components/security/ProtectedRoute";
+import KarteListPage from "./pages/karte/KarteLIstPage";
+import ScheduleMainPage from "./pages/schedule/scheduleMainPage";
 
 function App() {
   return (
