@@ -11,13 +11,17 @@ export default function UserMenu({ loginMember }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { runDailyAttendancePoint } = usePointEffect();
-  const { messageList, loading } = useMessage();
+  const { messageList, loading, fetchMyMessages } = useMessage();
 
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
 
   const nickname = loginMember?.nickname || "회원";
   const profileImageUrl = loginMember?.profileImageUrl;
+
+  useEffect(() => {
+    fetchMyMessages();
+  }, [location.pathname]);
 
   useEffect(() => {
     function handleClickOutside(event) {
