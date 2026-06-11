@@ -59,14 +59,4 @@ public class MessageController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/unread-count")
-    public ResponseEntity<Long> getUnreadCount(
-            Authentication authentication
-    ) {
-        String loginKey = authentication.getName();
-
-        return ResponseEntity.ok(
-                messageService.getUnreadCount(loginKey)
-        );
-    }
 }
