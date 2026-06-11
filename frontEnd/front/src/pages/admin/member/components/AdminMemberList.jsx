@@ -36,8 +36,27 @@ export default function AdminMemberList({
             <td>{member.hasDog ? "O" : "-"}</td>
             <td>{member.hasCat ? "O" : "-"}</td>
             <td>{member.marketingAgreeYn === "Y" ? "동의" : "미동의"}</td>
-            <td>{member.status}</td>
-            <td>{member.role}</td>
+            <td>
+              {member.status === "A"
+                ? "활동중"
+                : member.status === "S"
+                  ? "정지중"
+                  : member.status}
+            </td>
+
+            <td>
+              {member.role === "U"
+                ? "일반회원"
+                : member.role === "A"
+                  ? "총관리자"
+                  : member.role === "D"
+                    ? "수의사"
+                    : member.role === "S"
+                      ? "판매관리자"
+                      : member.role === "B"
+                        ? "게시판관리자"
+                        : member.role}
+            </td>
             <td>{formatDate(member.createdAt)}</td>
           </tr>
         ))}
