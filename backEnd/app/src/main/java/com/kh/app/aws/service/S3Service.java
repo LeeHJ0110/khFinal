@@ -48,8 +48,15 @@ public class S3Service {
             return null;
         }
 
-        // 예: https://버킷명.s3.ap-northeast-2.amazonaws.com/board/uuid.png
-        return "https://" + bucket + ".s3.ap-northeast-2.amazonaws.com/" + s3Key;
+        if (s3Key.startsWith("http://") || s3Key.startsWith("https://")) {
+            return s3Key;
+        }
+
+        String key = s3Key.startsWith("/")
+                ? s3Key.substring(1)
+                : s3Key;
+
+        return "https://" + bucket + ".s3.ap-northeast-2.amazonaws.com/" + key;
     }
 
 
