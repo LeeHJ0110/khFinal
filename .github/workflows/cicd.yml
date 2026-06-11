@@ -65,4 +65,13 @@ jobs:
 
             # 3) 도커 허브에서 새 이미지를 pull 받아 컨테이너 구동
             # (ALB 로드밸런서에서 EC2의 80포트로 넘겨주고, 컨테이너 내부의 80포트로 연결하므로 -p 80:80 설정)
-            sudo docker run -d --name petandifor-container -p 80:80 ${{ secrets.DOCKER_HUB_ID }}/petandifor:latest
+            # RDS 커넥션 정보(postgres 데이터베이스) 및 카카오/카카오페이 운영용 URL을 환경변수로 넘겨줍니다.
+            sudo docker run -d --name petandifor-container -p 80:80 \
+              -e SPRING_DATASOURCE_URL=jdbc:postgresql://kh-final.cfm8i6sw6238.ap-northeast-2.rds.amazonaws.com:5432/postgres \
+              -e SPRING_DATASOURCE_USERNAME=postgres \
+              -e SPRING_DATASOURCE_PASSWORD=postgreskh \
+              -e SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_REDIRECT_URI=https://www.petandifor.store/member/kakao/callback \
+              -e KAKAOPAY_REDIRECT_BASE_URL=https://www.petandifor.store \
+              -e KAKAOPAY_STORE_REDIRECT_BASE_URL=https://www.petandifor.store \
+              -e KAKAOPAY_STORE_FRONT_REDIRECT_BASE_URL=https://www.petandifor.store \
+              ${{ secrets.DOCKER_HUB_ID }}/petandifor:latest
