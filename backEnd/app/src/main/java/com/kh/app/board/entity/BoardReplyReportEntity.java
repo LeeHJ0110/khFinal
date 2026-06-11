@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "BOARD_REPLY_REORT", uniqueConstraints = {
+@Table(name = "BOARD_REPLY_REPORT", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"BOARD_REPLY_ID", "REPORTER_ID"})
 })
 @Builder
