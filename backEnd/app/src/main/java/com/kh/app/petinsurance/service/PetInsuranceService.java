@@ -4,6 +4,7 @@ import com.kh.app.aws.service.S3Service;
 import com.kh.app.common.entity.DelYn;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.repository.MemberRepository;
+import com.kh.app.message.service.SystemMessageService;
 import com.kh.app.pet.entity.PetEntity;
 import com.kh.app.pet.repository.PetRepository;
 import com.kh.app.petinsurance.dto.request.PetInsuranceApplicationReqDto;
@@ -39,6 +40,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
+import com.kh.app.message.entity.MessageReasonType;
 
 @Service
 @RequiredArgsConstructor
@@ -53,9 +55,10 @@ public class PetInsuranceService {
     private final PetInsuranceProductRepository petInsuranceProductRepository;
     private final PetInsuranceApplicationRepository petInsuranceApplicationRepository;
     private final PetInsurancePaymentRepository petInsurancePaymentRepository;
-
+    private final SystemMessageService systemMessageService;
     private final KakaoPayClient kakaoPayClient;
     private final S3Service s3Service;
+
 
     // =========================================================
     // 보험 상품 목록 조회
@@ -547,15 +550,17 @@ public class PetInsuranceService {
         );
     }
 
-    // =========================================================
-    // 관리자 가입 승인 + 최초 월 보험료 결제
-    //
-    // 신청 당시 저장한 월 보험료로 결제
-    // 결제 성공 시 APPROVED 변경 및 PAYMENT 내역 저장
-    // =========================================================
+// =========================================================
+// 관리자 가입 승인 + 최초 월 보험료 결제
+//
+// 신청 당시 저장한 월 보험료로 결제
+// 결제 성공 시 APPROVED 변경 및 PAYMENT 내역 저장
+// 승인 완료 후 회원에게 자동 쪽지 발송
+// =========================================================
     @Transactional
     public void approveApplication(
-            Long applicationId
+            Long applicationId,
+            String adminUsername
     ) {
 
         PetInsuranceApplicationEntity application =
@@ -590,10 +595,20 @@ public class PetInsuranceService {
             );
         }
 
+        PetEntity pet =
+                application.getPet();
+
+        MemberEntity receiverMember =
+                pet.getMember();
+
+        if (receiverMember == null) {
+            throw new IllegalStateException(
+                    "쪽지를 받을 회원 정보를 찾을 수 없습니다."
+            );
+        }
+
         String username =
-                application.getPet()
-                        .getMember()
-                        .getUsername();
+                receiverMember.getUsername();
 
         KakaoPaySubscriptionRespDto response =
                 kakaoPayClient.requestSubscriptionPayment(
@@ -636,11 +651,90 @@ public class PetInsuranceService {
                 payment
         );
 
+        // 관리자 승인 처리 후 회원에게 자동 쪽지 발송
+        systemMessageService.sendByAdmin(
+                adminUsername,
+                receiverMember,
+                MessageReasonType.INSURANCE,
+                "펫보험 승인 안내",
+                pet.getName()
+                        + "의 펫보험 가입 신청이 승인되었습니다."
+        );
+
         log.info(
                 "펫 보험 가입 승인 및 최초 보험료 결제 완료 applicationId = {}, tid = {}, amount = {}",
                 applicationId,
                 response.getTid(),
                 monthlyPrice
+        );
+    }
+    // =========================================================
+// 관리자 보험 가입 반려
+//
+// WAITING 상태 신청만 반려 가능
+// 반려 후 비활성화하여 사용자가 다시 신청할 수 있도록 처리
+// 회원에게 자동 쪽지 발송
+// =========================================================
+    @Transactional
+    public void rejectApplication(
+            Long applicationId,
+            String adminUsername
+    ) {
+
+        PetInsuranceApplicationEntity application =
+                findApplicationById(
+                        applicationId
+                );
+
+        validateActiveApplication(
+                application
+        );
+
+        validateWaitingApplication(
+                application
+        );
+
+        PetEntity pet =
+                application.getPet();
+
+        MemberEntity receiverMember =
+                pet.getMember();
+
+        if (receiverMember == null) {
+            throw new IllegalStateException(
+                    "쪽지를 받을 회원 정보를 찾을 수 없습니다."
+            );
+        }
+
+        String sid =
+                application.getKakaoPaySid();
+
+        if (sid != null
+                && !sid.isBlank()) {
+
+            kakaoPayClient.inactivateSubscription(
+                    sid
+            );
+        }
+
+        // 반려된 신청은 활성 신청 목록에서 제외
+        // 동일 펫으로 다시 신청할 수 있도록 처리
+        application.delete();
+
+        // 관리자 반려 처리 후 회원에게 자동 쪽지 발송
+        systemMessageService.sendByAdmin(
+                adminUsername,
+                receiverMember,
+                MessageReasonType.INSURANCE,
+                "펫보험 신청 반려 안내",
+                pet.getName()
+                        + "의 펫보험 가입 신청이 반려되었습니다."
+        );
+
+        log.info(
+                "펫 보험 가입 반려 처리 완료 applicationId = {}, petId = {}",
+                applicationId,
+                pet.getId()
         );
     }
 

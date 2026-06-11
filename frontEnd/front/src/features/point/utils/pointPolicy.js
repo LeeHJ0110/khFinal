@@ -41,7 +41,8 @@ export const POINT_ACTION_POLICY = {
   [POINT_ACTION_TYPE.HEALTHCARE_USE]: {
     mode: "USE",
     amount: 2000,
-    successMessage: "[사용] 건강진단 서비스 이용으로 2,000P가 차감되었습니다.",
+    successMessage: "",
+    showSuccessMessage: false,
     blockMessage: "건강진단 신청에는 2,000P 이상 보유해야 합니다.",
     errorMessage: "건강진단 신청 중 오류가 발생했습니다.",
   },
