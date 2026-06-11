@@ -73,7 +73,7 @@ import BoardSearchPage from "./pages/board/BoardSearchPage";
 import PointHistoryPage from "./pages/mypage/PointHistoryPage";
 import ProtectedRoute from "./shared/components/security/ProtectedRoute";
 import KarteListPage from "./pages/karte/KarteLIstPage";
-import ScheduleMainPage from "./pages/schedule/scheduleMainPage";
+import ScheduleMainPage from "./pages/schedule/ScheduleMainPage";
 
 function App() {
   return (

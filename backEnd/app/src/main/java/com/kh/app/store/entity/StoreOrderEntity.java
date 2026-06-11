@@ -27,6 +27,12 @@ public class StoreOrderEntity extends BaseEntity {
     @Builder.Default
     private StoreOrderStatus orderStatus = StoreOrderStatus.ORDERED;
 
+    // 배송 상태
+    @Enumerated(EnumType.STRING)
+    @Column(name = "DELIVERY_STATUS", nullable = false, length = 30)
+    @Builder.Default
+    private StoreDeliveryStatus deliveryStatus = StoreDeliveryStatus.READY;
+
     @Column(name = "ORDER_DELIVERY_FEE", nullable = false)
     @Builder.Default
     private Long orderDeliveryFee = 0L;
@@ -74,4 +80,18 @@ public class StoreOrderEntity extends BaseEntity {
     public boolean isPaid() {
         return this.orderStatus == StoreOrderStatus.PAID;
     }
+
+    public boolean isDeliveryReady() {
+        return this.deliveryStatus == StoreDeliveryStatus.READY;
+    }
+
+    public void shipping() {
+        this.deliveryStatus = StoreDeliveryStatus.SHIPPING;
+    }
+
+    public void delivered() {
+        this.deliveryStatus = StoreDeliveryStatus.DELIVERED;
+    }
+
+
 }
