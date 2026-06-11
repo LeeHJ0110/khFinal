@@ -58,10 +58,8 @@ export default function ScheduleModal({ open, onClose, data }) {
             }
             if (data.isEdit) {
               handleEdit(payload);
-              console.log("수정");
             } else {
               handleWrite(payload);
-              console.log("등록");
             }
           }}
         >
@@ -179,7 +177,6 @@ export default function ScheduleModal({ open, onClose, data }) {
                   type="button"
                   onClick={() => {
                     handleDelete(data.id);
-                    console.log("삭제");
                   }}
                 >
                   삭제
