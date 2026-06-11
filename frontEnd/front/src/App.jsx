@@ -22,6 +22,7 @@ import DiagnosisDetailPage from "./pages/petcare/DiagnosisDetailPage";
 import PetInsuranceMain from "./pages/petinsurance/PetInsuranceMain";
 import InsuranceAdminApplicationPage from "./pages/petinsurance/InsuranceAdminApplicationPage";
 import InsurancePaymentSuccessPage from "./pages/petinsurance/InsurancePaymentSuccessPage";
+
 // store
 import PetStoreAdminProductListPage from "./pages/petStore/PetStoreAdminProductListPage";
 import PetStoreHomePage from "./pages/petStore/PetStoreHomePage";
@@ -41,6 +42,8 @@ import PetStoreCartListPage from "./pages/petStore/PetStoreCartListPage";
 import PetStoreOrderPage from "./pages/petStore/PetStoreOrderPage";
 import PetStoreOrderCompletePage from "./pages/petStore/PetStoreOrderCompletePage";
 import PetStoreMyReviewListPage from "./pages/petStore/PetStoreMyReviewListPage";
+import PetStoreEventListPage from "./pages/petStore/PetStoreEventListPage";
+import PetStoreEventDetailPage from "./pages/petStore/PetStoreEventDetailPage";
 
 // mypage
 import MyPageHomePage from "./pages/mypage/MyPageHomePage";
@@ -164,6 +167,10 @@ function App() {
               path="order/complete"
               element={<PetStoreOrderCompletePage />}
             />
+
+            {/* 이벤트 페이지*/}
+            <Route path="event/list" element={<PetStoreEventListPage />} />
+            <Route path="event/detail" element={<PetStoreEventDetailPage />} />
 
             {/* 강아지 스토어 계열 */}
             <Route path="dog" element={<PetStoreDogHomePage />} />

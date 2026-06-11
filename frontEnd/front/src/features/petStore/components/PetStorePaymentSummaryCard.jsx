@@ -6,6 +6,14 @@ export default function PetStorePaymentSummaryCard({
   orderDeliveryFee = 0,
   finalOrderAmount = 0,
 
+  // 포인트 관련
+  pointEnabled = false,
+  currentPoint = 0,
+  usedPoint = 0,
+  onChangeUsedPoint,
+  onBlurUsedPoint,
+  onUseAllPoint,
+
   primaryButtonText = "주문하기",
   secondaryButtonText = "쇼핑 계속하기",
 
@@ -20,6 +28,13 @@ export default function PetStorePaymentSummaryCard({
 
   function handleToggleDeliveryHelp() {
     setIsDeliveryHelpOpen((prev) => !prev);
+  }
+
+  function handleChangePoint(evt) {
+    const onlyNumber = evt.target.value.replace(/[^0-9]/g, "");
+    const nextPoint = onlyNumber === "" ? 0 : Number(onlyNumber);
+
+    onChangeUsedPoint?.(nextPoint);
   }
 
   useEffect(() => {
@@ -68,7 +83,8 @@ export default function PetStorePaymentSummaryCard({
               <HelpTooltip>
                 <HelpTooltipTitle>배송비 안내</HelpTooltipTitle>
                 <HelpTooltipText>
-                  주문금액이 30,000원 이상이면 배송비가 무료입니다.
+                  주문금액이 30,000원 이상이면 배송비가 무료입니다. 포인트 사용
+                  전 상품금액 기준으로 적용됩니다.
                 </HelpTooltipText>
               </HelpTooltip>
             )}
@@ -82,8 +98,30 @@ export default function PetStorePaymentSummaryCard({
         <SummaryLabel>사용 포인트</SummaryLabel>
 
         <PointInputWrap>
-          <PointInput value="0" readOnly />
-          <PointSubText>현재 보유 포인트 : 0P</PointSubText>
+          <PointInputRow $pointEnabled={pointEnabled}>
+            <PointInput
+              value={usedPoint}
+              readOnly={!pointEnabled}
+              inputMode="numeric"
+              placeholder="0"
+              onChange={handleChangePoint}
+              onBlur={onBlurUsedPoint}
+            />
+
+            {pointEnabled && (
+              <UseAllButton type="button" onClick={onUseAllPoint}>
+                전액사용
+              </UseAllButton>
+            )}
+          </PointInputRow>
+
+          <PointSubText>
+            현재 보유 포인트 : {Number(currentPoint || 0).toLocaleString()}P
+          </PointSubText>
+
+          {pointEnabled && (
+            <PointGuideText>100P 단위로 사용할 수 있습니다.</PointGuideText>
+          )}
         </PointInputWrap>
       </PointRow>
 
@@ -188,11 +226,6 @@ const HelpIcon = styled.button`
 
   cursor: pointer;
 
-  transition:
-    border-color 0.15s ease,
-    color 0.15s ease,
-    background-color 0.15s ease;
-
   &:hover {
     border-color: #05a77b;
     color: #05a77b;
@@ -206,7 +239,7 @@ const HelpTooltip = styled.div`
   top: 24px;
   z-index: 20;
 
-  width: 230px;
+  width: 250px;
   padding: 14px 16px;
 
   border: 1px solid #bdebd9;
@@ -216,8 +249,6 @@ const HelpTooltip = styled.div`
 
   color: #333333;
   text-align: left;
-
-  animation: tooltipFadeIn 0.16s ease both;
 
   &::before {
     content: "";
@@ -233,18 +264,6 @@ const HelpTooltip = styled.div`
     background-color: #ffffff;
 
     transform: rotate(45deg);
-  }
-
-  @keyframes tooltipFadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-4px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
   }
 `;
 
@@ -280,19 +299,44 @@ const PointInputWrap = styled.div`
   min-width: 0;
 `;
 
+const PointInputRow = styled.div`
+  display: grid;
+  grid-template-columns: ${({ $pointEnabled }) =>
+    $pointEnabled ? "1fr 74px" : "1fr"};
+  gap: 6px;
+`;
+
 const PointInput = styled.input`
   box-sizing: border-box;
   width: 100%;
-  height: 30px;
+  height: 32px;
   border: 1px solid #d4d4d4;
   padding: 0 10px;
   text-align: right;
   font-size: 14px;
-  background-color: #f9f9f9;
+  background-color: ${(props) => (props.readOnly ? "#f9f9f9" : "#ffffff")};
   color: #222222;
 
   &:focus {
     outline: none;
+    border-color: #05a77b;
+  }
+`;
+
+const UseAllButton = styled.button`
+  height: 32px;
+
+  border: 1px solid #05a77b;
+  border-radius: 4px;
+  background-color: #ffffff;
+  color: #05a77b;
+
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #ecfff9;
   }
 `;
 
@@ -301,6 +345,13 @@ const PointSubText = styled.div`
   text-align: right;
   font-size: 11px;
   color: #05a77b;
+`;
+
+const PointGuideText = styled.div`
+  margin-top: 4px;
+  text-align: right;
+  font-size: 11px;
+  color: #999999;
 `;
 
 const Divider = styled.div`
