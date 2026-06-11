@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getPointHistory, getPointSummary } from "../api/mypagePointApi";
 
 export default function usePointHistory() {
@@ -8,34 +8,38 @@ export default function usePointHistory() {
   const [totalPages, setTotalPages] = useState(0);
   const [loading, setLoading] = useState(false);
 
-  async function fetchSummary() {
-    const response = await getPointSummary();
-    setSummary(response.data);
-  }
+  const fetchAll = useCallback(
+    async (page = currentPage) => {
+      try {
+        setLoading(true);
 
-  async function fetchHistory(page = currentPage) {
-    const response = await getPointHistory(page, 10);
-    setHistoryList(response.data.content || []);
-    setTotalPages(response.data.totalPages || 0);
-  }
+        const [summaryResp, historyResp] = await Promise.all([
+          getPointSummary(),
+          getPointHistory(page, 10),
+        ]);
 
-  async function fetchAll() {
-    try {
-      setLoading(true);
-      await Promise.all([fetchSummary(), fetchHistory(currentPage)]);
-    } catch (err) {
-      console.error(err);
-      setSummary(null);
-      setHistoryList([]);
-      setTotalPages(0);
-    } finally {
-      setLoading(false);
-    }
-  }
+        setSummary(summaryResp.data);
+        setHistoryList(historyResp.data.content || []);
+        setTotalPages(historyResp.data.totalPages || 0);
+      } catch (err) {
+        console.error(err);
+        setSummary(null);
+        setHistoryList([]);
+        setTotalPages(0);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [currentPage],
+  );
+
+  useEffect(() => {
+    fetchAll(currentPage);
+  }, [currentPage, fetchAll]);
 
   useEffect(() => {
     function handleFocus() {
-      fetchAll();
+      fetchAll(currentPage);
     }
 
     window.addEventListener("focus", handleFocus);
@@ -43,7 +47,7 @@ export default function usePointHistory() {
     return () => {
       window.removeEventListener("focus", handleFocus);
     };
-  }, [currentPage]);
+  }, [currentPage, fetchAll]);
 
   return {
     summary,
