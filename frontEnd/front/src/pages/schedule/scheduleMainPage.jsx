@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import ScheduleMain from "../../features/schedule/components/ScheduleMain";
+import ScheduleMain from "../../features/schedule/components/scheduleMain";
 import TrainingDiaryModal from "../../features/schedule/components/TrainingDiaryModal";
 import useTraining from "../../features/schedule/hooks/useTraining";
 import { useEffect, useState } from "react";

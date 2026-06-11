@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { getHomeSummary } from "../../features/mypage/home/api/mypageHomeApi";
 import { getMyOrders } from "../../features/mypage/store/api/mypageStoreApi";
 import { getPointHistory } from "../../features/mypage/point/api/mypagePointApi";
-import ScheduleMain from "../../features/schedule/components/ScheduleMain";
+import ScheduleMain from "../../features/schedule/components/scheduleMain";
 
 export default function MyPageHomePage() {
   const navigate = useNavigate();
