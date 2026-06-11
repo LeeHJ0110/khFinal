@@ -17,7 +17,7 @@ import {
   YAxis,
 } from "recharts";
 import ActionCardGroup from "../../features/petcare/components/healthCareHome/ActionCardGroup";
-import ScheduleMain from "../../features/schedule/components/scheduleMain";
+import ScheduleMain from "../../features/schedule/components/ScheduleMain";
 import insurance from "../../features/petcare/img/preInsurance.png";
 import schedule from "../../features/petcare/img/calendar 1.png";
 import graph from "../../features/petcare/img/GGgraph 1.png";
