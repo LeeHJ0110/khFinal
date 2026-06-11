@@ -527,10 +527,12 @@ public class StoreOrderService {
             throw new IllegalStateException("이미 취소된 주문입니다.");
         }
 
-        //배송 상태 기능 붙이기 전까지는 PAID 상태 주문만 취소 가능하게 처리
+        if (!order.isDeliveryReady()) {
+            throw new IllegalStateException("배송준비중 상태의 주문만 취소할 수 있습니다.");
+        }
+
         order.cancel();
 
-        //사용 포인트 환불
         pointService.refundOrderUsedPoint(
                 order.getMember(),
                 order.getOrderUsedPoint(),
