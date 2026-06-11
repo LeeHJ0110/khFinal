@@ -15,6 +15,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # 깃허브 Secrets에서 비밀키 파일(application-private.properties)을 읽어와 동적으로 생성합니다.
+      - name: Generate application-private.properties
+        run: |
+          mkdir -p backEnd/app/src/main/resources
+          echo "${{ secrets.APPLICATION_PRIVATE_PROPERTIES }}" > backEnd/app/src/main/resources/application-private.properties
+
       - name: Setup JRE
         uses: actions/setup-java@v3
         with:
@@ -56,6 +62,7 @@ jobs:
             sudo docker rm -f petandifor-container || true
             sudo docker rmi -f ${{ secrets.DOCKER_HUB_ID }}/petandifor:latest || true
 
+            # RDS 커넥션 및 필요한 환경변수들을 주입하여 컨테이너를 가동합니다.
             sudo docker run -d --name petandifor-container -p 80:80 \
               -e SPRING_DATASOURCE_URL=jdbc:postgresql://kh-final.cfm8i6sw6238.ap-northeast-2.rds.amazonaws.com:5432/postgres \
               -e SPRING_DATASOURCE_USERNAME=postgres \
