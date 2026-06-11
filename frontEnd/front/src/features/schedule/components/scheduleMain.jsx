@@ -188,8 +188,6 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
 
   // ── eventClick (일반 일정 조회) ────────────────────────────────────
   const onEventClick = (info) => {
-    console.log(info.event);
-
     onOpenModal({
       type: "schedule",
       data: {

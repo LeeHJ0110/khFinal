@@ -1,15 +1,18 @@
 package com.kh.app.karte.service;
 
 import com.kh.app.board.dto.response.BoardListResDto;
+import com.kh.app.common.exception.CustomException;
 import com.kh.app.karte.dto.request.KarteReqDto;
 import com.kh.app.karte.dto.response.KarteListResDto;
 import com.kh.app.karte.dto.response.KarteResDto;
 import com.kh.app.karte.dto.response.ScoreResDto;
 import com.kh.app.karte.entity.KarteEntity;
 import com.kh.app.karte.entity.ScoreEntity;
+import com.kh.app.karte.exception.KarteErrorCode;
 import com.kh.app.karte.repository.KarteRepository;
 import com.kh.app.karte.repository.ScoreRepository;
 import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.member.exception.MemberErrorCode;
 import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.message.entity.MessageReasonType;
 import com.kh.app.message.service.SystemMessageService;
@@ -44,7 +47,7 @@ public class KarteService {
     @Transactional
     public void write(KarteReqDto reqDto, String username) {
         MemberEntity memberEntity = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("맴버 없음"));//TODO 권한 관리
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
         DiagnosisReqEntity diagEntity = diagnosisReqRepository.findById(reqDto.getDiaReqId())
                 .orElseThrow(() -> new IllegalArgumentException("신청내역 없음"));
 
@@ -72,15 +75,15 @@ public class KarteService {
 
     public Page<KarteListResDto> getKarteList(int pno, String username) {
         MemberEntity memberEntity = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("맴버 없음"));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
         PageRequest pageRequest = PageRequest.of(pno, 10);
-        return karteRepository.findKarteList(pageRequest, memberEntity); //TODO 조회여부 정렬, 특정 반려동물만 필터링
+        return karteRepository.findKarteList(pageRequest, memberEntity);
     }
 
     @Transactional
     public KarteResDto selectOne(Long id) {
         KarteEntity karte = karteRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("진단결과 없음"));
+                .orElseThrow(() -> new CustomException(KarteErrorCode.KARTE_NOTFOUND));
         DiagnosisReqEntity diagReq = diagnosisReqRepository.findById(karte.getDiaReq().getDiagnosisReqId())
                 .orElseThrow(() -> new IllegalArgumentException("진단신청 없음"));
         List<ScoreEntity> scores = scoreRepository.findAllByKarte(karte);
