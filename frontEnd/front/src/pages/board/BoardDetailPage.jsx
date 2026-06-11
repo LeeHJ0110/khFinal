@@ -185,7 +185,7 @@ export default function BoardDetailPage() {
     }
   };
 
-  // 댓글 신고 핸들러
+  // 댓글 신고 핸들러 z
   const handleReplyReport = async (replyId) => {
     if (!loginMember) {
       alert("로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.");
@@ -417,9 +417,7 @@ export default function BoardDetailPage() {
               </LikeButtonBox>
 
               <ReportShareRow>
-                <ActionLinkButton onClick={handleReport}>
-                  신고
-                </ActionLinkButton>
+                <ActionLinkButton onClick={handleReport}>신고</ActionLinkButton>
                 <ActionSeparator>|</ActionSeparator>
                 <ActionLinkButton
                   onClick={() => {
@@ -508,15 +506,33 @@ export default function BoardDetailPage() {
                         {comment.isAuthor && <AuthorBadge>작성자</AuthorBadge>}
                       </CommentMetaRow>
                       {editingReplyId === comment.id ? (
-                        <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            width: "100%",
+                          }}
+                        >
                           <CommentTextarea
                             value={editingContent}
                             onChange={(e) => setEditingContent(e.target.value)}
                             style={{ borderRadius: "8px", minHeight: "60px" }}
                           />
                           <EditButtonGroup>
-                            <EditActionButton $save onClick={(e) => handleCommentEdit(e, comment.id)}>저장</EditActionButton>
-                            <EditActionButton onClick={() => { setEditingReplyId(null); setEditingContent(""); }}>취소</EditActionButton>
+                            <EditActionButton
+                              $save
+                              onClick={(e) => handleCommentEdit(e, comment.id)}
+                            >
+                              저장
+                            </EditActionButton>
+                            <EditActionButton
+                              onClick={() => {
+                                setEditingReplyId(null);
+                                setEditingContent("");
+                              }}
+                            >
+                              취소
+                            </EditActionButton>
                           </EditButtonGroup>
                         </div>
                       ) : (
@@ -540,27 +556,29 @@ export default function BoardDetailPage() {
                               : "답글달기"}
                           </CommentActionLink>
                         )}
-                        {editingReplyId !== comment.id && loginMember?.nickname === comment.writerNickname && (
-                          <CommentActionLink
-                            onClick={() => {
-                              setEditingReplyId(comment.id);
-                              setEditingContent(comment.content);
-                              setActiveReplyParentId(null);
-                            }}
-                          >
-                            수정
-                          </CommentActionLink>
-                        )}
-                        {editingReplyId !== comment.id && (loginMember?.nickname === comment.writerNickname ||
-                          isSuperAdmin ||
-                          isBoardAdmin) && (
-                          <CommentReportLink
-                            style={{ color: "#ff6b6b" }}
-                            onClick={() => handleCommentDelete(comment.id)}
-                          >
-                            삭제
-                          </CommentReportLink>
-                        )}
+                        {editingReplyId !== comment.id &&
+                          loginMember?.nickname === comment.writerNickname && (
+                            <CommentActionLink
+                              onClick={() => {
+                                setEditingReplyId(comment.id);
+                                setEditingContent(comment.content);
+                                setActiveReplyParentId(null);
+                              }}
+                            >
+                              수정
+                            </CommentActionLink>
+                          )}
+                        {editingReplyId !== comment.id &&
+                          (loginMember?.nickname === comment.writerNickname ||
+                            isSuperAdmin ||
+                            isBoardAdmin) && (
+                            <CommentReportLink
+                              style={{ color: "#ff6b6b" }}
+                              onClick={() => handleCommentDelete(comment.id)}
+                            >
+                              삭제
+                            </CommentReportLink>
+                          )}
                         {editingReplyId !== comment.id && (
                           <CommentReportLink
                             onClick={() => handleReplyReport(comment.id)}
@@ -617,42 +635,72 @@ export default function BoardDetailPage() {
                               )}
                             </CommentMetaRow>
                             {editingReplyId === reply.id ? (
-                              <div style={{ display: "flex", flexDirection: "column", width: "100%" }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  width: "100%",
+                                }}
+                              >
                                 <CommentTextarea
                                   value={editingContent}
-                                  onChange={(e) => setEditingContent(e.target.value)}
-                                  style={{ borderRadius: "8px", minHeight: "60px" }}
+                                  onChange={(e) =>
+                                    setEditingContent(e.target.value)
+                                  }
+                                  style={{
+                                    borderRadius: "8px",
+                                    minHeight: "60px",
+                                  }}
                                 />
                                 <EditButtonGroup>
-                                  <EditActionButton $save onClick={(e) => handleCommentEdit(e, reply.id)}>저장</EditActionButton>
-                                  <EditActionButton onClick={() => { setEditingReplyId(null); setEditingContent(""); }}>취소</EditActionButton>
+                                  <EditActionButton
+                                    $save
+                                    onClick={(e) =>
+                                      handleCommentEdit(e, reply.id)
+                                    }
+                                  >
+                                    저장
+                                  </EditActionButton>
+                                  <EditActionButton
+                                    onClick={() => {
+                                      setEditingReplyId(null);
+                                      setEditingContent("");
+                                    }}
+                                  >
+                                    취소
+                                  </EditActionButton>
                                 </EditButtonGroup>
                               </div>
                             ) : (
                               <CommentText>{reply.content}</CommentText>
                             )}
                             <CommentFooterRow>
-                              {editingReplyId !== reply.id && loginMember?.nickname === reply.writerNickname && (
-                                <CommentActionLink
-                                  onClick={() => {
-                                    setEditingReplyId(reply.id);
-                                    setEditingContent(reply.content);
-                                  }}
-                                >
-                                  수정
-                                </CommentActionLink>
-                              )}
-                              {editingReplyId !== reply.id && (loginMember?.nickname ===
-                                reply.writerNickname ||
-                                isSuperAdmin ||
-                                isBoardAdmin) && (
-                                <CommentReportLink
-                                  style={{ color: "#ff6b6b" }}
-                                  onClick={() => handleCommentDelete(reply.id)}
-                                >
-                                  삭제
-                                </CommentReportLink>
-                              )}
+                              {editingReplyId !== reply.id &&
+                                loginMember?.nickname ===
+                                  reply.writerNickname && (
+                                  <CommentActionLink
+                                    onClick={() => {
+                                      setEditingReplyId(reply.id);
+                                      setEditingContent(reply.content);
+                                    }}
+                                  >
+                                    수정
+                                  </CommentActionLink>
+                                )}
+                              {editingReplyId !== reply.id &&
+                                (loginMember?.nickname ===
+                                  reply.writerNickname ||
+                                  isSuperAdmin ||
+                                  isBoardAdmin) && (
+                                  <CommentReportLink
+                                    style={{ color: "#ff6b6b" }}
+                                    onClick={() =>
+                                      handleCommentDelete(reply.id)
+                                    }
+                                  >
+                                    삭제
+                                  </CommentReportLink>
+                                )}
                               {editingReplyId !== reply.id && (
                                 <CommentReportLink
                                   onClick={() => handleReplyReport(reply.id)}
@@ -1142,8 +1190,10 @@ const EditActionButton = styled.button`
   font-weight: 700;
   border-radius: 4px;
   cursor: pointer;
-  border: 1px solid ${(props) => (props.$save ? "var(--color-main)" : "#dee2e6")};
-  background-color: ${(props) => (props.$save ? "var(--color-main)" : "#ffffff")};
+  border: 1px solid
+    ${(props) => (props.$save ? "var(--color-main)" : "#dee2e6")};
+  background-color: ${(props) =>
+    props.$save ? "var(--color-main)" : "#ffffff"};
   color: ${(props) => (props.$save ? "#ffffff" : "#495057")};
   transition: all 0.15s ease;
 
