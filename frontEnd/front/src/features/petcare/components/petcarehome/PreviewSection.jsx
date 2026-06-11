@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
 import { fetchMyPetList } from "../../api/petCareApi";
+
+import usePointEffect from "../../../point/hooks/usePointEffect";
+import { POINT_ACTION_TYPE } from "../../../point/utils/pointPolicy";
+
 import diagnosisPreviewImg from "../../img/건강진단 서브.png";
 import bell from "../../img/알림.png";
 
@@ -88,7 +92,10 @@ function getProfileImageUrl(petInfo) {
 function PreviewSection({ selectedPet, onChangeSelectedPet }) {
   const navigate = useNavigate();
 
+  const { checkPointBeforeStart } = usePointEffect();
+
   const [petList, setPetList] = useState([]);
+
   const [isLoading, setIsLoading] = useState(true);
 
   const [isPetMenuOpen, setIsPetMenuOpen] = useState(false);
@@ -160,7 +167,50 @@ function PreviewSection({ selectedPet, onChangeSelectedPet }) {
   // =====================================
   function handleSelectPet(pet) {
     onChangeSelectedPet(pet);
+
     setIsPetMenuOpen(false);
+  }
+
+  // =====================================
+  // 건강진단 신청 페이지 이동
+  //
+  // 버튼 클릭 시 포인트 확인
+  // 2,000P 이상이면 진행 여부 확인
+  // 확인을 누른 경우에만 이동
+  // =====================================
+  async function handleApplyDiagnosis() {
+    if (!petInfo || isApplying) {
+      return;
+    }
+
+    try {
+      const canStart = await checkPointBeforeStart(
+        POINT_ACTION_TYPE.HEALTHCARE_USE,
+      );
+
+      // 2,000P 미만이면 진입 차단
+      if (!canStart) {
+        return;
+      }
+
+      const isConfirmed = window.confirm(
+        "건강진단 신청 시 2,000P가 소모됩니다.\n신청을 계속하시겠습니까?",
+      );
+
+      // 취소 버튼을 누르면 현재 화면 유지
+      if (!isConfirmed) {
+        return;
+      }
+
+      // 확인 버튼을 누른 경우에만 신청 페이지 이동
+      navigate("/healthcare/request");
+    } catch (error) {
+      console.error("건강진단 신청 전 포인트 확인 실패:", error);
+
+      window.alert(
+        "포인트 정보를 확인하지 못했습니다.\n잠시 후 다시 시도해 주세요.",
+      );
+    }
   }
 
   return (
@@ -263,11 +313,7 @@ function PreviewSection({ selectedPet, onChangeSelectedPet }) {
                 <ApplyButton
                   type="button"
                   disabled={isApplying}
-                  onClick={() => {
-                    if (!isApplying) {
-                      navigate("/healthcare/request");
-                    }
-                  }}
+                  onClick={handleApplyDiagnosis}
                 >
                   {isApplying ? "신청 중" : "신청 가능"}
                 </ApplyButton>
@@ -542,14 +588,16 @@ const PetSelectMenu = styled.div`
   z-index: 20;
 
   width: 170px;
+  max-height: 240px;
+
   padding: 6px;
+  overflow-y: auto;
 
   display: flex;
   flex-direction: column;
   gap: 4px;
 
   border: 1px solid rgba(0, 169, 123, 0.22);
-
   border-radius: 9px;
 
   background: var(--color-white);
@@ -777,6 +825,7 @@ const ApplyButton = styled.button`
     cursor: not-allowed;
   }
 `;
+
 /* =====================================
    등록된 반려동물이 없는 경우
 ===================================== */
@@ -866,6 +915,7 @@ const NeedDiagnosisArea = styled.section`
     padding: 18px;
   }
 `;
+
 const NeedTextArea = styled.div`
   min-width: 0;
 `;
