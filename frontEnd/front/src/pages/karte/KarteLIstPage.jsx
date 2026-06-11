@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import useKarte from "../../features/karte/hooks/useKarte";
 import MailOpen from "../../features/karte/components/MailOpen";
 import MailClosed from "../../features/karte/components/MailClosed";
+import PetCareNav from "../../features/petcare/components/petcarehome/PetCareNav";
 
 export default function KarteListPage() {
   const navigate = useNavigate();
@@ -37,111 +38,114 @@ export default function KarteListPage() {
   console.log(list);
 
   return (
-    <Wrapper>
-      <Header>
-        <HeaderTextArea>
-          <Eyebrow>PET HEALTH CARE</Eyebrow>
+    <>
+      <PetCareNav />
+      <Wrapper>
+        <Header>
+          <HeaderTextArea>
+            <Eyebrow>PET HEALTH CARE</Eyebrow>
 
-          <Title>건강진단 신청 목록</Title>
+            <Title>건강진단 신청 목록</Title>
 
-          <Description>
-            접수된 반려동물 건강진단 신청 내역을 확인할 수 있습니다.
-          </Description>
-        </HeaderTextArea>
+            <Description>
+              접수된 반려동물 건강진단 신청 내역을 확인할 수 있습니다.
+            </Description>
+          </HeaderTextArea>
 
-        <TotalCount>
-          전체 <strong>{totalElements}</strong>건
-        </TotalCount>
-      </Header>
-      <TableCard>
-        {isLoading ? (
-          <LoadingArea>
-            <LoadingSpinner />
+          <TotalCount>
+            전체 <strong>{totalElements}</strong>건
+          </TotalCount>
+        </Header>
+        <TableCard>
+          {isLoading ? (
+            <LoadingArea>
+              <LoadingSpinner />
 
-            <LoadingText>건강진단 결과 내역을 불러오는 중입니다.</LoadingText>
-          </LoadingArea>
-        ) : (
-          <Table>
-            <thead>
-              <tr>
-                <th>번호</th>
-                <th>제목</th>
-                <th>생성일</th>
-                <th>작성자</th>
-                <th>열람여부</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {list.length === 0 ? (
+              <LoadingText>건강진단 결과 내역을 불러오는 중입니다.</LoadingText>
+            </LoadingArea>
+          ) : (
+            <Table>
+              <thead>
                 <tr>
-                  <EmptyCell colSpan={6}>
-                    <EmptyIcon>♡</EmptyIcon>
-
-                    <EmptyTitle>등록된 건강진단 결과가 없습니다.</EmptyTitle>
-
-                    <EmptyDescription>
-                      관리자가 검사를 마치면 이곳에서 확인할 수 있습니다.
-                    </EmptyDescription>
-                  </EmptyCell>
+                  <th>번호</th>
+                  <th>제목</th>
+                  <th>생성일</th>
+                  <th>작성자</th>
+                  <th>열람여부</th>
                 </tr>
-              ) : (
-                list.map((item, idx) => (
-                  <TableRow
-                    key={item.id}
-                    onClick={() => navigate(`/healthcare/result/${item.id}`)}
-                  >
-                    <NumberCell>{getRowNumber(idx)}</NumberCell>
-                    <td>{item.petName} 건강검진 결과</td>
-                    <DateCell>{formatDate(item.createdAt)}</DateCell>
-                    <td>{item.writer}</td>
-                    <td>
-                      {item.visited === "Y" ? (
-                        <MailOpen />
-                      ) : (
-                        <MailClosed color="#5ec8a7" />
-                      )}
-                    </td>
-                  </TableRow>
-                ))
-              )}
-            </tbody>
-          </Table>
-        )}
-      </TableCard>
-      {/* 하단 페이지네이션 */}
-      {totalPages > 1 && (
-        <Pagination>
-          <PaginationButton
-            type="button"
-            disabled={currentPage === 0}
-            onClick={() => setCurrentPage((prev) => prev - 1)}
-          >
-            ‹
-          </PaginationButton>
+              </thead>
 
-          {Array.from({ length: totalPages }, (_, index) => (
+              <tbody>
+                {list.length === 0 ? (
+                  <tr>
+                    <EmptyCell colSpan={6}>
+                      <EmptyIcon>♡</EmptyIcon>
+
+                      <EmptyTitle>등록된 건강진단 결과가 없습니다.</EmptyTitle>
+
+                      <EmptyDescription>
+                        관리자가 검사를 마치면 이곳에서 확인할 수 있습니다.
+                      </EmptyDescription>
+                    </EmptyCell>
+                  </tr>
+                ) : (
+                  list.map((item, idx) => (
+                    <TableRow
+                      key={item.id}
+                      onClick={() => navigate(`/healthcare/result/${item.id}`)}
+                    >
+                      <NumberCell>{getRowNumber(idx)}</NumberCell>
+                      <td>{item.petName} 건강검진 결과</td>
+                      <DateCell>{formatDate(item.createdAt)}</DateCell>
+                      <td>{item.writer}</td>
+                      <td>
+                        {item.visited === "Y" ? (
+                          <MailOpen />
+                        ) : (
+                          <MailClosed color="#5ec8a7" />
+                        )}
+                      </td>
+                    </TableRow>
+                  ))
+                )}
+              </tbody>
+            </Table>
+          )}
+        </TableCard>
+        {/* 하단 페이지네이션 */}
+        {totalPages > 1 && (
+          <Pagination>
             <PaginationButton
-              key={index}
               type="button"
-              $active={currentPage === index}
-              aria-current={currentPage === index ? "page" : undefined}
-              onClick={() => setCurrentPage(index)}
+              disabled={currentPage === 0}
+              onClick={() => setCurrentPage((prev) => prev - 1)}
             >
-              {index + 1}
+              ‹
             </PaginationButton>
-          ))}
 
-          <PaginationButton
-            type="button"
-            disabled={currentPage === totalPages - 1}
-            onClick={() => setCurrentPage((prev) => prev + 1)}
-          >
-            ›
-          </PaginationButton>
-        </Pagination>
-      )}
-    </Wrapper>
+            {Array.from({ length: totalPages }, (_, index) => (
+              <PaginationButton
+                key={index}
+                type="button"
+                $active={currentPage === index}
+                aria-current={currentPage === index ? "page" : undefined}
+                onClick={() => setCurrentPage(index)}
+              >
+                {index + 1}
+              </PaginationButton>
+            ))}
+
+            <PaginationButton
+              type="button"
+              disabled={currentPage === totalPages - 1}
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+            >
+              ›
+            </PaginationButton>
+          </Pagination>
+        )}
+      </Wrapper>
+    </>
   );
 }
 

@@ -30,4 +30,6 @@ public interface StoreWishRepository extends JpaRepository<StoreWishEntity, Long
     );
 
     Optional<StoreWishEntity> findByWishlistIdAndMember(Long wishlistId, MemberEntity member);
+
+    long countByMember_Id(Long memberId);
 }

@@ -11,6 +11,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponseDto> handleCustomException(CustomException e) {
         ErrorResponseDto response = ErrorResponseDto.builder()
                 .message(e.getErrorCode().getMsg())
+                .code(e.getErrorCode().getCode())
                 .build();
 
         return ResponseEntity.status(e.getErrorCode().getStatus())

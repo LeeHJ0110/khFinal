@@ -7,6 +7,7 @@ import ScheduleModal from "../../features/schedule/components/scheduleModal";
 import useFormData from "../../shared/hooks/useFormData";
 import ScheduleCard from "../../features/schedule/components/ScheduleCard";
 import TodaySchedule from "../../features/schedule/components/TodaySchedule";
+import PetCareNav from "../../features/petcare/components/petcarehome/PetCareNav";
 
 export default function ScheduleMainPage() {
   const trainingInit = {
@@ -57,46 +58,52 @@ export default function ScheduleMainPage() {
   }
 
   return (
-    <Wrapper>
-      <VerticalDiv>
-        <TodayCard>
-          <CardTitle>오늘 일정</CardTitle>
-          <hr />
-          <TodaySchedule open={detailOpen} />
-        </TodayCard>
-        <div>
-          <VerticalDiv>
-            <ScheduleCard
-              onButtonClick={() => {
-                handleOpenModal({
-                  type: "schedule",
-                  data: { ...scheduleInit, startDate: today, endDate: today },
-                });
-              }}
+    <>
+      <PetCareNav />
+      <Wrapper>
+        <VerticalDiv>
+          <TodayCard>
+            <CardTitle>오늘 일정</CardTitle>
+            <hr />
+            <TodaySchedule open={detailOpen} />
+          </TodayCard>
+          <div>
+            <VerticalDiv>
+              <ScheduleCard
+                onButtonClick={() => {
+                  handleOpenModal({
+                    type: "schedule",
+                    data: { ...scheduleInit, startDate: today, endDate: today },
+                  });
+                }}
+              />
+              <ScheduleCard
+                isTraining={true}
+                onButtonClick={handleTraininClick}
+              />
+            </VerticalDiv>
+            <ScheduleMain
+              onOpenModal={handleOpenModal}
+              detailOpen={detailOpen}
             />
-            <ScheduleCard
-              isTraining={true}
-              onButtonClick={handleTraininClick}
-            />
-          </VerticalDiv>
-          <ScheduleMain onOpenModal={handleOpenModal} detailOpen={detailOpen} />
-        </div>
-      </VerticalDiv>
-      {modalType === "schedule" && (
-        <ScheduleModal
-          open={detailOpen}
-          onClose={handleCloseModal}
-          data={selectedEvent}
-        />
-      )}
-      {modalType === "training" && (
-        <TrainingDiaryModal
-          open={detailOpen}
-          onClose={handleCloseModal}
-          data={selectedEvent}
-        />
-      )}
-    </Wrapper>
+          </div>
+        </VerticalDiv>
+        {modalType === "schedule" && (
+          <ScheduleModal
+            open={detailOpen}
+            onClose={handleCloseModal}
+            data={selectedEvent}
+          />
+        )}
+        {modalType === "training" && (
+          <TrainingDiaryModal
+            open={detailOpen}
+            onClose={handleCloseModal}
+            data={selectedEvent}
+          />
+        )}
+      </Wrapper>
+    </>
   );
 }
 

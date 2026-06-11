@@ -44,22 +44,6 @@ public class MessageService {
                 .toList();
     }
 
-    @Transactional(readOnly = true)
-    public long getUnreadCount(String loginKey) {
-
-        MemberEntity member = memberRepository.findByUsername(loginKey)
-                .or(() -> memberRepository.findBySocialId(loginKey))
-                .orElseThrow(() ->
-                        new IllegalStateException("회원 정보가 존재하지 않습니다.")
-                );
-
-        return messageRepository.countByReceiver_IdAndReadYnAndDelYn(
-                member.getId(),
-                MessageReadYn.N,
-                DelYn.N
-        );
-    }
-
     public void read(Long messageId, String loginKey) {
 
         MemberEntity member = findLoginMember(loginKey);

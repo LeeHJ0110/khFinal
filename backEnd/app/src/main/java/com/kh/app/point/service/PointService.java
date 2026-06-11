@@ -1,8 +1,9 @@
 package com.kh.app.point.service;
 
 import com.kh.app.common.exception.CustomException;
-import com.kh.app.point.exception.PointErrorCode;
+import com.kh.app.common.exception.PointErrorCode;
 import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.member.exception.MemberErrorCode;
 import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.point.dto.response.PointHistoryResDto;
 import com.kh.app.point.entity.PointHistoryEntity;
@@ -267,27 +268,20 @@ public class PointService {
         );
     }
 
-    /**
-     * 이벤트 참여 포인트 적립
-     * 최초 1회 제한
-     */
-    public void earnEventJoinPoint(MemberEntity member) {
-        boolean alreadyEarned = pointHistoryRepository.existsByMemberAndPointReasonType(
-                member,
-                PointReasonType.EVENT_JOIN
-        );
-
-        if (alreadyEarned) {
-            throw new CustomException(PointErrorCode.ALREADY_EVENT_JOIN);
-        }
-
-        earnPoint(
-                member,
-                EVENT_JOIN_POINT,
-                PointReasonType.EVENT_JOIN,
-                "이벤트 참여 포인트 지급"
-        );
-    }
+//    /**
+//     * 사용자 : 회원가입 감사 이벤트 포인트 적립
+//     * 회원당 최초 1회만 지급
+//     */
+//    public PointEventJoinResDto earnEventJoinPoint(String username) {
+//        MemberEntity member = getMemberByUsername(username);
+//
+//        earnEventJoinPoint(member);
+//
+//        return PointEventJoinResDto.builder()
+//                .message("회원가입 감사 이벤트 포인트가 지급되었습니다.")
+//                .currentPoint(member.getPoint())
+//                .build();
+//    }
 
     /**
      * 건강관리 서비스 이용 포인트 차감
@@ -343,11 +337,11 @@ public class PointService {
      */
     private MemberEntity getMemberByUsername(String username) {
         if (username == null || username.isBlank() || "anonymousUser".equals(username)) {
-            throw new CustomException(PointErrorCode.LOGIN_REQUIRED);
+            throw new CustomException(MemberErrorCode.LOGIN_REQUIRED);
         }
 
         return memberRepository.findByUsername(username)
-                .orElseThrow(() -> new CustomException(PointErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
     }
 
     /**

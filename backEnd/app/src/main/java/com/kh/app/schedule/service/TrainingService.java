@@ -1,6 +1,8 @@
 package com.kh.app.schedule.service;
 
+import com.kh.app.common.exception.CustomException;
 import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.member.exception.MemberErrorCode;
 import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.pet.entity.PetEntity;
 import com.kh.app.pet.repository.PetRepository;
@@ -43,7 +45,7 @@ public class TrainingService {
     @Transactional
     public void write(TrainReqDto reqDto, String username) {
         MemberEntity memberEntity = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("그런 username 없음"));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
         TrainingDiaryEntity diaryEntity = reqDto.toEntity(memberEntity);
 
         trainingRepository.save(diaryEntity);
@@ -66,13 +68,15 @@ public class TrainingService {
         }
     }
 
-    public String checkDate(LocalDate date) {
+    public String checkDate(LocalDate date, String username) {
+        MemberEntity memberEntity = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
         String message = "등록가능";
 
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = date.plusDays(1).atStartOfDay();
 
-        boolean exists = trainingRepository.existsByDate(start, end);
+        boolean exists = trainingRepository.existsByDate(start, end, memberEntity.getUsername());
 
         if (exists) {
             if (date.equals(LocalDate.now())) {
@@ -85,7 +89,7 @@ public class TrainingService {
 
     public List<TrainingResDto> selectList(String username) {
         MemberEntity memberEntity = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("그런 username 없음"));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
         return trainingRepository
                 .findAllByMemberUsername(memberEntity.getUsername())
                 .stream()

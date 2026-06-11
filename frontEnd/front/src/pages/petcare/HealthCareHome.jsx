@@ -133,7 +133,6 @@ export default function HealthCareHome() {
     <>
       <PetCareNav />
       <Wrapper>
-        {/* ── TopSection ── */}
         <TopWrapper>
           <TopCard>
             <FlexDiv $margin={"10px"}>
@@ -274,7 +273,6 @@ export default function HealthCareHome() {
           </TopCard>
         </TopWrapper>
 
-        {/* ── BottomSection ── */}
         <BottomSection>
           {/* 오늘 일정 */}
           <Card>
@@ -322,7 +320,7 @@ export default function HealthCareHome() {
             )}
           </Card>
 
-          {/* 캘린더 */}
+          {/* 일정표 */}
           <ScrollableCard $flex={1} $noPad>
             <ScheduleMain small={true} />
           </ScrollableCard>

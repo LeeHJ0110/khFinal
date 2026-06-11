@@ -1,16 +1,21 @@
 package com.kh.app.karte.service;
 
 import com.kh.app.board.dto.response.BoardListResDto;
+import com.kh.app.common.exception.CustomException;
 import com.kh.app.karte.dto.request.KarteReqDto;
 import com.kh.app.karte.dto.response.KarteListResDto;
 import com.kh.app.karte.dto.response.KarteResDto;
 import com.kh.app.karte.dto.response.ScoreResDto;
 import com.kh.app.karte.entity.KarteEntity;
 import com.kh.app.karte.entity.ScoreEntity;
+import com.kh.app.karte.exception.KarteErrorCode;
 import com.kh.app.karte.repository.KarteRepository;
 import com.kh.app.karte.repository.ScoreRepository;
 import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.member.exception.MemberErrorCode;
 import com.kh.app.member.repository.MemberRepository;
+import com.kh.app.message.entity.MessageReasonType;
+import com.kh.app.message.service.SystemMessageService;
 import com.kh.app.pet.entity.PetEntity;
 import com.kh.app.pet.repository.PetRepository;
 import com.kh.app.petcare.dto.response.DiagnosisDetailResDto;
@@ -37,12 +42,17 @@ public class KarteService {
     private final ScoreRepository scoreRepository;
     private final DiagnosisReqRepository diagnosisReqRepository;
 
+    private final SystemMessageService systemMessageService;
+
     @Transactional
     public void write(KarteReqDto reqDto, String username) {
         MemberEntity memberEntity = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("맴버 없음"));//TODO 권한 관리
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
         DiagnosisReqEntity diagEntity = diagnosisReqRepository.findById(reqDto.getDiaReqId())
                 .orElseThrow(() -> new IllegalArgumentException("신청내역 없음"));
+
+        String petName = diagEntity.getPetEntity().getName();
+        MemberEntity reqMember = diagEntity.getPetEntity().getMember();
 
         KarteEntity karte = karteRepository.save(reqDto.toEntity(memberEntity, diagEntity));
 
@@ -53,19 +63,27 @@ public class KarteService {
 
         scoreRepository.saveAll(scores);
         log.info("[진단결과 작성 완료] writer: {}", memberEntity);
+
+        systemMessageService.sendByAdmin(
+                username,
+                reqMember,
+                MessageReasonType.INSURANCE,
+                "펫 진단 완료 알림",
+                petName + "의 온라인 진단이 완료되었습니다. 진단확인페이지에서 확인해주세요."
+        );
     }
 
     public Page<KarteListResDto> getKarteList(int pno, String username) {
         MemberEntity memberEntity = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("맴버 없음"));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
         PageRequest pageRequest = PageRequest.of(pno, 10);
-        return karteRepository.findKarteList(pageRequest, memberEntity); //TODO 조회여부 정렬, 특정 반려동물만 필터링
+        return karteRepository.findKarteList(pageRequest, memberEntity);
     }
 
     @Transactional
     public KarteResDto selectOne(Long id) {
         KarteEntity karte = karteRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("진단결과 없음"));
+                .orElseThrow(() -> new CustomException(KarteErrorCode.KARTE_NOTFOUND));
         DiagnosisReqEntity diagReq = diagnosisReqRepository.findById(karte.getDiaReq().getDiagnosisReqId())
                 .orElseThrow(() -> new IllegalArgumentException("진단신청 없음"));
         List<ScoreEntity> scores = scoreRepository.findAllByKarte(karte);

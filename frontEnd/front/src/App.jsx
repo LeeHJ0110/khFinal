@@ -1,4 +1,4 @@
-import { Route, Routes, Navigate } from "react-router-dom";
+import { Route, Routes, Navigate, Outlet } from "react-router-dom";
 import "./App.css";
 
 import DefaultLayout from "./app/layouts/DefaultLayout";
@@ -16,7 +16,6 @@ import HealthCareHome from "./pages/petcare/HealthCareHome";
 import ScheduleMainPage from "./pages/schedule/ScheduleMainPage";
 import KarteListPage from "./pages/karte/KarteListPage";
 import KarteDetailPage from "./pages/karte/KarteDetailPage";
-import DiagnosisRequestHomePage from "./pages/petcare/DiagnosisRequestHomePage";
 import DiagnosisRequestPage from "./pages/petcare/DiagnosisRequestPage";
 import DiagnosisManagePage from "./pages/petcare/DiagnosisManagePage";
 import DiagnosisDetailPage from "./pages/petcare/DiagnosisDetailPage";
@@ -67,8 +66,11 @@ import OrderHistoryPage from "./pages/mypage/OrderHistoryPage";
 import AdminDeliveryPage from "./pages/admin/delivery/AdminDeliveryPage";
 import PetStoreReviewInsertPage from "./pages/petStore/PetStoreReviewInsertPage";
 import PetStoreReviewEditPage from "./pages/petStore/PetStoreReviewEditPage";
+import PetCareMain from "./pages/petcare/PetCareMain";
 import AdminInsurancePage from "./pages/admin/insurance/AdminInsurancePage";
 import BoardSearchPage from "./pages/board/BoardSearchPage";
+import PointHistoryPage from "./pages/mypage/PointHistoryPage";
+import ProtectedRoute from "./shared/components/security/ProtectedRoute";
 
 function App() {
   return (
@@ -90,7 +92,14 @@ function App() {
           <Route index element={<HomePage />} />
           <Route path="home" element={<HomePage />} />
           {/* 헬스케어 */}
-          <Route path="healthcare">
+          <Route
+            path="healthcare"
+            element={
+              <ProtectedRoute>
+                <Outlet />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<HealthCareHome />} />
             {/* 스케줄 */}
             <Route path="schedule" element={<ScheduleMainPage />} />
@@ -100,7 +109,7 @@ function App() {
             <Route path="result/:id" element={<KarteDetailPage />} />
 
             {/* user */}
-            <Route path="requesthome" element={<DiagnosisRequestHomePage />} />
+            <Route path="requesthome" element={<PetCareMain />} />
             <Route path="request" element={<DiagnosisRequestPage />} />
 
             {/* vet/admin */}
@@ -211,6 +220,7 @@ function App() {
             <Route path="community" element={<CommunityHistoryPage />} />
             <Route path="delivery" element={<DeliveryManagePage />} />
             <Route path="orders" element={<OrderHistoryPage />} />
+            <Route path="points" element={<PointHistoryPage />} />
           </Route>
           <Route path="admin">
             <Route path="member" element={<AdminMemberPage />} />
