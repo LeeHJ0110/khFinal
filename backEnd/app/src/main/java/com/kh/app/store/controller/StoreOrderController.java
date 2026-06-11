@@ -24,13 +24,9 @@ import org.springframework.web.bind.annotation.*;
 //사용자 : 장바구니 상품 수량 변경
 //주문하기 (카카오 결제 API) + 배송정보 받아오기
 //결제하기
-
-
-//<미완성>
 //주문 취소
 
-//<일단후순위>
-//관리자 배송상태 변경
+
 
 @Tag(name = "스토어주문", description = "스토어주문 관련 API")
 @RestController
