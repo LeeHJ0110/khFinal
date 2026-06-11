@@ -6,40 +6,37 @@ on:
       - main # main 브랜치에 푸시될 때 자동 배포가 동작합니다.
 
 jobs:
+  # ==========================================
+  # [BACKEND] 백엔드 빌드 및 EC2 도커 배포
+  # ==========================================
   BuildImage-And-PushDockerhub:
     runs-on: ubuntu-latest
     steps:
-      # 1. 깃허브 저장소의 코드를 가상 빌드 환경(Runner)에 복사
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. 빌드에 필요한 JDK 21 환경 세팅
       - name: Setup JRE
         uses: actions/setup-java@v3
         with:
           java-version: "21"
           distribution: "zulu"
 
-      # 3. 스프링 부트 빌드 실행 (실제 폴더명인 backEnd/app 으로 이동하여 빌드)
       - name: Build with bootJar
         run: |
           cd backEnd/app
           chmod +x ./gradlew
           ./gradlew clean bootJar
 
-      # 4. 도커 이미지 빌드 (저장소 명을 petandifor 로 설정)
       - name: Build Docker Image with Dockerfile
         run: |
           docker build -t ${{ secrets.DOCKER_HUB_ID }}/petandifor:latest ./
 
-      # 5. 도커 허브 로그인 (깃허브 Secret 정보 사용)
       - name: Login to Dockerhub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_ID }}
           password: ${{ secrets.DOCKER_HUB_PW }}
 
-      # 6. 도커 허브 원격 저장소로 이미지 업로드(Push)
       - name: Push Docker Image
         run: |
           docker push ${{ secrets.DOCKER_HUB_ID }}/petandifor:latest
@@ -48,7 +45,6 @@ jobs:
     needs: BuildImage-And-PushDockerhub
     runs-on: ubuntu-latest
     steps:
-      # 7. EC2 서버에 SSH 원격 접속 후 도커 컨테이너 교체 배포 실행
       - name: executing remote ssh command
         uses: appleboy/ssh-action@master
         with:
@@ -57,15 +53,9 @@ jobs:
           username: ubuntu
           port: 22
           script: |
-            # 1) 기존 실행 중인 petandifor-container 컨테이너가 있다면 강제 종료 및 삭제
             sudo docker rm -f petandifor-container || true
-
-            # 2) 서버에 캐시되어 있는 기존 버전의 도커 이미지 삭제
             sudo docker rmi -f ${{ secrets.DOCKER_HUB_ID }}/petandifor:latest || true
 
-            # 3) 도커 허브에서 새 이미지를 pull 받아 컨테이너 구동
-            # (ALB 로드밸런서에서 EC2의 80포트로 넘겨주고, 컨테이너 내부의 80포트로 연결하므로 -p 80:80 설정)
-            # RDS 커넥션 정보(postgres 데이터베이스) 및 카카오/카카오페이 운영용 URL을 환경변수로 넘겨줍니다.
             sudo docker run -d --name petandifor-container -p 80:80 \
               -e SPRING_DATASOURCE_URL=jdbc:postgresql://kh-final.cfm8i6sw6238.ap-northeast-2.rds.amazonaws.com:5432/postgres \
               -e SPRING_DATASOURCE_USERNAME=postgres \
@@ -75,3 +65,44 @@ jobs:
               -e KAKAOPAY_STORE_REDIRECT_BASE_URL=https://www.petandifor.store \
               -e KAKAOPAY_STORE_FRONT_REDIRECT_BASE_URL=https://www.petandifor.store \
               ${{ secrets.DOCKER_HUB_ID }}/petandifor:latest
+
+  # ==========================================
+  # [FRONTEND] 프론트엔드 빌드 및 S3 배포
+  # ==========================================
+  Deploy-Frontend:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 소스 코드 가져오기
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Node.js 환경 구축
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # 3. 의존성 패키지 설치 및 리액트 프로덕션 빌드
+      - name: Install Dependencies and Build React
+        run: |
+          cd frontEnd/front
+          npm install
+          npm run build
+
+      # 4. AWS 자격 증명(Credentials) 설정
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      # 5. 빌드 결과물(dist 폴더)을 S3 버킷으로 동기화 업로드
+      - name: Deploy to S3
+        run: |
+          aws s3 sync ./frontEnd/front/dist s3://${{ secrets.AWS_S3_BUCKET_NAME }} --delete
+
+      # 6. 새로고침 시 즉시 반영을 위해 CloudFront 캐시 무효화 실행
+      - name: CloudFront Invalidation
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"
