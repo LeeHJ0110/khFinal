@@ -34,7 +34,15 @@ export default function usePointHistory() {
   }
 
   useEffect(() => {
-    fetchAll();
+    function handleFocus() {
+      fetchAll();
+    }
+
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [currentPage]);
 
   return {

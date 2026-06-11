@@ -5,21 +5,36 @@ import MyPageLayout from "./components/MyPageLayout";
 import usePet from "../../features/mypage/pet/hooks/usePet";
 import useMypageMember from "../../features/mypage/member/hooks/useMypageMember";
 import { useEffect, useState } from "react";
-import { getUnreadMessageCount } from "../../features/mypage/message/api/messageApi";
+import { getHomeSummary } from "../../features/mypage/home/api/mypageHomeApi";
+import { getMyOrders } from "../../features/mypage/store/api/mypageStoreApi";
+import { getPointHistory } from "../../features/mypage/point/api/mypagePointApi";
+import ScheduleMain from "../../features/schedule/components/scheduleMain";
 
 export default function MyPageHomePage() {
   const navigate = useNavigate();
   const { member, loading: memberLoading } = useMypageMember();
   const { selectedPet, hasPet, loading: petLoading } = usePet();
-  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
-
+  const [summary, setSummary] = useState(null);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [recentPoints, setRecentPoints] = useState([]);
   useEffect(() => {
-    async function fetchUnreadCount() {
-      const response = await getUnreadMessageCount();
-      setUnreadMessageCount(response.data);
+    async function fetchSummary() {
+      const resp = await getHomeSummary();
+      setSummary(resp.data);
     }
 
-    fetchUnreadCount();
+    fetchSummary();
+  }, []);
+  useEffect(() => {
+    async function fetchRecentData() {
+      const orderResp = await getMyOrders(0, 5);
+      const pointResp = await getPointHistory(0, 5);
+
+      setRecentOrders(orderResp.data.content || []);
+      setRecentPoints(pointResp.data.content || []);
+    }
+
+    fetchRecentData();
   }, []);
   return (
     <MyPageLayout>
@@ -123,7 +138,7 @@ export default function MyPageHomePage() {
 
           <div>
             <p>관심상품</p>
-            <h2>12</h2>
+            <h2>{summary?.wishCount ?? 0}개</h2>
           </div>
         </SummaryCard>
 
@@ -132,7 +147,7 @@ export default function MyPageHomePage() {
 
           <div>
             <p>포인트</p>
-            <h2>23,590P</h2>
+            <h2>{summary?.point?.toLocaleString() ?? 0}P</h2>
           </div>
         </SummaryCard>
 
@@ -143,8 +158,8 @@ export default function MyPageHomePage() {
             <p>쪽지함</p>
 
             <h2>
-              {unreadMessageCount > 0
-                ? `미확인 쪽지 ${unreadMessageCount}개`
+              {(summary?.unreadMessageCount ?? 0) > 0
+                ? `미확인 쪽지 ${summary.unreadMessageCount}개`
                 : "확인하지 않은 쪽지가 없습니다."}
             </h2>
           </div>
@@ -154,10 +169,62 @@ export default function MyPageHomePage() {
 
           <div>
             <p>펫보험</p>
-            <h2>가입된 보험 0개</h2>
+            <h2>가입된 보험 {summary?.insuranceCount ?? 0}개</h2>
           </div>
         </SummaryCard>
       </SummaryGrid>
+      {/* 캘린더 */}
+      <BottomGrid>
+        <CalendarCard $noPad>
+          <ScheduleMain small={true} />
+        </CalendarCard>
+
+        <MiniCard>
+          <MiniTitle>최근 주문 내역</MiniTitle>
+
+          {recentOrders.length > 0 ? (
+            <MiniList>
+              {recentOrders.map((order) => (
+                <MiniItem key={order.orderId}>
+                  <strong>
+                    {order.firstProductName}
+                    {order.itemCount > 1 && ` 외 ${order.itemCount - 1}건`}
+                  </strong>
+
+                  <MiniMeta>{order.orderDate}</MiniMeta>
+
+                  <span>{order.finalAmount?.toLocaleString()}원</span>
+                </MiniItem>
+              ))}
+            </MiniList>
+          ) : (
+            <MiniEmpty>최근 주문 내역이 없습니다.</MiniEmpty>
+          )}
+        </MiniCard>
+
+        <MiniCard>
+          <MiniTitle>최근 포인트 내역</MiniTitle>
+
+          {recentPoints.length > 0 ? (
+            <MiniList>
+              {recentPoints.map((point) => (
+                <MiniItem key={point.pointHistoryId}>
+                  <strong>{point.reasonName}</strong>
+
+                  <MiniMeta>{point.createdAt}</MiniMeta>
+
+                  <span>
+                    {point.pointAmount > 0 ? "+" : ""}
+                    {point.pointAmount?.toLocaleString()}P
+                  </span>
+                </MiniItem>
+              ))}
+            </MiniList>
+          ) : (
+            <MiniEmpty>최근 포인트 내역이 없습니다.</MiniEmpty>
+          )}
+        </MiniCard>
+      </BottomGrid>
     </MyPageLayout>
   );
 }
@@ -329,4 +396,84 @@ const EmptyText = styled.div`
   color: #777;
   font-weight: 700;
   padding: 40px 0;
+`;
+const Card = styled.div`
+  flex: ${({ $flex }) => $flex ?? 1};
+  background: #fff;
+  border-radius: 16px;
+  padding: ${({ $noPad }) => ($noPad ? "0" : "20px 24px")};
+  border: 1px solid #d9eddf;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  ${({ $banner }) => $banner && "background: #e8f5f1; box-shadow: none;"}
+  transition: all 0.25s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  }
+`;
+const BottomGrid = styled.div`
+  margin-top: 24px;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+`;
+
+const CalendarCard = styled(Card)`
+  min-height: 360px;
+  max-height: 420px;
+  padding: 10px;
+  overflow-y: auto;
+  clip-path: inset(0 round 16px);
+`;
+
+const MiniCard = styled(Card)`
+  min-height: 360px;
+  padding: 22px;
+`;
+
+const MiniTitle = styled.h3`
+  font-size: 17px;
+  margin-bottom: 18px;
+`;
+
+const MiniList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+`;
+
+const MiniItem = styled.div`
+  padding-bottom: 14px;
+  border-bottom: 1px solid #eee;
+
+  strong {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  span {
+    color: #00a982;
+    font-weight: 800;
+  }
+`;
+
+const MiniEmpty = styled.div`
+  height: 260px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #777;
+  font-weight: 700;
+`;
+const MiniMeta = styled.div`
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 6px;
 `;

@@ -12,6 +12,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.kh.app.board.entity.BoardReplyEntity;
+import org.springframework.data.domain.PageImpl;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -81,12 +87,31 @@ public class CommunityHistoryService {
     ) {
         MemberEntity member = getLoginMember(loginKey);
 
-        return boardReplyRepository
-                .findByMember_IdAndDelYnOrderByCreatedAtDesc(
-                        member.getId(),
-                        DelYn.N,
-                        pageable
-                )
-                .map(reply -> CommunityHistoryBoardResDto.from(reply.getBoard()));
+        Page<BoardReplyEntity> replyPage =
+                boardReplyRepository
+                        .findByMember_IdAndDelYnOrderByCreatedAtDesc(
+                                member.getId(),
+                                DelYn.N,
+                                pageable
+                        );
+
+        List<CommunityHistoryBoardResDto> content =
+                replyPage.getContent()
+                        .stream()
+                        .collect(Collectors.toMap(
+                                reply -> reply.getBoard().getId(),
+                                reply -> CommunityHistoryBoardResDto.from(reply.getBoard()),
+                                (oldValue, newValue) -> oldValue,
+                                LinkedHashMap::new
+                        ))
+                        .values()
+                        .stream()
+                        .toList();
+
+        return new PageImpl<>(
+                content,
+                pageable,
+                replyPage.getTotalElements()
+        );
     }
 }

@@ -14,7 +14,3 @@ export function readMessage(messageId) {
 export function deleteMessage(messageId) {
   return api.delete(`/message/${messageId}`);
 }
-
-export function getUnreadMessageCount() {
-  return api.get("/message/unread-count");
-}
