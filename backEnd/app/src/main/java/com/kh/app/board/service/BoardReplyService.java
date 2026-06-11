@@ -1,8 +1,11 @@
 package com.kh.app.board.service;
 
 import com.kh.app.board.dto.request.BoardReplyWriteReqDto;
+import com.kh.app.board.dto.response.BoardReplyReportResDto;
 import com.kh.app.board.entity.BoardEntity;
 import com.kh.app.board.entity.BoardReplyEntity;
+import com.kh.app.board.entity.BoardReplyReportEntity;
+import com.kh.app.board.repository.BoardReplyReportRepository;
 import com.kh.app.board.repository.BoardReplyRepository;
 import com.kh.app.board.repository.BoardRepository;
 import com.kh.app.common.entity.DelYn;
@@ -15,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @Transactional(readOnly = true)
@@ -22,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class BoardReplyService {
 
     private final BoardReplyRepository boardReplyRepository;
+    private final BoardReplyReportRepository boardReplyReportRepository;
     private final BoardRepository boardRepository;
     private final MemberRepository memberRepository;
 
@@ -85,5 +91,79 @@ public class BoardReplyService {
         }
 
         reply.setContent(reqDto.getContent());
+    }
+
+    // 댓글 신고 등록 로직
+    @Transactional
+    public void reportReply(Long replyId, String reason, String username) {
+        BoardReplyEntity reply = boardReplyRepository.findById(replyId)
+                .orElseThrow(() -> new EntityNotFoundException("댓글이 없습니다."));
+        MemberEntity reporter = memberRepository.findByUsernameAndDelYn(username, DelYn.N)
+                .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다"));
+
+        if (reply.getMember().getId().equals(reporter.getId())) {
+            throw new IllegalStateException("자신의 댓글은 신고할 수 없습니다.");
+        }
+        if (boardReplyReportRepository.existsByReplyAndReporter(reply, reporter)) {
+            throw new IllegalStateException("이미 신고한 댓글입니다.");
+        }
+
+        BoardReplyReportEntity report = BoardReplyReportEntity.builder()
+                .reply(reply)
+                .reporter(reporter)
+                .reason(reason)
+                .status("PENDING")
+                .build();
+        boardReplyReportRepository.save(report);
+    }
+
+    // 2. 관리자용 댓글 신고 목록 조회 로직
+    public List<BoardReplyReportResDto> getReplyReportList(String status, String username) {
+        MemberEntity admin = memberRepository.findByUsernameAndDelYn(username, DelYn.N)
+                .orElseThrow(() -> new EntityNotFoundException("MEMBER NOT FOUND"));
+        if (admin.getRole() != MemberRole.A && admin.getRole() != MemberRole.B) {
+            throw new IllegalStateException("관리자 권한이 없습니다.");
+        }
+        List<BoardReplyReportEntity> list;
+        if (status != null && !status.isBlank()) {
+            list = boardReplyReportRepository.findAllByStatus(status);
+        } else {
+            list = boardReplyReportRepository.findAll();
+        }
+        return list.stream().map(r -> BoardReplyReportResDto.builder()
+                .id(r.getId())
+                .replyId(r.getReply().getId())
+                .replyContent(r.getReply().getContent())
+                .reporterNickname(r.getReporter().getNickname())
+                .writerNickname(r.getReply().getMember() != null ? r.getReply().getMember().getNickname() : "탈퇴회원")
+                .reason(r.getReason())
+                .status(r.getStatus())
+                .createdAt(r.getCreatedAt() != null ? r.getCreatedAt().toString() : "")
+                .build()
+        ).toList();
+    }
+    // 3. 관리자용 댓글 신고 처리 로직 (승인 / 반려)
+    @Transactional
+    public void processReplyReport(Long reportId, String status, String username) {
+        MemberEntity admin = memberRepository.findByUsernameAndDelYn(username, DelYn.N)
+                .orElseThrow(() -> new EntityNotFoundException("MEMBER NOT FOUND"));
+        if (admin.getRole() != MemberRole.A && admin.getRole() != MemberRole.B) {
+            throw new IllegalStateException("관리자 권한이 없습니다.");
+        }
+        BoardReplyReportEntity report = boardReplyReportRepository.findById(reportId)
+                .orElseThrow(() -> new EntityNotFoundException("REPORT NOT FOUND"));
+        if (!"PENDING".equals(report.getStatus())) {
+            throw new IllegalStateException("이미 처리 완료된 신고 내역입니다.");
+        }
+        if ("APPROVED".equalsIgnoreCase(status)) {
+            report.setStatus("APPROVED");
+            // 해당 댓글 블라인드 처리
+            report.getReply().setBlindYn("Y");
+        } else if ("REJECTED".equalsIgnoreCase(status)) {
+            report.setStatus("REJECTED");
+            // 반려 시 댓글은 정상 노출 유지 (blindYn = "N")
+        } else {
+            throw new IllegalArgumentException("올바르지 않은 처리 상태값입니다.");
+        }
     }
 }

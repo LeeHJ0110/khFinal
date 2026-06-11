@@ -68,6 +68,7 @@ import PetStoreReviewInsertPage from "./pages/petStore/PetStoreReviewInsertPage"
 import PetStoreReviewEditPage from "./pages/petStore/PetStoreReviewEditPage";
 import PetCareMain from "./pages/petcare/PetCareMain";
 import AdminInsurancePage from "./pages/admin/insurance/AdminInsurancePage";
+import BoardSearchPage from "./pages/board/BoardSearchPage";
 import PointHistoryPage from "./pages/mypage/PointHistoryPage";
 import ProtectedRoute from "./shared/components/security/ProtectedRoute";
 
@@ -240,6 +241,7 @@ function App() {
             <Route path="write" element={<BoardWritePage />} />
             <Route path="list" element={<BoardListPage />} />
             <Route path="detail/:id" element={<BoardDetailPage />} />
+            <Route path="search" element={<BoardSearchPage />} />
           </Route>
         </Route>
       </Routes>
