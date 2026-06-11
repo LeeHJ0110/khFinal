@@ -3,6 +3,7 @@ package com.kh.app.point.service;
 import com.kh.app.common.exception.CustomException;
 import com.kh.app.common.exception.PointErrorCode;
 import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.member.exception.MemberErrorCode;
 import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.point.dto.response.PointAttendanceResDto;
 import com.kh.app.point.dto.response.PointEventJoinResDto;
@@ -293,6 +294,17 @@ public class PointService {
     // 예외 없이 시도하는 적립 메서드
     // 다른 도메인에서 저장은 성공시키고 포인트만 미지급 처리할 때 사용
     // =========================================================
+    /**
+     * 로그인 username으로 회원 조회
+     */
+    private MemberEntity getMemberByUsername(String username) {
+        if (username == null || username.isBlank() || "anonymousUser".equals(username)) {
+            throw new CustomException(MemberErrorCode.LOGIN_REQUIRED);
+        }
+
+        return memberRepository.findByUsername(username)
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
+    }
 
     /**
      * 주간 훈련일기 작성 포인트 적립 시도

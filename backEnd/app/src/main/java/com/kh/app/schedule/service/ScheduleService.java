@@ -1,6 +1,8 @@
 package com.kh.app.schedule.service;
 
+import com.kh.app.common.exception.CustomException;
 import com.kh.app.member.entity.MemberEntity;
+import com.kh.app.member.exception.MemberErrorCode;
 import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.schedule.dto.request.EventReqDto;
 import com.kh.app.schedule.dto.response.EventResDto;
@@ -30,14 +32,14 @@ public class ScheduleService {
     public void write(EventReqDto reqDto, String username) {
 
         MemberEntity memberEntity = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("그런 username 없음"));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
         scheduleRepository.save(reqDto.toEntity(memberEntity));
         log.info("[일정 작성 완료] writer: {}", memberEntity);
     }
 
     public List<EventResDto> selectList(String username) {
         MemberEntity memberEntity = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("그런 username 없음"));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
         return scheduleRepository
                 .findAllByMemberUsername(memberEntity.getUsername())
                 .stream()
@@ -54,7 +56,7 @@ public class ScheduleService {
 
     public List<EventResDto> selectToday(String username) {
         MemberEntity memberEntity = memberRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("그런 username 없음"));
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
         return scheduleRepository.findTodaySchedule(memberEntity.getUsername());
     }
 

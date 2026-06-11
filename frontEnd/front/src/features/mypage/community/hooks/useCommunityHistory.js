@@ -26,7 +26,7 @@ export default function useCommunityHistory(activeTab) {
         response = await getMyProductReviewList(page);
       }
 
-      if (activeTab === "FACILITY_REVIEW") {
+      if (activeTab === "FAC_REVIEW") {
         response = await getMyFacilityReviewList(page);
       }
 

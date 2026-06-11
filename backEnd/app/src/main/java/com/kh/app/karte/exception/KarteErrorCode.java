@@ -1,4 +1,4 @@
-package com.kh.app.board.exception;
+package com.kh.app.karte.exception;
 
 import com.kh.app.common.exception.ErrorCode;
 import lombok.Getter;
@@ -7,12 +7,12 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum BoardErrorCode implements ErrorCode {
+public enum KarteErrorCode implements ErrorCode {
 
-    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "B001", "존재하지 않는 회원입니다."),
-    BOARD_NOT_FOUND(HttpStatus.NOT_FOUND, "B002","존재하지 않는 게시글입니다.");
+    KARTE_NOTFOUND(HttpStatus.NOT_FOUND, "K001","진단결과가 없습니다.");
 
     private final HttpStatus status;
     private final String code;
     private final String msg;
+
 }

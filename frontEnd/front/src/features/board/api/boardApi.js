@@ -75,3 +75,19 @@ export async function fetchUnifiedSearchApi(keyword) {
     params: { keyword },
   });
 }
+
+export async function reportReplyApi(replyId, reason) {
+  return await api.post(`/board/reply/${replyId}/report`, { reason });
+}
+
+export async function fetchReplyReportsApi(status) {
+  return await api.get(`/board/admin/reply/reports`, {
+    params: status ? { status } : {},
+  });
+}
+
+export async function processReplyReportApi(reportId, status) {
+  return await api.put(`/board/admin/reply/reports/${reportId}`, null, {
+    params: { status },
+  });
+}

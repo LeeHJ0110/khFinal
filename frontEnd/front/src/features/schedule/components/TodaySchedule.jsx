@@ -21,7 +21,7 @@ export default function TodaySchedule(open) {
     <ScheduleListWrapper>
       {isLoading ? (
         <>로딩중</>
-      ) : (
+      ) : todayList.length > 0 ? (
         todayList.map((item, idx) => (
           <TodayCard
             key={item.id}
@@ -44,6 +44,10 @@ export default function TodaySchedule(open) {
             )}
           </TodayCard>
         ))
+      ) : (
+        <EmptyCard>
+          <EmptyText>오늘 일정이 없습니다</EmptyText>
+        </EmptyCard>
       )}
     </ScheduleListWrapper>
   );
@@ -122,7 +126,7 @@ const DateText = styled.div`
 `;
 
 const ContentBox = styled.div`
-  width: 310px;
+  width: 100%;
   margin-top: 14px;
   padding-top: 14px;
   text-overflow: ellipsis;
@@ -150,4 +154,22 @@ const ContentBox = styled.div`
       transform: translateY(0);
     }
   }
+`;
+
+const EmptyCard = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background-color: white;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  padding: 10px;
+`;
+
+const EmptyText = styled.p`
+  font-size: 18px;
+  color: #aaa;
+  margin: auto;
 `;

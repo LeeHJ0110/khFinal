@@ -1,5 +1,6 @@
 package com.kh.app.board.controller;
 
+import com.kh.app.board.dto.request.BoardReplyReportReqDto;
 import com.kh.app.board.dto.request.BoardSearchCondition;
 import com.kh.app.board.dto.request.BoardWriteReqDto;
 import com.kh.app.board.dto.request.BoardReportReqDto;
@@ -155,6 +156,8 @@ public class BoardController {
         UnifiedSearchResDto result = boardService.searchUnified(keyword);
         return ResponseEntity.ok(result);
     }
+
+
 
 }
 

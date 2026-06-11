@@ -43,4 +43,9 @@ public interface PetInsuranceApplicationRepository
 
     List<PetInsuranceApplicationEntity>
     findAllByApplicationIdIn(List<Long> applicationIds);
+
+    long countByPet_Member_IdAndApproveStatus(
+            Long memberId,
+            PetInsuranceApproveStatus approveStatus
+    );
 }
