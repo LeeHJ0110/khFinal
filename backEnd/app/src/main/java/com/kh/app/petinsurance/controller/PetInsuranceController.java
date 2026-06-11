@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -25,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -135,20 +135,42 @@ public class PetInsuranceController {
     }
 
     // =========================================================
-    // 관리자 보험 가입 승인
-    // 승인 시 최초 월 보험료 결제
-    // =========================================================
+// 관리자 보험 가입 승인
+//
+// 승인 시 최초 월 보험료 결제
+// 승인 완료 후 회원에게 자동 쪽지 발송
+// =========================================================
     @PatchMapping("/application/{applicationId}/approve")
     public ResponseEntity<Void> approveApplication(
-            @PathVariable Long applicationId
+            @PathVariable Long applicationId,
+            Authentication authentication
     ) {
 
-        petInsuranceService
-                .approveApplication(applicationId);
+        petInsuranceService.approveApplication(
+                applicationId,
+                authentication.getName()
+        );
 
         return ResponseEntity.ok().build();
     }
+    // =========================================================
+// 관리자 보험 가입 반려
+//
+// 반려 처리 후 회원에게 자동 쪽지 발송
+// =========================================================
+    @PatchMapping("/application/{applicationId}/reject")
+    public ResponseEntity<Void> rejectApplication(
+            @PathVariable Long applicationId,
+            Authentication authentication
+    ) {
 
+        petInsuranceService.rejectApplication(
+                applicationId,
+                authentication.getName()
+        );
+
+        return ResponseEntity.ok().build();
+    }
     // =========================================================
     // 카카오페이 정기결제 수단 등록 준비
     // =========================================================

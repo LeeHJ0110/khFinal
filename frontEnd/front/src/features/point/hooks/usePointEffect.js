@@ -119,7 +119,15 @@ export default function usePointEffect() {
             });
           }
 
-          showPointMessage(message);
+          // 성공 알림을 끄고 싶은 포인트 액션은 여기서 차단
+          if (policy.showSuccessMessage === false) {
+            return;
+          }
+
+          // 메시지가 있을 때만 알림 표시
+          if (message) {
+            showPointMessage(message);
+          }
         } catch (error) {
           const message = getPointErrorMessage(error, policy.errorMessage);
           showPointMessage(message);

@@ -86,12 +86,13 @@ function DiagnosisRequestPage() {
         navigate("/healthcare/requesthome", { replace: true });
         return;
       }
+      alert("건강진단 신청 시 2000p 가 소모 됩니다.");
 
       setIsPointChecking(false);
     }
 
     checkHealthcarePoint();
-  }, []);
+  }, [navigate]);
 
   /*
    * 상단 진행 단계(큰화면 단계 관리)
