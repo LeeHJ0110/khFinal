@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   fetchCartList,
   fetchMyDeliveryAddressList,
@@ -8,6 +8,9 @@ import {
 } from "../../features/petStore/api/petStoreOrderApi";
 import PetStoreUserNav from "./PetStoreUserNav";
 import StorePaymentSummaryCard from "../../features/petStore/components/PetStorePaymentSummaryCard";
+
+//포인트 관련
+import useStorePaymentPoint from "../../features/petStore/hooks/useStorePaymentPoint";
 
 const deliveryRequestOptions = [
   {
@@ -55,6 +58,7 @@ export default function PetStoreOrderPage() {
     },
   ];
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [cart, setCart] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -76,9 +80,32 @@ export default function PetStoreOrderPage() {
   const totalProductAmount = cart?.totalProductAmount ?? 0;
   const orderDeliveryFee = cart?.orderDeliveryFee ?? 0;
 
-  const finalOrderAmount = useMemo(() => {
-    return cart?.finalOrderAmount ?? totalProductAmount + orderDeliveryFee;
-  }, [cart?.finalOrderAmount, totalProductAmount, orderDeliveryFee]);
+  const {
+    currentPoint,
+    usedPoint,
+    finalOrderAmount,
+    loadMyPoint,
+    handleChangeUsedPoint,
+    handleBlurUsedPoint,
+    handleUseAllPoint,
+    validateUsedPointUnit,
+  } = useStorePaymentPoint({
+    totalProductAmount,
+    orderDeliveryFee,
+    initialUsedPoint: getInitialUsedPoint(),
+  });
+
+  function getInitialUsedPoint() {
+    const stateUsedPoint = location.state?.usedPoint;
+
+    if (stateUsedPoint !== undefined && stateUsedPoint !== null) {
+      return Number(stateUsedPoint || 0);
+    }
+
+    const savedUsedPoint = sessionStorage.getItem("storeCheckoutUsedPoint");
+
+    return Number(savedUsedPoint || 0);
+  }
 
   function loadOrdererNameFromToken() {
     const accessToken = localStorage.getItem("accessToken");
@@ -168,12 +195,17 @@ export default function PetStoreOrderPage() {
       return;
     }
 
+    if (!validateUsedPointUnit()) {
+      return;
+    }
+
     setIsPaying(true);
 
     try {
       const response = await readyStoreKakaoPay({
         deliveryAddressId: selectedAddressId,
         deliveryRequest,
+        usedPoint,
       });
 
       const redirectUrl = response.data.nextRedirectPcUrl;
@@ -184,6 +216,7 @@ export default function PetStoreOrderPage() {
         return;
       }
 
+      sessionStorage.removeItem("storeCheckoutUsedPoint");
       window.location.href = redirectUrl;
     } catch (error) {
       console.error(error);
@@ -209,6 +242,7 @@ export default function PetStoreOrderPage() {
     loadOrdererNameFromToken();
     loadCartList();
     loadDeliveryAddressList();
+    loadMyPoint();
   }, []);
 
   if (isLoading && !cart) {
@@ -420,6 +454,12 @@ export default function PetStoreOrderPage() {
               totalProductAmount={totalProductAmount}
               orderDeliveryFee={orderDeliveryFee}
               finalOrderAmount={finalOrderAmount}
+              pointEnabled
+              currentPoint={currentPoint}
+              usedPoint={usedPoint}
+              onChangeUsedPoint={handleChangeUsedPoint}
+              onBlurUsedPoint={handleBlurUsedPoint}
+              onUseAllPoint={handleUseAllPoint}
               primaryButtonText="결제하기"
               secondaryButtonText="장바구니로 돌아가기"
               onPrimaryClick={handlePayClick}

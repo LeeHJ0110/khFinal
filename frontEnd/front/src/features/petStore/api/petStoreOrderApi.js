@@ -41,9 +41,11 @@ export async function fetchMyDeliveryAddressList() {
 export async function readyStoreKakaoPay({
   deliveryAddressId,
   deliveryRequest = "",
+  usedPoint = 0,
 }) {
   return await api.post(`/store/order/checkout/ready`, {
     deliveryAddressId,
     deliveryRequest,
+    usedPoint,
   });
 }

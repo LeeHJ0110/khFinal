@@ -25,3 +25,11 @@ export async function fetchMyPointHistory(page = 0) {
 export async function fetchDailyAttendancePoint() {
   return await api.post(`/point/attendance`);
 }
+
+/**
+ * 회원가입 감사 이벤트 포인트 적립
+ * POST /api/point/event-join
+ */
+export async function fetchEventJoinPoint() {
+  return await api.post(`/point/event-join`);
+}
