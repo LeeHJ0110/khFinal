@@ -68,6 +68,7 @@ import AdminDeliveryPage from "./pages/admin/delivery/AdminDeliveryPage";
 import PetStoreReviewInsertPage from "./pages/petStore/PetStoreReviewInsertPage";
 import PetStoreReviewEditPage from "./pages/petStore/PetStoreReviewEditPage";
 import AdminInsurancePage from "./pages/admin/insurance/AdminInsurancePage";
+import BoardSearchPage from "./pages/board/BoardSearchPage";
 
 function App() {
   return (
@@ -230,6 +231,7 @@ function App() {
             <Route path="write" element={<BoardWritePage />} />
             <Route path="list" element={<BoardListPage />} />
             <Route path="detail/:id" element={<BoardDetailPage />} />
+            <Route path="search" element={<BoardSearchPage />} />
           </Route>
         </Route>
       </Routes>
