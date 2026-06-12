@@ -74,6 +74,7 @@ import PointHistoryPage from "./pages/mypage/PointHistoryPage";
 import ProtectedRoute from "./shared/components/security/ProtectedRoute";
 import KarteListPage from "./pages/karte/KarteLIstPage";
 import ScheduleMainPage from "./pages/schedule/scheduleMainPage";
+
 function App() {
   return (
     <>
