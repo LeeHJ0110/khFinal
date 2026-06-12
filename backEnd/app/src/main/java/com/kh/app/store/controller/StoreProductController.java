@@ -1,9 +1,6 @@
 package com.kh.app.store.controller;
 
-import com.kh.app.store.dto.request.StoreCartInsertReqDto;
-import com.kh.app.store.dto.request.StoreInsertReqDto;
-import com.kh.app.store.dto.request.StoreUpdateReqDto;
-import com.kh.app.store.dto.request.StoreWishInsertReqDto;
+import com.kh.app.store.dto.request.*;
 import com.kh.app.store.dto.response.*;
 import com.kh.app.store.entity.StoreProductCategory;
 import com.kh.app.store.service.StoreProductService;
@@ -36,9 +33,9 @@ import java.util.List;
 //사용자 : 관심상품 목록 조회
 //사용자 : 관심상품 삭제
 
-//<미완성>
-//사용자 : 최근 본 상품 등록
-//사용자 : 최근 본 상품 목록 조회
+//<프론트 처리>
+//사용자 : 최근 본 상품은 localStorage 기반으로 처리
+//백엔드 API 사용하지 않음!!
 
 //<etc>
 // 현재 관리자와 사용자 권한 등 디테일이 안들어가있음 (api손보고 권한 추가해야함)
@@ -283,16 +280,8 @@ public class StoreProductController {
                 .build();
     }
 
-//    //14. 사용자 : 최근 본 상품 등록
-//    @Operation(summary = "최근 조회 상품 자동 등록", description = "사용자(비로그인자도 가능)가 조회한 상품을 목록 옆 사이드바에서 최대 5개까지 저장하는 기능")
-//    @PostMapping("/recent/insert")
-//    public ResponseEntity<Void> recentInsert(
-//            @RequestBody StoreRecentInsertReqDto reqDto
-//    ) {
-//        storeProductService.recentInsert(reqDto);
-//
-//        return ResponseEntity.status(HttpStatus.CREATED)
-//                .build();
-//    }
+
+
+
 
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchProductDetail } from "../api/petStoreApi";
+import { addRecentProduct } from "./useRecentProductStorage";
 
 export default function usePetStoreProductDetail(productId) {
   const [product, setProduct] = useState(null);
@@ -18,6 +19,9 @@ export default function usePetStoreProductDetail(productId) {
       const resp = await fetchProductDetail(productId);
 
       setProduct(resp.data);
+
+      //최근조회 상품 저장
+      addRecentProduct(resp.data);
     } catch (error) {
       console.error("상품 상세 조회 실패", error);
       setProduct(null);
