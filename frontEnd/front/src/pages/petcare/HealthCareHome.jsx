@@ -294,29 +294,35 @@ export default function HealthCareHome() {
             {scoreLoading ? (
               <EmptyText>로딩중</EmptyText>
             ) : totalChartData[0]?.score > 0 ? (
-              <ResponsiveContainer width="100%" height="80%">
-                <BarChart
-                  data={totalChartData}
-                  margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
-                >
-                  {console.log(totalChartData[0]?.score)}
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" />
-                  <YAxis domain={[0, 100]} width={36} tick={{ fontSize: 11 }} />
-                  <Tooltip />
-                  <Bar
-                    dataKey="score"
-                    fill="#5EC8A7"
-                    radius={[4, 4, 0, 0]}
-                    name="종합 점수"
-                  />
-                </BarChart>
-              </ResponsiveContainer>
+              <>
+                <ResponsiveContainer width="100%" height="80%">
+                  <BarChart
+                    data={totalChartData}
+                    margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
+                  >
+                    {console.log(totalChartData[0]?.score)}
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" />
+                    <YAxis
+                      domain={[0, 100]}
+                      width={36}
+                      tick={{ fontSize: 11 }}
+                    />
+                    <Tooltip />
+                    <Bar
+                      dataKey="score"
+                      fill="#5EC8A7"
+                      radius={[4, 4, 0, 0]}
+                      name="종합 점수"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+                {!scoreLoading && compText && (
+                  <CompText $positive={diffFromBreed >= 0}>{compText}</CompText>
+                )}
+              </>
             ) : (
               <EmptyText>검사를 진행해주세요</EmptyText>
-            )}
-            {!scoreLoading && compText && (
-              <CompText $positive={diffFromBreed >= 0}>{compText}</CompText>
             )}
           </Card>
 
