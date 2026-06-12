@@ -167,7 +167,7 @@ export default function BoardDetailPage() {
     }
   };
 
-  // 댓글 수정 핸들러
+  // 댓글 수정 핸들러 q
   const handleCommentEdit = async (e, replyId) => {
     e.preventDefault();
     if (!editingContent.trim()) {
