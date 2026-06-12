@@ -23,8 +23,10 @@ export default function usePetStoreReviewList() {
         sort: nextSort,
       });
 
+      console.log("내 리뷰내역 응답:", response.data);
+
       setReviewPage(response.data);
-      setReviewList(response.data.content ?? []);
+      setReviewList(response.data?.content ?? []);
 
       setPage(nextPage);
       setSort(nextSort);
