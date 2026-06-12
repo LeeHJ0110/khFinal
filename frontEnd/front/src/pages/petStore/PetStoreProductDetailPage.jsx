@@ -5,6 +5,7 @@ import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreProductDetail from "../../features/petStore/hooks/usePetStoreProudctDetail";
 import { insertCartProduct } from "../../features/petStore/api/petStoreOrderApi";
 import usePetStoreWishToggle from "../../features/petStore/hooks/usePetStoreWishToggle";
+import PetStoreProductReviewSection from "../../features/petStore/components/PetStoreProductReviewSection";
 
 import foodImg from "../../assets/images/petStore/사료홍보.png";
 import snackImg from "../../assets/images/petStore/간식홍보.png";
@@ -956,62 +957,7 @@ export default function PetStoreProductDetailPage() {
           </DetailContentSection>
 
           <ReviewSection ref={reviewRef} data-reveal>
-            <SectionTitleRow>
-              <SectionTitle>구매자 리뷰</SectionTitle>
-              <SectionDesc>리뷰 기능은 추후 연동 예정입니다.</SectionDesc>
-            </SectionTitleRow>
-
-            <ReviewSummaryBox>
-              <ReviewScoreBox>
-                <ReviewScore>4.9</ReviewScore>
-                <ReviewStars>★★★★★</ReviewStars>
-                <ReviewCount>리뷰 128개 기준</ReviewCount>
-              </ReviewScoreBox>
-
-              <ReviewGraphBox>
-                {[5, 4, 3, 2, 1].map((score, index) => (
-                  <ReviewGraphRow key={score}>
-                    <span>{score}점</span>
-                    <ReviewGraphTrack>
-                      <ReviewGraphFill $width={`${80 - index * 15}%`} />
-                    </ReviewGraphTrack>
-                    <em>{80 - index * 15}%</em>
-                  </ReviewGraphRow>
-                ))}
-              </ReviewGraphBox>
-            </ReviewSummaryBox>
-
-            <ReviewList>
-              {Array.from({ length: 5 }).map((_, index) => (
-                <ReviewItem key={index}>
-                  <ReviewUserBox>
-                    <ReviewAvatar>🐾</ReviewAvatar>
-                    <div>
-                      <ReviewUserName>구매자 {index + 1}</ReviewUserName>
-                      <ReviewDate>2026.06.01</ReviewDate>
-                    </div>
-                  </ReviewUserBox>
-
-                  <ReviewContentBox>
-                    <ReviewStars>★★★★★</ReviewStars>
-                    <ReviewText>
-                      아직 리뷰 기능 연동 전입니다. 추후 실제 구매 리뷰가 이
-                      영역에 표시됩니다.
-                    </ReviewText>
-                  </ReviewContentBox>
-
-                  <ReviewThumbList>
-                    {imageList.slice(0, 3).map((url, imgIndex) => (
-                      <ReviewThumb
-                        key={`${url}-${imgIndex}`}
-                        src={url}
-                        alt="리뷰 이미지"
-                      />
-                    ))}
-                  </ReviewThumbList>
-                </ReviewItem>
-              ))}
-            </ReviewList>
+            <PetStoreProductReviewSection productId={product.productId} />
           </ReviewSection>
         </ContentInner>
 
@@ -1467,7 +1413,7 @@ const Price = styled.p`
 
   color: var(--text-main);
   font-size: 33px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: -1.3px;
 `;
 
@@ -1804,7 +1750,7 @@ const CartBubbleMessage = styled.p`
   margin: 0 0 14px;
   color: var(--text-main);
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
 `;
 
 const CartBubbleButtonRow = styled.div`
@@ -1821,7 +1767,7 @@ const CartBubbleSubButton = styled.button`
   background-color: #ffffff;
   color: var(--color-main);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
 
   &:hover {
@@ -1837,7 +1783,7 @@ const CartBubbleMainButton = styled.button`
   background-color: var(--color-main);
   color: #ffffff;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
 
   &:hover {
@@ -2179,7 +2125,7 @@ const FeedingPillRow = styled.div`
 
     color: #43504d;
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1;
     letter-spacing: -0.25px;
 
@@ -2203,7 +2149,7 @@ const FeedingEmptyText = styled.p`
 
   color: #64716d;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
   text-align: center;
 `;
 
@@ -2294,7 +2240,7 @@ const RecommendPetName = styled.strong`
 const RecommendPetMeta = styled.span`
   color: #64716d;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: -0.25px;
 
@@ -2401,7 +2347,7 @@ const RecommendArrowButton = styled.button`
   color: #202423;
 
   font-size: 30px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
   cursor: pointer;
 
@@ -2550,151 +2496,6 @@ const ReviewSection = styled.section`
   padding-top: 48px;
 `;
 
-const ReviewSummaryBox = styled.section`
-  padding: 28px 34px;
-  margin-bottom: 26px;
-
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 40px;
-
-  border-top: 1px solid #dce7e2;
-  border-bottom: 1px solid #dce7e2;
-`;
-
-const ReviewScoreBox = styled.div`
-  text-align: center;
-`;
-
-const ReviewScore = styled.div`
-  color: var(--text-main);
-  font-size: 40px;
-  font-weight: 700;
-`;
-
-const ReviewStars = styled.div`
-  color: #ffc400;
-  font-size: 17px;
-  font-weight: 700;
-`;
-
-const ReviewCount = styled.p`
-  margin: 8px 0 0;
-
-  color: var(--text-sub);
-  font-size: 12px;
-  font-weight: 700;
-`;
-
-const ReviewGraphBox = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-`;
-
-const ReviewGraphRow = styled.div`
-  display: grid;
-  grid-template-columns: 40px 1fr 42px;
-  align-items: center;
-  gap: 10px;
-
-  span,
-  em {
-    color: var(--text-sub);
-    font-size: 12px;
-    font-weight: 700;
-    font-style: normal;
-  }
-`;
-
-const ReviewGraphTrack = styled.div`
-  height: 8px;
-  border-radius: 999px;
-  background-color: #dff0e9;
-`;
-
-const ReviewGraphFill = styled.div`
-  width: ${(props) => props.$width};
-  height: 100%;
-
-  border-radius: 999px;
-  background-color: var(--color-main);
-`;
-
-const ReviewList = styled.div`
-  border-top: 1px solid #dce7e2;
-`;
-
-const ReviewItem = styled.article`
-  min-height: 112px;
-  padding: 20px 0;
-
-  display: grid;
-  grid-template-columns: 180px 1fr 170px;
-  gap: 20px;
-
-  border-bottom: 1px solid #dce7e2;
-`;
-
-const ReviewUserBox = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-`;
-
-const ReviewAvatar = styled.div`
-  width: 38px;
-  height: 38px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-  background-color: #f4faf7;
-`;
-
-const ReviewUserName = styled.p`
-  margin: 0 0 4px;
-
-  color: var(--text-main);
-  font-size: 13px;
-  font-weight: 700;
-`;
-
-const ReviewDate = styled.p`
-  margin: 0;
-
-  color: var(--text-desc);
-  font-size: 11px;
-  font-weight: 700;
-`;
-
-const ReviewContentBox = styled.div``;
-
-const ReviewText = styled.p`
-  margin: 8px 0 0;
-
-  color: var(--text-sub);
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.6;
-`;
-
-const ReviewThumbList = styled.div`
-  display: flex;
-  gap: 6px;
-  justify-content: flex-end;
-`;
-
-const ReviewThumb = styled.img`
-  width: 48px;
-  height: 48px;
-
-  border-radius: 4px;
-  object-fit: cover;
-`;
-
 const EmptyPanel = styled.div`
   min-height: 100px;
 
@@ -2707,7 +2508,7 @@ const EmptyPanel = styled.div`
 
   color: var(--text-sub);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
 `;
 
 const BottomOrderBar = styled.div`
@@ -2860,7 +2661,7 @@ const BottomSelectControl = styled.div`
 
     color: var(--text-main);
     font-size: 13px;
-    font-weight: 800;
+    font-weight: 700;
   }
 `;
 
@@ -2883,7 +2684,7 @@ const BottomTotalRow = styled.div`
   span {
     color: var(--text-sub);
     font-size: 13px;
-    font-weight: 800;
+    font-weight: 700;
   }
 
   strong {
@@ -2987,5 +2788,5 @@ const MessageBox = styled.div`
 
   color: var(--text-sub);
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 700;
 `;
