@@ -1370,7 +1370,7 @@ const MainImage = styled.img`
 const ImagePlaceholder = styled.div`
   color: var(--text-desc);
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
 `;
 
 const ThumbList = styled.div`
@@ -1426,12 +1426,12 @@ const CategoryPath = styled.div`
 
   color: var(--text-sub);
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
 
   strong {
     color: var(--text-desc);
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 600;
   }
 `;
 
@@ -1440,7 +1440,7 @@ const ProductName = styled.h1`
 
   color: var(--text-main);
   font-size: 32px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1.25;
   letter-spacing: -1.2px;
 `;
@@ -1466,8 +1466,8 @@ const Price = styled.p`
   margin: 0 0 18px;
 
   color: var(--text-main);
-  font-size: 34px;
-  font-weight: 900;
+  font-size: 33px;
+  font-weight: 800;
   letter-spacing: -1.3px;
 `;
 
@@ -1485,7 +1485,7 @@ const BenefitTitle = styled.p`
 
   color: var(--text-main);
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const BenefitList = styled.ul`
@@ -1500,8 +1500,8 @@ const BenefitList = styled.ul`
     margin-bottom: 9px;
 
     color: var(--text-sub);
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 500;
 
     &::before {
       content: "";
@@ -1532,7 +1532,7 @@ const DeliveryRow = styled.div`
 const DeliveryTitle = styled.strong`
   color: var(--text-main);
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const DeliveryTextBox = styled.div`
@@ -1543,7 +1543,7 @@ const DeliveryTextBox = styled.div`
   strong {
     margin-right: 4px;
     color: var(--text-main);
-    font-weight: 900;
+    font-weight: 700;
   }
 
   p {
@@ -1573,7 +1573,7 @@ const QuantityArea = styled.div`
 const QuantityLabel = styled.span`
   color: var(--text-main);
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const QuantityControl = styled.div`
@@ -1589,7 +1589,7 @@ const QuantityControl = styled.div`
     background-color: var(--color-white);
     color: var(--text-main);
     font-size: 16px;
-    font-weight: 900;
+    font-weight: 700;
     cursor: pointer;
   }
 
@@ -1600,7 +1600,7 @@ const QuantityControl = styled.div`
 
     color: var(--text-main);
     font-size: 15px;
-    font-weight: 800;
+    font-weight: 700;
   }
 `;
 
@@ -1615,13 +1615,13 @@ const TopTotalRow = styled.div`
   span {
     color: var(--text-sub);
     font-size: 16px;
-    font-weight: 800;
+    font-weight: 700;
   }
 
   strong {
     color: var(--text-main);
     font-size: 34px;
-    font-weight: 900;
+    font-weight: 700;
     letter-spacing: -1.2px;
   }
 `;
@@ -1698,7 +1698,7 @@ const CartButton = styled.button`
   color: var(--color-main);
 
   font-size: 17px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -0.3px;
   cursor: pointer;
 
@@ -1736,7 +1736,7 @@ const BuyButton = styled.button`
   color: var(--color-white);
 
   font-size: 17px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -0.3px;
   cursor: pointer;
 
@@ -1888,7 +1888,7 @@ const TabButton = styled.button`
     props.$active ? "var(--color-main)" : "var(--text-main)"};
 
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 700;
   cursor: pointer;
 `;
 
@@ -1954,7 +1954,7 @@ const TagCardTitle = styled.h3`
 
   color: #151918;
   font-size: 42px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1.1;
   letter-spacing: -1.6px;
 `;
@@ -1990,7 +1990,7 @@ const SectionTitle = styled.h2`
 
   color: var(--text-main);
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const SectionDesc = styled.p`
@@ -2021,7 +2021,7 @@ const NutritionTable = styled.table`
   th {
     background-color: #dff5eb;
     color: var(--text-main);
-    font-weight: 900;
+    font-weight: 700;
     border-bottom: 1px solid #cfe5dc;
   }
 
@@ -2079,7 +2079,7 @@ const FeedingGuideTitle = styled.h3`
 
   color: var(--color-main);
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: -0.35px;
 `;
@@ -2132,7 +2132,7 @@ const FeedingMethodName = styled.strong`
 
   color: #202423;
   font-size: 16px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1.42;
   letter-spacing: -0.45px;
 
@@ -2191,7 +2191,7 @@ const FeedingPillRow = styled.div`
   strong {
     color: #43504d;
     font-size: 14px;
-    font-weight: 900;
+    font-weight: 700;
     line-height: 1;
     letter-spacing: -0.25px;
     white-space: nowrap;
@@ -2233,7 +2233,7 @@ const RecommendCardLabel = styled.p`
 
   color: var(--color-main);
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: -0.35px;
 `;
@@ -2259,7 +2259,7 @@ const RecommendPetImageBox = styled.div`
 
   color: #222;
   font-size: 34px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const RecommendPetImage = styled.img`
@@ -2282,7 +2282,7 @@ const RecommendPetName = styled.strong`
 
   color: #151918;
   font-size: 28px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: -1px;
 
@@ -2321,7 +2321,7 @@ const RecommendAmountArea = styled.div`
 
     color: #43504d;
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 700;
     line-height: 1;
     letter-spacing: -0.25px;
     white-space: nowrap;
@@ -2332,7 +2332,7 @@ const RecommendAmountArea = styled.div`
 
     color: var(--color-main);
     font-size: 44px;
-    font-weight: 900;
+    font-weight: 700;
     line-height: 0.95;
     letter-spacing: -1.8px;
     white-space: nowrap;
@@ -2536,7 +2536,7 @@ const ProductInfoTable = styled.table`
     width: 220px;
     background-color: #f4faf7;
     color: var(--text-main);
-    font-weight: 900;
+    font-weight: 700;
   }
 
   td {
@@ -2569,13 +2569,13 @@ const ReviewScoreBox = styled.div`
 const ReviewScore = styled.div`
   color: var(--text-main);
   font-size: 40px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const ReviewStars = styled.div`
   color: #ffc400;
   font-size: 17px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const ReviewCount = styled.p`
@@ -2659,7 +2659,7 @@ const ReviewUserName = styled.p`
 
   color: var(--text-main);
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const ReviewDate = styled.p`
@@ -2760,7 +2760,7 @@ const BottomOpenButton = styled.button`
   color: var(--color-white);
 
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 700;
   cursor: pointer;
 
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
@@ -2778,7 +2778,7 @@ const BottomOpenButton = styled.button`
 
     font-style: normal;
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 700;
     line-height: 1;
   }
 `;
@@ -2828,7 +2828,7 @@ const BottomSelectTitle = styled.p`
 
   color: var(--text-main);
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const BottomSelectControl = styled.div`
@@ -2846,7 +2846,7 @@ const BottomSelectControl = styled.div`
     background-color: var(--color-white);
     color: var(--text-main);
     font-size: 14px;
-    font-weight: 900;
+    font-weight: 700;
     cursor: pointer;
   }
 
@@ -2869,7 +2869,7 @@ const BottomSelectPrice = styled.strong`
 
   color: var(--text-main);
   font-size: 16px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const BottomTotalRow = styled.div`
@@ -2889,7 +2889,7 @@ const BottomTotalRow = styled.div`
   strong {
     color: var(--text-main);
     font-size: 22px;
-    font-weight: 900;
+    font-weight: 700;
     letter-spacing: -0.7px;
   }
 `;
@@ -2917,7 +2917,7 @@ const BottomCartButton = styled.button`
   color: var(--color-main);
 
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 700;
   cursor: pointer;
 
   transition:
@@ -2948,7 +2948,7 @@ const BottomBuyButton = styled.button`
   color: var(--color-white);
 
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 700;
   cursor: pointer;
 
   transition:

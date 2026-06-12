@@ -9,3 +9,6 @@ public class StoreWishInsertReqDto {
 
     private Long productId;
 }
+
+
+

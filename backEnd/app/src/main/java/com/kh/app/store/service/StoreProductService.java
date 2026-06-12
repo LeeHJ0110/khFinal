@@ -44,6 +44,7 @@ public class StoreProductService {
     private final PetRepository petRepository;
     private final StoreWishRepository storeWishRepository;
 
+
     private final S3Service s3Service;
 
     @Value("${cloud.aws.s3.bucket}")
@@ -1053,4 +1054,7 @@ public class StoreProductService {
         result.setWished(true);
         result.setWishlistId(wish.getWishlistId());
     }
-}
+
+
+
+    }
