@@ -169,7 +169,7 @@ export default function BoardRightSidebar({ onNewsTabSelect }) {
 
       {/* 3. 이벤트 배너 카드 */}
       <EventBannerCard
-        onClick={() => alert("준비 중인 이벤트입니다.")}
+        onClick={() => navigate("/store/event/detail")}
         aria-label="이벤트 보러가기"
       />
     </SidebarContainer>

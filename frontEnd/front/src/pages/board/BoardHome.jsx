@@ -131,7 +131,7 @@ export default function BoardHome() {
           <RightSidebar>
             {/* 1단: 회원 감사 이벤트 */}
             <EventCard
-              onClick={() => alert("준비 중인 이벤트입니다.")}
+              onClick={() => navigate(`/store/event/detail`)}
               aria-label="EVENT 회원 감사 이벤트: 신규 가입만 해도 웰컴 포인트 지급. 기간 2026.05.01 ~ 2026.07.31"
             />
 
