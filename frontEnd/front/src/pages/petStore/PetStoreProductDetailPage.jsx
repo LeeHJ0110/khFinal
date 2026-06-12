@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreProductDetail from "../../features/petStore/hooks/usePetStoreProudctDetail";
 import { insertCartProduct } from "../../features/petStore/api/petStoreOrderApi";
 import usePetStoreWishToggle from "../../features/petStore/hooks/usePetStoreWishToggle";
@@ -11,8 +10,9 @@ import foodImg from "../../assets/images/petStore/사료홍보.png";
 import snackImg from "../../assets/images/petStore/간식홍보.png";
 import supplementImg from "../../assets/images/petStore/영양제홍보.png";
 import toiletImg from "../../assets/images/petStore/배변홍보.png";
-
+PetStoreProductReviewSection;
 import tagCard from "../../assets/images/petStore/상품태그카드.png";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 export default function PetStoreProductDetailPage() {
   const { productId } = useParams();
@@ -98,19 +98,16 @@ export default function PetStoreProductDetailPage() {
       const footer = document.querySelector("footer");
       const footerTop = footer ? footer.getBoundingClientRect().top : Infinity;
 
-      const nextBottomOffset =
-        footerTop < window.innerHeight
-          ? Math.max(0, window.innerHeight - footerTop + 12)
-          : 0;
+      // footer가 화면 아래쪽에 들어오기 시작하면 구매바를 올리지 말고 아예 숨김
+      const isFooterNear = footerTop < window.innerHeight + 40;
 
-      setBottomOffset(nextBottomOffset);
+      setBottomOffset(0);
 
       const isAfterAnalysis = scrollY > analysisTop + 120;
-      setShowBottomBar(isAfterAnalysis);
+      setShowBottomBar(isAfterAnalysis && !isFooterNear);
 
-      if (scrollY >= reviewTop - 150) {
-        setActiveTab("review");
-        return;
+      if (isFooterNear) {
+        setIsBottomOrderOpen(false);
       }
 
       if (scrollY >= detailTop - 150) {
@@ -419,7 +416,7 @@ export default function PetStoreProductDetailPage() {
   if (isLoading) {
     return (
       <>
-        <PetStoreUserNav />
+        <PetStoreNavGate />
         <Wrapper>
           <MessageBox>상품 정보를 불러오는 중입니다...</MessageBox>
         </Wrapper>
@@ -430,7 +427,7 @@ export default function PetStoreProductDetailPage() {
   if (error || !product) {
     return (
       <>
-        <PetStoreUserNav />
+        <PetStoreNavGate />
         <Wrapper>
           <MessageBox>상품 정보를 불러오지 못했습니다.</MessageBox>
         </Wrapper>
@@ -473,7 +470,7 @@ export default function PetStoreProductDetailPage() {
 
   return (
     <>
-      <PetStoreUserNav
+      <PetStoreNavGate
         targetPetType={product.productTargetPetType}
         activeCategory={product.productCategory}
       />
@@ -1236,7 +1233,7 @@ function getTagInfo(category, tagName) {
 const Wrapper = styled.main`
   width: 100%;
   background-color: var(--color-white);
-  padding-bottom: 190px;
+  padding-bottom: 56px;
 
   [data-reveal] {
     opacity: 0;
@@ -2440,12 +2437,12 @@ const RecommendActionButton = styled.button`
 `;
 
 const DetailContentSection = styled.section`
-  padding-top: 44px;
+  padding-top: 28px;
 `;
 
 const PromoLongImageBox = styled.section`
   width: 100%;
-  margin-bottom: 42px;
+  margin-bottom: 28px;
 
   display: flex;
   justify-content: center;
@@ -2463,7 +2460,7 @@ const PromoLongImage = styled.img`
 `;
 
 const ProductInfoBlock = styled.section`
-  margin-top: 44px;
+  margin-top: 28px;
 `;
 
 const ProductInfoTable = styled.table`
@@ -2493,7 +2490,7 @@ const ProductInfoTable = styled.table`
 `;
 
 const ReviewSection = styled.section`
-  padding-top: 48px;
+  padding-top: 14px;
 `;
 
 const EmptyPanel = styled.div`
@@ -2515,7 +2512,7 @@ const BottomOrderBar = styled.div`
   position: fixed;
   left: 0;
   right: 0;
-  bottom: ${(props) => `${props.$bottomOffset}px`};
+  bottom: 0;
   z-index: 500;
 
   height: ${(props) => (props.$open ? "230px" : "42px")};
@@ -2525,7 +2522,9 @@ const BottomOrderBar = styled.div`
   box-shadow: ${(props) =>
     props.$open ? "0 -6px 20px rgba(18, 45, 46, 0.08)" : "none"};
 
-  transition: height 0.22s ease;
+  transition:
+    height 0.22s ease,
+    transform 0.22s ease;
 `;
 
 const BottomOrderHeader = styled.div`

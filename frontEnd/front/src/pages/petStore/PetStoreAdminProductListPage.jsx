@@ -4,7 +4,7 @@ import styled from "styled-components";
 import usePetStoreAdminProductList from "../../features/petStore/hooks/usePetStoreAdminProductList";
 import usePetStoreProductModal from "../../features/petStore/hooks/usePetStoreProductModal";
 import PetStoreProductModal from "../../features/petStore/components/PetStoreProductModal";
-import PetStoreAdminNav from "./PetStoreAdminNav";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 const PAGE_GROUP_SIZE = 10;
 
@@ -102,7 +102,7 @@ export default function PetStoreAdminProductListPage() {
 
   return (
     <>
-      <PetStoreAdminNav />
+      <PetStoreNavGate />
 
       <Wrapper>
         <HeaderArea>

@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import styled, { keyframes } from "styled-components";
 
 import eventImg from "../../assets/images/이벤트썸네일.png";
-import PetStoreUserNav from "./PetStoreUserNav";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 export default function PetStoreEventListPage() {
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ export default function PetStoreEventListPage() {
 
   return (
     <Page>
-      <PetStoreUserNav />
+      <PetStoreNavGate />
 
       <Wrapper>
         <HeaderArea>

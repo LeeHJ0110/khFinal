@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 
-import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreBestProductList from "../../features/petStore/hooks/usePetStoreBestProductList";
 import usePetStoreWishToggle from "../../features/petStore/hooks/usePetStoreWishToggle";
 
@@ -15,6 +14,7 @@ import dogToiletCard from "../../assets/images/petStore/배변패드카드.png";
 import securityIcon from "../../assets/images/icon/보안.png";
 import truckIcon from "../../assets/images/icon/트럭.png";
 import materialIcon from "../../assets/images/icon/원료.png";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 const categoryList = [
   {
@@ -115,7 +115,7 @@ export default function PetStoreDogHomePage() {
 
   return (
     <>
-      <PetStoreUserNav />
+      <PetStoreNavGate />
 
       <Wrapper>
         <HeroBanner>

@@ -1,6 +1,5 @@
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import PetStoreUserNav from "./PetStoreUserNav";
 import RoundedButton from "../../shared/components/button/RoundedButton";
 import usePetStoreBestProductList from "../../features/petStore/hooks/usePetStoreBestProductList";
 
@@ -8,6 +7,7 @@ import petStoreHomeBanner from "../../assets/images/petStore/스토어홈배너2
 import dogStoreCard from "../../assets/images/petStore/강아지스토어카드.png";
 import catStoreCard from "../../assets/images/petStore/고양이스토어카드.png";
 import storeHealthCareCard from "../../assets/images/petStore/스토어건강관리카드.png";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 const shortcutList = [
   {
@@ -45,7 +45,7 @@ export default function PetStoreHomePage() {
 
   return (
     <>
-      <PetStoreUserNav />
+      <PetStoreNavGate />
 
       <Wrapper>
         <HeroBanner $bannerImage={petStoreHomeBanner}>

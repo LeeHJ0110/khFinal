@@ -6,11 +6,12 @@ import {
   fetchMyDeliveryAddressList,
   readyStoreKakaoPay,
 } from "../../features/petStore/api/petStoreOrderApi";
-import PetStoreUserNav from "./PetStoreUserNav";
+
 import StorePaymentSummaryCard from "../../features/petStore/components/PetStorePaymentSummaryCard";
 
 //포인트 관련
 import useStorePaymentPoint from "../../features/petStore/hooks/useStorePaymentPoint";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 const deliveryRequestOptions = [
   {
@@ -248,7 +249,7 @@ export default function PetStoreOrderPage() {
   if (isLoading && !cart) {
     return (
       <Wrapper>
-        <PetStoreUserNav />
+        <PetStoreNavGate />
 
         <PageInner>
           <PageTitle>주문/결제</PageTitle>
@@ -260,7 +261,7 @@ export default function PetStoreOrderPage() {
 
   return (
     <Wrapper>
-      <PetStoreUserNav />
+      <PetStoreNavGate />
 
       <PageInner>
         <PageTitle>주문/결제</PageTitle>

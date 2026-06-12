@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import eventImg from "../../assets/images/이벤트이미지.png";
 
 import usePointEffect from "../../features/point/hooks/usePointEffect";
-import PetStoreUserNav from "./PetStoreUserNav";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 export default function PetStoreEventDetailPage() {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ export default function PetStoreEventDetailPage() {
 
   return (
     <Page>
-      <PetStoreUserNav />
+      <PetStoreNavGate />
 
       <Wrapper>
         <HeaderArea>

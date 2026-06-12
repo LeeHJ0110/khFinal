@@ -7,8 +7,8 @@ import usePetStoreCartList from "../../features/petStore/hooks/usePetStoreCartLi
 import { insertCartProduct } from "../../features/petStore/api/petStoreOrderApi";
 import useStorePaymentPoint from "../../features/petStore/hooks/useStorePaymentPoint";
 
-import PetStoreUserNav from "./PetStoreUserNav";
 import StorePaymentSummaryCard from "../../features/petStore/components/PetStorePaymentSummaryCard";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 export default function PetStoreCartListPage() {
   const navigate = useNavigate();
@@ -274,7 +274,7 @@ export default function PetStoreCartListPage() {
   if (isLoading && !cart) {
     return (
       <Wrapper>
-        <PetStoreUserNav />
+        <PetStoreNavGate />
 
         <Inner>
           <PageTitle>장바구니</PageTitle>
@@ -286,7 +286,7 @@ export default function PetStoreCartListPage() {
 
   return (
     <Wrapper>
-      <PetStoreUserNav />
+      <PetStoreNavGate />
 
       <Inner>
         <PageTitle>장바구니</PageTitle>

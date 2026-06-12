@@ -47,7 +47,7 @@ export default function usePetStoreProductReviewList(productId) {
       setSort(nextSort);
 
       if (options.loadGallery) {
-        await loadAllReviewImages(nextReviewPage, nextSort);
+        await loadAllReviewImages(nextReviewPage);
       }
     } catch (error) {
       console.error("상품 리뷰 목록 조회 실패:", error);
@@ -57,7 +57,7 @@ export default function usePetStoreProductReviewList(productId) {
     }
   }
 
-  async function loadAllReviewImages(firstReviewPage, nextSort = sort) {
+  async function loadAllReviewImages(firstReviewPage) {
     if (!productId) {
       return;
     }
@@ -75,7 +75,7 @@ export default function usePetStoreProductReviewList(productId) {
       const response = await fetchProductReviewList({
         productId,
         page: pageNumber,
-        sort: nextSort,
+        sort: "latest",
       });
 
       const content = response.data?.reviewPage?.content ?? [];
@@ -85,7 +85,6 @@ export default function usePetStoreProductReviewList(productId) {
     const imageList = allReviewList.flatMap((review) => {
       const createdAt = review.createdAt ?? "";
       const reviewId = review.reviewId;
-
       const imageUrlList =
         review.reviewImageUrlList ?? review.imageUrlList ?? [];
 
@@ -101,7 +100,7 @@ export default function usePetStoreProductReviewList(productId) {
   }
 
   function handleChangeSort(nextSort) {
-    loadProductReviewList(0, nextSort, { loadGallery: true });
+    loadProductReviewList(0, nextSort, { loadGallery: false });
   }
 
   function handleMovePage(nextPage) {

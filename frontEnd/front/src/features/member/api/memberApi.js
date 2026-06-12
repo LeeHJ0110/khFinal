@@ -29,3 +29,8 @@ export function kakaoLogin(code) {
     code,
   });
 }
+
+// 로그인한 내 정보 조회(헤더용)
+export function fetchMyInfo() {
+  return api.get("/member/me");
+}

@@ -2,9 +2,9 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
-import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreWishList from "../../features/petStore/hooks/usePetStoreWishList";
 import { insertCartProduct } from "../../features/petStore/api/petStoreOrderApi";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 const categoryFilterList = [
   { label: "전체", value: "" },
@@ -216,7 +216,7 @@ export default function PetStoreWishListPage() {
 
   return (
     <Wrapper>
-      <PetStoreUserNav />
+      <PetStoreNavGate />
 
       <Inner>
         <PageTitle>관심상품</PageTitle>

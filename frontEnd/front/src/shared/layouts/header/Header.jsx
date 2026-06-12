@@ -8,6 +8,8 @@ import GuestMenu from "./GuestMenu";
 import UserMenu from "./UserMenu";
 import AdminMenu from "./AdminMenu";
 
+import { fetchMyInfo } from "../../../features/member/api/memberApi";
+
 const mainMenus = [
   { label: "HOME", path: "/home" },
   { label: "건강관리", path: "/healthCare" },
@@ -61,6 +63,7 @@ function getLoginMemberFromToken() {
     username: payload.username,
     nickname: payload.nickname,
     role: payload.role,
+    profileImageUrl: "",
   };
 }
 
@@ -80,12 +83,70 @@ export default function Header({ activeMenu = "" }) {
   const currentPath = location.pathname + location.search + location.hash;
 
   useEffect(() => {
-    setLoginMember(getLoginMemberFromToken());
+    async function loadLoginMember() {
+      const tokenMember = getLoginMemberFromToken();
+
+      if (!tokenMember) {
+        setLoginMember(null);
+        return;
+      }
+
+      try {
+        const response = await fetchMyInfo();
+        const myInfo = response.data ?? {};
+
+        setLoginMember({
+          ...tokenMember,
+          nickname: myInfo.nickname ?? tokenMember.nickname,
+          role: myInfo.role ?? tokenMember.role,
+          profileImageUrl:
+            myInfo.profileImageUrl ??
+            myInfo.memberProfileImageUrl ??
+            myInfo.profileImgUrl ??
+            myInfo.imageUrl ??
+            "",
+        });
+      } catch (error) {
+        console.error("헤더 내 정보 조회 실패:", error);
+        setLoginMember(tokenMember);
+      }
+    }
+
+    loadLoginMember();
   }, [location.pathname]);
 
   useEffect(() => {
+    async function loadLoginMember() {
+      const tokenMember = getLoginMemberFromToken();
+
+      if (!tokenMember) {
+        setLoginMember(null);
+        return;
+      }
+
+      try {
+        const response = await fetchMyInfo();
+        const myInfo = response.data ?? {};
+
+        setLoginMember({
+          ...tokenMember,
+          nickname: myInfo.nickname ?? tokenMember.nickname,
+          role: myInfo.role ?? tokenMember.role,
+          profileImageUrl:
+            myInfo.profileImageUrl ??
+            myInfo.memberProfileImageUrl ??
+            myInfo.profileImgUrl ??
+            myInfo.imageUrl ??
+            "",
+        });
+      } catch (error) {
+        console.error("헤더 내 정보 조회 실패:", error);
+        setLoginMember(tokenMember);
+      }
+    }
+
     function handleAuthChange() {
-      setLoginMember(getLoginMemberFromToken());
+      loadLoginMember();
     }
 
     window.addEventListener("storage", handleAuthChange);
