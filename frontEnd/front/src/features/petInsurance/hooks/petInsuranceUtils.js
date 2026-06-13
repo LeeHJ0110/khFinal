@@ -1,5 +1,17 @@
 // =========================================================
 // 보험 상태 표시
+//
+// 신청 데이터 없음
+// → 가입 가능
+//
+// WAITING + SID 없음
+// → 결제수단 등록 필요
+//
+// WAITING + SID 있음
+// → 신청 중
+//
+// APPROVED
+// → 가입 완료
 // =========================================================
 export function getPetInsuranceStatus(pet) {
   if (!pet) {
@@ -10,7 +22,23 @@ export function getPetInsuranceStatus(pet) {
     };
   }
 
-  if (pet.approveStatus === "WAITING" || pet.approveStatus === "REQUESTED") {
+  // 신청 데이터는 생성됐지만
+  // 카카오페이 결제수단 등록이 완료되지 않은 상태
+  if (pet.paymentRegistrationRequired) {
+    return {
+      status: "PAYMENT_REQUIRED",
+      label: "결제수단 등록 필요",
+      canApply: false,
+    };
+  }
+
+  // 카카오페이 결제수단 등록 완료 후
+  // 관리자 승인 대기 중인 상태
+  if (
+    (pet.approveStatus === "WAITING" ||
+      pet.approveStatus === "REQUESTED") &&
+    pet.paymentMethodRegistered
+  ) {
     return {
       status: "WAITING",
       label: "신청 중",
@@ -18,6 +46,7 @@ export function getPetInsuranceStatus(pet) {
     };
   }
 
+  // 관리자 승인 완료
   if (pet.approveStatus === "APPROVED") {
     return {
       status: "APPROVED",
@@ -26,6 +55,7 @@ export function getPetInsuranceStatus(pet) {
     };
   }
 
+  // 보험 신청 내역 없음
   return {
     status: "AVAILABLE",
     label: "가입 가능",
@@ -177,7 +207,11 @@ export function getStatusColor(status) {
     return "var(--color-main-dark)";
   }
 
-  if (status === "WAITING" || status === "IN_PROGRESS") {
+  if (
+    status === "PAYMENT_REQUIRED" ||
+    status === "WAITING" ||
+    status === "IN_PROGRESS"
+  ) {
     return "#c98500";
   }
 
@@ -200,7 +234,11 @@ export function getStatusBackground(status) {
     return "var(--color-bg-light)";
   }
 
-  if (status === "WAITING" || status === "IN_PROGRESS") {
+  if (
+    status === "PAYMENT_REQUIRED" ||
+    status === "WAITING" ||
+    status === "IN_PROGRESS"
+  ) {
     return "#fff6e4";
   }
 

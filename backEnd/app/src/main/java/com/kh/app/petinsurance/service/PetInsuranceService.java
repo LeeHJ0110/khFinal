@@ -208,22 +208,32 @@ public class PetInsuranceService {
     }
 
     // =========================================================
-    // 보험 가입 신청
-    //
-    // 펫 한 마리당 하나의 활성 보험만 허용
-    // 신청 당시의 최종 월 보험료를 APPLICATION 테이블에 저장
-    // =========================================================
-    @Transactional
+// 보험 가입 신청
+//
+// 펫 한 마리당 하나의 활성 보험만 허용
+// 신청 당시의 최종 월 보험료를 APPLICATION 테이블에 저장
+// =========================================================
+    @Transactional(rollbackFor = Exception.class)
     public PetInsuranceApplicationResDto applyInsurance(
             String data,
             MultipartFile medicalCertificate,
             String username
     ) throws IOException {
 
+        log.info(
+                "펫 보험 가입 신청 시작 - username={}",
+                username
+        );
+
         MemberEntity loginMember =
                 findMemberByLoginId(
                         username
                 );
+
+        log.info(
+                "보험 신청 회원 조회 완료 - memberId={}",
+                loginMember.getId()
+        );
 
         PetInsuranceApplicationReqDto dto =
                 objectMapper.readValue(
@@ -248,6 +258,12 @@ public class PetInsuranceService {
                     "보험 상품을 선택해 주세요."
             );
         }
+
+        log.info(
+                "보험 신청 요청 데이터 확인 - petId={}, productId={}",
+                dto.getPetId(),
+                dto.getProductId()
+        );
 
         PetEntity pet =
                 petRepository
@@ -280,6 +296,13 @@ public class PetInsuranceService {
                         product
                 );
 
+        log.info(
+                "보험료 계산 완료 - petId={}, productId={}, monthlyPrice={}",
+                pet.getId(),
+                product.getProductId(),
+                monthlyPrice
+        );
+
         if (medicalCertificate == null
                 || medicalCertificate.isEmpty()) {
 
@@ -288,11 +311,54 @@ public class PetInsuranceService {
             );
         }
 
-        String s3Key =
-                s3Service.upload(
-                        medicalCertificate,
-                        "insurance/medical-certificate"
-                );
+        String s3Key;
+
+        try {
+
+            log.info(
+                    "진료확인서 S3 업로드 시작 - petId={}, originalFilename={}, contentType={}, size={}",
+                    pet.getId(),
+                    medicalCertificate.getOriginalFilename(),
+                    medicalCertificate.getContentType(),
+                    medicalCertificate.getSize()
+            );
+
+            s3Key =
+                    s3Service.upload(
+                            medicalCertificate,
+                            "insurance/medical-certificate"
+                    );
+
+            log.info(
+                    "진료확인서 S3 업로드 성공 - petId={}, s3Key={}",
+                    pet.getId(),
+                    s3Key
+            );
+
+        } catch (IOException e) {
+
+            log.error(
+                    "진료확인서 S3 업로드 실패 - 파일 읽기 오류 petId={}, filename={}, message={}",
+                    pet.getId(),
+                    medicalCertificate.getOriginalFilename(),
+                    e.getMessage(),
+                    e
+            );
+
+            throw e;
+
+        } catch (RuntimeException e) {
+
+            log.error(
+                    "진료확인서 S3 업로드 실패 - S3 처리 오류 petId={}, filename={}, message={}",
+                    pet.getId(),
+                    medicalCertificate.getOriginalFilename(),
+                    e.getMessage(),
+                    e
+            );
+
+            throw e;
+        }
 
         PetInsuranceApplicationEntity application =
                 PetInsuranceApplicationEntity.builder()
@@ -322,7 +388,7 @@ public class PetInsuranceService {
                 );
 
         log.info(
-                "펫 보험 가입 신청 완료 username = {}, petId = {}, productId = {}, applicationId = {}, monthlyPrice = {}",
+                "펫 보험 가입 신청 완료 - username={}, petId={}, productId={}, applicationId={}, monthlyPrice={}",
                 username,
                 dto.getPetId(),
                 dto.getProductId(),
