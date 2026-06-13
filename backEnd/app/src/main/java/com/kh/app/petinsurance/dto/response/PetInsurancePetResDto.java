@@ -24,21 +24,44 @@ public class PetInsurancePetResDto {
     // 현재 활성 상태의 보험 신청 또는 가입 정보
     // =========================================================
 
-    // 진행 중이거나 가입 완료된 보험이 있는지 여부
+    /*
+     * 카카오페이 결제수단 등록까지 완료되어
+     * 실제 심사 대기 또는 가입 완료 상태인지 여부
+     *
+     * WAITING + SID 있음  -> true
+     * APPROVED           -> true
+     * WAITING + SID 없음  -> false
+     * 신청 내역 없음       -> false
+     */
     private boolean insuranceInProgress;
 
+    /*
+     * 신청 데이터는 생성됐지만
+     * 카카오페이 결제수단 등록이 아직 완료되지 않은 상태인지 여부
+     *
+     * WAITING + SID 없음 -> true
+     */
+    private boolean paymentRegistrationRequired;
+
+    /*
+     * 카카오페이 결제수단 등록 완료 여부
+     *
+     * SID 있음 -> true
+     */
+    private boolean paymentMethodRegistered;
+
     // 보험 신청 번호
-    // 보험 신청 내역이 없으면 null
+    // 신청 내역이 없으면 null
     private Long applicationId;
 
-    // WAITING: 신청 중
+    // WAITING: 심사 대기
     // APPROVED: 가입 완료
-    // 보험 신청 내역이 없으면 null
+    // 신청 내역이 없으면 null
     private PetInsuranceApproveStatus approveStatus;
 
     // =========================================================
     // 실제 신청한 보험 상품 정보
-    // 보험 신청 내역이 없으면 null
+    // 신청 내역이 없으면 null
     // =========================================================
     private Long insuranceProductId;
     private String insuranceProductName;
@@ -58,6 +81,25 @@ public class PetInsurancePetResDto {
         boolean hasApplication =
                 application != null;
 
+        boolean paymentMethodRegistered =
+                hasApplication
+                        && application.getKakaoPaySid() != null
+                        && !application.getKakaoPaySid().isBlank();
+
+        boolean paymentRegistrationRequired =
+                hasApplication
+                        && application.getApproveStatus()
+                        == PetInsuranceApproveStatus.WAITING
+                        && !paymentMethodRegistered;
+
+        boolean insuranceInProgress =
+                hasApplication
+                        && (
+                        application.getApproveStatus()
+                                == PetInsuranceApproveStatus.APPROVED
+                                || paymentMethodRegistered
+                );
+
         return PetInsurancePetResDto.builder()
                 .petId(
                         pet.getId()
@@ -69,7 +111,13 @@ public class PetInsurancePetResDto {
                         pet.getBirthDate()
                 )
                 .insuranceInProgress(
-                        hasApplication
+                        insuranceInProgress
+                )
+                .paymentRegistrationRequired(
+                        paymentRegistrationRequired
+                )
+                .paymentMethodRegistered(
+                        paymentMethodRegistered
                 )
                 .applicationId(
                         hasApplication

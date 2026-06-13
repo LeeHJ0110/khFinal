@@ -23,7 +23,7 @@ import {
 // 보험료 계산
 // 상품 선택
 // 보험 신청
-// 카카오페이 카드 등록 이동
+// 카카오페이 결제수단 등록 이동
 // 보험 신청 취소 또는 해지
 // =========================================================
 export default function useInsuranceProduct() {
@@ -72,9 +72,11 @@ export default function useInsuranceProduct() {
   // =========================================================
   // 가입 제한 상태
   // =========================================================
-  const isAgeRestricted = selectedPetAge !== null && selectedPetAge >= 10;
+  const isAgeRestricted =
+    selectedPetAge !== null && selectedPetAge >= 10;
 
-  const isBirthDateMissing = Boolean(selectedPet) && selectedPetAge === null;
+  const isBirthDateMissing =
+    Boolean(selectedPet) && selectedPetAge === null;
 
   // =========================================================
   // 상품 목록 + 내 반려동물 목록 조회
@@ -150,10 +152,10 @@ export default function useInsuranceProduct() {
   // =========================================================
   // 펫 변경 시 선택 상품 동기화
   //
-  // 신청 중 또는 가입 완료 상태:
+  // 기존 신청 또는 가입 내역이 있으면:
   // 실제 신청 상품 선택
   //
-  // 가입 가능 상태:
+  // 가입 가능 상태이면:
   // 첫 번째 상품 선택
   // =========================================================
   useEffect(() => {
@@ -172,7 +174,8 @@ export default function useInsuranceProduct() {
     if (selectedPet.insuranceProductId) {
       const appliedProduct = productList.find(
         (product) =>
-          String(product.productId) === String(selectedPet.insuranceProductId),
+          String(product.productId) ===
+          String(selectedPet.insuranceProductId),
       );
 
       setSelectedProduct(appliedProduct || null);
@@ -213,7 +216,9 @@ export default function useInsuranceProduct() {
       }
 
       if (selectedPetAge === null) {
-        setPriceErrorMessage("반려동물의 생년월일 형식을 확인해 주세요.");
+        setPriceErrorMessage(
+          "반려동물의 생년월일 형식을 확인해 주세요.",
+        );
 
         return;
       }
@@ -233,7 +238,6 @@ export default function useInsuranceProduct() {
           productList.map(async (product) => {
             const response = await calculateInsurancePrice({
               productId: product.productId,
-
               birthDate: selectedPet.birthDate,
             });
 
@@ -245,7 +249,9 @@ export default function useInsuranceProduct() {
           return;
         }
 
-        setCalculatedPriceMap(Object.fromEntries(resultList));
+        setCalculatedPriceMap(
+          Object.fromEntries(resultList),
+        );
       } catch (error) {
         console.error("보험료 자동 계산 실패:", error);
 
@@ -278,7 +284,8 @@ export default function useInsuranceProduct() {
   // =========================================================
   // 상품 선택
   //
-  // 가입 내역이 없는 경우에만 변경 가능
+  // 신규 가입 가능한 상태에서만 변경 가능
+  // 결제수단 등록 재시도 상태에서는 기존 신청 상품 유지
   // =========================================================
   function handleSelectProduct(product) {
     if (!selectedPetStatus.canApply || isAgeRestricted) {
@@ -290,22 +297,87 @@ export default function useInsuranceProduct() {
   }
 
   // =========================================================
-  // 보험 가입 신청
+  // 카카오페이 결제수단 등록 화면으로 이동
+  // =========================================================
+  async function moveToPaymentRegistration(applicationId) {
+    if (!applicationId) {
+      throw new Error("보험 가입 신청 번호를 확인할 수 없습니다.");
+    }
+
+    const paymentReadyResponse =
+      await readySubscriptionPayment(applicationId);
+
+    const paymentReadyData =
+      paymentReadyResponse.data;
+
+    const redirectUrl =
+      paymentReadyData?.nextRedirectPcUrl ||
+      paymentReadyData?.next_redirect_pc_url;
+
+    if (!redirectUrl) {
+      throw new Error(
+        "카카오페이 결제수단 등록 화면 주소를 확인할 수 없습니다.",
+      );
+    }
+
+    window.location.href = redirectUrl;
+  }
+
+  // =========================================================
+  // 보험 가입 신청 또는 결제수단 등록 재시도
   //
-  // 신청 저장 후
-  // 카카오페이 카드 등록 화면으로 이동
+  // 1. 기존 WAITING 신청 + SID 없음:
+  //    신규 신청을 만들지 않고 기존 applicationId로
+  //    카카오페이 등록만 다시 요청
+  //
+  // 2. 신청 내역 없음:
+  //    진료확인서 업로드 후 신규 신청 생성
+  //    이후 카카오페이 등록 요청
   // =========================================================
   async function handleApplyInsurance() {
     setErrorMessage("");
 
     if (!selectedPetId) {
-      setErrorMessage("가입할 반려동물을 선택해 주세요.");
+      setErrorMessage(
+        "가입할 반려동물을 선택해 주세요.",
+      );
+
+      return;
+    }
+
+    if (
+      selectedPet?.paymentRegistrationRequired &&
+      selectedPet?.applicationId
+    ) {
+      try {
+        setIsLoading(true);
+
+        await moveToPaymentRegistration(
+          selectedPet.applicationId,
+        );
+      } catch (error) {
+        console.error(
+          "카카오페이 결제수단 등록 재시도 실패:",
+          error,
+        );
+
+        setErrorMessage(
+          getErrorMessage(
+            error,
+            "카카오페이 결제수단 등록 화면으로 이동하지 못했습니다.",
+          ),
+        );
+      } finally {
+        setIsLoading(false);
+      }
 
       return;
     }
 
     if (!selectedProduct) {
-      setErrorMessage("보험 상품을 선택해 주세요.");
+      setErrorMessage(
+        "보험 상품을 선택해 주세요.",
+      );
 
       return;
     }
@@ -319,13 +391,17 @@ export default function useInsuranceProduct() {
     }
 
     if (isAgeRestricted) {
-      setErrorMessage("만 10세 이상인 반려동물은 보험에 가입할 수 없습니다.");
+      setErrorMessage(
+        "만 10세 이상인 반려동물은 보험에 가입할 수 없습니다.",
+      );
 
       return;
     }
 
     if (!medicalCertificate) {
-      setErrorMessage("진료확인서를 첨부해 주세요.");
+      setErrorMessage(
+        "진료확인서를 첨부해 주세요.",
+      );
 
       return;
     }
@@ -333,38 +409,49 @@ export default function useInsuranceProduct() {
     try {
       setIsLoading(true);
 
-      const applicationResponse = await requestInsurance({
-        petId: Number(selectedPetId),
+      const applicationResponse =
+        await requestInsurance({
+          petId: Number(selectedPetId),
+          productId: selectedProduct.productId,
+          medicalCertificate,
+        });
 
-        productId: selectedProduct.productId,
-
-        medicalCertificate,
-      });
-
-      const applicationId = applicationResponse.data?.applicationId;
+      const applicationId =
+        applicationResponse.data?.applicationId;
 
       if (!applicationId) {
-        throw new Error("보험 가입 신청 번호를 확인할 수 없습니다.");
+        throw new Error(
+          "보험 가입 신청 번호를 확인할 수 없습니다.",
+        );
       }
 
-      const paymentReadyResponse =
-        await readySubscriptionPayment(applicationId);
+      try {
+        await moveToPaymentRegistration(
+          applicationId,
+        );
+      } catch (paymentError) {
+        /*
+         * 신청 저장은 성공했지만 카카오페이 등록 준비 요청이 실패한 상태
+         *
+         * 목록을 다시 불러와서
+         * paymentRegistrationRequired = true 상태를 화면에 반영
+         */
+        await loadInitialData();
 
-      const paymentReadyData = paymentReadyResponse.data;
-
-      const redirectUrl =
-        paymentReadyData?.nextRedirectPcUrl ||
-        paymentReadyData?.next_redirect_pc_url;
-
-      if (!redirectUrl) {
-        throw new Error("카카오페이 카드 등록 화면 주소를 확인할 수 없습니다.");
+        throw paymentError;
       }
-
-      window.location.href = redirectUrl;
     } catch (error) {
-      console.error("보험 가입 신청 실패:", error);
+      console.error(
+        "보험 가입 신청 또는 결제수단 등록 실패:",
+        error,
+      );
 
-      setErrorMessage(getErrorMessage(error, "보험 가입 신청에 실패했습니다."));
+      setErrorMessage(
+        getErrorMessage(
+          error,
+          "보험 가입 신청 처리에 실패했습니다.",
+        ),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -375,18 +462,25 @@ export default function useInsuranceProduct() {
   // =========================================================
   async function handleCancelInsurance() {
     if (!selectedPet?.applicationId) {
-      setErrorMessage("취소할 보험 신청 정보를 찾을 수 없습니다.");
+      setErrorMessage(
+        "취소할 보험 신청 정보를 찾을 수 없습니다.",
+      );
 
       return;
     }
 
-    const isApproved = selectedPet.approveStatus === "APPROVED";
+    const isApproved =
+      selectedPet.approveStatus === "APPROVED";
 
-    const confirmMessage = isApproved
-      ? `${selectedPet.petName}의 보험을 해지하시겠습니까?\n\n해지 후에도 현재 결제 기간이 끝날 때까지 보험 혜택은 유지됩니다.\n다음 결제일부터 자동 결제가 중단됩니다.`
-      : `${selectedPet.petName}의 보험 가입 신청을 취소하시겠습니까?`;
+    const confirmMessage =
+      isApproved
+        ? `${selectedPet.petName}의 보험을 해지하시겠습니까?\n\n해지 후에도 현재 결제 기간이 끝날 때까지 보험 혜택은 유지됩니다.\n다음 결제일부터 자동 결제가 중단됩니다.`
+        : `${selectedPet.petName}의 보험 가입 신청을 취소하시겠습니까?`;
 
-    const isConfirmed = window.confirm(confirmMessage);
+    const isConfirmed =
+      window.confirm(
+        confirmMessage,
+      );
 
     if (!isConfirmed) {
       return;
@@ -396,7 +490,9 @@ export default function useInsuranceProduct() {
       setIsCancelling(true);
       setErrorMessage("");
 
-      await cancelInsuranceApplication(selectedPet.applicationId);
+      await cancelInsuranceApplication(
+        selectedPet.applicationId,
+      );
 
       window.alert(
         isApproved
@@ -406,10 +502,16 @@ export default function useInsuranceProduct() {
 
       await loadInitialData();
     } catch (error) {
-      console.error("보험 신청 취소 또는 해지 실패:", error);
+      console.error(
+        "보험 신청 취소 또는 해지 실패:",
+        error,
+      );
 
       setErrorMessage(
-        getErrorMessage(error, "보험 신청 취소 또는 해지 처리에 실패했습니다."),
+        getErrorMessage(
+          error,
+          "보험 신청 취소 또는 해지 처리에 실패했습니다.",
+        ),
       );
     } finally {
       setIsCancelling(false);
