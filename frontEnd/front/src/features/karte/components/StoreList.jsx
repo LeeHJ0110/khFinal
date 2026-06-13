@@ -29,17 +29,20 @@ export default function StoreList({ targetPetType, category, tagId }) {
     loadProductList({ targetPetType, category, tagId });
   }, [targetPetType, category, tagId]);
 
+  // 최대 1줄(5개)까지만 렌더링되도록 제한
+  const limitedProductList = productList ? productList.slice(0, 5) : [];
+
   return (
     <CardContainer>
-      <CardTitle>추천상품</CardTitle>
+      <CardTitle>📦 맞춤 건강 추천 상품</CardTitle>
       <CardContent>
         {isLoading ? (
           <EmptyBox>상품 목록을 불러오는 중입니다...</EmptyBox>
-        ) : productList.length === 0 ? (
+        ) : limitedProductList.length === 0 ? (
           <EmptyBox>조건에 맞는 상품이 없습니다.</EmptyBox>
         ) : (
           <ProductGrid>
-            {productList.map((product, index) => {
+            {limitedProductList.map((product, index) => {
               const tempReview = getTempReviewInfo(index);
 
               return (
@@ -82,155 +85,81 @@ export default function StoreList({ targetPetType, category, tagId }) {
   );
 }
 
+/* 💡 의사소견 카드와 완벽한 통일감을 이루는 3번 미니멀 사이드바 스타일 */
 const CardContainer = styled.div`
   width: 100%;
-  margin-top: 20px;
-  background-color: #d9eddf; /* 회색빛 배경색 */
-  border-radius: 16px;
-  padding-top: 12px; /* 헤더 위치를 위한 여백 */
-  position: relative;
+  background-color: #ffffff;
+  border: 1px solid #eef2f0;
+  border-left: 6px solid #5ec8a7; /* 동일한 두께와 색상의 포인트 바 생성 */
+  border-radius: 4px 16px 16px 4px;
+  padding: 24px 28px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.02);
   min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 `;
 
 const CardTitle = styled.div`
-  display: inline-block;
-  background-color: #d9eddf;
-  padding: 10px 24px;
-  border-radius: 20px 20px 0 0;
-  font-size: 22px;
-  font-weight: bold;
-
-  color: #333;
-  position: absolute;
-  top: -24px; /* 박스 위로 살짝 걸치게 */
+  font-size: 20px;
+  font-weight: 800;
+  color: #222;
 `;
 
 const CardContent = styled.div`
-  background-color: white;
-  margin: 12px 1px 0;
-  margin-top: 24px; /* 헤더 아래쪽 공간 확보 */
-  padding: 20px;
-  min-height: 100px;
-  font-size: 16px;
-  line-height: 1.6;
-  color: #444;
-  word-break: break-all;
-  white-space: pre-wrap; /* 줄바꿈 유지 */
+  width: 100%;
 `;
 
+/* 한 줄에 딱 5개 정렬 */
 const ProductGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 34px 30px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 30px;
 `;
 
 const ProductCard = styled.article`
   position: relative;
-
   height: 276px;
-  padding: 20px 18px 20px;
-
+  padding: 20px 18px;
   display: flex;
   flex-direction: column;
-
   border-radius: 11px;
-  background-color: var(--color-white);
-  box-shadow: 0 2px 8px rgba(18, 45, 46, 0.08);
-
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
+  border: 1px solid #f2f2f2;
+  background-color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
   cursor: pointer;
 
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 18px rgba(18, 45, 46, 0.12);
-  }
-
-  &:hover img {
-    transform: scale(1.045);
-  }
-`;
-
-const WishButton = styled.button`
-  position: absolute;
-  right: 13px;
-  top: 12px;
-  z-index: 3;
-
-  width: 32px;
-  height: 32px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: 0;
-  border-radius: 50%;
-  background-color: transparent;
-  color: ${({ $active }) => ($active ? "var(--color-main)" : "#151918")};
-
-  font-size: ${({ $active }) => ($active ? "27px" : "29px")};
-  font-weight: ${({ $active }) => ($active ? "800" : "300")};
-  line-height: 1;
-  cursor: pointer;
-
-  transition:
-    color 0.18s ease,
-    transform 0.18s ease,
-    background-color 0.18s ease;
-
-  &:hover {
-    color: var(--color-main);
-    transform: scale(1.09);
-    background-color: rgba(236, 253, 246, 0.72);
-  }
-
-  &:active {
-    transform: scale(0.94);
-  }
-
-  &:disabled {
-    opacity: 0.55;
-    cursor: wait;
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(94, 200, 167, 0.12);
+    border-color: #5ec8a7;
   }
 `;
 
 const ProductImageBox = styled.div`
-  position: relative;
-
   width: 100%;
   height: 132px;
   margin-bottom: 12px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
-  overflow: visible;
-  border-radius: 0;
-  background-color: transparent;
 `;
 
 const ProductImage = styled.img`
   width: 100%;
   height: 100%;
-  padding: 0;
   object-fit: contain;
-
-  transition: transform 0.2s ease;
 `;
 
 const ProductImageText = styled.span`
-  color: var(--text-desc);
+  color: #aaa;
   font-size: 12px;
   font-weight: 600;
 `;
 
 const ProductInfoArea = styled.div`
   flex: 1;
-  min-height: 0;
-
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -239,13 +168,10 @@ const ProductInfoArea = styled.div`
 const ProductName = styled.h3`
   min-height: 35px;
   margin: 0 0 6px;
-
-  color: #202423;
-  font-size: 12px;
+  color: #222;
+  font-size: 13px;
   font-weight: 600;
-  line-height: 1.38;
-  letter-spacing: -0.2px;
-
+  line-height: 1.4;
   display: -webkit-box;
   overflow: hidden;
   -webkit-line-clamp: 2;
@@ -256,38 +182,29 @@ const ProductReviewInfo = styled.div`
   display: flex;
   align-items: center;
   gap: 4px;
-
   margin-bottom: 9px;
-
-  color: #555f5c;
+  color: #666;
   font-size: 11px;
-  font-weight: 500;
 `;
 
 const ReviewStar = styled.span`
   color: #ffc400;
   font-size: 13px;
-  line-height: 1;
 `;
 
 const ProductPrice = styled.p`
   margin: auto 0 0;
-
-  color: #151918;
-  font-size: 20px;
+  color: #111;
+  font-size: 18px;
   font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.65px;
 `;
 
 const EmptyBox = styled.div`
-  min-height: 300px;
-
+  min-height: 150px;
   display: flex;
   align-items: center;
   justify-content: center;
-
-  color: var(--text-sub);
+  color: #999;
   font-size: 14px;
   font-weight: 600;
 `;
