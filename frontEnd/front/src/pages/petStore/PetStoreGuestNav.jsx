@@ -13,8 +13,6 @@ const categoryMenus = [
   { label: "배변용품", pathName: "toilet", category: "TOILET" },
 ];
 
-const adminRightMenus = [{ label: "상품관리", path: "/store/product/admin" }];
-
 function makeStoreMenus(basePath) {
   return [
     { label: "강아지", path: "/store/dog" },
@@ -31,7 +29,7 @@ function getActiveCategoryLabel(activeCategory) {
   return found ? found.label : "";
 }
 
-export default function PetStoreAdminNav({ targetPetType, activeCategory }) {
+export default function PetStoreGuestNav({ targetPetType, activeCategory }) {
   const { pathname } = useLocation();
 
   const isDogStore =
@@ -59,15 +57,5 @@ export default function PetStoreAdminNav({ targetPetType, activeCategory }) {
     activeMenu = getActiveCategoryLabel(activeCategory);
   }
 
-  if (pathname === "/store/product/admin") {
-    activeMenu = "상품관리";
-  }
-
-  return (
-    <Nav
-      leftMenus={leftMenus}
-      rightMenus={adminRightMenus}
-      activeMenu={activeMenu}
-    />
-  );
+  return <Nav leftMenus={leftMenus} rightMenus={[]} activeMenu={activeMenu} />;
 }

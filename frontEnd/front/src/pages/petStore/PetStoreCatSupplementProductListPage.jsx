@@ -1,11 +1,12 @@
 import styled from "styled-components";
 import usePetStoreWishToggle from "../../features/petStore/hooks/usePetStoreWishToggle";
-import PetStoreUserNav from "./PetStoreUserNav";
+
 import usePetStoreProductList from "../../features/petStore/hooks/usePetStoreProductList";
 import PetStoreRecentAside from "./PetStoreRecentAside";
 import { useNavigate } from "react-router-dom";
 
 import suppleBannerImg from "../../assets/images/petStore/영양제목록배너.png";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 const sortOptions = [
   { label: "최신순", value: "latest" },
@@ -99,7 +100,7 @@ export default function PetStoreCatSupplementProductListPage() {
 
   return (
     <>
-      <PetStoreUserNav />
+      <PetStoreNavGate />
 
       <Wrapper>
         <HeroBanner>

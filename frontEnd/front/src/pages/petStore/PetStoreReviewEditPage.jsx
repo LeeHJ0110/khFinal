@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 
-import PetStoreUserNav from "./PetStoreUserNav";
 import { updateReview } from "../../features/petStore/api/petStoreReviewApi";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 const TITLE_MAX_LENGTH = 50;
 const CONTENT_MAX_LENGTH = 500;
@@ -179,7 +179,7 @@ export default function PetStoreReviewEditPage() {
   if (!reviewTarget.reviewId && !reviewTarget.reviewTitle) {
     return (
       <Wrapper>
-        <PetStoreUserNav />
+        <PetStoreNavGate />
 
         <Inner>
           <EmptyBox>

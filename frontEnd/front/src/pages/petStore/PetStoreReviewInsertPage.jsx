@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 
-import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreReviewForm from "../../features/petStore/hooks/usePetStoreReviewForm";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 const TITLE_MAX_LENGTH = 50;
 const CONTENT_MAX_LENGTH = 500;
@@ -165,7 +165,7 @@ export default function PetStoreReviewInsertPage() {
 
   return (
     <Wrapper>
-      <PetStoreUserNav />
+      <PetStoreNavGate />
 
       <Inner>
         <PageHeader>
