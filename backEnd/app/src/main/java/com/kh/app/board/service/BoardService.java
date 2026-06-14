@@ -13,6 +13,8 @@ import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.entity.MemberRole;
 import com.kh.app.aws.service.S3Service;
 import com.kh.app.member.entity.QMemberEntity;
+import com.kh.app.message.service.SystemMessageService;
+import com.kh.app.message.entity.MessageReasonType;
 import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.board.repository.BoardReplyRepository;
 import com.kh.app.board.repository.BoardLikeRepository;
@@ -66,6 +68,7 @@ public class BoardService {
     private final BoardReportRepository boardReportRepository;
     private final S3Service s3Service;
     private final JPAQueryFactory queryFactory;
+    private final SystemMessageService systemMessageService;
     private final StoreProductImageRepository storeProductImageRepository;
 
 
@@ -550,6 +553,31 @@ public class BoardService {
         long reportCount = boardReportRepository.countByBoardAndDelYn(board, DelYn.N);
         if (reportCount >= 10) {
             board.setBlindYn("Y");
+
+            // 트랜잭션 롤백 마크 방지를 위해 관리자 존재 여부를 먼저 확인 및 매핑
+            MemberEntity admin = memberRepository.findByUsername("admin")
+                    .orElseGet(() -> {
+                        return queryFactory
+                                .selectFrom(QMemberEntity.memberEntity)
+                                .where(QMemberEntity.memberEntity.role.eq(MemberRole.A))
+                                .fetchFirst();
+                    });
+
+            if (admin != null) {
+                try {
+                    systemMessageService.sendByAdmin(
+                            admin.getUsername(),
+                            board.getWriter(),
+                            MessageReasonType.COMMUNITY,
+                            "게시글 블라인드 안내",
+                            "작성하신 게시글이 신고 누적으로 인해 블라인드 처리되었습니다."
+                    );
+                } catch (Exception e) {
+                    log.error("[블라인드 알림 쪽지 발송 실패] ", e);
+                }
+            } else {
+                log.warn("[블라인드 알림 쪽지 발송 실패] 시스템 내 관리자(ADMIN) 권한을 가진 계정이 존재하지 않아 알림 발송을 건너뜁니다.");
+            }
 
             MemberEntity writer = board.getWriter();
             long blindCount = boardRepository.countByWriterAndBlindYnAndDelYn(writer, "Y", DelYn.N);

@@ -160,7 +160,9 @@ export default function BoardDetailPage() {
     } catch (err) {
       console.error("신고 실패:", err);
       if (err.response && err.response.data) {
-        alert(err.response.data);
+        const errorData = err.response.data;
+        const msg = typeof errorData === "string" ? errorData : (errorData.message || "신고 처리에 실패했습니다.");
+        alert(msg);
       } else {
         alert("신고 처리에 실패했습니다.");
       }
@@ -204,7 +206,9 @@ export default function BoardDetailPage() {
     } catch (err) {
       console.error("댓글 신고 실패:", err);
       if (err.response && err.response.data) {
-        alert(err.response.data);
+        const errorData = err.response.data;
+        const msg = typeof errorData === "string" ? errorData : (errorData.message || "댓글 신고 처리에 실패했습니다.");
+        alert(msg);
       } else {
         alert("댓글 신고 처리에 실패했습니다.");
       }
