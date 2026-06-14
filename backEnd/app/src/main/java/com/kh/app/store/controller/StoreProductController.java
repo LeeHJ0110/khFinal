@@ -214,7 +214,10 @@ public class StoreProductController {
 
     //9. 사용자 : 베스트 상품 4개 목록 조회 (공통홈/ 강아지 홈/ 고양이 홈)
     //파라미터 null은 공통 , D는 강아지, C는 고양이
-    @Operation(summary = "사용자 베스트 상품 조회", description = "판매중인 상품 중 조회수 상위 4개 상품을 조회하는 기능")
+    @Operation(
+            summary = "사용자 베스트 상품 조회",
+            description = "판매중인 상품 중 리뷰 수가 많은 상위 4개 상품을 조회하는 기능"
+    )
     @GetMapping("/best")
     public ResponseEntity<List<StoreProductListResDto>> getBestProductList(
             @RequestParam(name = "targetPetType", required = false) String targetPetType,

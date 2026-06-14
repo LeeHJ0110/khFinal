@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -36,12 +37,15 @@ public interface StoreReviewRepository extends JpaRepository<StoreReviewEntity, 
     );
 
     @Query("""
-            select coalesce(avg(r.reviewRating), 0)
-            from StoreReviewEntity r
-            where r.product.productId = :productId
-            and r.delYn = :delYn
-            """)
-    Double getAverageRatingByProductIdAndDelYn(Long productId, DelYn delYn);
+        select coalesce(avg(r.reviewRating), 0)
+        from StoreReviewEntity r
+        where r.product.productId = :productId
+        and r.delYn = :delYn
+        """)
+    Double getAverageRatingByProductIdAndDelYn(
+            @Param("productId") Long productId,
+            @Param("delYn") DelYn delYn
+    );
 
     // 본인 리뷰내역 - 최신순
     Page<StoreReviewEntity> findByMemberAndDelYnOrderByCreatedAtDesc(

@@ -606,3 +606,16 @@
     right: calc(var(--header-action-width) + 8px);
   }
 }
+
+.header-search button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-search button img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  display: block;
+}

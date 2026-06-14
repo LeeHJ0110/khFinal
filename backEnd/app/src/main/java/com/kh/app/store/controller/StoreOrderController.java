@@ -3,6 +3,7 @@ package com.kh.app.store.controller;
 
 import com.kh.app.store.dto.request.StoreCartInsertReqDto;
 import com.kh.app.store.dto.request.StoreCartQtyUpdateReqDto;
+import com.kh.app.store.dto.request.StoreDirectPayReadyReqDto;
 import com.kh.app.store.dto.request.StorePayReadyReqDto;
 import com.kh.app.store.dto.response.StoreCartListResDto;
 import com.kh.app.store.dto.response.StorePayReadyResDto;
@@ -145,5 +146,19 @@ public class StoreOrderController {
         storeOrderService.cancelOrder(orderId, username);
 
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(
+            summary = "카카오페이 바로구매 결제 준비",
+            description = "상품 상세에서 선택한 단일 상품과 수량 기준으로 주문을 생성하고 카카오페이 결제 URL을 발급받는 기능"
+    )
+    @PostMapping("/checkout/direct/ready")
+    public ResponseEntity<StorePayReadyResDto> payReadyDirect(
+            @RequestBody StoreDirectPayReadyReqDto reqDto,
+            @AuthenticationPrincipal String username
+    ) {
+        StorePayReadyResDto result = storeOrderService.payReadyDirect(reqDto, username);
+
+        return ResponseEntity.ok(result);
     }
 }

@@ -45,7 +45,6 @@ export default function Footer() {
             <a href={menu.path} className="footer-menu-item" key={menu.label}>
               <span className="footer-menu-icon">{menu.icon}</span>
               <span>{menu.label}</span>
-              <em>&gt;</em>
             </a>
           ))}
         </nav>
