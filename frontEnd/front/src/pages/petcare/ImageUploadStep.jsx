@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 
-const MIN_IMAGE_COUNT = 1;
 const MAX_IMAGE_COUNT = 6;
 
 // =========================================================
@@ -128,16 +127,22 @@ function ImageUploadBox({
 
   return (
     <UploadBox>
-      <UploadTitle>
-        {title}
-      </UploadTitle>
+      <UploadTitleRow>
+        <UploadTitle>
+          {title}
+        </UploadTitle>
+
+        <OptionalBadge>
+          선택 사항
+        </OptionalBadge>
+      </UploadTitleRow>
 
       <UploadGuide>
         {description}
       </UploadGuide>
 
       <UploadLimitGuide>
-        {MIN_IMAGE_COUNT}장 이상, 최대{" "}
+        첨부하지 않아도 신청할 수 있으며, 최대{" "}
         {MAX_IMAGE_COUNT}장까지 등록할 수 있습니다.
       </UploadLimitGuide>
 
@@ -166,6 +171,9 @@ function ImageUploadBox({
       />
 
       <FileCount
+        $hasFiles={
+          files.length > 0
+        }
         $isLimitReached={
           isUploadLimitReached
         }
@@ -213,16 +221,21 @@ function ImageUploadStep({
       </SectionTitle>
 
       <Description>
-        정확한 분석을 위해 눈, 피부, 치아 이미지를 각각 등록해 주세요.
+        이미지가 있다면 함께 등록해 주세요.
         <br />
-        각 항목별로 1장 이상, 최대 6장까지 첨부할 수 있습니다.
+        첨부하지 않아도 건강진단 신청을 진행할 수 있습니다.
       </Description>
+
+      <OptionalNotice>
+        이미지 첨부는 선택 사항입니다. 눈, 피부, 치아 이미지를 등록하면
+        수의사가 상태를 더욱 자세히 확인하는 데 도움이 됩니다.
+      </OptionalNotice>
 
       <UploadGrid>
         <ImageUploadBox
           id="eyeFiles"
           title="눈 이미지"
-          description="반려동물의 눈이 선명하게 보이는 이미지를 등록해 주세요."
+          description="반려동물의 눈이 선명하게 보이는 이미지가 있다면 등록해 주세요."
           files={eyeFiles}
           onChangeFiles={
             onChangeEyeFiles
@@ -232,7 +245,7 @@ function ImageUploadStep({
         <ImageUploadBox
           id="skinFiles"
           title="피부 이미지"
-          description="이상이 의심되는 피부 부위가 보이도록 등록해 주세요."
+          description="이상이 의심되는 피부 부위의 이미지가 있다면 등록해 주세요."
           files={skinFiles}
           onChangeFiles={
             onChangeSkinFiles
@@ -242,7 +255,7 @@ function ImageUploadStep({
         <ImageUploadBox
           id="teethFiles"
           title="치아 이미지"
-          description="입 안쪽과 치아 상태가 잘 보이는 이미지를 등록해 주세요."
+          description="입 안쪽과 치아 상태가 잘 보이는 이미지가 있다면 등록해 주세요."
           files={teethFiles}
           onChangeFiles={
             onChangeTeethFiles
@@ -272,12 +285,31 @@ const SectionTitle = styled.h2`
 `;
 
 const Description = styled.p`
-  margin: 0 0 24px;
+  margin: 0 0 14px;
 
   color: #777777;
 
   font-size: 14px;
   line-height: 1.7;
+`;
+
+const OptionalNotice = styled.div`
+  max-width: 760px;
+
+  margin: 0 auto 22px;
+  padding: 12px 14px;
+
+  border: 1px solid #d8ebe5;
+  border-radius: 10px;
+
+  background: #f6fbf9;
+
+  color: #5f7770;
+
+  font-size: 13px;
+  line-height: 1.6;
+
+  word-break: keep-all;
 `;
 
 const UploadGrid = styled.div`
@@ -305,12 +337,39 @@ const UploadBox = styled.div`
   box-sizing: border-box;
 `;
 
+const UploadTitleRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  margin-bottom: 10px;
+`;
+
 const UploadTitle = styled.h3`
-  margin: 0 0 10px;
+  margin: 0;
 
   color: #00a97b;
 
   font-size: 18px;
+  font-weight: 800;
+`;
+
+const OptionalBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 3px 7px;
+
+  border-radius: 999px;
+
+  background: #eef7f4;
+
+  color: #669b8b;
+
+  font-size: 10px;
   font-weight: 800;
 `;
 
@@ -326,12 +385,15 @@ const UploadGuide = styled.p`
 `;
 
 const UploadLimitGuide = styled.p`
+  min-height: 38px;
+
   margin: 0 0 16px;
 
-  color: #00a97b;
+  color: #669b8b;
 
   font-size: 12px;
   font-weight: 700;
+  line-height: 1.55;
 `;
 
 const FileInputLabel = styled.label`
@@ -378,12 +440,20 @@ const FileInput = styled.input`
 const FileCount = styled.p`
   margin: 14px 0 0;
 
-  color: ${({ $isLimitReached }) =>
-    $isLimitReached
-      ? "#00a97b"
-      : "#666666"};
+  color: ${({ $isLimitReached, $hasFiles }) => {
+    if ($isLimitReached) {
+      return "#00a97b";
+    }
+
+    if ($hasFiles) {
+      return "#5f7770";
+    }
+
+    return "#999999";
+  }};
 
   font-size: 13px;
+
   font-weight: ${({ $isLimitReached }) =>
     $isLimitReached
       ? 700

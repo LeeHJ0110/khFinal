@@ -287,14 +287,14 @@ export default function useInsuranceProduct() {
   // 신규 가입 가능한 상태에서만 변경 가능
   // 결제수단 등록 재시도 상태에서는 기존 신청 상품 유지
   // =========================================================
-  function handleSelectProduct(product) {
-    if (!selectedPetStatus.canApply || isAgeRestricted) {
-      return;
-    }
-
-    setSelectedProduct(product);
-    setErrorMessage("");
+function handleSelectProduct(product) {
+  if (!product) {
+    return;
   }
+
+  setSelectedProduct(product);
+  setErrorMessage("");
+}
 
   // =========================================================
   // 카카오페이 결제수단 등록 화면으로 이동

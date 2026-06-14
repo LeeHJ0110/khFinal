@@ -32,13 +32,13 @@ public class PetCareController {
             String data,
 
             //이미지 파일 받기
-            @RequestPart(value = "eyeFiles")
+            @RequestPart(value = "eyeFiles", required = false)
             List<MultipartFile> eyeFiles,
 
-            @RequestPart("skinFiles")
+            @RequestPart(value ="skinFiles", required = false)
             List<MultipartFile> skinFiles,
 
-            @RequestPart("teethFiles")
+            @RequestPart(value ="teethFiles", required = false)
             List<MultipartFile> teethFiles,
 
             //현재 로그인한 사용자 정보 가져오기

@@ -426,52 +426,34 @@ function DiagnosisRequestPage() {
   // 건강진단 최종 신청
   // =========================================================
   async function handleSubmit() {
-    if (!selectedPet) {
-      alert("반려동물을 선택해 주세요.");
+  if (!selectedPet) {
+    alert("반려동물을 선택해 주세요.");
 
-      return;
-    }
-
-    if (eyeFiles.length === 0) {
-      alert("눈 이미지를 1장 이상 등록해 주세요.");
-
-      return;
-    }
-
-    if (skinFiles.length === 0) {
-      alert("피부 이미지를 1장 이상 등록해 주세요.");
-
-      return;
-    }
-
-    if (teethFiles.length === 0) {
-      alert("치아 이미지를 1장 이상 등록해 주세요.");
-
-      return;
-    }
-
-    try {
-      await submitDiagnosis({
-        petId: selectedPet.petId,
-        answerList,
-        eyeFiles,
-        skinFiles,
-        teethFiles,
-      });
-
-      setMainStep("COMPLETE");
-
-      alert("건강진단 신청이 완료되었습니다.");
-    } catch (error) {
-      console.error("건강진단 최종 신청 실패:", error);
-
-      alert(
-        error.response?.data?.message ||
-          submitErrorMessage ||
-          "건강진단 신청에 실패했습니다.",
-      );
-    }
+    return;
   }
+
+  try {
+    await submitDiagnosis({
+      petId: selectedPet.petId,
+      answerList,
+      eyeFiles,
+      skinFiles,
+      teethFiles,
+    });
+
+    setMainStep("COMPLETE");
+
+    alert("건강진단 신청이 완료되었습니다.");
+  } catch (error) {
+    console.error("건강진단 최종 신청 실패:", error);
+
+    alert(
+      error.response?.data?.message ||
+        submitErrorMessage ||
+        "건강진단 신청에 실패했습니다.",
+    );
+  }
+}
 
   // =========================================================
   // 이전 버튼
