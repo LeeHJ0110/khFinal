@@ -65,15 +65,24 @@ const heroIconList = [
   },
 ];
 
-function getTempReviewInfo(index) {
-  const tempReviewList = [
-    { rating: "4.9", count: 128 },
-    { rating: "4.7", count: 76 },
-    { rating: "4.6", count: 32 },
-    { rating: "4.5", count: 21 },
-  ];
+function formatReviewRating(value) {
+  const rating = Number(value ?? 0);
 
-  return tempReviewList[index] ?? { rating: "0.0", count: 0 };
+  if (Number.isNaN(rating) || rating <= 0) {
+    return "0.0";
+  }
+
+  return rating.toFixed(1);
+}
+
+function formatReviewCount(value) {
+  const count = Number(value ?? 0);
+
+  if (Number.isNaN(count) || count <= 0) {
+    return 0;
+  }
+
+  return count;
 }
 
 function getCategoryLabel(category) {
@@ -121,10 +130,6 @@ export default function PetStoreDogHomePage() {
         <HeroBanner>
           <HeroBannerImage src={dogStoreBanner} alt="강아지 스토어 배너" />
 
-          <HeroArrowButton type="button" aria-label="이전 배너">
-            ‹
-          </HeroArrowButton>
-
           <HeroInner>
             <HeroTextBox>
               <HeroEyebrow>우리 강아지를 위한 모든 것</HeroEyebrow>
@@ -149,16 +154,6 @@ export default function PetStoreDogHomePage() {
               </HeroIconRow>
             </HeroTextBox>
           </HeroInner>
-
-          <HeroArrowButton type="button" aria-label="다음 배너" $right>
-            ›
-          </HeroArrowButton>
-
-          <HeroDotBox>
-            <HeroDot $active />
-            <HeroDot />
-            <HeroDot />
-          </HeroDotBox>
         </HeroBanner>
 
         <ContentInner>
@@ -200,7 +195,10 @@ export default function PetStoreDogHomePage() {
                 <BestProductEmpty>베스트 상품이 없습니다.</BestProductEmpty>
               ) : (
                 bestProductViewList.slice(0, 4).map((product, index) => {
-                  const tempReview = getTempReviewInfo(index);
+                  const averageRating = formatReviewRating(
+                    product.averageRating,
+                  );
+                  const reviewCount = formatReviewCount(product.reviewCount);
 
                   return (
                     <BestProductCard
@@ -237,6 +235,8 @@ export default function PetStoreDogHomePage() {
                           <ProductImage
                             src={product.mainImageUrl}
                             alt={product.productName}
+                            loading="lazy"
+                            decoding="async"
                           />
                         ) : (
                           <ProductImageText>상품 이미지</ProductImageText>
@@ -252,7 +252,7 @@ export default function PetStoreDogHomePage() {
 
                         <ProductReviewInfo>
                           <ReviewStar>★</ReviewStar>
-                          {tempReview.rating} ({tempReview.count})
+                          {averageRating} ({reviewCount})
                         </ProductReviewInfo>
 
                         <ProductPrice>
@@ -418,74 +418,6 @@ const HeroIconText = styled.span`
   transition:
     color 0.18s ease,
     font-weight 0.18s ease;
-`;
-
-const HeroArrowButton = styled.button`
-  position: absolute;
-  left: ${(props) => (props.$right ? "auto" : "22px")};
-  right: ${(props) => (props.$right ? "22px" : "auto")};
-  top: 50%;
-  z-index: 5;
-  transform: translateY(-50%);
-
-  width: 50px;
-  height: 50px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border: 0;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.95);
-  color: #202423;
-  box-shadow: 0 5px 16px rgba(18, 45, 46, 0.12);
-
-  font-size: 43px;
-  font-weight: 200;
-  line-height: 1;
-  cursor: pointer;
-
-  transition:
-    transform 0.18s ease,
-    color 0.18s ease,
-    box-shadow 0.18s ease,
-    background-color 0.18s ease;
-
-  &:hover {
-    transform: translateY(-50%) scale(1.06);
-    color: var(--color-main);
-    background-color: #ffffff;
-    box-shadow: 0 8px 22px rgba(18, 45, 46, 0.16);
-  }
-`;
-
-const HeroDotBox = styled.div`
-  position: absolute;
-  left: 50%;
-  bottom: 24px;
-  z-index: 5;
-  transform: translateX(-50%);
-
-  display: flex;
-  gap: 14px;
-`;
-
-const HeroDot = styled.span`
-  width: 13px;
-  height: 13px;
-
-  border-radius: 50%;
-  background-color: ${(props) =>
-    props.$active ? "var(--color-main)" : "rgba(32, 36, 35, 0.42)"};
-
-  transition:
-    transform 0.18s ease,
-    background-color 0.18s ease;
-
-  &:hover {
-    transform: scale(1.1);
-  }
 `;
 
 /* ================================

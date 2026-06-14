@@ -49,3 +49,19 @@ export async function readyStoreKakaoPay({
     usedPoint,
   });
 }
+
+export async function readyStoreKakaoPayDirect({
+  productId,
+  qty,
+  deliveryAddressId,
+  deliveryRequest = "",
+  usedPoint = 0,
+}) {
+  return await api.post(`/store/order/checkout/direct/ready`, {
+    productId,
+    qty,
+    deliveryAddressId,
+    deliveryRequest,
+    usedPoint,
+  });
+}

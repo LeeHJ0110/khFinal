@@ -5,13 +5,16 @@ import {
   fetchCartList,
   fetchMyDeliveryAddressList,
   readyStoreKakaoPay,
+  readyStoreKakaoPayDirect,
 } from "../../features/petStore/api/petStoreOrderApi";
 
 import StorePaymentSummaryCard from "../../features/petStore/components/PetStorePaymentSummaryCard";
-
-//포인트 관련
 import useStorePaymentPoint from "../../features/petStore/hooks/useStorePaymentPoint";
 import PetStoreNavGate from "./PetStoreNavGate";
+
+const DELIVERY_FREE_MIN_AMOUNT = 30000;
+const BASIC_DELIVERY_FEE = 3000;
+const DIRECT_ORDER_TYPE = "DIRECT";
 
 const deliveryRequestOptions = [
   {
@@ -35,31 +38,18 @@ const deliveryRequestOptions = [
     value: "DIRECT",
   },
 ];
+
 export default function PetStoreOrderPage() {
-  const deliveryRequestOptions = [
-    {
-      label: "배송 요청사항을 선택해주세요.",
-      value: "",
-    },
-    {
-      label: "문 앞에 놓아주세요.",
-      value: "문 앞에 놓아주세요.",
-    },
-    {
-      label: "부재 시 경비실에 맡겨주세요.",
-      value: "부재 시 경비실에 맡겨주세요.",
-    },
-    {
-      label: "배송 전 연락 부탁드립니다.",
-      value: "배송 전 연락 부탁드립니다.",
-    },
-    {
-      label: "직접 입력",
-      value: "DIRECT",
-    },
-  ];
   const navigate = useNavigate();
   const location = useLocation();
+
+  /*
+    주문 진입 방식
+    - 일반 주문: 장바구니 목록 기준
+    - 바로구매: 상품상세에서 location.state로 넘긴 단일 상품 기준
+  */
+  const isDirectOrder = location.state?.orderType === DIRECT_ORDER_TYPE;
+  const directItem = location.state?.directItem ?? null;
 
   const [cart, setCart] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,17 +59,51 @@ export default function PetStoreOrderPage() {
 
   const [deliveryAddressList, setDeliveryAddressList] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
+
   const [deliveryRequest, setDeliveryRequest] = useState("");
   const [deliveryRequestOption, setDeliveryRequestOption] = useState("");
-
-  const cartItemList = cart?.cartItemList ?? [];
 
   const selectedAddress = deliveryAddressList.find(
     (address) => address.deliveryAddressId === selectedAddressId,
   );
 
-  const totalProductAmount = cart?.totalProductAmount ?? 0;
-  const orderDeliveryFee = cart?.orderDeliveryFee ?? 0;
+  /*
+    주문내역 표시용 목록
+    - 바로구매는 장바구니를 거치지 않으므로 화면 표시용 item 형태로 변환
+    - 실제 결제 생성은 백엔드에서 productId로 다시 조회해서 계산함
+  */
+  const directCartItemList = useMemo(() => {
+    if (!isDirectOrder || !directItem) {
+      return [];
+    }
+
+    const qty = Number(directItem.qty || 1);
+    const price = Number(directItem.productPrice || 0);
+
+    return [
+      {
+        cartItemId: `direct-${directItem.productId}`,
+        productId: directItem.productId,
+        productName: directItem.productName,
+        mainImageUrl: directItem.mainImageUrl,
+        cartItemQty: qty,
+        cartItemTotalPrice: price * qty,
+      },
+    ];
+  }, [isDirectOrder, directItem]);
+
+  const cartItemList = isDirectOrder
+    ? directCartItemList
+    : (cart?.cartItemList ?? []);
+
+  const totalProductAmount = isDirectOrder
+    ? directCartItemList.reduce(
+        (sum, item) => sum + Number(item.cartItemTotalPrice || 0),
+        0,
+      )
+    : (cart?.totalProductAmount ?? 0);
+
+  const orderDeliveryFee = calculateDeliveryFee(totalProductAmount);
 
   const {
     currentPoint,
@@ -108,6 +132,10 @@ export default function PetStoreOrderPage() {
     return Number(savedUsedPoint || 0);
   }
 
+  /*
+    토큰에서 주문자 이름 표시용 정보만 가져옴
+    실패해도 주문 자체에는 영향 없게 "회원"으로 처리
+  */
   function loadOrdererNameFromToken() {
     const accessToken = localStorage.getItem("accessToken");
 
@@ -129,7 +157,6 @@ export default function PetStoreOrderPage() {
       const binaryString = atob(paddedPayloadBase64);
 
       const bytes = Uint8Array.from(binaryString, (char) => char.charCodeAt(0));
-
       const decodedPayload = new TextDecoder("utf-8").decode(bytes);
 
       const payload = JSON.parse(decodedPayload);
@@ -141,6 +168,10 @@ export default function PetStoreOrderPage() {
     }
   }
 
+  /*
+    일반 주문일 때만 장바구니 목록 조회
+    바로구매는 장바구니를 사용하지 않음
+  */
   async function loadCartList() {
     setIsLoading(true);
 
@@ -155,6 +186,10 @@ export default function PetStoreOrderPage() {
     }
   }
 
+  /*
+    배송지 목록 조회 후 기본 배송지 우선 선택
+    기본 배송지가 없으면 첫 번째 배송지를 선택
+  */
   async function loadDeliveryAddressList() {
     try {
       const response = await fetchMyDeliveryAddressList();
@@ -180,6 +215,12 @@ export default function PetStoreOrderPage() {
     alert("현재 결제서비스 도입 중입니다.");
   }
 
+  /*
+    결제하기
+    - 바로구매: productId + qty 기준 direct ready API 호출
+    - 일반 주문: 장바구니 기준 ready API 호출
+    - 응답으로 받은 카카오 redirect URL로 이동
+  */
   async function handlePayClick() {
     if (isPaying) {
       return;
@@ -187,7 +228,7 @@ export default function PetStoreOrderPage() {
 
     if (!cartItemList.length) {
       alert("주문할 상품이 없습니다.");
-      navigate("/store/cart/list");
+      navigate(isDirectOrder ? "/store" : "/store/cart/list");
       return;
     }
 
@@ -203,16 +244,24 @@ export default function PetStoreOrderPage() {
     setIsPaying(true);
 
     try {
-      const response = await readyStoreKakaoPay({
-        deliveryAddressId: selectedAddressId,
-        deliveryRequest,
-        usedPoint,
-      });
+      const response = isDirectOrder
+        ? await readyStoreKakaoPayDirect({
+            productId: directItem.productId,
+            qty: directItem.qty,
+            deliveryAddressId: selectedAddressId,
+            deliveryRequest,
+            usedPoint,
+          })
+        : await readyStoreKakaoPay({
+            deliveryAddressId: selectedAddressId,
+            deliveryRequest,
+            usedPoint,
+          });
 
-      const redirectUrl = response.data.nextRedirectPcUrl;
+      const redirectUrl = getKakaoRedirectUrl(response.data);
 
       if (!redirectUrl) {
-        alert("카카오페이 결제 페이지를 불러오지 못했습니다.");
+        alert("카카오페이 결제 페이지 주소가 응답에 없습니다.");
         setIsPaying(false);
         return;
       }
@@ -220,12 +269,23 @@ export default function PetStoreOrderPage() {
       sessionStorage.removeItem("storeCheckoutUsedPoint");
       window.location.href = redirectUrl;
     } catch (error) {
-      console.error(error);
-      alert("결제 준비 중 오류가 발생했습니다.");
+      console.error("결제 준비 실패", error);
+
+      const serverMessage =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.response?.data;
+
+      alert(serverMessage || "결제 준비 중 오류가 발생했습니다.");
       setIsPaying(false);
     }
   }
 
+  /*
+    배송 요청사항
+    - DIRECT 선택 시 input 활성화
+    - 그 외 옵션은 선택값을 그대로 요청사항으로 사용
+  */
   function handleChangeDeliveryRequestOption(event) {
     const selectedValue = event.target.value;
 
@@ -241,10 +301,25 @@ export default function PetStoreOrderPage() {
 
   useEffect(() => {
     loadOrdererNameFromToken();
-    loadCartList();
+
+    if (!isDirectOrder) {
+      loadCartList();
+    }
+
     loadDeliveryAddressList();
     loadMyPoint();
   }, []);
+
+  /*
+    바로구매는 새로고침하면 location.state가 사라질 수 있음
+    이 경우 상품 정보가 없으므로 스토어로 돌려보냄
+  */
+  useEffect(() => {
+    if (isDirectOrder && !directItem) {
+      alert("바로구매 상품 정보가 없습니다.");
+      navigate("/store");
+    }
+  }, [isDirectOrder, directItem, navigate]);
 
   if (isLoading && !cart) {
     return (
@@ -462,18 +537,42 @@ export default function PetStoreOrderPage() {
               onBlurUsedPoint={handleBlurUsedPoint}
               onUseAllPoint={handleUseAllPoint}
               primaryButtonText="결제하기"
-              secondaryButtonText="장바구니로 돌아가기"
-              onPrimaryClick={handlePayClick}
-              onSecondaryClick={() => navigate("/store/cart/list")}
-              primaryDisabled={
-                cartItemList.length === 0 || deliveryAddressList.length === 0
+              secondaryButtonText={
+                isDirectOrder ? "상품으로 돌아가기" : "장바구니로 돌아가기"
               }
+              onPrimaryClick={handlePayClick}
+              onSecondaryClick={() =>
+                isDirectOrder
+                  ? navigate(`/store/product/${directItem.productId}`)
+                  : navigate("/store/cart/list")
+              }
+              primaryDisabled={cartItemList.length === 0 || !selectedAddressId}
               isProcessing={isPaying}
             />
           </RightArea>
         </ContentGrid>
       </PageInner>
     </Wrapper>
+  );
+}
+
+function calculateDeliveryFee(totalProductAmount) {
+  const amount = Number(totalProductAmount || 0);
+
+  if (amount <= 0) {
+    return 0;
+  }
+
+  return amount >= DELIVERY_FREE_MIN_AMOUNT ? 0 : BASIC_DELIVERY_FEE;
+}
+
+function getKakaoRedirectUrl(data) {
+  return (
+    data?.nextRedirectPcUrl ||
+    data?.next_redirect_pc_url ||
+    data?.nextRedirectMobileUrl ||
+    data?.next_redirect_mobile_url ||
+    ""
   );
 }
 

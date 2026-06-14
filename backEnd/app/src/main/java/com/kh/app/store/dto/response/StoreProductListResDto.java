@@ -29,11 +29,19 @@ public class StoreProductListResDto {
     // 관심상품 ID
     private Long wishlistId;
 
+    // 리뷰 평균 평점
+    private Double averageRating;
+
+    // 리뷰 개수
+    private Long reviewCount;
+
     public static StoreProductListResDto from(
             StoreProductEntity product,
             String mainImageUrl,
             Boolean wished,
-            Long wishlistId
+            Long wishlistId,
+            Double averageRating,
+            Long reviewCount
     ) {
         return StoreProductListResDto.builder()
                 .productId(product.getProductId())
@@ -49,6 +57,8 @@ public class StoreProductListResDto {
                 .mainImageUrl(mainImageUrl)
                 .wished(wished)
                 .wishlistId(wishlistId)
+                .averageRating(averageRating == null ? 0.0 : averageRating)
+                .reviewCount(reviewCount == null ? 0L : reviewCount)
                 .build();
     }
 }

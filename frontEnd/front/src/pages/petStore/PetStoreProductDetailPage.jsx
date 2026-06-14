@@ -381,7 +381,33 @@ export default function PetStoreProductDetailPage() {
   }
 
   function handleReadyDirectBuy() {
-    alert("바로 구매 기능은 준비 중입니다.");
+    if (!product?.productId) {
+      alert("상품 정보를 찾을 수 없습니다.");
+      return;
+    }
+
+    if (quantity < 1) {
+      alert("수량은 1개 이상이어야 합니다.");
+      return;
+    }
+
+    if (!hasLoginInfo()) {
+      moveToLoginWithRedirect();
+      return;
+    }
+
+    navigate("/store/order", {
+      state: {
+        orderType: "DIRECT",
+        directItem: {
+          productId: product.productId,
+          productName: product.productName,
+          productPrice: product.productPrice,
+          mainImageUrl: product.mainImageUrl,
+          qty: quantity,
+        },
+      },
+    });
   }
 
   function handleSelectImage(url) {
