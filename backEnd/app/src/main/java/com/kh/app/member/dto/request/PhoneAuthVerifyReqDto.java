@@ -1,0 +1,11 @@
+package com.kh.app.member.dto.request;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class PhoneAuthVerifyReqDto {
+    private String phone;
+    private String code;
+}

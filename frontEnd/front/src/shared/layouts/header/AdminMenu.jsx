@@ -5,7 +5,7 @@ import { logout } from "../../../features/member/store/memberSlice";
 
 function getAdminHomePath(role) {
   const pathMap = {
-    ADMIN: "/admin",
+    ADMIN: "/admin/member",
     DOCTOR: "/healthCare/doctor",
     STORE: "/store/product/admin",
     BOARD: "/community/admin",

@@ -1,12 +1,30 @@
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import styled from "styled-components";
-
+import { getAdminMe } from "../../../features/admin/api/adminMemberApi";
 export default function AdminSidebar() {
+  const [admin, setAdmin] = useState(null);
+
+  useEffect(() => {
+    async function fetchAdmin() {
+      const resp = await getAdminMe();
+      setAdmin(resp.data);
+    }
+
+    fetchAdmin();
+  }, []);
   return (
     <Sidebar>
       <ProfileArea>
-        <ProfileImage src="/images/default-profile.png" alt="관리자 프로필" />
-        <AdminName>관리자</AdminName>
+        <ProfileImg>
+          {admin?.profileImageUrl ? (
+            <img src={admin.profileImageUrl} alt="프로필 이미지" />
+          ) : (
+            <DefaultProfile>👤</DefaultProfile>
+          )}
+        </ProfileImg>
+        <AdminName>{admin?.nickname || "관리자"}</AdminName>
+        <AdminRole>{getRoleText(admin?.role)}</AdminRole>
       </ProfileArea>
 
       <MenuArea>
@@ -20,7 +38,20 @@ export default function AdminSidebar() {
     </Sidebar>
   );
 }
-
+function getRoleText(role) {
+  switch (role) {
+    case "A":
+      return "총관리자";
+    case "D":
+      return "수의사";
+    case "S":
+      return "판매관리자";
+    case "B":
+      return "게시판관리자";
+    default:
+      return "";
+  }
+}
 const Sidebar = styled.aside`
   width: 240px;
   min-height: 100vh;
@@ -32,16 +63,6 @@ const Sidebar = styled.aside`
 const ProfileArea = styled.div`
   padding: 36px 20px 28px;
   text-align: center;
-`;
-
-const ProfileImage = styled.img`
-  width: 116px;
-  height: 116px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 4px solid white;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-  background-color: white;
 `;
 
 const AdminName = styled.h2`
@@ -72,4 +93,44 @@ const MenuLink = styled(NavLink)`
     color: #008866;
     font-weight: 800;
   }
+`;
+const AdminRole = styled.p`
+  margin-top: 4px;
+  font-size: 13px;
+  color: #666;
+`;
+const ProfileImg = styled.div`
+  width: 120px;
+  height: 120px;
+
+  margin: 0 auto;
+
+  border-radius: 50%;
+  overflow: hidden;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-color: white;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+  }
+`;
+
+const DefaultProfile = styled.div`
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 46px;
+  line-height: 1;
 `;

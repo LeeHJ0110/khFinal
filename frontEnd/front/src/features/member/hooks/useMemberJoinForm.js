@@ -1,9 +1,18 @@
 import { useEffect, useState } from "react";
-import { join, checkUsername, checkNickname } from "../api/memberApi";
+import {
+  join,
+  checkUsername,
+  checkNickname,
+  sendPhoneAuthCode,
+  verifyPhoneAuthCode,
+} from "../api/memberApi";
 
 export default function useMemberJoinForm(marketingAgreeYn = "N") {
   const [isSuccess, setSuccess] = useState(false);
-
+  const [authCode, setAuthCode] = useState("");
+  const [phoneAuthMessage, setPhoneAuthMessage] = useState("");
+  const [isPhoneVerified, setPhoneVerified] = useState(false);
+  const [isPhoneAuthSent, setPhoneAuthSent] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -90,6 +99,10 @@ export default function useMemberJoinForm(marketingAgreeYn = "N") {
     let nextValue = value;
 
     if (name === "phone") {
+      setPhoneVerified(false);
+      setPhoneAuthSent(false);
+      setAuthCode("");
+      setPhoneAuthMessage("");
       const numbers = getOnlyPhoneNumber(value);
 
       if (numbers.length > 11) {
@@ -178,7 +191,73 @@ export default function useMemberJoinForm(marketingAgreeYn = "N") {
       setNicknameChecked(false);
     }
   }
+  async function handleSendPhoneAuthCode() {
+    if (!formData.phone) {
+      alert("전화번호를 입력해주세요.");
+      return;
+    }
 
+    try {
+      await sendPhoneAuthCode(formData.phone);
+      setPhoneAuthSent(true);
+      setPhoneVerified(false);
+      setAuthCode("");
+      setPhoneAuthMessage("인증번호가 발송되었습니다.");
+    } catch (err) {
+      const data = err.response?.data;
+
+      const message =
+        typeof data === "string"
+          ? data
+          : data?.message
+            ? data.message
+            : data?.error
+              ? data.error
+              : "이미 가입된 전화번호이거나 인증번호 발송에 실패했습니다.";
+
+      setPhoneAuthSent(false);
+      setPhoneVerified(false);
+      setAuthCode("");
+      setPhoneAuthMessage(message);
+
+      alert(message);
+    }
+  }
+
+  async function handleVerifyPhoneAuthCode() {
+    if (!isPhoneAuthSent) {
+      alert("인증번호를 먼저 발송해주세요.");
+      return;
+    }
+
+    if (!authCode) {
+      alert("인증번호를 입력해주세요.");
+      return;
+    }
+
+    try {
+      await verifyPhoneAuthCode(formData.phone, authCode);
+
+      setPhoneVerified(true);
+      setPhoneAuthMessage("전화번호 인증이 완료되었습니다.");
+    } catch (err) {
+      const data = err.response?.data;
+
+      const message =
+        typeof data === "string"
+          ? data
+          : data?.message
+            ? data.message
+            : data?.error
+              ? data.error
+              : "인증번호 확인에 실패했습니다.";
+
+      setPhoneVerified(false);
+      setPhoneAuthMessage(message);
+
+      alert(message);
+    }
+  }
   async function handleSubmit(evt) {
     evt.preventDefault();
 
@@ -227,7 +306,10 @@ export default function useMemberJoinForm(marketingAgreeYn = "N") {
       alert("상세주소를 입력해주세요.");
       return;
     }
-
+    if (!isPhoneVerified) {
+      alert("전화번호 인증을 완료해주세요.");
+      return;
+    }
     const requestData = {
       ...formData,
       phone: phoneOnlyNumber,
@@ -253,5 +335,12 @@ export default function useMemberJoinForm(marketingAgreeYn = "N") {
     passwordMessage,
     phoneMessage,
     emailMessage,
+    authCode,
+    setAuthCode,
+    phoneAuthMessage,
+    isPhoneVerified,
+    isPhoneAuthSent,
+    handleSendPhoneAuthCode,
+    handleVerifyPhoneAuthCode,
   };
 }
