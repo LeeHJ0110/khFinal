@@ -4,8 +4,36 @@ import { useNavigate } from "react-router-dom";
 
 import usePetCareList from "../../features/petcare/hooks/usePetCareList";
 
+// =========================================================
+// JWT 토큰 payload 조회
+// =========================================================
+function getTokenPayload() {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    return null;
+  }
+
+  try {
+    const payload = token.split(".")[1];
+    return JSON.parse(atob(payload));
+  } catch (e) {
+    return null;
+  }
+}
+
+// =========================================================
+// 로그인 사용자 권한 조회
+// =========================================================
+function getLoginRole() {
+  const payload = getTokenPayload();
+  return payload?.role ?? null;
+}
+
 export default function DiagnosisManagePage() {
   const navigate = useNavigate();
+
+  const [isAllowed, setIsAllowed] = useState(false);
 
   const {
     asyncFetchPetCareList,
@@ -21,11 +49,37 @@ export default function DiagnosisManagePage() {
   const [petTypeFilter, setPetTypeFilter] = useState("ALL");
 
   // =========================================================
-  // 페이지 또는 필터 변경 시 목록 다시 조회
+  // 수의사 권한 확인
   // =========================================================
   useEffect(() => {
+    const role = getLoginRole();
+
+    if (!role) {
+      alert("로그인 후 이용 가능합니다.");
+      navigate("/member/login", { replace: true });
+      return;
+    }
+
+    if (role !== "DOCTOR") {
+      alert("수의사 권한이 없습니다.");
+      navigate("/", { replace: true });
+      return;
+    }
+
+    setIsAllowed(true);
+  }, [navigate]);
+
+  // =========================================================
+  // 페이지 또는 필터 변경 시 목록 다시 조회
+  // 권한 확인이 끝난 뒤에만 API 호출
+  // =========================================================
+  useEffect(() => {
+    if (!isAllowed) {
+      return;
+    }
+
     asyncFetchPetCareList(currentPage, petTypeFilter);
-  }, [currentPage, petTypeFilter]);
+  }, [isAllowed, currentPage, petTypeFilter]);
 
   // =========================================================
   // 필터 변경
@@ -81,6 +135,11 @@ export default function DiagnosisManagePage() {
     }
 
     return "상태 확인 필요";
+  }
+
+  // 권한 확인 전에는 화면 렌더링하지 않음
+  if (!isAllowed) {
+    return null;
   }
 
   return (
