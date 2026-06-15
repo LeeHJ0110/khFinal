@@ -19,10 +19,6 @@ import ScoreQuestionStep from "./ScoreQuestionStep";
 import ConsultStep from "./ConsultStep";
 import ImageUploadStep from "./ImageUploadStep";
 
-// 포인트 관련
-import usePointEffect from "../../features/point/hooks/usePointEffect";
-import { POINT_ACTION_TYPE } from "../../features/point/utils/pointPolicy";
-
 // =========================================================
 // 자가진단 카테고리 이동 순서
 // =========================================================
@@ -59,10 +55,6 @@ function formatQuestionCategory(category) {
 function DiagnosisRequestPage() {
   const navigate = useNavigate();
 
-  // 포인트 관련
-  const { checkPointBeforeStart } = usePointEffect();
-  const [isPointChecking, setIsPointChecking] = useState(true);
-
   // =========================================================
   // 건강진단 신청 요청 훅
   // =========================================================
@@ -72,29 +64,9 @@ function DiagnosisRequestPage() {
     errorMessage: submitErrorMessage,
   } = useRequestDiagnosis();
 
-  // =========================================================
-  // 건강진단 페이지 진입 전 포인트 확인
-  // 2,000P 미만이면 신청 페이지 진입 차단
-  // =========================================================
-  useEffect(() => {
-    async function checkHealthcarePoint() {
-      const canStart = await checkPointBeforeStart(
-        POINT_ACTION_TYPE.HEALTHCARE_USE,
-      );
-
-      if (!canStart) {
-        navigate("/healthcare/requesthome", { replace: true });
-        return;
-      }
-
-      setIsPointChecking(false);
-    }
-
-    checkHealthcarePoint();
-  }, []);
-
   /*
-   * 상단 진행 단계(큰화면 단계 관리)
+   * 상단 진행 단계
+   *
    * BASIC    : 기본정보
    * SELF     : 자가진단
    * IMAGE    : 이미지 분석
@@ -104,6 +76,7 @@ function DiagnosisRequestPage() {
 
   /*
    * 기본정보 내부 단계
+   *
    * PET     : 펫 선택 + 현재 체중
    * VACCINE : 예방접종
    * DISEASE : 질병 이력
@@ -112,15 +85,27 @@ function DiagnosisRequestPage() {
 
   // 자가진단 내부 카테고리
   const [selfStep, setSelfStep] = useState("STRESS");
-  // 화면에서 사용하는 데이터 저장
+
+  // =========================================================
+  // 화면에서 사용하는 데이터
+  // =========================================================
+
   // 로그인 회원 정보
   const [memberInfo, setMemberInfo] = useState(null);
+
+  // 로그인 회원의 반려동물 목록
   const [petList, setPetList] = useState([]);
+
+  // 현재 선택된 반려동물
   const [selectedPet, setSelectedPet] = useState(null);
+
+  // 현재 체중 입력값
   const [currentWeight, setCurrentWeight] = useState("");
 
-  // 질문과 답변도 따로 저장
+  // 질문 목록
   const [questionList, setQuestionList] = useState([]);
+
+  // 답변 목록
   const [answerList, setAnswerList] = useState([]);
 
   // 이미지 분석 단계 업로드 파일
@@ -313,6 +298,7 @@ function DiagnosisRequestPage() {
 
   // =========================================================
   // YN 답변 토글
+  //
   // N → Y → N
   // =========================================================
   function handleYnToggle(questionId) {
@@ -440,52 +426,34 @@ function DiagnosisRequestPage() {
   // 건강진단 최종 신청
   // =========================================================
   async function handleSubmit() {
-    if (!selectedPet) {
-      alert("반려동물을 선택해 주세요.");
+  if (!selectedPet) {
+    alert("반려동물을 선택해 주세요.");
 
-      return;
-    }
-
-    if (eyeFiles.length === 0) {
-      alert("눈 이미지를 1장 이상 등록해 주세요.");
-
-      return;
-    }
-
-    if (skinFiles.length === 0) {
-      alert("피부 이미지를 1장 이상 등록해 주세요.");
-
-      return;
-    }
-
-    if (teethFiles.length === 0) {
-      alert("치아 이미지를 1장 이상 등록해 주세요.");
-
-      return;
-    }
-
-    try {
-      await submitDiagnosis({
-        petId: selectedPet.petId,
-        answerList,
-        eyeFiles,
-        skinFiles,
-        teethFiles,
-      });
-
-      setMainStep("COMPLETE");
-
-      alert("건강진단 신청이 완료되었습니다.");
-    } catch (error) {
-      console.error("건강진단 최종 신청 실패:", error);
-
-      alert(
-        error.response?.data?.message ||
-          submitErrorMessage ||
-          "건강진단 신청에 실패했습니다.",
-      );
-    }
+    return;
   }
+
+  try {
+    await submitDiagnosis({
+      petId: selectedPet.petId,
+      answerList,
+      eyeFiles,
+      skinFiles,
+      teethFiles,
+    });
+
+    setMainStep("COMPLETE");
+
+    alert("건강진단 신청이 완료되었습니다.");
+  } catch (error) {
+    console.error("건강진단 최종 신청 실패:", error);
+
+    alert(
+      error.response?.data?.message ||
+        submitErrorMessage ||
+        "건강진단 신청에 실패했습니다.",
+    );
+  }
+}
 
   // =========================================================
   // 이전 버튼
@@ -543,7 +511,7 @@ function DiagnosisRequestPage() {
     }
   }
 
-  if (isPointChecking || isLoading) {
+  if (isLoading) {
     return <Wrapper>정보를 불러오는 중입니다.</Wrapper>;
   }
 

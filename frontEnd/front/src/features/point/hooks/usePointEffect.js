@@ -1,4 +1,8 @@
-import { fetchDailyAttendancePoint, fetchMyPoint } from "../api/pointApi";
+import {
+  fetchDailyAttendancePoint,
+  fetchEventJoinPoint,
+  fetchMyPoint,
+} from "../api/pointApi";
 import {
   getEarnPointMessage,
   getPointErrorMessage,
@@ -18,6 +22,28 @@ export default function usePointEffect() {
         policy.successMessage ||
         response.data?.message ||
         "일일 출석체크 포인트가 지급되었습니다.";
+
+      showPointMessage(message);
+
+      return response;
+    } catch (error) {
+      const message = getPointErrorMessage(error, policy.errorMessage);
+
+      showPointMessage(message);
+      throw error;
+    }
+  }
+
+  async function runEventJoinPoint() {
+    const policy = POINT_ACTION_POLICY.EVENT_JOIN;
+
+    try {
+      const response = await fetchEventJoinPoint();
+
+      const message =
+        policy.successMessage ||
+        response.data?.message ||
+        "회원가입 감사 이벤트 포인트가 지급되었습니다.";
 
       showPointMessage(message);
 
@@ -119,7 +145,15 @@ export default function usePointEffect() {
             });
           }
 
-          showPointMessage(message);
+          // 성공 알림을 끄고 싶은 포인트 액션은 여기서 차단
+          if (policy.showSuccessMessage === false) {
+            return;
+          }
+
+          // 메시지가 있을 때만 알림 표시
+          if (message) {
+            showPointMessage(message);
+          }
         } catch (error) {
           const message = getPointErrorMessage(error, policy.errorMessage);
           showPointMessage(message);
@@ -132,5 +166,6 @@ export default function usePointEffect() {
     startPointAction,
     checkPointBeforeStart,
     runDailyAttendancePoint,
+    runEventJoinPoint,
   };
 }

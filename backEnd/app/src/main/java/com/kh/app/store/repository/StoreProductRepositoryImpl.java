@@ -10,6 +10,7 @@ import java.util.List;
 import static com.kh.app.store.entity.QStoreProductEntity.storeProductEntity;
 import static com.kh.app.store.entity.QStoreProductImageEntity.storeProductImageEntity;
 import static com.kh.app.store.entity.QStoreProductTagEntity.storeProductTagEntity;
+import static com.kh.app.store.entity.QStoreReviewEntity.storeReviewEntity;
 import com.kh.app.store.entity.StoreProductCategory;
 import com.kh.app.store.entity.StoreProductEntity;
 import com.querydsl.core.BooleanBuilder;
@@ -146,6 +147,24 @@ public class StoreProductRepositoryImpl implements StoreProductRepositoryCustom 
             builder.and(storeProductTagEntity.tagName.eq(tagName));
         }
 
+        // 인기순: 리뷰 개수 많은 순
+        if ("popular".equals(sort)) {
+            return queryFactory
+                    .selectFrom(storeProductEntity)
+                    .join(storeProductEntity.productTag, storeProductTagEntity)
+                    .leftJoin(storeReviewEntity)
+                    .on(storeReviewEntity.product.eq(storeProductEntity))
+                    .where(builder)
+                    .groupBy(storeProductEntity)
+                    .orderBy(
+                            storeReviewEntity.reviewId.count().desc(),
+                            storeProductEntity.createdAt.desc(),
+                            storeProductEntity.productId.desc()
+                    )
+                    .fetch();
+        }
+
+        // 인기순이 아닌 경우: 기존 방식 유지
         return queryFactory
                 .selectFrom(storeProductEntity)
                 .join(storeProductEntity.productTag, storeProductTagEntity)
@@ -155,14 +174,6 @@ public class StoreProductRepositoryImpl implements StoreProductRepositoryCustom 
     }
 
     private OrderSpecifier<?>[] getUserProductOrders(String sort) {
-        if ("popular".equals(sort)) {
-            return new OrderSpecifier<?>[]{
-                    storeProductEntity.productViewCount.desc(),
-                    storeProductEntity.createdAt.desc(),
-                    storeProductEntity.productId.desc()
-            };
-        }
-
         if ("lowPrice".equals(sort)) {
             return new OrderSpecifier<?>[]{
                     storeProductEntity.productPrice.asc(),

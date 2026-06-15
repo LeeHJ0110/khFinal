@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-
-import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreReviewList from "../../features/petStore/hooks/usePetStoreReviewList";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 function renderStars(rating) {
   const score = Number(rating ?? 0);
@@ -74,9 +73,11 @@ export default function PetStoreMyReviewListPage() {
     (_, index) => index,
   );
 
+  console.log(reviewList);
+
   return (
     <Wrapper>
-      <PetStoreUserNav />
+      <PetStoreNavGate />
 
       <Inner>
         <PageHeader>

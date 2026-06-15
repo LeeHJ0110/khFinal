@@ -84,7 +84,7 @@ export default function BoardSearchPage() {
             <MoreButton
               onClick={() => navigate("/community/list?category=FREE")}
             >
-              커뮤니티 더보기
+              커뮤니티에서 더 찾아보기
             </MoreButton>
           </MoreButtonWrapper>
         </SectionWrapper>
@@ -139,7 +139,7 @@ export default function BoardSearchPage() {
 
           <MoreButtonWrapper>
             <MoreButton onClick={() => navigate("/store")}>
-              상품 더보기
+              스토어에서 더 찾아보기
             </MoreButton>
           </MoreButtonWrapper>
         </SectionWrapper>

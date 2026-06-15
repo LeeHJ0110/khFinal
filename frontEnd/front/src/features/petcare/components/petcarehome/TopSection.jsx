@@ -1,12 +1,17 @@
 import styled, { keyframes } from "styled-components";
 import { useNavigate } from "react-router-dom";
 
+import usePointEffect from "../../../point/hooks/usePointEffect";
+import { POINT_ACTION_TYPE } from "../../../point/utils/pointPolicy";
+
 import mainImg from "../../img/건강검진 메인.png";
 import item1 from "../../img/십자가.png";
 import item3 from "../../img/발자국.png";
 
 function TopSection({ selectedPet }) {
   const navigate = useNavigate();
+
+  const { checkPointBeforeStart } = usePointEffect();
 
   // undefined: 조회 중 / null: 등록된 펫 없음
   const isLoading = selectedPet === undefined;
@@ -15,16 +20,43 @@ function TopSection({ selectedPet }) {
   // 현재 선택한 펫의 신청 상태
   const isApplying = selectedPet?.diagnosisInProgress === true;
 
-  const handleApply = () => {
+  // =========================================================
+  // 건강진단 신청하기
+  //
+  // 버튼 클릭 시 포인트 확인
+  // 2,000P 이상이면 진행 여부 확인
+  // 확인을 누른 경우에만 신청 페이지로 이동
+  // =========================================================
+  const handleApply = async () => {
     if (isLoading || isApplying) {
       return;
     }
 
     if (!hasPet) {
       navigate("/mypage/pet-manage");
+
       return;
     }
 
+    const canStart = await checkPointBeforeStart(
+      POINT_ACTION_TYPE.HEALTHCARE_USE,
+    );
+
+    // 2,000P 미만이면 진입 차단
+    if (!canStart) {
+      return;
+    }
+
+    const isConfirmed = window.confirm(
+      "건강진단 신청 시 2,000P가 소모됩니다.\n신청을 계속하시겠습니까?",
+    );
+
+    // 취소 버튼을 누르면 현재 화면 유지
+    if (!isConfirmed) {
+      return;
+    }
+
+    // 확인 버튼을 누른 경우에만 신청 페이지 이동
     navigate("/healthcare/request");
   };
 
@@ -255,7 +287,6 @@ const HeroInner = styled.div`
 
   @media (max-width: 640px) {
     width: calc(100% - 32px);
-    
   }
 `;
 

@@ -1,8 +1,6 @@
 package com.kh.app.store.controller;
 
-import com.kh.app.store.dto.request.StoreInsertReqDto;
-import com.kh.app.store.dto.request.StoreUpdateReqDto;
-import com.kh.app.store.dto.request.StoreWishInsertReqDto;
+import com.kh.app.store.dto.request.*;
 import com.kh.app.store.dto.response.*;
 import com.kh.app.store.entity.StoreProductCategory;
 import com.kh.app.store.service.StoreProductService;
@@ -35,8 +33,9 @@ import java.util.List;
 //사용자 : 관심상품 목록 조회
 //사용자 : 관심상품 삭제
 
-//<미완성>
-//최근 본 상품 등록/조회
+//<프론트 처리>
+//사용자 : 최근 본 상품은 localStorage 기반으로 처리
+//백엔드 API 사용하지 않음!!
 
 //<etc>
 // 현재 관리자와 사용자 권한 등 디테일이 안들어가있음 (api손보고 권한 추가해야함)
@@ -215,7 +214,10 @@ public class StoreProductController {
 
     //9. 사용자 : 베스트 상품 4개 목록 조회 (공통홈/ 강아지 홈/ 고양이 홈)
     //파라미터 null은 공통 , D는 강아지, C는 고양이
-    @Operation(summary = "사용자 베스트 상품 조회", description = "판매중인 상품 중 조회수 상위 4개 상품을 조회하는 기능")
+    @Operation(
+            summary = "사용자 베스트 상품 조회",
+            description = "판매중인 상품 중 리뷰 수가 많은 상위 4개 상품을 조회하는 기능"
+    )
     @GetMapping("/best")
     public ResponseEntity<List<StoreProductListResDto>> getBestProductList(
             @RequestParam(name = "targetPetType", required = false) String targetPetType,
@@ -280,5 +282,9 @@ public class StoreProductController {
         return ResponseEntity.noContent()
                 .build();
     }
+
+
+
+
 
 }

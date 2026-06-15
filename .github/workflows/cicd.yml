@@ -1,0 +1,115 @@
+name: App_CICD_Setup
+
+on:
+  push:
+    branches:
+      - main # main 브랜치에 푸시될 때 자동 배포가 동작합니다.
+
+jobs:
+  # ==========================================
+  # [BACKEND] 백엔드 빌드 및 EC2 도커 배포
+  # ==========================================
+  BuildImage-And-PushDockerhub:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+      # 깃허브 Secrets에서 비밀키 파일(application-private.properties)을 읽어와 동적으로 생성합니다.
+      - name: Generate application-private.properties
+        run: |
+          mkdir -p backEnd/app/src/main/resources
+          echo "${{ secrets.APPLICATION_PRIVATE_PROPERTIES }}" > backEnd/app/src/main/resources/application-private.properties
+
+      - name: Setup JRE
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "zulu"
+
+      - name: Build with bootJar
+        run: |
+          cd backEnd/app
+          chmod +x ./gradlew
+          ./gradlew clean bootJar
+
+      - name: Build Docker Image with Dockerfile
+        run: |
+          docker build -t ${{ secrets.DOCKER_HUB_ID }}/petandifor:latest ./
+
+      - name: Login to Dockerhub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_ID }}
+          password: ${{ secrets.DOCKER_HUB_PW }}
+
+      - name: Push Docker Image
+        run: |
+          docker push ${{ secrets.DOCKER_HUB_ID }}/petandifor:latest
+
+  Build-And-Deploy:
+    needs: BuildImage-And-PushDockerhub
+    runs-on: ubuntu-latest
+    steps:
+      - name: executing remote ssh command
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_IP }}
+          key: ${{ secrets.EC2_KEY }}
+          username: ubuntu
+          port: 22
+          script: |
+            sudo docker rm -f petandifor-container || true
+            sudo docker rmi -f ${{ secrets.DOCKER_HUB_ID }}/petandifor:latest || true
+
+            # RDS 커넥션 및 필요한 환경변수들을 주입하여 컨테이너를 가동합니다.
+            sudo docker run -d --name petandifor-container -p 80:80 \
+              -e SPRING_DATASOURCE_URL=jdbc:postgresql://kh-final.cfm8i6sw6238.ap-northeast-2.rds.amazonaws.com:5432/postgres \
+              -e SPRING_DATASOURCE_USERNAME=postgres \
+              -e SPRING_DATASOURCE_PASSWORD=postgreskh \
+              -e SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_REDIRECT_URI=https://www.petandifor.store/member/kakao/callback \
+              -e KAKAOPAY_REDIRECT_BASE_URL=https://www.petandifor.store \
+              -e KAKAOPAY_STORE_REDIRECT_BASE_URL=https://www.petandifor.store \
+              -e KAKAOPAY_STORE_FRONT_REDIRECT_BASE_URL=https://www.petandifor.store \
+              ${{ secrets.DOCKER_HUB_ID }}/petandifor:latest
+
+  # ==========================================
+  # [FRONTEND] 프론트엔드 빌드 및 S3 배포
+  # ==========================================
+  Deploy-Frontend:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 소스 코드 가져오기
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+      # 2. Node.js 환경 구축
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "20"
+
+      # 3. 의존성 패키지 설치 및 리액트 프로덕션 빌드
+      - name: Install Dependencies and Build React
+        run: |
+          cd frontEnd/front
+          npm install
+          npm run build
+
+      # 4. AWS 자격 증명(Credentials) 설정
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      # 5. 빌드 결과물(dist 폴더)을 S3 버킷으로 동기화 업로드
+      - name: Deploy to S3
+        run: |
+          aws s3 sync ./frontEnd/front/dist s3://${{ secrets.AWS_S3_BUCKET_NAME }} --delete
+
+      # 6. 새로고침 시 즉시 반영을 위해 CloudFront 캐시 무효화 실행
+      - name: CloudFront Invalidation
+        run: |
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"

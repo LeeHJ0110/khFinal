@@ -1,12 +1,13 @@
 import styled from "styled-components";
 import usePetStoreWishToggle from "../../features/petStore/hooks/usePetStoreWishToggle";
-import PetStoreUserNav from "./PetStoreUserNav";
+
 import usePetStoreProductList from "../../features/petStore/hooks/usePetStoreProductList";
 import PetStoreRecentAside from "./PetStoreRecentAside";
 import { useNavigate } from "react-router-dom";
 
 import toiletBannerImg from "../../assets/images/petStore/배변목록배너.png";
-
+import PetStoreNavGate from "./PetStoreNavGate";
+import searchIcon from "../../assets/images/icon/녹색돋보기.png";
 const sortOptions = [
   { label: "최신순", value: "latest" },
   { label: "인기순", value: "popular" },
@@ -99,7 +100,7 @@ export default function PetStoreCatToiletProductListPage() {
 
   return (
     <>
-      <PetStoreUserNav />
+      <PetStoreNavGate />
 
       <Wrapper>
         <HeroBanner>
@@ -148,7 +149,7 @@ export default function PetStoreCatToiletProductListPage() {
                   />
 
                   <SearchButton type="button" onClick={handleSearch}>
-                    🔍
+                    <SearchIcon src={searchIcon} alt="검색" />
                   </SearchButton>
                 </SearchBox>
 
@@ -453,11 +454,17 @@ const SearchInput = styled.input`
 `;
 
 const SearchButton = styled.button`
-  border: 0;
-  background-color: transparent;
-  color: var(--color-main);
+  width: 24px;
+  height: 24px;
 
-  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  padding: 0;
+  background-color: transparent;
+
   cursor: pointer;
 
   transition: transform 0.18s ease;
@@ -465,6 +472,12 @@ const SearchButton = styled.button`
   &:hover {
     transform: scale(1.08);
   }
+`;
+const SearchIcon = styled.img`
+  width: 15px;
+  height: 15px;
+  display: block;
+  object-fit: contain;
 `;
 
 const SortSelect = styled.select`

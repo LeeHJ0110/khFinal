@@ -8,6 +8,7 @@ import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.point.service.PointService;
 import com.kh.app.store.dto.request.StoreCartInsertReqDto;
 import com.kh.app.store.dto.request.StoreCartQtyUpdateReqDto;
+import com.kh.app.store.dto.request.StoreDirectPayReadyReqDto;
 import com.kh.app.store.dto.request.StorePayReadyReqDto;
 import com.kh.app.store.dto.response.*;
 import com.kh.app.store.entity.*;
@@ -527,10 +528,12 @@ public class StoreOrderService {
             throw new IllegalStateException("이미 취소된 주문입니다.");
         }
 
-        //배송 상태 기능 붙이기 전까지는 PAID 상태 주문만 취소 가능하게 처리
+        if (!order.isDeliveryReady()) {
+            throw new IllegalStateException("배송준비중 상태의 주문만 취소할 수 있습니다.");
+        }
+
         order.cancel();
 
-        //사용 포인트 환불
         pointService.refundOrderUsedPoint(
                 order.getMember(),
                 order.getOrderUsedPoint(),
@@ -542,5 +545,122 @@ public class StoreOrderService {
                 member.getId(),
                 order.getOrderUsedPoint()
         );
+    }
+
+
+    @Transactional
+    public StorePayReadyResDto payReadyDirect(StoreDirectPayReadyReqDto reqDto, String username) {
+
+        if (isNotLogin(username)) {
+            throw new IllegalStateException("로그인 후 결제를 진행할 수 있습니다.");
+        }
+
+        MemberEntity member = getLoginMember(username);
+
+        if (reqDto.getProductId() == null) {
+            throw new IllegalArgumentException("상품 ID는 필수입니다.");
+        }
+
+        Integer qty = reqDto.getQty();
+
+        if (qty == null || qty < 1) {
+            qty = 1;
+        }
+
+        if (reqDto.getDeliveryAddressId() == null) {
+            throw new IllegalArgumentException("배송지를 선택해주세요.");
+        }
+
+        DeliveryAddressEntity deliveryAddress =
+                deliveryAddressRepository.findByIdAndMember(
+                        reqDto.getDeliveryAddressId(),
+                        member
+                ).orElseThrow(() ->
+                        new IllegalStateException("배송지 정보가 존재하지 않습니다.")
+                );
+
+        StoreProductEntity product = storeProductRepository.findById(reqDto.getProductId())
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 상품입니다."));
+
+        if (!product.isOnSale()) {
+            throw new IllegalStateException("판매중지된 상품은 구매할 수 없습니다.");
+        }
+
+        Long totalProductAmount = product.getProductPrice() * qty;
+        Long deliveryFee = calculateDeliveryFee(totalProductAmount);
+        Long paymentTargetAmount = totalProductAmount + deliveryFee;
+
+        Long usedPoint = validateUsedPoint(
+                reqDto.getUsedPoint(),
+                member,
+                paymentTargetAmount
+        );
+
+        Long finalAmount = paymentTargetAmount - usedPoint;
+
+        String deliveryRequest = reqDto.getDeliveryRequest();
+
+        StoreOrderEntity order = StoreOrderEntity.builder()
+                .member(member)
+                .orderDeliveryFee(deliveryFee)
+                .orderUsedPoint(usedPoint)
+                .orderFinalAmount(finalAmount)
+                .deliveryAddressId(deliveryAddress.getId())
+                .orderReceiverName(deliveryAddress.getReceiverName())
+                .orderReceiverPhone(deliveryAddress.getPhone())
+                .orderZipCode(deliveryAddress.getZipCode())
+                .orderAddress(deliveryAddress.getAddress())
+                .orderAddressDetail(deliveryAddress.getAddressDetail())
+                .orderDeliveryRequest(
+                        deliveryRequest == null || deliveryRequest.isBlank()
+                                ? null
+                                : deliveryRequest
+                )
+                .build();
+
+        storeOrderRepository.save(order);
+
+        StoreOrderItemEntity orderItem = StoreOrderItemEntity.from(
+                order,
+                product,
+                qty
+        );
+
+        storeOrderItemRepository.save(orderItem);
+
+        String partnerOrderId = "STORE_ORDER_" + order.getOrderId();
+        String partnerUserId = "MEMBER_" + member.getId();
+
+        StorePaymentEntity payment = StorePaymentEntity.builder()
+                .order(order)
+                .member(member)
+                .paymentMethod(StorePaymentMethod.KAKAO_PAY)
+                .paymentAmount(finalAmount)
+                .partnerOrderId(partnerOrderId)
+                .partnerUserId(partnerUserId)
+                .build();
+
+        storePaymentRepository.save(payment);
+
+        StoreKakaoPayReadyResDto kakaoReadyRes = storeKakaoPayService.ready(
+                partnerOrderId,
+                partnerUserId,
+                product.getProductName(),
+                qty,
+                finalAmount,
+                order.getOrderId()
+        );
+
+        if (kakaoReadyRes == null || kakaoReadyRes.getTid() == null) {
+            throw new IllegalStateException("카카오페이 결제 준비에 실패했습니다.");
+        }
+
+        payment.ready(kakaoReadyRes.getTid());
+
+        return StorePayReadyResDto.builder()
+                .orderId(order.getOrderId())
+                .partnerOrderId(partnerOrderId)
+                .nextRedirectPcUrl(kakaoReadyRes.getNextRedirectPcUrl())
+                .build();
     }
 }

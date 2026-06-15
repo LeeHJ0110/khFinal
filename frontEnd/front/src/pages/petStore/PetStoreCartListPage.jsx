@@ -2,10 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import api from "../../app/api/axios";
+
 import usePetStoreCartList from "../../features/petStore/hooks/usePetStoreCartList";
 import { insertCartProduct } from "../../features/petStore/api/petStoreOrderApi";
-import PetStoreUserNav from "./PetStoreUserNav";
+import useStorePaymentPoint from "../../features/petStore/hooks/useStorePaymentPoint";
+
 import StorePaymentSummaryCard from "../../features/petStore/components/PetStorePaymentSummaryCard";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 export default function PetStoreCartListPage() {
   const navigate = useNavigate();
@@ -21,9 +24,23 @@ export default function PetStoreCartListPage() {
   const cartItemList = useMemo(() => {
     return cart?.cartItemList ?? [];
   }, [cart]);
+
   const totalProductAmount = cart?.totalProductAmount ?? 0;
   const orderDeliveryFee = cart?.orderDeliveryFee ?? 0;
-  const finalOrderAmount = cart?.finalOrderAmount ?? 0;
+
+  const {
+    currentPoint,
+    usedPoint,
+    finalOrderAmount,
+    loadMyPoint,
+    handleChangeUsedPoint,
+    handleBlurUsedPoint,
+    handleUseAllPoint,
+    validateUsedPointUnit,
+  } = useStorePaymentPoint({
+    totalProductAmount,
+    orderDeliveryFee,
+  });
 
   const [selectedCartItemIds, setSelectedCartItemIds] = useState([]);
   const [recommendProductList, setRecommendProductList] = useState([]);
@@ -182,7 +199,17 @@ export default function PetStoreCartListPage() {
       return;
     }
 
-    navigate("/store/order");
+    if (!validateUsedPointUnit()) {
+      return;
+    }
+
+    sessionStorage.setItem("storeCheckoutUsedPoint", String(usedPoint));
+
+    navigate("/store/order", {
+      state: {
+        usedPoint,
+      },
+    });
   }
 
   function handleGoProductDetail(productId) {
@@ -234,6 +261,7 @@ export default function PetStoreCartListPage() {
   useEffect(() => {
     function handlePageShow() {
       loadCartList();
+      loadMyPoint();
     }
 
     window.addEventListener("pageshow", handlePageShow);
@@ -246,7 +274,7 @@ export default function PetStoreCartListPage() {
   if (isLoading && !cart) {
     return (
       <Wrapper>
-        <PetStoreUserNav />
+        <PetStoreNavGate />
 
         <Inner>
           <PageTitle>장바구니</PageTitle>
@@ -258,7 +286,7 @@ export default function PetStoreCartListPage() {
 
   return (
     <Wrapper>
-      <PetStoreUserNav />
+      <PetStoreNavGate />
 
       <Inner>
         <PageTitle>장바구니</PageTitle>
@@ -432,8 +460,6 @@ export default function PetStoreCartListPage() {
                           </RecommendPrice>
 
                           <RecommendActions>
-                            <WishButton type="button">♡</WishButton>
-
                             <RecommendCartButton
                               type="button"
                               onClick={(event) =>
@@ -462,6 +488,12 @@ export default function PetStoreCartListPage() {
               totalProductAmount={totalProductAmount}
               orderDeliveryFee={orderDeliveryFee}
               finalOrderAmount={finalOrderAmount}
+              pointEnabled
+              currentPoint={currentPoint}
+              usedPoint={usedPoint}
+              onChangeUsedPoint={handleChangeUsedPoint}
+              onBlurUsedPoint={handleBlurUsedPoint}
+              onUseAllPoint={handleUseAllPoint}
               primaryButtonText="주문하기"
               secondaryButtonText="쇼핑 계속하기"
               onPrimaryClick={handleGoOrderPage}
@@ -947,27 +979,7 @@ const RecommendPrice = styled.div`
 
 const RecommendActions = styled.div`
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr);
-  gap: 12px;
-`;
-
-const WishButton = styled.button`
-  width: 42px;
-  height: 38px;
-
-  border: 1px solid #d8d8d8;
-  border-radius: 4px;
-  background-color: #ffffff;
-
-  color: #444444;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-
-  &:hover {
-    border-color: #05a77b;
-    color: #05a77b;
-  }
+  grid-template-columns: 1fr;
 `;
 
 const RecommendCartButton = styled.button`

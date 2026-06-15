@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import ScheduleMain from "../../features/schedule/components/ScheduleMain";
+import ScheduleMain from "../../features/schedule/components/scheduleMain";
 import TrainingDiaryModal from "../../features/schedule/components/TrainingDiaryModal";
 import useTraining from "../../features/schedule/hooks/useTraining";
 import { useEffect, useState } from "react";
@@ -8,8 +8,7 @@ import useFormData from "../../shared/hooks/useFormData";
 import ScheduleCard from "../../features/schedule/components/ScheduleCard";
 import TodaySchedule from "../../features/schedule/components/TodaySchedule";
 import PetCareNav from "../../features/petcare/components/petcarehome/PetCareNav";
-
-export default function ScheduleMainPage() {
+export default function scheduleMainPage() {
   const trainingInit = {
     id: "",
     content: "",

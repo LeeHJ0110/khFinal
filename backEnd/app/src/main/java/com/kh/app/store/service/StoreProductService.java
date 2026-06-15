@@ -43,6 +43,8 @@ public class StoreProductService {
     private final MemberRepository memberRepository;
     private final PetRepository petRepository;
     private final StoreWishRepository storeWishRepository;
+    private final StoreReviewRepository storeReviewRepository;
+
 
     private final S3Service s3Service;
 
@@ -157,8 +159,10 @@ public class StoreProductService {
 
         if (targetPetType == null || targetPetType.isBlank()) {
             productList =
-                    storeProductRepository.findTop4ByProductSaleYnOrderByProductViewCountDescProductIdDesc(
-                            "Y"
+                    storeProductRepository.findBestProductsByReviewCount(
+                            "Y",
+                            DelYn.N,
+                            PageRequest.of(0, 4)
                     );
         } else {
             String petType = targetPetType.trim().toUpperCase();
@@ -168,9 +172,11 @@ public class StoreProductService {
             }
 
             productList =
-                    storeProductRepository.findTop4ByProductSaleYnAndProductTargetPetTypeOrderByProductViewCountDescProductIdDesc(
+                    storeProductRepository.findBestProductsByReviewCountAndTargetPetType(
                             "Y",
-                            petType
+                            petType,
+                            DelYn.N,
+                            PageRequest.of(0, 4)
                     );
         }
 
@@ -222,11 +228,25 @@ public class StoreProductService {
             }
         }
 
+        Double averageRating =
+                storeReviewRepository.getAverageRatingByProductIdAndDelYn(
+                        product.getProductId(),
+                        DelYn.N
+                );
+
+        Long reviewCount =
+                storeReviewRepository.countByProduct_ProductIdAndDelYn(
+                        product.getProductId(),
+                        DelYn.N
+                );
+
         return StoreProductListResDto.from(
                 product,
                 mainImageUrl,
                 wished,
-                wishlistId
+                wishlistId,
+                averageRating,
+                reviewCount
         );
     }
 
@@ -1053,4 +1073,7 @@ public class StoreProductService {
         result.setWished(true);
         result.setWishlistId(wish.getWishlistId());
     }
-}
+
+
+
+    }

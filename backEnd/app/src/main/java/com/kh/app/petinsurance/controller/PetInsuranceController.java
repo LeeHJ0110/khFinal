@@ -11,9 +11,11 @@ import com.kh.app.petinsurance.service.PetInsuranceService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -40,8 +42,16 @@ import java.util.List;
 @Slf4j
 public class PetInsuranceController {
 
-    private static final String FRONT_BASE_URL =
-            "http://localhost:5173";
+    /*
+     * 로컬에서는 별도 설정이 없으면
+     * http://localhost:5173 사용
+     *
+     * AWS 배포 환경에서는
+     * FRONTEND_BASE_URL 환경변수로
+     * https://www.petandifor.store 주입
+     */
+    @Value("${frontend.base-url:http://localhost:5173}")
+    private String frontendBaseUrl;
 
     private final PetInsuranceService petInsuranceService;
 
@@ -89,8 +99,11 @@ public class PetInsuranceController {
 
     // =========================================================
     // 보험 가입 신청
-    // JSON 데이터와 진료확인서 파일을 multipart/form-data로 받음
-    // 생성된 applicationId를 반환함
+    //
+    // JSON 데이터와 진료확인서 파일을
+    // multipart/form-data로 받음
+    //
+    // 생성된 applicationId 반환
     // =========================================================
     @PostMapping(
             value = "/application",
@@ -99,8 +112,10 @@ public class PetInsuranceController {
     public ResponseEntity<PetInsuranceApplicationResDto>
     applyInsurance(
             @RequestPart("data") String data,
+
             @RequestPart("medicalCertificate")
             MultipartFile medicalCertificate,
+
             @AuthenticationPrincipal String username
     ) throws IOException {
 
@@ -118,11 +133,14 @@ public class PetInsuranceController {
 
     // =========================================================
     // 보험 신청 취소 또는 가입 완료 보험 해지
-    // SID가 존재하면 카카오페이 정기결제도 비활성화
+    //
+    // SID가 존재하면
+    // 카카오페이 정기결제도 비활성화
     // =========================================================
     @PatchMapping("/application/{applicationId}/cancel")
     public ResponseEntity<Void> cancelInsurance(
             @PathVariable Long applicationId,
+
             @AuthenticationPrincipal String username
     ) {
 
@@ -131,22 +149,54 @@ public class PetInsuranceController {
                 username
         );
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity
+                .ok()
+                .build();
     }
 
     // =========================================================
     // 관리자 보험 가입 승인
+    //
     // 승인 시 최초 월 보험료 결제
+    // 승인 완료 후 회원에게 자동 쪽지 발송
     // =========================================================
     @PatchMapping("/application/{applicationId}/approve")
     public ResponseEntity<Void> approveApplication(
-            @PathVariable Long applicationId
+            @PathVariable Long applicationId,
+
+            Authentication authentication
     ) {
 
-        petInsuranceService
-                .approveApplication(applicationId);
+        petInsuranceService.approveApplication(
+                applicationId,
+                authentication.getName()
+        );
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity
+                .ok()
+                .build();
+    }
+
+    // =========================================================
+    // 관리자 보험 가입 반려
+    //
+    // 반려 처리 후 회원에게 자동 쪽지 발송
+    // =========================================================
+    @PatchMapping("/application/{applicationId}/reject")
+    public ResponseEntity<Void> rejectApplication(
+            @PathVariable Long applicationId,
+
+            Authentication authentication
+    ) {
+
+        petInsuranceService.rejectApplication(
+                applicationId,
+                authentication.getName()
+        );
+
+        return ResponseEntity
+                .ok()
+                .build();
     }
 
     // =========================================================
@@ -156,6 +206,7 @@ public class PetInsuranceController {
     public ResponseEntity<KakaoPayReadyRespDto>
     readySubscriptionPayment(
             @PathVariable Long applicationId,
+
             @AuthenticationPrincipal String username
     ) {
 
@@ -166,7 +217,9 @@ public class PetInsuranceController {
                                 username
                         );
 
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(
+                result
+        );
     }
 
     // =========================================================
@@ -180,7 +233,9 @@ public class PetInsuranceController {
     @GetMapping("/payment/success")
     public ResponseEntity<Void> paymentSuccess(
             @RequestParam Long applicationId,
-            @RequestParam("pg_token") String pgToken
+
+            @RequestParam("pg_token")
+            String pgToken
     ) {
 
         petInsuranceService
@@ -189,12 +244,22 @@ public class PetInsuranceController {
                         pgToken
                 );
 
+        String redirectUrl =
+                buildFrontendUrl(
+                        "/healthcare/petinsurance/payment/success"
+                );
+
+        log.info(
+                "카카오페이 결제수단 등록 완료 후 프론트 이동 - applicationId={}, redirectUrl={}",
+                applicationId,
+                redirectUrl
+        );
+
         return ResponseEntity
                 .status(HttpStatus.FOUND)
                 .location(
                         URI.create(
-                                FRONT_BASE_URL
-                                        + "/healthcare/petinsurance/payment/success"
+                                redirectUrl
                         )
                 )
                 .build();
@@ -202,7 +267,9 @@ public class PetInsuranceController {
 
     // =========================================================
     // 사용자가 카카오페이 결제창에서 취소
-    // 아직 별도 프론트 페이지가 없으므로 문자열 응답
+    //
+    // 별도 프론트 페이지를 만들기 전까지
+    // 문자열 응답 유지
     // =========================================================
     @GetMapping("/payment/cancel")
     public ResponseEntity<String> paymentCancel() {
@@ -214,7 +281,9 @@ public class PetInsuranceController {
 
     // =========================================================
     // 카카오페이 결제수단 등록 실패
-    // 아직 별도 프론트 페이지가 없으므로 문자열 응답
+    //
+    // 별도 프론트 페이지를 만들기 전까지
+    // 문자열 응답 유지
     // =========================================================
     @GetMapping("/payment/fail")
     public ResponseEntity<String> paymentFail() {
@@ -226,6 +295,7 @@ public class PetInsuranceController {
 
     // =========================================================
     // 관리자용 보험 가입 신청 목록 조회
+    //
     // 카드 등록을 완료한 대기 상태 신청만 조회
     // =========================================================
     @GetMapping("/admin/applications")
@@ -251,5 +321,23 @@ public class PetInsuranceController {
                 petInsuranceService
                         .getMyPaymentHistory(username)
         );
+    }
+
+    // =========================================================
+    // 프론트 주소 생성
+    //
+    // 설정값 마지막에 /가 있어도
+    // 주소가 // 형태로 만들어지지 않도록 제거
+    // =========================================================
+    private String buildFrontendUrl(
+            String path
+    ) {
+
+        String baseUrl =
+                frontendBaseUrl
+                        .trim()
+                        .replaceAll("/+$", "");
+
+        return baseUrl + path;
     }
 }

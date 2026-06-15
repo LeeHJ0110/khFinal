@@ -3,110 +3,136 @@ import { useNavigate } from "react-router-dom";
 import { createPortal } from "react-dom";
 import styled from "styled-components";
 
+import useInsuranceProduct from "../../features/petInsurance/hooks/useInsuranceProduct";
+
 import {
-  calculateInsurancePrice,
-  cancelInsuranceApplication,
-  fetchInsuranceProductList,
-  fetchMyPetListForInsurance,
-  readySubscriptionPayment,
-  requestInsurance,
-} from "../../features/petInsurance/api/petInsuranceApi";
+  calculateAgeFromBirthDate,
+  formatPrice,
+  getPetInsuranceStatus,
+  getProductPriceInfo,
+  getStatusBackground,
+  getStatusColor,
+} from "../../features/petInsurance/hooks/petInsuranceUtils";
 
 function InsuranceProductSection() {
   const navigate = useNavigate();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    return Boolean(localStorage.getItem("accessToken"));
-  });
-
-  const [productList, setProductList] = useState([]);
-  const [petList, setPetList] = useState([]);
-
-  const [selectedPetId, setSelectedPetId] = useState("");
-
-  const [selectedProduct, setSelectedProduct] = useState(null);
-
-  const [calculatedPriceMap, setCalculatedPriceMap] = useState({});
-
-  const [medicalCertificate, setMedicalCertificate] = useState(null);
-
+  // =========================================================
+  // 화면 전용 상태
+  // =========================================================
   const [isPetMenuOpen, setIsPetMenuOpen] = useState(false);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const [isLoading, setIsLoading] = useState(false);
-
-  const [isCancelling, setIsCancelling] = useState(false);
-
-  const [isPriceLoading, setIsPriceLoading] = useState(false);
-
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const [priceErrorMessage, setPriceErrorMessage] = useState("");
-
   // =========================================================
-  // 현재 선택한 반려동물
+  // 펫보험 데이터 및 기능
   // =========================================================
-  const selectedPet = useMemo(() => {
-    return petList.find((pet) => String(pet.petId) === String(selectedPetId));
-  }, [petList, selectedPetId]);
+  const {
+    isLoggedIn,
 
-  // =========================================================
-  // 저장된 생년월일 기준 현재 만 나이
-  // =========================================================
-  const selectedPetAge = useMemo(() => {
-    return calculateAgeFromBirthDate(selectedPet?.birthDate);
-  }, [selectedPet]);
+    productList,
+    petList,
 
-  // =========================================================
-  // 만 10세 이상 또는 생년월일 누락 여부
-  // =========================================================
-  const isAgeRestricted = selectedPetAge !== null && selectedPetAge >= 10;
+    selectedPetId,
+    setSelectedPetId,
 
-  const isBirthDateMissing = Boolean(selectedPet) && selectedPetAge === null;
+    selectedPet,
+    selectedPetAge,
+    selectedPetStatus,
 
-  // =========================================================
-  // 현재 선택한 반려동물의 보험 상태
-  // =========================================================
-  const selectedPetStatus = useMemo(() => {
-    return getPetInsuranceStatus(selectedPet);
-  }, [selectedPet]);
+    selectedProduct,
+    setSelectedProduct,
 
-  // =========================================================
-  // 화면에 보여줄 상품 목록
-  //
-  // 가입 여부와 관계없이 전체 상품 표시
-  // 신청 중 또는 가입 완료 상태에서는 가입 신청 버튼과 체크박스를 숨김
-  // 실제 가입 상품에는 상태 배지만 표시
-  // =========================================================
-  const visibleProductList = productList;
+    calculatedPriceMap,
+
+    medicalCertificate,
+    setMedicalCertificate,
+
+    isAgeRestricted,
+    isBirthDateMissing,
+
+    isLoading,
+    isCancelling,
+    isPriceLoading,
+
+    errorMessage,
+    setErrorMessage,
+
+    priceErrorMessage,
+
+    handleApplyInsurance,
+    handleCancelInsurance,
+  } = useInsuranceProduct();
 
   // =========================================================
-  // 현재 선택 상품의 최종 표시 가격
+  // 현재 화면에서 상세 내용을 보여 줄 상품
+  // =========================================================
+  const currentProduct = useMemo(() => {
+    if (selectedProduct) {
+      return selectedProduct;
+    }
+
+    return productList[0] || null;
+  }, [selectedProduct, productList]);
+
+  // =========================================================
+  // 현재 상세 보기 중인 상품의 가격
   // =========================================================
   const selectedPriceInfo = useMemo(() => {
-    if (!selectedProduct) {
+    if (!currentProduct) {
       return null;
     }
 
     return getProductPriceInfo({
-      product: selectedProduct,
+      product: currentProduct,
       selectedPet,
       selectedPetAge,
       calculatedPriceMap,
     });
-  }, [selectedProduct, selectedPet, selectedPetAge, calculatedPriceMap]);
+  }, [currentProduct, selectedPet, selectedPetAge, calculatedPriceMap]);
 
   // =========================================================
-  // 로그인한 경우에만 초기 데이터 조회
+  // 상품 설명을 화면에서 읽기 쉽게 문장 단위로 분리
   // =========================================================
-  useEffect(() => {
-    if (!isLoggedIn) {
-      return;
+  const productBenefitList = useMemo(() => {
+    if (!currentProduct?.productContent) {
+      return [];
     }
 
-    loadInitialData();
-  }, [isLoggedIn]);
+    return currentProduct.productContent
+      .split(".")
+      .map((text) => text.trim())
+      .filter(Boolean)
+      .slice(0, 4);
+  }, [currentProduct]);
+
+  // =========================================================
+  // 실제 신청·가입 상품과 현재 상세 보기 상품을 구분
+  // =========================================================
+  const hasInsuranceApplication = Boolean(selectedPet?.applicationId);
+
+  const appliedProductId = selectedPet?.insuranceProductId;
+
+  const isViewingAppliedProduct = Boolean(
+    appliedProductId &&
+    currentProduct &&
+    String(appliedProductId) === String(currentProduct.productId),
+  );
+
+  const summaryProductName = hasInsuranceApplication
+    ? selectedPet?.insuranceProductName || "-"
+    : currentProduct?.productName || "-";
+
+  const summaryMonthlyPrice = hasInsuranceApplication
+    ? selectedPet?.insuranceProductMonthly
+    : selectedPriceInfo?.monthlyPrice;
+
+  const currentProductTone = useMemo(() => {
+    const index = productList.findIndex(
+      (product) => product.productId === currentProduct?.productId,
+    );
+
+    return index >= 0 ? index % 3 : 0;
+  }, [productList, currentProduct]);
 
   // =========================================================
   // 모달이 열린 동안 배경 스크롤 차단
@@ -126,189 +152,12 @@ function InsuranceProductSection() {
   }, [isModalOpen]);
 
   // =========================================================
-  // 펫 변경 시 상품 선택 동기화
+  // 상품 상세 보기
   //
-  // 신청 중 또는 가입 완료: 실제 신청 상품으로 고정
-  // 미가입: 첫 번째 상품을 기본 선택
+  // 가입 또는 신청 완료 상태여도 다른 상품은 자유롭게 비교 가능
   // =========================================================
-  useEffect(() => {
-    if (!selectedPet) {
-      setSelectedProduct(null);
-      return;
-    }
-
-    if (isAgeRestricted) {
-      setSelectedProduct(null);
-      return;
-    }
-
-    if (selectedPet.insuranceProductId) {
-      const appliedProduct = productList.find(
-        (product) =>
-          String(product.productId) === String(selectedPet.insuranceProductId),
-      );
-
-      setSelectedProduct(appliedProduct || null);
-
-      return;
-    }
-
-    setSelectedProduct(productList[0] || null);
-  }, [selectedPet, productList, isAgeRestricted]);
-
-  // =========================================================
-  // 펫 변경 시 전체 상품 월 보험료 자동 계산
-  //
-  // 신청 또는 가입 내역이 있으면 DB에 저장된 확정 금액을 사용
-  // =========================================================
-  useEffect(() => {
-    let isCancelled = false;
-
-    async function loadCalculatedPriceMap() {
-      setCalculatedPriceMap({});
-      setPriceErrorMessage("");
-
-      if (!selectedPet) {
-        return;
-      }
-
-      if (selectedPet.applicationId) {
-        return;
-      }
-
-      if (!selectedPet.birthDate) {
-        setPriceErrorMessage(
-          "반려동물의 생년월일 정보가 없어 보험료를 계산할 수 없습니다.",
-        );
-
-        return;
-      }
-
-      if (selectedPetAge === null) {
-        setPriceErrorMessage("반려동물의 생년월일 형식을 확인해 주세요.");
-
-        return;
-      }
-
-      if (selectedPetAge >= 10) {
-        return;
-      }
-
-      if (productList.length === 0) {
-        return;
-      }
-
-      try {
-        setIsPriceLoading(true);
-
-        const resultList = await Promise.all(
-          productList.map(async (product) => {
-            const response = await calculateInsurancePrice({
-              productId: product.productId,
-
-              birthDate: selectedPet.birthDate,
-            });
-
-            return [String(product.productId), response.data];
-          }),
-        );
-
-        if (isCancelled) {
-          return;
-        }
-
-        setCalculatedPriceMap(Object.fromEntries(resultList));
-      } catch (error) {
-        console.error("보험료 자동 계산 실패:", error);
-
-        if (isCancelled) {
-          return;
-        }
-
-        setCalculatedPriceMap({});
-
-        setPriceErrorMessage(
-          getErrorMessage(
-            error,
-            "반려동물 나이 기준 보험료를 계산하지 못했습니다.",
-          ),
-        );
-      } finally {
-        if (!isCancelled) {
-          setIsPriceLoading(false);
-        }
-      }
-    }
-
-    loadCalculatedPriceMap();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [selectedPet, selectedPetAge, productList]);
-
-  // =========================================================
-  // 상품 목록 + 내 반려동물 목록 조회
-  // =========================================================
-  async function loadInitialData() {
-    try {
-      setErrorMessage("");
-
-      const [productResponse, petResponse] = await Promise.all([
-        fetchInsuranceProductList(),
-
-        fetchMyPetListForInsurance(),
-      ]);
-
-      const productData = productResponse.data;
-
-      const petData = petResponse.data;
-
-      if (!Array.isArray(productData)) {
-        throw new Error("보험 상품 목록 응답 형식이 올바르지 않습니다.");
-      }
-
-      if (!Array.isArray(petData)) {
-        throw new Error("반려동물 목록 응답 형식이 올바르지 않습니다.");
-      }
-
-      setProductList(productData);
-      setPetList(petData);
-
-      if (petData.length > 0) {
-        setSelectedPetId((currentPetId) => {
-          const exists = petData.some(
-            (pet) => String(pet.petId) === String(currentPetId),
-          );
-
-          return exists ? String(currentPetId) : String(petData[0].petId);
-        });
-      } else {
-        setSelectedPetId("");
-      }
-    } catch (error) {
-      console.error("펫 보험 초기 데이터 조회 실패:", error);
-
-      const status = error.response?.status;
-
-      if (status === 401 || status === 403) {
-        localStorage.removeItem("accessToken");
-        setIsLoggedIn(false);
-
-        return;
-      }
-
-      setErrorMessage(
-        getErrorMessage(error, "보험 정보를 불러오지 못했습니다."),
-      );
-    }
-  }
-
-  // =========================================================
-  // 가입 내역이 없는 경우에만 상품 선택 허용
-  // =========================================================
-  function handleSelectProduct(product) {
-    if (!selectedPetStatus.canApply || isAgeRestricted) {
+  function handleViewProduct(product) {
+    if (!product) {
       return;
     }
 
@@ -317,16 +166,13 @@ function InsuranceProductSection() {
   }
 
   // =========================================================
-  // 가입 신청 모달 열기
+  // 신규 가입 신청 모달 열기
   // =========================================================
-  function handleOpenApplyModal(event, product) {
-    event.stopPropagation();
-
+  function handleOpenApplyModal() {
     setErrorMessage("");
 
     if (!selectedPetId) {
       setErrorMessage("가입할 반려동물을 먼저 선택해 주세요.");
-
       return;
     }
 
@@ -338,17 +184,20 @@ function InsuranceProductSection() {
       setErrorMessage(
         "반려동물의 생년월일 정보가 없어 보험을 신청할 수 없습니다.",
       );
-
       return;
     }
 
     if (isAgeRestricted) {
       setErrorMessage("만 10세 이상인 반려동물은 보험에 가입할 수 없습니다.");
-
       return;
     }
 
-    setSelectedProduct(product);
+    if (!currentProduct) {
+      setErrorMessage("보험 상품을 선택해 주세요.");
+      return;
+    }
+
+    setSelectedProduct(currentProduct);
     setMedicalCertificate(null);
     setIsModalOpen(true);
   }
@@ -367,129 +216,90 @@ function InsuranceProductSection() {
   }
 
   // =========================================================
-  // 가입 신청 후 카카오페이 카드 등록 화면으로 이동
+  // 상태에 따른 액션 버튼
+  //
+  // 가입 가능                  → 가입 신청
+  // 결제수단 미등록            → 결제수단 등록하기
+  // 신청 중                    → 신청 취소
+  // 가입 완료                  → 보험 해지
+  // 다른 상품 상세 보기 중     → 비교 중 안내
   // =========================================================
-  async function handleApplyInsurance() {
-    setErrorMessage("");
-
-    if (!selectedPetId) {
-      setErrorMessage("가입할 반려동물을 선택해 주세요.");
-
-      return;
-    }
-
-    if (!selectedProduct) {
-      setErrorMessage("보험 상품을 선택해 주세요.");
-
-      return;
-    }
-
-    if (isBirthDateMissing) {
-      setErrorMessage(
-        "반려동물의 생년월일 정보가 없어 보험을 신청할 수 없습니다.",
-      );
-
-      return;
+  function renderActionButton() {
+    if (!selectedPet) {
+      return <DisabledActionBadge>펫을 먼저 선택해 주세요</DisabledActionBadge>;
     }
 
     if (isAgeRestricted) {
-      setErrorMessage("만 10세 이상인 반려동물은 보험에 가입할 수 없습니다.");
-
-      return;
+      return <DisabledActionBadge>만 10세 이상 가입 불가</DisabledActionBadge>;
     }
 
-    if (!medicalCertificate) {
-      setErrorMessage("진료확인서를 첨부해 주세요.");
-
-      return;
+    if (isBirthDateMissing) {
+      return <DisabledActionBadge>생년월일 확인 필요</DisabledActionBadge>;
     }
 
-    try {
-      setIsLoading(true);
-
-      const applicationResponse = await requestInsurance({
-        petId: Number(selectedPetId),
-
-        productId: selectedProduct.productId,
-
-        medicalCertificate,
-      });
-
-      const applicationId = applicationResponse.data?.applicationId;
-
-      if (!applicationId) {
-        throw new Error("보험 가입 신청 번호를 확인할 수 없습니다.");
-      }
-
-      const paymentReadyResponse =
-        await readySubscriptionPayment(applicationId);
-
-      const paymentReadyData = paymentReadyResponse.data;
-
-      const redirectUrl =
-        paymentReadyData?.nextRedirectPcUrl ||
-        paymentReadyData?.next_redirect_pc_url;
-
-      if (!redirectUrl) {
-        throw new Error("카카오페이 카드 등록 화면 주소를 확인할 수 없습니다.");
-      }
-
-      window.location.href = redirectUrl;
-    } catch (error) {
-      console.error("보험 가입 신청 실패:", error);
-
-      setErrorMessage(getErrorMessage(error, "보험 가입 신청에 실패했습니다."));
-    } finally {
-      setIsLoading(false);
+    if (hasInsuranceApplication && !isViewingAppliedProduct) {
+      return (
+        <CompareOnlyBadge>가입 중인 상품과 비교 중입니다</CompareOnlyBadge>
+      );
     }
+
+    if (selectedPetStatus.status === "PAYMENT_REQUIRED") {
+      return (
+        <PrimaryActionButton
+          type="button"
+          onClick={handleApplyInsurance}
+          disabled={isLoading}
+        >
+          {isLoading ? "이동 중..." : "결제수단 등록하기"}
+        </PrimaryActionButton>
+      );
+    }
+
+    if (selectedPetStatus.canApply) {
+      return (
+        <PrimaryActionButton
+          type="button"
+          onClick={handleOpenApplyModal}
+          disabled={isPriceLoading}
+        >
+          가입 신청
+        </PrimaryActionButton>
+      );
+    }
+
+    if (
+      selectedPet.approveStatus === "WAITING" ||
+      selectedPet.approveStatus === "REQUESTED"
+    ) {
+      return (
+        <SecondaryActionButton
+          type="button"
+          onClick={handleCancelInsurance}
+          disabled={isCancelling}
+        >
+          {isCancelling ? "처리 중..." : "신청 취소"}
+        </SecondaryActionButton>
+      );
+    }
+
+    if (selectedPet.approveStatus === "APPROVED") {
+      return (
+        <SecondaryActionButton
+          type="button"
+          onClick={handleCancelInsurance}
+          disabled={isCancelling}
+        >
+          {isCancelling ? "처리 중..." : "보험 해지"}
+        </SecondaryActionButton>
+      );
+    }
+
+    return null;
   }
 
   // =========================================================
-  // 보험 신청 취소 또는 가입 완료 보험 해지
+  // 로그인하지 않은 경우
   // =========================================================
-  async function handleCancelInsurance() {
-    if (!selectedPet?.applicationId) {
-      setErrorMessage("취소할 보험 신청 정보를 찾을 수 없습니다.");
-
-      return;
-    }
-
-    const isApproved = selectedPet.approveStatus === "APPROVED";
-
-    const confirmMessage = isApproved
-      ? `${selectedPet.petName}의 보험을 해지하시겠습니까?\n\n해지 후에도 현재 결제 기간이 끝날 때까지 보험 혜택은 유지됩니다.\n다음 결제일부터 자동 결제가 중단됩니다.`
-      : `${selectedPet.petName}의 보험 가입 신청을 취소하시겠습니까?`;
-
-    const isConfirmed = window.confirm(confirmMessage);
-
-    if (!isConfirmed) {
-      return;
-    }
-
-    try {
-      setIsCancelling(true);
-      setErrorMessage("");
-
-      await cancelInsuranceApplication(selectedPet.applicationId);
-
-      window.alert(
-        isApproved
-          ? "보험 해지가 신청되었습니다.\n현재 결제 기간이 끝날 때까지 보험 혜택은 유지됩니다."
-          : "보험 가입 신청이 취소되었습니다.",
-      );
-
-      await loadInitialData();
-    } catch (error) {
-      console.error("보험 신청 취소 또는 해지 실패:", error);
-
-      setErrorMessage(
-        getErrorMessage(error, "보험 신청 취소 또는 해지 처리에 실패했습니다."),
-      );
-    } finally {
-      setIsCancelling(false);
-    }
-  }
-
   if (!isLoggedIn) {
     return (
       <ProductSection>
@@ -531,298 +341,314 @@ function InsuranceProductSection() {
         </SectionDescription>
       </SectionHeader>
 
-      <ProductToolbar>
-        <ToolbarGuide>
-          <GuideDot />
+      <MainLayout>
+        {/* =====================================================
+            상단 펫 정보 요약
+        ===================================================== */}
+        <PetSummaryCard>
+          <PetSummaryContent>
+            <SummaryLabelRow>
+              <SummaryMiniLabel>가입 대상</SummaryMiniLabel>
 
-          <span>가입할 반려동물을 선택한 뒤 원하는 상품을 확인해 주세요.</span>
-        </ToolbarGuide>
-
-        <PetMenuWrapper>
-          <PetMenuButton
-            type="button"
-            onClick={() => setIsPetMenuOpen((previous) => !previous)}
-          >
-            <span>펫 선택하기</span>
-
-            <MenuArrow $isOpen={isPetMenuOpen}>⌄</MenuArrow>
-          </PetMenuButton>
-
-          {isPetMenuOpen && (
-            <PetDropdown>
-              {petList.length === 0 ? (
-                <EmptyPetMessage>등록된 반려동물이 없습니다.</EmptyPetMessage>
-              ) : (
-                petList.map((pet) => {
-                  const petStatus = getPetInsuranceStatus(pet);
-
-                  const petAge = calculateAgeFromBirthDate(pet.birthDate);
-
-                  const isPetAgeRestricted = petAge !== null && petAge >= 10;
-
-                  const displayPetStatus = isPetAgeRestricted
-                    ? {
-                        status: "RESTRICTED",
-                        label: "가입 불가",
-                      }
-                    : petStatus;
-
-                  const isSelected =
-                    String(pet.petId) === String(selectedPetId);
-
-                  return (
-                    <PetOptionButton
-                      key={pet.petId}
-                      type="button"
-                      $isSelected={isSelected}
-                      onClick={() => {
-                        setSelectedPetId(String(pet.petId));
-
-                        setErrorMessage("");
-
-                        setIsPetMenuOpen(false);
-                      }}
-                    >
-                      <PetOptionTop>
-                        <PetName>{pet.petName}</PetName>
-
-                        {isSelected && <SelectedPetDot />}
-                      </PetOptionTop>
-
-                      <PetOptionBottom>
-                        <PetAgeText>
-                          {petAge === null
-                            ? "생년월일 확인 필요"
-                            : `만 ${petAge}세`}
-                        </PetAgeText>
-
-                        <PetStatusText $status={displayPetStatus.status}>
-                          {displayPetStatus.label}
-                        </PetStatusText>
-                      </PetOptionBottom>
-                    </PetOptionButton>
-                  );
-                })
-              )}
-            </PetDropdown>
-          )}
-        </PetMenuWrapper>
-      </ProductToolbar>
-
-      {selectedPet && (
-        <SelectedSummary>
-          <SummaryInfoGroup>
-            <SummaryItem>
-              <SummaryLabel>반려동물</SummaryLabel>
-
-              <SummaryText>{selectedPet.petName}</SummaryText>
-            </SummaryItem>
-
-            <SummaryDivider />
-
-            <SummaryItem>
-              <SummaryLabel>나이</SummaryLabel>
-
-              <SummaryText>
-                {selectedPetAge === null
-                  ? "생년월일 확인 필요"
-                  : `만 ${selectedPetAge}세`}
-              </SummaryText>
-            </SummaryItem>
-
-            <SummaryDivider />
-
-            <SummaryItem>
-              <SummaryLabel>보험 상태</SummaryLabel>
-
-              <SummaryStatus
+              <SummaryStatusBadge
                 $status={
                   isAgeRestricted ? "RESTRICTED" : selectedPetStatus.status
                 }
               >
                 {isAgeRestricted
-                  ? "만 10세 이상 가입 불가"
-                  : selectedPetStatus.label}
-              </SummaryStatus>
-            </SummaryItem>
+                  ? "가입 불가"
+                  : selectedPet
+                    ? selectedPetStatus.label
+                    : "펫 선택 필요"}
+              </SummaryStatusBadge>
+            </SummaryLabelRow>
 
-            <SummaryDivider />
+            <SummaryPetRow>
+              <SummaryPetName>
+                {selectedPet ? selectedPet.petName : "반려동물을 선택해 주세요"}
+              </SummaryPetName>
 
-            <SummaryItem>
-              <SummaryLabel>선택 상품</SummaryLabel>
+              {selectedPet && (
+                <SummaryPetAge>
+                  {selectedPetAge === null
+                    ? "생년월일 확인 필요"
+                    : `만 ${selectedPetAge}세`}
+                </SummaryPetAge>
+              )}
+            </SummaryPetRow>
 
-              <SummaryText>
-                {isAgeRestricted
-                  ? "선택 불가"
-                  : selectedProduct?.productName || "상품을 선택해 주세요"}
-              </SummaryText>
-            </SummaryItem>
+            <SummaryInfoRow>
+              <SummaryInfoItem>
+                <SummaryInfoLabel>
+                  {hasInsuranceApplication ? "현재 가입 상품" : "선택 상품"}
+                </SummaryInfoLabel>
 
-            {!isAgeRestricted && (
-              <>
-                <SummaryDivider />
+                <SummaryInfoValue>{summaryProductName}</SummaryInfoValue>
+              </SummaryInfoItem>
 
-                <SummaryItem>
-                  <SummaryLabel>월 보험료</SummaryLabel>
+              <SummaryDivider />
 
-                  <SummaryPrice>
-                    {selectedPriceInfo
-                      ? `${formatPrice(selectedPriceInfo.monthlyPrice)}원`
+              <SummaryInfoItem>
+                <SummaryInfoLabel>
+                  {hasInsuranceApplication ? "가입 보험료" : "예상 월 보험료"}
+                </SummaryInfoLabel>
+
+                <SummaryPrice>
+                  {isAgeRestricted
+                    ? "가입 불가"
+                    : summaryMonthlyPrice
+                      ? `${formatPrice(summaryMonthlyPrice)}원`
                       : "-"}
-                  </SummaryPrice>
-                </SummaryItem>
-              </>
-            )}
-          </SummaryInfoGroup>
+                </SummaryPrice>
+              </SummaryInfoItem>
+            </SummaryInfoRow>
 
-          {!selectedPetStatus.canApply && selectedPet.applicationId && (
-            <CancelInsuranceButton
+            <SummaryGuide>
+              신청 후 카카오페이 결제수단 등록이 진행되며, 관리자 승인 시 최초
+              보험료가 결제됩니다.
+            </SummaryGuide>
+          </PetSummaryContent>
+
+          <PetMenuWrapper>
+            <PetMenuButton
               type="button"
-              onClick={handleCancelInsurance}
-              disabled={isCancelling}
+              onClick={() => setIsPetMenuOpen((previous) => !previous)}
             >
-              {isCancelling
-                ? "처리 중..."
-                : selectedPet.approveStatus === "APPROVED"
-                  ? "보험 해지"
-                  : "신청 취소"}
-            </CancelInsuranceButton>
-          )}
-        </SelectedSummary>
-      )}
+              <span>펫 선택하기</span>
+              <MenuArrow $isOpen={isPetMenuOpen}>⌄</MenuArrow>
+            </PetMenuButton>
 
-      {priceErrorMessage && <ErrorMessage>{priceErrorMessage}</ErrorMessage>}
+            {isPetMenuOpen && (
+              <PetDropdown>
+                {petList.length === 0 ? (
+                  <EmptyPetMessage>등록된 반려동물이 없습니다.</EmptyPetMessage>
+                ) : (
+                  petList.map((pet) => {
+                    const petStatus = getPetInsuranceStatus(pet);
+                    const petAge = calculateAgeFromBirthDate(pet.birthDate);
+                    const isPetAgeRestricted = petAge !== null && petAge >= 10;
 
-      {errorMessage && !isModalOpen && (
-        <ErrorMessage>{errorMessage}</ErrorMessage>
-      )}
+                    const displayPetStatus = isPetAgeRestricted
+                      ? {
+                          status: "RESTRICTED",
+                          label: "가입 불가",
+                        }
+                      : petStatus;
 
-      <ProductGrid $isSingleProduct={visibleProductList.length === 1}>
-        {visibleProductList.map((product) => {
-          const isSelected =
-            selectedProduct?.productId === product.productId;
+                    const isSelected =
+                      String(pet.petId) === String(selectedPetId);
 
-          const isAppliedProduct =
-            selectedPet?.insuranceProductId &&
-            String(selectedPet.insuranceProductId) ===
-              String(product.productId);
+                    return (
+                      <PetOptionButton
+                        key={pet.petId}
+                        type="button"
+                        $isSelected={isSelected}
+                        onClick={() => {
+                          setSelectedPetId(String(pet.petId));
+                          setErrorMessage("");
+                          setIsPetMenuOpen(false);
+                        }}
+                      >
+                        <PetOptionTop>
+                          <PetName>{pet.petName}</PetName>
+                          {isSelected && <SelectedPetDot />}
+                        </PetOptionTop>
 
-          const priceInfo = getProductPriceInfo({
-            product,
+                        <PetOptionBottom>
+                          <PetAgeText>
+                            {petAge === null
+                              ? "생년월일 확인 필요"
+                              : `만 ${petAge}세`}
+                          </PetAgeText>
 
-            selectedPet,
+                          <PetStatusText $status={displayPetStatus.status}>
+                            {displayPetStatus.label}
+                          </PetStatusText>
+                        </PetOptionBottom>
+                      </PetOptionButton>
+                    );
+                  })
+                )}
+              </PetDropdown>
+            )}
+          </PetMenuWrapper>
+        </PetSummaryCard>
 
-            selectedPetAge,
+        {/* =====================================================
+            상품 선택 탭
+        ===================================================== */}
+        <ProductTabArea>
+          <ProductTabTitle>보험 상품을 선택해 주세요</ProductTabTitle>
 
-            calculatedPriceMap,
-          });
+          <ProductTabs>
+            {productList.map((product, index) => {
+              const isViewing = currentProduct?.productId === product.productId;
 
-          return (
-            <ProductCard
-              key={product.productId}
-              $isSelected={
-                selectedPetStatus.canApply
-                  ? isSelected
-                  : Boolean(isAppliedProduct)
-              }
-              $isLocked={!selectedPetStatus.canApply || isAgeRestricted}
-              $isSingleProduct={visibleProductList.length === 1}
-              onClick={() => handleSelectProduct(product)}
-            >
-              <CardHeader>
-                <ProductName
-                  $isSelected={
-                    selectedPetStatus.canApply
-                      ? isSelected
-                      : Boolean(isAppliedProduct)
-                  }
+              const isAppliedProduct = Boolean(
+                appliedProductId &&
+                String(appliedProductId) === String(product.productId),
+              );
+
+              return (
+                <ProductTabButton
+                  key={product.productId}
+                  type="button"
+                  $tone={index % 3}
+                  $isViewing={isViewing}
+                  $isAppliedProduct={isAppliedProduct}
+                  onClick={() => handleViewProduct(product)}
                 >
-                  {product.productName}
-                </ProductName>
+                  <ProductTabTop>
+                    <ProductTabName>{product.productName}</ProductTabName>
 
-                {selectedPetStatus.canApply && !isAgeRestricted && (
-                  <SelectedCheckbox
-                    $isSelected={isSelected}
-                    aria-label={
-                      isSelected
-                        ? "선택된 상품"
-                        : "선택되지 않은 상품"
-                    }
-                    title={
-                      isSelected
-                        ? "선택된 상품"
-                        : "상품 선택"
-                    }
-                  >
-                    {isSelected && "✓"}
-                  </SelectedCheckbox>
-                )}
-              </CardHeader>
-
-              <ProductDescription>
-                반려동물 정보를 반영한 맞춤형 펫 보험 상품입니다.
-              </ProductDescription>
-
-              <Divider />
-
-              <ProductContent
-                $isSingleProduct={visibleProductList.length === 1}
-              >
-                {product.productContent}
-              </ProductContent>
-
-              <ProductBottom>
-                {!isAgeRestricted && (
-                  <PriceArea>
-                    <ProductPrice>
-                      {isPriceLoading && !selectedPet?.applicationId
-                        ? "계산 중..."
-                        : `${formatPrice(priceInfo.monthlyPrice)}원`}
-
-                      {!isPriceLoading && <PriceUnit>/ 월</PriceUnit>}
-                    </ProductPrice>
-
-                    {!isBirthDateMissing && (
-                      <PriceDescription>
-                        반려동물 정보를 반영한 최종 월 보험료입니다.
-                      </PriceDescription>
+                    {isViewing && (
+                      <ViewingCheck $tone={index % 3}>✓</ViewingCheck>
                     )}
-                  </PriceArea>
-                )}
+                  </ProductTabTop>
 
-                {selectedPetStatus.canApply ? (
-                  isAgeRestricted ? (
-                    <UnavailableBadge>
-                      만 10세 이상 가입 불가
-                    </UnavailableBadge>
-                  ) : isBirthDateMissing ? (
-                    <UnavailableBadge>
-                      생년월일 확인 필요
-                    </UnavailableBadge>
+                  <ProductTabBottom>
+                    {isAppliedProduct ? (
+                      <AppliedProductBadge>현재 가입 상품</AppliedProductBadge>
+                    ) : isViewing ? (
+                      <ViewingProductText $tone={index % 3}>
+                        상세 보기 중
+                      </ViewingProductText>
+                    ) : (
+                      <AvailableProductText>상품 보기</AvailableProductText>
+                    )}
+                  </ProductTabBottom>
+                </ProductTabButton>
+              );
+            })}
+          </ProductTabs>
+        </ProductTabArea>
+
+        {priceErrorMessage && <ErrorMessage>{priceErrorMessage}</ErrorMessage>}
+
+        {errorMessage && !isModalOpen && (
+          <ErrorMessage>{errorMessage}</ErrorMessage>
+        )}
+
+        {/* =====================================================
+            선택 상품 상세
+        ===================================================== */}
+        {currentProduct && (
+          <ProductDetailCard>
+            <ProductDetailTop>
+              <ProductMainContent>
+                <DetailGuide>
+                  {selectedPet
+                    ? `${selectedPet.petName}에게 추천하는 보험`
+                    : "보험 상품 상세"}
+                </DetailGuide>
+
+                <DetailProductName>
+                  {currentProduct.productName}
+                </DetailProductName>
+
+                <DetailDescription>
+                  반려동물 정보를 반영한 맞춤형 펫 보험 상품입니다.
+                </DetailDescription>
+
+                <BenefitList>
+                  {productBenefitList.length > 0 ? (
+                    productBenefitList.map((benefit, index) => (
+                      <BenefitItem key={`${benefit}-${index}`}>
+                        <BenefitDot $tone={currentProductTone} />
+                        <span>{benefit}.</span>
+                      </BenefitItem>
+                    ))
                   ) : (
-                    <ApplyButton
-                      type="button"
-                      disabled={isPriceLoading}
-                      onClick={(event) =>
-                        handleOpenApplyModal(event, product)
-                      }
-                    >
-                      가입 신청
-                    </ApplyButton>
-                  )
-                ) : isAppliedProduct ? (
-                  <CurrentProductStatus
-                    $status={selectedPetStatus.status}
-                  >
-                    {selectedPetStatus.label}
-                  </CurrentProductStatus>
-                ) : null}
-              </ProductBottom>
-            </ProductCard>
-          );
-        })}
-      </ProductGrid>
+                    <BenefitItem>
+                      <BenefitDot $tone={currentProductTone} />
+                      <span>
+                        반려동물의 건강 상태에 맞는 보장 내용을 제공합니다.
+                      </span>
+                    </BenefitItem>
+                  )}
+                </BenefitList>
+              </ProductMainContent>
 
+              <PricePanel $tone={currentProductTone}>
+                <PricePanelLabel>
+                  {hasInsuranceApplication && !isViewingAppliedProduct
+                    ? "비교용 예상 월 보험료"
+                    : "월 보험료"}
+                </PricePanelLabel>
+
+                <PricePanelPrice>
+                  {isAgeRestricted ? (
+                    "가입 불가"
+                  ) : isPriceLoading && !selectedPet?.applicationId ? (
+                    "계산 중..."
+                  ) : selectedPriceInfo ? (
+                    <>
+                      {formatPrice(selectedPriceInfo.monthlyPrice)}원
+                      <PriceUnit>/ 월</PriceUnit>
+                    </>
+                  ) : (
+                    "-"
+                  )}
+                </PricePanelPrice>
+
+                <PricePanelDescription>
+                  반려동물 연령과 선택한 보험 상품을 기준으로 계산된 금액입니다.
+                </PricePanelDescription>
+
+                <PricePanelAction>{renderActionButton()}</PricePanelAction>
+              </PricePanel>
+            </ProductDetailTop>
+
+            <CoverageSection>
+              <CoverageTitle>보장 내용 한눈에 보기</CoverageTitle>
+
+              <CoverageTable>
+                <CoverageHeader>
+                  <CoverageRow>
+                    <CoverageHeaderCell>보장 항목</CoverageHeaderCell>
+                    <CoverageHeaderCell>안내</CoverageHeaderCell>
+                  </CoverageRow>
+                </CoverageHeader>
+
+                <CoverageBody>
+                  <CoverageRow>
+                    <CoverageName>기본 진료비</CoverageName>
+                    <CoverageDescription>
+                      통원 및 입원 치료비를 기본 보장합니다.
+                    </CoverageDescription>
+                  </CoverageRow>
+
+                  <CoverageRow>
+                    <CoverageName>수술비</CoverageName>
+                    <CoverageDescription>
+                      수술이 필요한 상황에 대비한 보장을 포함합니다.
+                    </CoverageDescription>
+                  </CoverageRow>
+
+                  <CoverageRow>
+                    <CoverageName>맞춤형 보험료</CoverageName>
+                    <CoverageDescription>
+                      등록된 반려동물 정보와 상품에 따라 월 보험료가 계산됩니다.
+                    </CoverageDescription>
+                  </CoverageRow>
+
+                  <CoverageRow>
+                    <CoverageName>가입 절차</CoverageName>
+                    <CoverageDescription>
+                      신청 후 결제수단 등록과 관리자 승인을 거쳐 가입이
+                      완료됩니다.
+                    </CoverageDescription>
+                  </CoverageRow>
+                </CoverageBody>
+              </CoverageTable>
+            </CoverageSection>
+          </ProductDetailCard>
+        )}
+      </MainLayout>
+
+      {/* =====================================================
+          보험 가입 신청 모달
+      ===================================================== */}
       {isModalOpen &&
         typeof document !== "undefined" &&
         createPortal(
@@ -836,7 +662,7 @@ function InsuranceProductSection() {
 
                   <ModalDescription>
                     신청 정보를 확인하고 진료확인서를 첨부해 주세요. 신청 후
-                    카카오페이 카드 등록 화면으로 이동합니다.
+                    카카오페이 결제수단 등록 화면으로 이동합니다.
                   </ModalDescription>
                 </div>
 
@@ -856,13 +682,11 @@ function InsuranceProductSection() {
                   <InfoTable>
                     <InfoRow>
                       <InfoLabel>반려동물</InfoLabel>
-
                       <InfoValue>{selectedPet?.petName || "-"}</InfoValue>
                     </InfoRow>
 
                     <InfoRow>
                       <InfoLabel>현재 나이</InfoLabel>
-
                       <InfoValue>
                         {selectedPetAge === null
                           ? "-"
@@ -872,15 +696,13 @@ function InsuranceProductSection() {
 
                     <InfoRow>
                       <InfoLabel>선택 상품</InfoLabel>
-
                       <InfoValue>
-                        {selectedProduct?.productName || "-"}
+                        {currentProduct?.productName || "-"}
                       </InfoValue>
                     </InfoRow>
 
                     <InfoRow>
                       <InfoLabel>월 보험료</InfoLabel>
-
                       <PriceValue>
                         {selectedPriceInfo
                           ? `${formatPrice(selectedPriceInfo.monthlyPrice)}원`
@@ -931,9 +753,9 @@ function InsuranceProductSection() {
                   <NoticeTitle>신청 전 확인해 주세요</NoticeTitle>
 
                   <NoticeText>
-                    신청 후 카카오페이 카드 등록 화면으로 이동합니다. 카드 등록
-                    완료 후 관리자 심사가 진행되며, 관리자 승인 시 표시된 월
-                    보험료가 최초 결제됩니다.
+                    신청 후 카카오페이 결제수단 등록 화면으로 이동합니다.
+                    결제수단 등록 후 관리자 심사가 진행되며, 관리자 승인 시
+                    표시된 월 보험료가 최초 결제됩니다.
                   </NoticeText>
                 </NoticeBox>
               </ModalBody>
@@ -957,7 +779,6 @@ function InsuranceProductSection() {
               </ModalFooter>
             </ModalBox>
           </ModalOverlay>,
-
           document.body,
         )}
     </ProductSection>
@@ -967,185 +788,87 @@ function InsuranceProductSection() {
 export default InsuranceProductSection;
 
 // =========================================================
-// 보험 상태 표시
+// 상품 탭 색상
+//
+// 0: 민트
+// 1: 블루
+// 2: 퍼플
 // =========================================================
-function getPetInsuranceStatus(pet) {
-  if (!pet) {
+function getProductTabColor(tone) {
+  if (tone === 1) {
     return {
-      status: "EMPTY",
-
-      label: "반려동물을 선택해 주세요",
-
-      canApply: false,
+      main: "#6f8fb8",
+      border: "#ccd8e7",
+      light: "#f4f7fb",
+      hover: "#eef3f9",
     };
   }
 
-  if (pet.approveStatus === "WAITING" || pet.approveStatus === "REQUESTED") {
+  if (tone === 2) {
     return {
-      status: "WAITING",
-
-      label: "신청 중",
-
-      canApply: false,
-    };
-  }
-
-  if (pet.approveStatus === "APPROVED") {
-    return {
-      status: "APPROVED",
-
-      label: "가입 완료",
-
-      canApply: false,
+      main: "#c68c72",
+      border: "#ead5cb",
+      light: "#fcf7f4",
+      hover: "#f9f1ed",
     };
   }
 
   return {
-    status: "AVAILABLE",
-
-    label: "가입 가능",
-
-    canApply: true,
+    main: "#5f9f8b",
+    border: "#c8dfd8",
+    light: "#f3f9f7",
+    hover: "#edf6f3",
   };
 }
 
-// =========================================================
-// 상품별 화면 표시 가격
-// =========================================================
-function getProductPriceInfo({
-  product,
-  selectedPet,
-  selectedPetAge,
-  calculatedPriceMap,
-}) {
-  const baseMonthlyPrice = Number(product?.productMonthly || 0);
+/* =========================================================
+   styled-components
+========================================================= */
 
-  if (
-    selectedPet?.insuranceProductId &&
-    String(selectedPet.insuranceProductId) === String(product?.productId)
-  ) {
-    const monthlyPrice =
-      Number(selectedPet.insuranceProductMonthly) || baseMonthlyPrice;
-
-    return {
-      monthlyPrice,
-    };
-  }
-
-  const calculatedPrice = calculatedPriceMap[String(product?.productId)];
-
-  if (calculatedPrice) {
-    return {
-      monthlyPrice: Number(calculatedPrice.monthlyPrice) || baseMonthlyPrice,
-    };
-  }
-
-  const additionalPrice = calculateAdditionalPriceFromAge(selectedPetAge);
-
-  return {
-    monthlyPrice: baseMonthlyPrice + additionalPrice,
-  };
-}
-
-// =========================================================
-// 프론트 fallback용 연령 기준 보험료 계산
-// =========================================================
-function calculateAdditionalPriceFromAge(age) {
-  if (age === null || age < 3) {
-    return 0;
-  }
-
-  return (Math.floor((age - 3) / 2) + 1) * 10000;
-}
-
-// =========================================================
-// 저장된 생년월일 기준 만 나이 계산
-// =========================================================
-function calculateAgeFromBirthDate(birthDateValue) {
-  if (!birthDateValue) {
-    return null;
-  }
-
-  const value = String(birthDateValue).trim();
-
-  let year;
-  let month;
-  let day;
-
-  if (/^\d{8}$/.test(value)) {
-    year = Number(value.slice(0, 4));
-
-    month = Number(value.slice(4, 6));
-
-    day = Number(value.slice(6, 8));
-  } else if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const parts = value.split("-");
-
-    year = Number(parts[0]);
-    month = Number(parts[1]);
-    day = Number(parts[2]);
-  } else {
-    return null;
-  }
-
-  const birthDate = new Date(year, month - 1, day);
-
-  if (
-    birthDate.getFullYear() !== year ||
-    birthDate.getMonth() !== month - 1 ||
-    birthDate.getDate() !== day
-  ) {
-    return null;
-  }
-
-  const today = new Date();
-
-  let age = today.getFullYear() - year;
-
-  const birthdayPassed =
-    today.getMonth() > month - 1 ||
-    (today.getMonth() === month - 1 && today.getDate() >= day);
-
-  if (!birthdayPassed) {
-    age -= 1;
-  }
-
-  return age >= 0 ? age : null;
-}
-
-// =========================================================
-// 공통 유틸
-// =========================================================
-function getErrorMessage(error, defaultMessage) {
-  return (
-    error.response?.data?.message ||
-    error.response?.data?.error ||
-    error.message ||
-    defaultMessage
-  );
-}
-
-function formatPrice(price) {
-  return Number(price || 0).toLocaleString("ko-KR");
-}
-
-// =========================================================
-// styled-components
-// =========================================================
 const ProductSection = styled.section`
   width: 100%;
-
-  margin: 0;
-
   box-sizing: border-box;
 `;
+
+const MainLayout = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+`;
+
+const SectionHeader = styled.div`
+  margin-bottom: 14px;
+`;
+
+const PageSectionTitle = styled.h2`
+  margin: 0;
+  font-size: 23px;
+  font-weight: 900;
+  letter-spacing: -0.8px;
+  color: var(--text-main);
+
+  @media (max-width: 768px) {
+    font-size: 21px;
+  }
+`;
+
+const SectionDescription = styled.p`
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-sub);
+`;
+
+/* =========================================================
+   로그인 필요 화면
+========================================================= */
+
 const LoginRequiredWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-
-  min-height: 580px;
-  padding: 44px 28px;
+  min-height: 460px;
+  padding: 34px 22px;
 `;
 
 const LoginRequiredBox = styled.div`
@@ -1153,23 +876,16 @@ const LoginRequiredBox = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-
-  width: min(100%, 760px);
-  min-height: 360px;
-
-  padding: 52px 48px;
-
+  width: min(100%, 660px);
+  min-height: 300px;
+  padding: 42px 38px;
   border: 1px solid rgba(0, 169, 123, 0.16);
-  border-radius: 22px;
-
+  border-radius: 18px;
   background: linear-gradient(145deg, var(--color-white) 0%, #f8fdfb 100%);
-
   box-shadow:
-    0 16px 36px rgba(0, 169, 123, 0.08),
-    0 4px 12px rgba(0, 0, 0, 0.025);
-
+    0 14px 30px rgba(0, 169, 123, 0.07),
+    0 3px 10px rgba(0, 0, 0, 0.025);
   text-align: center;
-
   box-sizing: border-box;
 `;
 
@@ -1177,164 +893,185 @@ const LoginBadge = styled.span`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  margin-bottom: 16px;
-  padding: 6px 11px;
-
+  margin-bottom: 14px;
+  padding: 5px 10px;
   border-radius: 999px;
-
   background: var(--color-bg-light);
-
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.5px;
-
   color: var(--color-main-dark);
 `;
 
 const LoginRequiredTitle = styled.h3`
   margin: 0;
-
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
-  letter-spacing: -0.7px;
-
   color: var(--text-main);
 `;
 
 const LoginRequiredDescription = styled.p`
-  margin: 14px 0 0;
-
-  font-size: 14px;
-  line-height: 1.75;
-
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.7;
   color: var(--text-desc);
 `;
 
 const LoginButton = styled.button`
-  height: 46px;
-
-  margin-top: 26px;
-  padding: 0 24px;
-
+  height: 40px;
+  margin-top: 22px;
+  padding: 0 20px;
   border: none;
-  border-radius: 10px;
-
+  border-radius: 8px;
   background: var(--color-main);
-
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 800;
-
   color: var(--color-white);
-
   cursor: pointer;
-
-  transition:
-    background-color 0.18s ease,
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
 
   &:hover {
     background: var(--color-main-dark);
-
-    transform: translateY(-2px);
-
-    box-shadow: 0 9px 20px rgba(0, 169, 123, 0.2);
   }
 `;
 
-const SectionHeader = styled.div`
-  margin-bottom: 18px;
+/* =========================================================
+   상단 펫 요약
+========================================================= */
+
+const PetSummaryCard = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 20px;
+  border: 1px solid #e4ece8;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fcfefd 0%, #f6fbf9 100%);
+
+  @media (max-width: 820px) {
+    flex-direction: column;
+  }
 `;
 
-const PageSectionTitle = styled.h2`
-  margin: 0;
+const PetSummaryContent = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
 
-  font-size: 24px;
+const SummaryLabelRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const SummaryMiniLabel = styled.span`
+  font-size: 11px;
+  font-weight: 700;
+  color: #7b8883;
+`;
+
+const SummaryStatusBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: ${({ $status }) => getStatusBackground($status)};
+  color: ${({ $status }) => getStatusColor($status)};
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: -0.7px;
+`;
 
+const SummaryPetRow = styled.div`
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 8px;
+`;
+
+const SummaryPetName = styled.h3`
+  margin: 0;
+  font-size: 25px;
+  font-weight: 900;
+  letter-spacing: -0.8px;
   color: var(--text-main);
 `;
 
-const SectionDescription = styled.p`
-  margin: 7px 0 0;
-
-  font-size: 14px;
-
+const SummaryPetAge = styled.span`
+  padding-bottom: 3px;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--text-sub);
 `;
 
-const ProductToolbar = styled.div`
-  position: relative;
-
+const SummaryInfoRow = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
   gap: 12px;
-
-  margin-bottom: 12px;
-
-  @media (max-width: 700px) {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  margin-top: 12px;
 `;
 
-const ToolbarGuide = styled.div`
+const SummaryInfoItem = styled.div`
   display: flex;
-  align-items: center;
-  gap: 7px;
+  flex-direction: column;
+  gap: 3px;
+`;
 
-  min-width: 0;
+const SummaryInfoLabel = styled.span`
+  font-size: 11px;
+  color: #7b8883;
+`;
 
+const SummaryInfoValue = styled.span`
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-main);
+`;
+
+const SummaryPrice = styled.span`
+  font-size: 19px;
+  font-weight: 900;
+  color: var(--color-main-dark);
+`;
+
+const SummaryDivider = styled.span`
+  width: 1px;
+  height: 30px;
+  background: #dbe6e1;
+`;
+
+const SummaryGuide = styled.p`
+  margin: 11px 0 0;
+  font-size: 11px;
+  line-height: 1.55;
   color: var(--text-desc);
-
-  font-size: 12px;
-  line-height: 1.5;
-
-  word-break: keep-all;
 `;
 
-const GuideDot = styled.span`
-  width: 5px;
-  height: 5px;
-
-  border-radius: 50%;
-
-  background: var(--color-main);
-`;
+/* =========================================================
+   펫 선택 드롭다운
+========================================================= */
 
 const PetMenuWrapper = styled.div`
   position: relative;
-
+  align-self: flex-start;
   flex-shrink: 0;
-
-  @media (max-width: 700px) {
-    align-self: flex-end;
-  }
 `;
+
 const PetMenuButton = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-
+  gap: 5px;
   min-width: 116px;
-  height: 34px;
-
+  height: 36px;
   padding: 0 13px;
-
   border: none;
-  border-radius: 7px;
-
+  border-radius: 8px;
   background: var(--color-main);
-
   font-size: 12px;
-  font-weight: 700;
-
+  font-weight: 800;
   color: var(--color-white);
-
   cursor: pointer;
 
   &:hover {
@@ -1344,12 +1081,9 @@ const PetMenuButton = styled.button`
 
 const MenuArrow = styled.span`
   display: inline-block;
-
   font-size: 15px;
   line-height: 1;
-
   transform: ${({ $isOpen }) => ($isOpen ? "rotate(180deg)" : "rotate(0deg)")};
-
   transition: transform 0.18s ease;
 `;
 
@@ -1358,15 +1092,13 @@ const PetDropdown = styled.div`
   top: calc(100% + 7px);
   right: 0;
   z-index: 30;
-
   width: 220px;
+  max-height: 260px;
   padding: 6px;
-
+  overflow-y: auto;
   border: 1px solid #e2e2e2;
   border-radius: 10px;
-
   background: var(--color-white);
-
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.1);
 `;
 
@@ -1374,18 +1106,13 @@ const PetOptionButton = styled.button`
   display: flex;
   flex-direction: column;
   gap: 5px;
-
   width: 100%;
   padding: 10px 11px;
-
   border: none;
   border-radius: 7px;
-
   background: ${({ $isSelected }) =>
     $isSelected ? "var(--color-bg-light)" : "var(--color-white)"};
-
   text-align: left;
-
   cursor: pointer;
 
   &:hover {
@@ -1398,8 +1125,6 @@ const PetOptionTop = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-
-  width: 100%;
 `;
 
 const PetOptionBottom = styled.div`
@@ -1407,416 +1132,365 @@ const PetOptionBottom = styled.div`
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-
-  width: 100%;
 `;
 
 const PetName = styled.span`
   font-size: 13px;
   font-weight: 700;
-
   color: var(--text-main);
 `;
 
 const SelectedPetDot = styled.span`
   width: 7px;
   height: 7px;
-
   border-radius: 50%;
-
   background: var(--color-main);
 `;
 
 const PetAgeText = styled.span`
   font-size: 11px;
-
   color: var(--text-desc);
 `;
 
 const PetStatusText = styled.span`
   font-size: 11px;
-
   color: ${({ $status }) => getStatusColor($status)};
 `;
 
 const EmptyPetMessage = styled.p`
   margin: 0;
   padding: 12px 10px;
-
   font-size: 12px;
-
   color: var(--text-desc);
 `;
 
-const SelectedSummary = styled.div`
+/* =========================================================
+   상품 탭
+========================================================= */
+
+const ProductTabArea = styled.div`
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-
-  width: 100%;
-  height: 52px;
-
-  margin-bottom: 18px;
-  padding: 0 14px;
-
-  box-sizing: border-box;
-
-  border: 1px solid #e2eee9;
-  border-radius: 12px;
-
-  background: #f7fcfa;
-
-  @media (max-width: 900px) {
-    height: auto;
-    min-height: 52px;
-    padding: 11px 14px;
-  }
-
-  @media (max-width: 760px) {
-    flex-direction: column;
-    align-items: stretch;
-  }
+  flex-direction: column;
+  gap: 8px;
 `;
 
-const SummaryInfoGroup = styled.div`
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 10px 11px;
-
-  min-width: 0;
-
-  @media (max-width: 900px) {
-    flex-wrap: wrap;
-  }
-`;
-
-const SummaryText = styled.span`
-  min-width: 0;
-
+const ProductTabTitle = styled.h3`
+  margin: 0;
+  font-size: 19px;
+  font-weight: 900;
+  letter-spacing: -0.6px;
   color: var(--text-main);
-
-  font-size: 12px;
-  font-weight: 800;
-
-  white-space: nowrap;
 `;
 
-const SummaryStatus = styled.span`
-  flex-shrink: 0;
+const ProductTabs = styled.div`
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 
-  padding: 4px 8px;
-
-  border-radius: 999px;
-
-  background: ${({ $status }) => getStatusBackground($status)};
-
-  font-size: 11px;
-  font-weight: 700;
-
-  color: ${({ $status }) => getStatusColor($status)};
-
-  white-space: nowrap;
+  @media (max-width: 720px) {
+    grid-template-columns: 1fr;
+  }
 `;
-const CancelInsuranceButton = styled.button`
-  flex-shrink: 0;
 
-  height: 32px;
-  padding: 0 11px;
+const ProductTabButton = styled.button`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 
-  border: 1px solid #e3b7b2;
-  border-radius: 7px;
+  min-height: 62px;
 
-  background: var(--color-white);
+  padding: 9px 11px;
 
-  color: #d45a4d;
+  border: 1.5px solid
+    ${({ $tone, $isViewing, $isAppliedProduct }) => {
+      if ($isViewing) {
+        return getProductTabColor($tone).main;
+      }
 
-  font-size: 11px;
-  font-weight: 700;
+      if ($isAppliedProduct) {
+        return "#b8d8ce";
+      }
 
-  white-space: nowrap;
+      return "#e7ecea";
+    }};
+
+  border-radius: 10px;
+
+  background:
+    ${({ $tone, $isViewing, $isAppliedProduct }) => {
+      if ($isViewing) {
+        return getProductTabColor($tone).light;
+      }
+
+      if ($isAppliedProduct) {
+        return "#f6fbf9";
+      }
+
+      return "#ffffff";
+    }};
+
+  text-align: left;
 
   cursor: pointer;
 
+  box-shadow:
+    ${({ $tone, $isViewing }) =>
+      $isViewing
+        ? `0 4px 12px ${getProductTabColor($tone).main}18`
+        : "none"};
+
+  transform:
+    ${({ $isViewing }) =>
+      $isViewing
+        ? "translateY(-1px)"
+        : "translateY(0)"};
+
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+
   &:hover {
-    background: #fff6f5;
-  }
+    background:
+      ${({ $tone }) =>
+        getProductTabColor($tone).hover};
 
-  &:disabled {
-    opacity: 0.6;
+    border-color:
+      ${({ $tone }) =>
+        getProductTabColor($tone).main};
 
-    cursor: default;
-  }
-
-  @media (max-width: 760px) {
-    align-self: flex-end;
+    transform: translateY(-1px);
   }
 `;
 
-const SummaryItem = styled.div`
+const ProductTabTop = styled.div`
   display: flex;
   align-items: center;
-  gap: 7px;
+  justify-content: space-between;
 
+  gap: 8px;
+
+  width: 100%;
+`;
+
+const ProductTabName = styled.span`
   min-width: 0;
-`;
-const SummaryLabel = styled.span`
-  font-size: 11px;
-
-  color: #7d8a85;
-`;
-
-
-const SummaryDivider = styled.span`
-  width: 1px;
-  height: 14px;
-
-  flex-shrink: 0;
-
-  background: #d8e9e3;
-
-  @media (max-width: 620px) {
-    display: none;
-  }
-`;
-
-
-const SummaryPrice = styled.span`
-  font-size: 13px;
-  font-weight: 800;
-
-  color: var(--color-main-dark);
-`;
-
-const ErrorMessage = styled.p`
-  margin: 0 0 14px;
-
-  font-size: 13px;
-
-  color: #e74c3c;
-`;
-///가입완료 카드
-const ProductGrid = styled.div`
-  display: grid;
-
-  grid-template-columns: ${({ $isSingleProduct }) =>
-    $isSingleProduct
-      ? "1fr"
-      : "repeat(auto-fit, minmax(min(100%, 280px), 1fr))"};
-
-  width: ${({ $isSingleProduct }) =>
-    $isSingleProduct ? "min(100%, 460px)" : "100%"};
-
-  gap: 20px;
-`;
-const ProductCard = styled.div`
-  position: relative;
-
-  display: flex;
-  flex-direction: column;
-
-  min-width: 0;
-  min-height: 500px;
-
-  padding: 26px 24px 24px;
 
   overflow: hidden;
 
-  border: 1px solid
-    ${({ $isSelected }) => ($isSelected ? "#bfe8d9" : "#e2e7e5")};
+  font-size: 13px;
+  font-weight: 800;
 
-  border-radius: 18px;
+  color: #28332f;
 
-  background: var(--color-white);
-
-  cursor: ${({ $isLocked }) => ($isLocked ? "default" : "pointer")};
-
-  box-sizing: border-box;
-
-  box-shadow: ${({ $isSelected }) =>
-    $isSelected
-      ? `
-        0 0 0 3px rgba(0, 169, 123, 0.05),
-        0 12px 28px rgba(0, 169, 123, 0.08)
-      `
-      : `
-        0 4px 14px rgba(0, 0, 0, 0.025)
-      `};
-
-  transition:
-    transform 0.18s ease,
-    border-color 0.18s ease,
-    box-shadow 0.18s ease;
-
-  &:hover {
-    transform: ${({ $isLocked }) => ($isLocked ? "none" : "translateY(-3px)")};
-
-    border-color: ${({ $isLocked }) => ($isLocked ? "#e2e7e5" : "#b6dfd1")};
-
-    box-shadow: ${({ $isLocked }) =>
-      $isLocked
-        ? `
-          0 4px 14px rgba(0, 0, 0, 0.025)
-        `
-        : `
-          0 11px 25px rgba(0, 169, 123, 0.08)
-        `};
-  }
-
-  @media (max-width: 500px) {
-    min-height: ${({ $isSingleProduct }) =>
-      $isSingleProduct ? "260px" : "420px"};
-
-    padding: 22px 18px 20px;
-  }
-`;
-const CardHeader = styled.div`
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 `;
 
-const SelectedCheckbox = styled.span`
+const ViewingCheck = styled.span`
   flex-shrink: 0;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
-  width: 22px;
-  height: 22px;
+  width: 18px;
+  height: 18px;
 
-  border: 2px solid
-    ${({ $isSelected }) => ($isSelected ? "var(--color-main)" : "#cfdad6")};
+  border-radius: 50%;
 
-  border-radius: 6px;
+  background:
+    ${({ $tone }) =>
+      getProductTabColor($tone).main};
 
-  background: ${({ $isSelected }) =>
-    $isSelected ? "var(--color-main)" : "var(--color-white)"};
+  color: #ffffff;
 
-  color: var(--color-white);
-
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 900;
-  line-height: 1;
-
-  transition:
-    background-color 0.18s ease,
-    border-color 0.18s ease,
-    transform 0.18s ease;
-
-  ${({ $isSelected }) =>
-    $isSelected &&
-    `
-      transform: scale(1.04);
-    `}
 `;
 
-const ProductName = styled.h3`
-  margin: 0;
-
-  font-size: 20px;
-  font-weight: 800;
-
-  color: ${({ $isSelected }) =>
-    $isSelected ? "var(--color-main)" : "var(--color-main-dark)"};
-
-  transition: color 0.18s ease;
-`;
-
-const ProductDescription = styled.p`
-  margin: 10px 0 0;
-
-  font-size: 13px;
-  line-height: 1.55;
-
-  color: var(--text-desc);
-`;
-
-const Divider = styled.div`
-  width: 100%;
-  height: 1px;
-
-  margin: 20px 0;
-
-  background: #eeeeee;
-`;
-
-const ProductContent = styled.p`
-  flex: 1;
-
-  margin: 0;
-
-  font-size: 14px;
-  line-height: 1.9;
-
-  color: var(--text-sub);
-`;
-
-const ProductBottom = styled.div`
+const ProductTabBottom = styled.div`
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
+  align-items: center;
 
-  margin-top: 24px;
+  min-height: 20px;
+
+  margin-top: 5px;
 `;
 
-const PriceArea = styled.div`
+const AppliedProductBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+
+  padding: 3px 7px;
+
+  border-radius: 999px;
+
+  background: #4f8f7d;
+
+  color: #ffffff;
+
+  font-size: 10px;
+  font-weight: 800;
+`;
+
+const ViewingProductText = styled.span`
+  color:
+    ${({ $tone }) =>
+      getProductTabColor($tone).main};
+
+  font-size: 11px;
+  font-weight: 800;
+`;
+
+const AvailableProductText = styled.span`
+  color: #a1aaa7;
+
+  font-size: 11px;
+  font-weight: 700;
+`;
+/* =========================================================
+   선택 상품 상세
+========================================================= */
+
+const ProductDetailCard = styled.div`
+  overflow: hidden;
+  border: 1px solid #edf0ef;
+  border-radius: 17px;
+  background: var(--color-white);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.035),
+    0 2px 7px rgba(0, 0, 0, 0.018);
+`;
+
+const ProductDetailTop = styled.div`
+  display: grid;
+  grid-template-columns: minmax(0, 1.8fr) minmax(240px, 0.75fr);
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(180deg, #fffdf9 0%, #ffffff 100%);
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const ProductMainContent = styled.div`
   min-width: 0;
 `;
 
-const ProductPrice = styled.p`
+const DetailGuide = styled.p`
   margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7c867f;
+`;
 
+const DetailProductName = styled.h3`
+  margin: 7px 0 0;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.8px;
   color: var(--text-main);
+`;
 
-  font-size: clamp(23px, 2.2vw, 29px);
-  font-weight: 800;
-  letter-spacing: -0.7px;
+const DetailDescription = styled.p`
+  margin: 7px 0 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-sub);
+`;
 
+const BenefitList = styled.ul`
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+`;
+
+const BenefitItem = styled.li`
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-main);
   word-break: keep-all;
+`;
+
+const BenefitDot = styled.span`
+  width: 6px;
+  height: 6px;
+  margin-top: 7px;
+  border-radius: 50%;
+  background: ${({ $tone }) => getProductTabColor($tone).main};
+  flex-shrink: 0;
+`;
+
+/* =========================================================
+   가격 박스
+========================================================= */
+
+const PricePanel = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 17px;
+  border: 1px solid ${({ $tone }) => getProductTabColor($tone).border};
+  border-radius: 15px;
+  background: ${({ $tone }) => getProductTabColor($tone).light};
+`;
+
+const PricePanelLabel = styled.span`
+  font-size: 12px;
+  font-weight: 700;
+  color: #6e756f;
+`;
+
+const PricePanelPrice = styled.div`
+  margin-top: 7px;
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  color: var(--text-main);
 `;
 
 const PriceUnit = styled.span`
   margin-left: 5px;
-
-  font-size: 12px;
-  font-weight: 600;
-
-  color: var(--text-desc);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-sub);
 `;
 
-const PriceDescription = styled.p`
-  margin: 7px 0 0;
-
+const PricePanelDescription = styled.p`
+  margin: 9px 0 0;
   font-size: 11px;
-  line-height: 1.45;
-
-  color: var(--text-desc);
+  line-height: 1.5;
+  color: #6e756f;
 `;
 
-const ApplyButton = styled.button`
-  flex-shrink: 0;
+const PricePanelAction = styled.div`
+  margin-top: 14px;
+`;
 
+/* =========================================================
+   상태별 버튼
+========================================================= */
+
+const PrimaryActionButton = styled.button`
+  width: 100%;
   height: 36px;
-  padding: 0 14px;
-
+  padding: 0 13px;
   border: none;
   border-radius: 8px;
-
   background: var(--color-main);
-
   color: var(--color-white);
-
   font-size: 12px;
-  font-weight: 700;
-
-  white-space: nowrap;
-
+  font-weight: 800;
   cursor: pointer;
 
   &:hover {
@@ -1824,80 +1498,172 @@ const ApplyButton = styled.button`
   }
 
   &:disabled {
-    background: var(--color-mint);
-
+    opacity: 0.7;
     cursor: default;
   }
 `;
 
-const CurrentProductStatus = styled.span`
-  flex-shrink: 0;
+const SecondaryActionButton = styled.button`
+  width: 100%;
+  height: 36px;
+  padding: 0 13px;
+  border: 1px solid #e2c7c1;
+  border-radius: 8px;
+  background: var(--color-white);
+  color: #d45a4d;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
 
-  padding: 6px 10px;
+  &:hover {
+    background: #fff8f7;
+  }
 
-  border-radius: 999px;
-
-  background: ${({ $status }) => getStatusBackground($status)};
-
-  font-size: 11px;
-  font-weight: 700;
-
-  color: ${({ $status }) => getStatusColor($status)};
+  &:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
 `;
 
-const UnavailableBadge = styled.span`
-  flex-shrink: 0;
-
-  padding: 6px 10px;
-
-  border-radius: 999px;
-
-  background: #f3f3f3;
-
-  font-size: 11px;
-  font-weight: 700;
-
+const DisabledActionBadge = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 36px;
+  padding: 0 13px;
+  border-radius: 8px;
+  background: #f0f0f0;
   color: var(--text-desc);
+  font-size: 12px;
+  font-weight: 800;
+  box-sizing: border-box;
 `;
+
+const CompareOnlyBadge = styled.span`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #e1e5e4;
+  border-radius: 8px;
+  background: #f7f8f8;
+  color: #7f8a87;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+  box-sizing: border-box;
+`;
+
+/* =========================================================
+   보장 내용 표
+========================================================= */
+
+const CoverageSection = styled.div`
+  padding: 0 20px 20px;
+`;
+
+const CoverageTitle = styled.h4`
+  margin: 0 0 10px;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: var(--text-main);
+`;
+
+const CoverageTable = styled.div`
+  overflow: hidden;
+  border: 1px solid #ecefef;
+  border-radius: 13px;
+`;
+
+const CoverageHeader = styled.div`
+  background: #f7f8fa;
+`;
+
+const CoverageBody = styled.div`
+  background: var(--color-white);
+`;
+
+const CoverageRow = styled.div`
+  display: grid;
+  grid-template-columns: minmax(140px, 190px) 1fr;
+
+  &:not(:last-child) {
+    border-bottom: 1px solid #eeeeee;
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const CoverageHeaderCell = styled.div`
+  padding: 11px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  color: #67736f;
+
+  &:not(:last-child) {
+    border-right: 1px solid #ecefef;
+  }
+`;
+
+const CoverageName = styled.div`
+  padding: 13px 14px;
+  background: #fcfdfd;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-main);
+`;
+
+const CoverageDescription = styled.div`
+  padding: 13px 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-sub);
+`;
+
+const ErrorMessage = styled.p`
+  margin: 0;
+  font-size: 13px;
+  color: #e74c3c;
+`;
+
+/* =========================================================
+   모달
+========================================================= */
 
 const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
   z-index: 9999;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   padding: 20px;
-
   background: rgba(0, 0, 0, 0.45);
 `;
 
 const ModalBox = styled.div`
   display: flex;
   flex-direction: column;
-
-  width: min(560px, 100%);
+  width: min(540px, 100%);
   max-height: 86vh;
-
   overflow: hidden;
-
-  border-radius: 20px;
-
+  border-radius: 18px;
   background: var(--color-white);
-
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.2);
 `;
 
 const ModalHeader = styled.div`
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 18px;
-
-  padding: 24px 24px 18px;
-
+  gap: 16px;
+  padding: 20px 20px 16px;
   border-bottom: 1px solid #eeeeee;
 `;
 
@@ -1905,74 +1671,50 @@ const FormBadge = styled.span`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  padding: 5px 10px;
-
+  padding: 5px 9px;
   border-radius: 999px;
-
   background: var(--color-bg-light);
-
   font-size: 11px;
   font-weight: 700;
-
   color: var(--color-main-dark);
 `;
 
 const ModalTitle = styled.h2`
-  margin: 11px 0 0;
-
-  font-size: 21px;
+  margin: 9px 0 0;
+  font-size: 19px;
   font-weight: 800;
-
   color: var(--text-main);
 `;
 
 const ModalDescription = styled.p`
-  margin: 7px 0 0;
-
+  margin: 6px 0 0;
   font-size: 12px;
-  line-height: 1.6;
-
+  line-height: 1.55;
   color: var(--text-desc);
 `;
 
 const CloseButton = styled.button`
   border: none;
-
   background: transparent;
-
-  font-size: 27px;
+  font-size: 25px;
   line-height: 1;
-
   color: var(--text-desc);
-
   cursor: pointer;
-
-  &:hover {
-    color: var(--text-main);
-  }
 `;
 
 const ModalBody = styled.div`
   overflow-y: auto;
-
-  padding: 20px 24px;
+  padding: 18px 20px;
 `;
 
 const FormSection = styled.section`
-  margin-bottom: 20px;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
+  margin-bottom: 18px;
 `;
 
 const ModalSectionTitle = styled.h3`
-  margin: 0 0 10px;
-
-  font-size: 14px;
+  margin: 0 0 9px;
+  font-size: 13px;
   font-weight: 800;
-
   color: var(--text-main);
 `;
 
@@ -1982,21 +1724,15 @@ const RequiredMark = styled.span`
 
 const InfoTable = styled.div`
   overflow: hidden;
-
   border: 1px solid #e8eeeb;
-
-  border-radius: 13px;
-
+  border-radius: 11px;
   background: var(--color-white);
 `;
 
 const InfoRow = styled.div`
   display: grid;
-
-  grid-template-columns: 120px 1fr;
-
-  min-height: 44px;
-
+  grid-template-columns: 110px 1fr;
+  min-height: 40px;
   border-bottom: 1px solid #eeeeee;
 
   &:last-child {
@@ -2007,91 +1743,65 @@ const InfoRow = styled.div`
 const InfoLabel = styled.span`
   display: flex;
   align-items: center;
-
-  padding: 0 14px;
-
+  padding: 0 12px;
   background: #f8fbfa;
-
   font-size: 12px;
   font-weight: 700;
-
   color: #71807a;
 `;
 
 const InfoValue = styled.span`
   display: flex;
   align-items: center;
-
-  padding: 0 14px;
-
-  font-size: 13px;
+  padding: 0 12px;
+  font-size: 12px;
   font-weight: 700;
-
   color: var(--text-main);
 `;
 
 const PriceValue = styled.span`
   display: flex;
   align-items: center;
-
-  padding: 0 14px;
-
-  font-size: 16px;
+  padding: 0 12px;
+  font-size: 15px;
   font-weight: 800;
-
   color: var(--color-main-dark);
 `;
 
 const UploadCard = styled.div`
-  padding: 15px;
-
+  padding: 13px;
   border: 1px solid #eeeeee;
-  border-radius: 12px;
-
+  border-radius: 10px;
   background: var(--color-white);
 `;
 
 const UploadGuide = styled.p`
-  margin: 0 0 12px;
-
+  margin: 0 0 10px;
   font-size: 12px;
-  line-height: 1.6;
-
+  line-height: 1.55;
   color: #7c867f;
 `;
 
 const UploadRow = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 `;
 
 const FileInputLabel = styled.label`
   flex-shrink: 0;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  height: 38px;
-  padding: 0 12px;
-
+  height: 34px;
+  padding: 0 11px;
   border: 1px solid #cfe5dc;
-
-  border-radius: 8px;
-
+  border-radius: 7px;
   background: #f5fbf8;
-
   font-size: 12px;
   font-weight: 700;
-
   color: var(--color-main-dark);
-
   cursor: pointer;
-
-  &:hover {
-    background: var(--color-bg-light);
-  }
 `;
 
 const HiddenFileInput = styled.input`
@@ -2101,108 +1811,73 @@ const HiddenFileInput = styled.input`
 const SelectedFileName = styled.div`
   flex: 1;
   min-width: 0;
-
   overflow: hidden;
-
-  padding: 10px 12px;
-
+  padding: 9px 10px;
   border: 1px solid ${({ $hasFile }) => ($hasFile ? "#b9e2d3" : "#e3e3e3")};
-
-  border-radius: 8px;
-
+  border-radius: 7px;
   background: ${({ $hasFile }) => ($hasFile ? "#f4fbf8" : "#fafafa")};
-
   font-size: 12px;
-
   color: ${({ $hasFile }) =>
     $hasFile ? "var(--color-main-dark)" : "var(--text-desc)"};
-
   text-overflow: ellipsis;
   white-space: nowrap;
 `;
 
 const ModalErrorMessage = styled.p`
-  margin: 0 0 14px;
-
+  margin: 0 0 12px;
   font-size: 12px;
   line-height: 1.5;
-
   color: #e74c3c;
 `;
 
 const NoticeBox = styled.div`
-  padding: 14px 15px;
-
-  border-radius: 12px;
-
+  padding: 12px 13px;
+  border-radius: 10px;
   background: #f7f8fa;
 `;
 
 const NoticeTitle = styled.h4`
-  margin: 0 0 7px;
-
-  font-size: 13px;
+  margin: 0 0 6px;
+  font-size: 12px;
   font-weight: 800;
-
   color: var(--text-main);
 `;
 
 const NoticeText = styled.p`
   margin: 0;
-
   font-size: 12px;
-  line-height: 1.65;
-
+  line-height: 1.55;
   color: var(--text-sub);
 `;
 
 const ModalFooter = styled.div`
   display: grid;
-
   grid-template-columns: 1fr 1.5fr;
-
-  gap: 10px;
-
-  padding: 16px 24px 20px;
-
+  gap: 9px;
+  padding: 14px 20px 18px;
   border-top: 1px solid #eeeeee;
-
   background: var(--color-white);
 `;
 
 const ModalCancelButton = styled.button`
-  height: 46px;
-
+  height: 42px;
   border: 1px solid #dddddd;
-  border-radius: 10px;
-
+  border-radius: 8px;
   background: var(--color-white);
-
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
-
   color: var(--text-sub);
-
   cursor: pointer;
-
-  &:hover {
-    background: #fafafa;
-  }
 `;
 
 const SubmitButton = styled.button`
-  height: 46px;
-
+  height: 42px;
   border: none;
-  border-radius: 10px;
-
+  border-radius: 8px;
   background: var(--color-main);
-
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 800;
-
   color: var(--color-white);
-
   cursor: pointer;
 
   &:hover {
@@ -2211,50 +1886,6 @@ const SubmitButton = styled.button`
 
   &:disabled {
     background: var(--color-mint);
-
     cursor: default;
   }
 `;
-
-// =========================================================
-// 상태별 스타일
-// =========================================================
-function getStatusColor(status) {
-  if (status === "AVAILABLE") {
-    return "var(--color-main-dark)";
-  }
-
-  if (status === "WAITING" || status === "IN_PROGRESS") {
-    return "#c98500";
-  }
-
-  if (status === "APPROVED") {
-    return "#2b70c9";
-  }
-
-  if (status === "RESTRICTED") {
-    return "#d45a4d";
-  }
-
-  return "var(--text-desc)";
-}
-
-function getStatusBackground(status) {
-  if (status === "AVAILABLE") {
-    return "var(--color-bg-light)";
-  }
-
-  if (status === "WAITING" || status === "IN_PROGRESS") {
-    return "#fff6e4";
-  }
-
-  if (status === "APPROVED") {
-    return "#eaf2ff";
-  }
-
-  if (status === "RESTRICTED") {
-    return "#fff3f1";
-  }
-
-  return "#f3f3f3";
-}

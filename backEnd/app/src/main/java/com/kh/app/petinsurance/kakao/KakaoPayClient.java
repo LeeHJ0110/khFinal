@@ -3,15 +3,18 @@ package com.kh.app.petinsurance.kakao;
 import com.kh.app.petinsurance.kakao.dto.KakaoPayApproveRespDto;
 import com.kh.app.petinsurance.kakao.dto.KakaoPayReadyRespDto;
 import com.kh.app.petinsurance.kakao.dto.KakaoPaySubscriptionRespDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class KakaoPayClient {
 
     private static final String KAKAO_PAY_BASE_URL =
@@ -19,7 +22,7 @@ public class KakaoPayClient {
 
     private final RestClient restClient;
 
-    // private.properties에서 가져오는 값
+    // private.properties 또는 배포 환경 설정에서 가져오는 값
     private final String secretKey;
     private final String cid;
     private final String redirectBaseUrl;
@@ -37,19 +40,28 @@ public class KakaoPayClient {
 
         this.restClient =
                 RestClient.builder()
-                        .baseUrl(KAKAO_PAY_BASE_URL)
+                        .baseUrl(
+                                KAKAO_PAY_BASE_URL
+                        )
                         .build();
 
-        this.secretKey = secretKey;
-        this.cid = cid;
+        this.secretKey =
+                secretKey.trim();
+
+        this.cid =
+                cid.trim();
 
         // 주소 마지막에 /가 있으면 제거
         this.redirectBaseUrl =
-                redirectBaseUrl.replaceAll("/+$", "");
+                redirectBaseUrl
+                        .trim()
+                        .replaceAll("/+$", "");
     }
 
     // =========================================================
     // 카카오페이 인증 헤더 값 생성
+    //
+    // 보안상 secretKey는 로그에 출력하지 않음
     // =========================================================
     private String getAuthorizationHeader() {
 
@@ -58,6 +70,7 @@ public class KakaoPayClient {
 
     // =========================================================
     // 정기결제 수단 등록 준비 요청
+    //
     // 보험 신청 후 사용자가 결제수단을 등록할 때 호출
     // 응답으로 받은 TID는 승인 요청에서 다시 사용
     // =========================================================
@@ -74,13 +87,40 @@ public class KakaoPayClient {
         Map<String, Object> body =
                 new LinkedHashMap<>();
 
-        body.put("cid", cid);
-        body.put("partner_order_id", partnerOrderId);
-        body.put("partner_user_id", username);
-        body.put("item_name", itemName);
-        body.put("quantity", 1);
-        body.put("total_amount", totalAmount);
-        body.put("tax_free_amount", 0);
+        body.put(
+                "cid",
+                cid
+        );
+
+        body.put(
+                "partner_order_id",
+                partnerOrderId
+        );
+
+        body.put(
+                "partner_user_id",
+                username
+        );
+
+        body.put(
+                "item_name",
+                itemName
+        );
+
+        body.put(
+                "quantity",
+                1
+        );
+
+        body.put(
+                "total_amount",
+                totalAmount
+        );
+
+        body.put(
+                "tax_free_amount",
+                0
+        );
 
         // 결제수단 등록 인증 성공 후 이동
         body.put(
@@ -105,20 +145,75 @@ public class KakaoPayClient {
                         + "/api/petinsurance/payment/fail"
         );
 
-        return restClient.post()
-                .uri("/online/v1/payment/ready")
-                .header(
-                        "Authorization",
-                        getAuthorizationHeader()
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieve()
-                .body(KakaoPayReadyRespDto.class);
+        log.info(
+                "카카오페이 ready 요청 시작 - applicationId={}, cid={}, username={}, redirectBaseUrl={}, totalAmount={}",
+                applicationId,
+                cid,
+                username,
+                redirectBaseUrl,
+                totalAmount
+        );
+
+        try {
+
+            KakaoPayReadyRespDto response =
+                    restClient.post()
+                            .uri(
+                                    "/online/v1/payment/ready"
+                            )
+                            .header(
+                                    "Authorization",
+                                    getAuthorizationHeader()
+                            )
+                            .contentType(
+                                    MediaType.APPLICATION_JSON
+                            )
+                            .body(
+                                    body
+                            )
+                            .retrieve()
+                            .body(
+                                    KakaoPayReadyRespDto.class
+                            );
+
+            log.info(
+                    "카카오페이 ready 요청 성공 - applicationId={}, tid={}",
+                    applicationId,
+                    response != null
+                            ? response.getTid()
+                            : null
+            );
+
+            return response;
+
+        } catch (RestClientResponseException e) {
+
+            log.error(
+                    "카카오페이 ready 요청 실패 - applicationId={}, status={}, responseBody={}",
+                    applicationId,
+                    e.getStatusCode(),
+                    e.getResponseBodyAsString(),
+                    e
+            );
+
+            throw e;
+
+        } catch (Exception e) {
+
+            log.error(
+                    "카카오페이 ready 처리 중 예외 발생 - applicationId={}, message={}",
+                    applicationId,
+                    e.getMessage(),
+                    e
+            );
+
+            throw e;
+        }
     }
 
     // =========================================================
     // 정기결제 수단 등록 승인 요청
+    //
     // 결제창 인증 후 전달받은 pgToken과
     // ready 단계에서 저장한 TID를 사용
     // 응답으로 받은 SID는 이후 정기결제에 사용
@@ -136,26 +231,102 @@ public class KakaoPayClient {
         Map<String, Object> body =
                 new LinkedHashMap<>();
 
-        body.put("cid", cid);
-        body.put("tid", tid);
-        body.put("partner_order_id", partnerOrderId);
-        body.put("partner_user_id", username);
-        body.put("pg_token", pgToken);
+        body.put(
+                "cid",
+                cid
+        );
 
-        return restClient.post()
-                .uri("/online/v1/payment/approve")
-                .header(
-                        "Authorization",
-                        getAuthorizationHeader()
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieve()
-                .body(KakaoPayApproveRespDto.class);
+        body.put(
+                "tid",
+                tid
+        );
+
+        body.put(
+                "partner_order_id",
+                partnerOrderId
+        );
+
+        body.put(
+                "partner_user_id",
+                username
+        );
+
+        body.put(
+                "pg_token",
+                pgToken
+        );
+
+        log.info(
+                "카카오페이 approve 요청 시작 - applicationId={}, cid={}, username={}, tid={}",
+                applicationId,
+                cid,
+                username,
+                tid
+        );
+
+        try {
+
+            KakaoPayApproveRespDto response =
+                    restClient.post()
+                            .uri(
+                                    "/online/v1/payment/approve"
+                            )
+                            .header(
+                                    "Authorization",
+                                    getAuthorizationHeader()
+                            )
+                            .contentType(
+                                    MediaType.APPLICATION_JSON
+                            )
+                            .body(
+                                    body
+                            )
+                            .retrieve()
+                            .body(
+                                    KakaoPayApproveRespDto.class
+                            );
+
+            log.info(
+                    "카카오페이 approve 요청 성공 - applicationId={}, tid={}, sid={}",
+                    applicationId,
+                    response != null
+                            ? response.getTid()
+                            : null,
+                    response != null
+                            ? response.getSid()
+                            : null
+            );
+
+            return response;
+
+        } catch (RestClientResponseException e) {
+
+            log.error(
+                    "카카오페이 approve 요청 실패 - applicationId={}, status={}, responseBody={}",
+                    applicationId,
+                    e.getStatusCode(),
+                    e.getResponseBodyAsString(),
+                    e
+            );
+
+            throw e;
+
+        } catch (Exception e) {
+
+            log.error(
+                    "카카오페이 approve 처리 중 예외 발생 - applicationId={}, message={}",
+                    applicationId,
+                    e.getMessage(),
+                    e
+            );
+
+            throw e;
+        }
     }
 
     // =========================================================
     // SID를 이용한 월 보험료 정기결제 요청
+    //
     // 관리자 승인 시 최초 보험료 결제에 사용
     // 이후 매월 정기결제에도 다시 사용할 수 있음
     // =========================================================
@@ -177,36 +348,123 @@ public class KakaoPayClient {
         Map<String, Object> body =
                 new LinkedHashMap<>();
 
-        body.put("cid", cid);
-        body.put("sid", sid);
-        body.put("partner_order_id", partnerOrderId);
-        body.put("partner_user_id", username);
-        body.put("item_name", itemName);
-        body.put("quantity", 1);
-        body.put("total_amount", totalAmount);
-        body.put("tax_free_amount", 0);
+        body.put(
+                "cid",
+                cid
+        );
 
-        return restClient.post()
-                .uri("/online/v1/payment/subscription")
-                .header(
-                        "Authorization",
-                        getAuthorizationHeader()
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieve()
-                .body(KakaoPaySubscriptionRespDto.class);
+        body.put(
+                "sid",
+                sid
+        );
+
+        body.put(
+                "partner_order_id",
+                partnerOrderId
+        );
+
+        body.put(
+                "partner_user_id",
+                username
+        );
+
+        body.put(
+                "item_name",
+                itemName
+        );
+
+        body.put(
+                "quantity",
+                1
+        );
+
+        body.put(
+                "total_amount",
+                totalAmount
+        );
+
+        body.put(
+                "tax_free_amount",
+                0
+        );
+
+        log.info(
+                "카카오페이 subscription 요청 시작 - applicationId={}, cid={}, username={}, totalAmount={}",
+                applicationId,
+                cid,
+                username,
+                totalAmount
+        );
+
+        try {
+
+            KakaoPaySubscriptionRespDto response =
+                    restClient.post()
+                            .uri(
+                                    "/online/v1/payment/subscription"
+                            )
+                            .header(
+                                    "Authorization",
+                                    getAuthorizationHeader()
+                            )
+                            .contentType(
+                                    MediaType.APPLICATION_JSON
+                            )
+                            .body(
+                                    body
+                            )
+                            .retrieve()
+                            .body(
+                                    KakaoPaySubscriptionRespDto.class
+                            );
+
+            log.info(
+                    "카카오페이 subscription 요청 성공 - applicationId={}, tid={}",
+                    applicationId,
+                    response != null
+                            ? response.getTid()
+                            : null
+            );
+
+            return response;
+
+        } catch (RestClientResponseException e) {
+
+            log.error(
+                    "카카오페이 subscription 요청 실패 - applicationId={}, status={}, responseBody={}",
+                    applicationId,
+                    e.getStatusCode(),
+                    e.getResponseBodyAsString(),
+                    e
+            );
+
+            throw e;
+
+        } catch (Exception e) {
+
+            log.error(
+                    "카카오페이 subscription 처리 중 예외 발생 - applicationId={}, message={}",
+                    applicationId,
+                    e.getMessage(),
+                    e
+            );
+
+            throw e;
+        }
     }
 
     // =========================================================
     // 카카오페이 정기결제 SID 비활성화
+    //
     // 보험 해지 후 이후 정기결제를 차단
     // =========================================================
     public void inactivateSubscription(
             String sid
     ) {
 
-        if (sid == null || sid.isBlank()) {
+        if (sid == null
+                || sid.isBlank()) {
+
             throw new IllegalArgumentException(
                     "비활성화할 SID가 없습니다."
             );
@@ -215,20 +473,64 @@ public class KakaoPayClient {
         Map<String, Object> body =
                 new LinkedHashMap<>();
 
-        body.put("cid", cid);
-        body.put("sid", sid);
+        body.put(
+                "cid",
+                cid
+        );
 
-        restClient.post()
-                .uri(
-                        "/online/v1/payment/manage/subscription/inactive"
-                )
-                .header(
-                        "Authorization",
-                        getAuthorizationHeader()
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieve()
-                .toBodilessEntity();
+        body.put(
+                "sid",
+                sid
+        );
+
+        log.info(
+                "카카오페이 subscription 비활성화 요청 시작 - cid={}",
+                cid
+        );
+
+        try {
+
+            restClient.post()
+                    .uri(
+                            "/online/v1/payment/manage/subscription/inactive"
+                    )
+                    .header(
+                            "Authorization",
+                            getAuthorizationHeader()
+                    )
+                    .contentType(
+                            MediaType.APPLICATION_JSON
+                    )
+                    .body(
+                            body
+                    )
+                    .retrieve()
+                    .toBodilessEntity();
+
+            log.info(
+                    "카카오페이 subscription 비활성화 요청 성공"
+            );
+
+        } catch (RestClientResponseException e) {
+
+            log.error(
+                    "카카오페이 subscription 비활성화 요청 실패 - status={}, responseBody={}",
+                    e.getStatusCode(),
+                    e.getResponseBodyAsString(),
+                    e
+            );
+
+            throw e;
+
+        } catch (Exception e) {
+
+            log.error(
+                    "카카오페이 subscription 비활성화 처리 중 예외 발생 - message={}",
+                    e.getMessage(),
+                    e
+            );
+
+            throw e;
+        }
     }
 }

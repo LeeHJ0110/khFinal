@@ -1,17 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import PetStoreUserNav from "./PetStoreUserNav";
 import usePetStoreProductDetail from "../../features/petStore/hooks/usePetStoreProudctDetail";
 import { insertCartProduct } from "../../features/petStore/api/petStoreOrderApi";
 import usePetStoreWishToggle from "../../features/petStore/hooks/usePetStoreWishToggle";
+import PetStoreProductReviewSection from "../../features/petStore/components/PetStoreProductReviewSection";
 
 import foodImg from "../../assets/images/petStore/사료홍보.png";
 import snackImg from "../../assets/images/petStore/간식홍보.png";
 import supplementImg from "../../assets/images/petStore/영양제홍보.png";
 import toiletImg from "../../assets/images/petStore/배변홍보.png";
-
+PetStoreProductReviewSection;
 import tagCard from "../../assets/images/petStore/상품태그카드.png";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 export default function PetStoreProductDetailPage() {
   const { productId } = useParams();
@@ -97,19 +98,16 @@ export default function PetStoreProductDetailPage() {
       const footer = document.querySelector("footer");
       const footerTop = footer ? footer.getBoundingClientRect().top : Infinity;
 
-      const nextBottomOffset =
-        footerTop < window.innerHeight
-          ? Math.max(0, window.innerHeight - footerTop + 12)
-          : 0;
+      // footer가 화면 아래쪽에 들어오기 시작하면 구매바를 올리지 말고 아예 숨김
+      const isFooterNear = footerTop < window.innerHeight + 40;
 
-      setBottomOffset(nextBottomOffset);
+      setBottomOffset(0);
 
       const isAfterAnalysis = scrollY > analysisTop + 120;
-      setShowBottomBar(isAfterAnalysis);
+      setShowBottomBar(isAfterAnalysis && !isFooterNear);
 
-      if (scrollY >= reviewTop - 150) {
-        setActiveTab("review");
-        return;
+      if (isFooterNear) {
+        setIsBottomOrderOpen(false);
       }
 
       if (scrollY >= detailTop - 150) {
@@ -383,7 +381,33 @@ export default function PetStoreProductDetailPage() {
   }
 
   function handleReadyDirectBuy() {
-    alert("바로 구매 기능은 준비 중입니다.");
+    if (!product?.productId) {
+      alert("상품 정보를 찾을 수 없습니다.");
+      return;
+    }
+
+    if (quantity < 1) {
+      alert("수량은 1개 이상이어야 합니다.");
+      return;
+    }
+
+    if (!hasLoginInfo()) {
+      moveToLoginWithRedirect();
+      return;
+    }
+
+    navigate("/store/order", {
+      state: {
+        orderType: "DIRECT",
+        directItem: {
+          productId: product.productId,
+          productName: product.productName,
+          productPrice: product.productPrice,
+          mainImageUrl: product.mainImageUrl,
+          qty: quantity,
+        },
+      },
+    });
   }
 
   function handleSelectImage(url) {
@@ -418,7 +442,7 @@ export default function PetStoreProductDetailPage() {
   if (isLoading) {
     return (
       <>
-        <PetStoreUserNav />
+        <PetStoreNavGate />
         <Wrapper>
           <MessageBox>상품 정보를 불러오는 중입니다...</MessageBox>
         </Wrapper>
@@ -429,7 +453,7 @@ export default function PetStoreProductDetailPage() {
   if (error || !product) {
     return (
       <>
-        <PetStoreUserNav />
+        <PetStoreNavGate />
         <Wrapper>
           <MessageBox>상품 정보를 불러오지 못했습니다.</MessageBox>
         </Wrapper>
@@ -472,7 +496,7 @@ export default function PetStoreProductDetailPage() {
 
   return (
     <>
-      <PetStoreUserNav
+      <PetStoreNavGate
         targetPetType={product.productTargetPetType}
         activeCategory={product.productCategory}
       />
@@ -956,62 +980,7 @@ export default function PetStoreProductDetailPage() {
           </DetailContentSection>
 
           <ReviewSection ref={reviewRef} data-reveal>
-            <SectionTitleRow>
-              <SectionTitle>구매자 리뷰</SectionTitle>
-              <SectionDesc>리뷰 기능은 추후 연동 예정입니다.</SectionDesc>
-            </SectionTitleRow>
-
-            <ReviewSummaryBox>
-              <ReviewScoreBox>
-                <ReviewScore>4.9</ReviewScore>
-                <ReviewStars>★★★★★</ReviewStars>
-                <ReviewCount>리뷰 128개 기준</ReviewCount>
-              </ReviewScoreBox>
-
-              <ReviewGraphBox>
-                {[5, 4, 3, 2, 1].map((score, index) => (
-                  <ReviewGraphRow key={score}>
-                    <span>{score}점</span>
-                    <ReviewGraphTrack>
-                      <ReviewGraphFill $width={`${80 - index * 15}%`} />
-                    </ReviewGraphTrack>
-                    <em>{80 - index * 15}%</em>
-                  </ReviewGraphRow>
-                ))}
-              </ReviewGraphBox>
-            </ReviewSummaryBox>
-
-            <ReviewList>
-              {Array.from({ length: 5 }).map((_, index) => (
-                <ReviewItem key={index}>
-                  <ReviewUserBox>
-                    <ReviewAvatar>🐾</ReviewAvatar>
-                    <div>
-                      <ReviewUserName>구매자 {index + 1}</ReviewUserName>
-                      <ReviewDate>2026.06.01</ReviewDate>
-                    </div>
-                  </ReviewUserBox>
-
-                  <ReviewContentBox>
-                    <ReviewStars>★★★★★</ReviewStars>
-                    <ReviewText>
-                      아직 리뷰 기능 연동 전입니다. 추후 실제 구매 리뷰가 이
-                      영역에 표시됩니다.
-                    </ReviewText>
-                  </ReviewContentBox>
-
-                  <ReviewThumbList>
-                    {imageList.slice(0, 3).map((url, imgIndex) => (
-                      <ReviewThumb
-                        key={`${url}-${imgIndex}`}
-                        src={url}
-                        alt="리뷰 이미지"
-                      />
-                    ))}
-                  </ReviewThumbList>
-                </ReviewItem>
-              ))}
-            </ReviewList>
+            <PetStoreProductReviewSection productId={product.productId} />
           </ReviewSection>
         </ContentInner>
 
@@ -1290,7 +1259,7 @@ function getTagInfo(category, tagName) {
 const Wrapper = styled.main`
   width: 100%;
   background-color: var(--color-white);
-  padding-bottom: 190px;
+  padding-bottom: 56px;
 
   [data-reveal] {
     opacity: 0;
@@ -1370,7 +1339,7 @@ const MainImage = styled.img`
 const ImagePlaceholder = styled.div`
   color: var(--text-desc);
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
 `;
 
 const ThumbList = styled.div`
@@ -1426,12 +1395,12 @@ const CategoryPath = styled.div`
 
   color: var(--text-sub);
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
 
   strong {
     color: var(--text-desc);
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 600;
   }
 `;
 
@@ -1440,7 +1409,7 @@ const ProductName = styled.h1`
 
   color: var(--text-main);
   font-size: 32px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1.25;
   letter-spacing: -1.2px;
 `;
@@ -1466,8 +1435,8 @@ const Price = styled.p`
   margin: 0 0 18px;
 
   color: var(--text-main);
-  font-size: 34px;
-  font-weight: 900;
+  font-size: 33px;
+  font-weight: 700;
   letter-spacing: -1.3px;
 `;
 
@@ -1485,7 +1454,7 @@ const BenefitTitle = styled.p`
 
   color: var(--text-main);
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const BenefitList = styled.ul`
@@ -1500,8 +1469,8 @@ const BenefitList = styled.ul`
     margin-bottom: 9px;
 
     color: var(--text-sub);
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 500;
 
     &::before {
       content: "";
@@ -1532,7 +1501,7 @@ const DeliveryRow = styled.div`
 const DeliveryTitle = styled.strong`
   color: var(--text-main);
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const DeliveryTextBox = styled.div`
@@ -1543,7 +1512,7 @@ const DeliveryTextBox = styled.div`
   strong {
     margin-right: 4px;
     color: var(--text-main);
-    font-weight: 900;
+    font-weight: 700;
   }
 
   p {
@@ -1573,7 +1542,7 @@ const QuantityArea = styled.div`
 const QuantityLabel = styled.span`
   color: var(--text-main);
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const QuantityControl = styled.div`
@@ -1589,7 +1558,7 @@ const QuantityControl = styled.div`
     background-color: var(--color-white);
     color: var(--text-main);
     font-size: 16px;
-    font-weight: 900;
+    font-weight: 700;
     cursor: pointer;
   }
 
@@ -1600,7 +1569,7 @@ const QuantityControl = styled.div`
 
     color: var(--text-main);
     font-size: 15px;
-    font-weight: 800;
+    font-weight: 700;
   }
 `;
 
@@ -1615,13 +1584,13 @@ const TopTotalRow = styled.div`
   span {
     color: var(--text-sub);
     font-size: 16px;
-    font-weight: 800;
+    font-weight: 700;
   }
 
   strong {
     color: var(--text-main);
     font-size: 34px;
-    font-weight: 900;
+    font-weight: 700;
     letter-spacing: -1.2px;
   }
 `;
@@ -1698,7 +1667,7 @@ const CartButton = styled.button`
   color: var(--color-main);
 
   font-size: 17px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -0.3px;
   cursor: pointer;
 
@@ -1736,7 +1705,7 @@ const BuyButton = styled.button`
   color: var(--color-white);
 
   font-size: 17px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -0.3px;
   cursor: pointer;
 
@@ -1804,7 +1773,7 @@ const CartBubbleMessage = styled.p`
   margin: 0 0 14px;
   color: var(--text-main);
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
 `;
 
 const CartBubbleButtonRow = styled.div`
@@ -1821,7 +1790,7 @@ const CartBubbleSubButton = styled.button`
   background-color: #ffffff;
   color: var(--color-main);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
 
   &:hover {
@@ -1837,7 +1806,7 @@ const CartBubbleMainButton = styled.button`
   background-color: var(--color-main);
   color: #ffffff;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
 
   &:hover {
@@ -1888,7 +1857,7 @@ const TabButton = styled.button`
     props.$active ? "var(--color-main)" : "var(--text-main)"};
 
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 700;
   cursor: pointer;
 `;
 
@@ -1954,7 +1923,7 @@ const TagCardTitle = styled.h3`
 
   color: #151918;
   font-size: 42px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1.1;
   letter-spacing: -1.6px;
 `;
@@ -1990,7 +1959,7 @@ const SectionTitle = styled.h2`
 
   color: var(--text-main);
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const SectionDesc = styled.p`
@@ -2021,7 +1990,7 @@ const NutritionTable = styled.table`
   th {
     background-color: #dff5eb;
     color: var(--text-main);
-    font-weight: 900;
+    font-weight: 700;
     border-bottom: 1px solid #cfe5dc;
   }
 
@@ -2079,7 +2048,7 @@ const FeedingGuideTitle = styled.h3`
 
   color: var(--color-main);
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: -0.35px;
 `;
@@ -2132,7 +2101,7 @@ const FeedingMethodName = styled.strong`
 
   color: #202423;
   font-size: 16px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1.42;
   letter-spacing: -0.45px;
 
@@ -2179,7 +2148,7 @@ const FeedingPillRow = styled.div`
 
     color: #43504d;
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 700;
     line-height: 1;
     letter-spacing: -0.25px;
 
@@ -2191,7 +2160,7 @@ const FeedingPillRow = styled.div`
   strong {
     color: #43504d;
     font-size: 14px;
-    font-weight: 900;
+    font-weight: 700;
     line-height: 1;
     letter-spacing: -0.25px;
     white-space: nowrap;
@@ -2203,7 +2172,7 @@ const FeedingEmptyText = styled.p`
 
   color: #64716d;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
   text-align: center;
 `;
 
@@ -2233,7 +2202,7 @@ const RecommendCardLabel = styled.p`
 
   color: var(--color-main);
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: -0.35px;
 `;
@@ -2259,7 +2228,7 @@ const RecommendPetImageBox = styled.div`
 
   color: #222;
   font-size: 34px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const RecommendPetImage = styled.img`
@@ -2282,7 +2251,7 @@ const RecommendPetName = styled.strong`
 
   color: #151918;
   font-size: 28px;
-  font-weight: 900;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: -1px;
 
@@ -2294,7 +2263,7 @@ const RecommendPetName = styled.strong`
 const RecommendPetMeta = styled.span`
   color: #64716d;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
   letter-spacing: -0.25px;
 
@@ -2321,7 +2290,7 @@ const RecommendAmountArea = styled.div`
 
     color: #43504d;
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 700;
     line-height: 1;
     letter-spacing: -0.25px;
     white-space: nowrap;
@@ -2332,7 +2301,7 @@ const RecommendAmountArea = styled.div`
 
     color: var(--color-main);
     font-size: 44px;
-    font-weight: 900;
+    font-weight: 700;
     line-height: 0.95;
     letter-spacing: -1.8px;
     white-space: nowrap;
@@ -2401,7 +2370,7 @@ const RecommendArrowButton = styled.button`
   color: #202423;
 
   font-size: 30px;
-  font-weight: 800;
+  font-weight: 700;
   line-height: 1;
   cursor: pointer;
 
@@ -2494,12 +2463,12 @@ const RecommendActionButton = styled.button`
 `;
 
 const DetailContentSection = styled.section`
-  padding-top: 44px;
+  padding-top: 28px;
 `;
 
 const PromoLongImageBox = styled.section`
   width: 100%;
-  margin-bottom: 42px;
+  margin-bottom: 28px;
 
   display: flex;
   justify-content: center;
@@ -2517,7 +2486,7 @@ const PromoLongImage = styled.img`
 `;
 
 const ProductInfoBlock = styled.section`
-  margin-top: 44px;
+  margin-top: 28px;
 `;
 
 const ProductInfoTable = styled.table`
@@ -2536,7 +2505,7 @@ const ProductInfoTable = styled.table`
     width: 220px;
     background-color: #f4faf7;
     color: var(--text-main);
-    font-weight: 900;
+    font-weight: 700;
   }
 
   td {
@@ -2547,152 +2516,7 @@ const ProductInfoTable = styled.table`
 `;
 
 const ReviewSection = styled.section`
-  padding-top: 48px;
-`;
-
-const ReviewSummaryBox = styled.section`
-  padding: 28px 34px;
-  margin-bottom: 26px;
-
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 40px;
-
-  border-top: 1px solid #dce7e2;
-  border-bottom: 1px solid #dce7e2;
-`;
-
-const ReviewScoreBox = styled.div`
-  text-align: center;
-`;
-
-const ReviewScore = styled.div`
-  color: var(--text-main);
-  font-size: 40px;
-  font-weight: 900;
-`;
-
-const ReviewStars = styled.div`
-  color: #ffc400;
-  font-size: 17px;
-  font-weight: 900;
-`;
-
-const ReviewCount = styled.p`
-  margin: 8px 0 0;
-
-  color: var(--text-sub);
-  font-size: 12px;
-  font-weight: 700;
-`;
-
-const ReviewGraphBox = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-`;
-
-const ReviewGraphRow = styled.div`
-  display: grid;
-  grid-template-columns: 40px 1fr 42px;
-  align-items: center;
-  gap: 10px;
-
-  span,
-  em {
-    color: var(--text-sub);
-    font-size: 12px;
-    font-weight: 700;
-    font-style: normal;
-  }
-`;
-
-const ReviewGraphTrack = styled.div`
-  height: 8px;
-  border-radius: 999px;
-  background-color: #dff0e9;
-`;
-
-const ReviewGraphFill = styled.div`
-  width: ${(props) => props.$width};
-  height: 100%;
-
-  border-radius: 999px;
-  background-color: var(--color-main);
-`;
-
-const ReviewList = styled.div`
-  border-top: 1px solid #dce7e2;
-`;
-
-const ReviewItem = styled.article`
-  min-height: 112px;
-  padding: 20px 0;
-
-  display: grid;
-  grid-template-columns: 180px 1fr 170px;
-  gap: 20px;
-
-  border-bottom: 1px solid #dce7e2;
-`;
-
-const ReviewUserBox = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-`;
-
-const ReviewAvatar = styled.div`
-  width: 38px;
-  height: 38px;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-  background-color: #f4faf7;
-`;
-
-const ReviewUserName = styled.p`
-  margin: 0 0 4px;
-
-  color: var(--text-main);
-  font-size: 13px;
-  font-weight: 900;
-`;
-
-const ReviewDate = styled.p`
-  margin: 0;
-
-  color: var(--text-desc);
-  font-size: 11px;
-  font-weight: 700;
-`;
-
-const ReviewContentBox = styled.div``;
-
-const ReviewText = styled.p`
-  margin: 8px 0 0;
-
-  color: var(--text-sub);
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1.6;
-`;
-
-const ReviewThumbList = styled.div`
-  display: flex;
-  gap: 6px;
-  justify-content: flex-end;
-`;
-
-const ReviewThumb = styled.img`
-  width: 48px;
-  height: 48px;
-
-  border-radius: 4px;
-  object-fit: cover;
+  padding-top: 14px;
 `;
 
 const EmptyPanel = styled.div`
@@ -2707,14 +2531,14 @@ const EmptyPanel = styled.div`
 
   color: var(--text-sub);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 700;
 `;
 
 const BottomOrderBar = styled.div`
   position: fixed;
   left: 0;
   right: 0;
-  bottom: ${(props) => `${props.$bottomOffset}px`};
+  bottom: 0;
   z-index: 500;
 
   height: ${(props) => (props.$open ? "230px" : "42px")};
@@ -2724,7 +2548,9 @@ const BottomOrderBar = styled.div`
   box-shadow: ${(props) =>
     props.$open ? "0 -6px 20px rgba(18, 45, 46, 0.08)" : "none"};
 
-  transition: height 0.22s ease;
+  transition:
+    height 0.22s ease,
+    transform 0.22s ease;
 `;
 
 const BottomOrderHeader = styled.div`
@@ -2760,7 +2586,7 @@ const BottomOpenButton = styled.button`
   color: var(--color-white);
 
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 700;
   cursor: pointer;
 
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
@@ -2778,7 +2604,7 @@ const BottomOpenButton = styled.button`
 
     font-style: normal;
     font-size: 13px;
-    font-weight: 900;
+    font-weight: 700;
     line-height: 1;
   }
 `;
@@ -2828,7 +2654,7 @@ const BottomSelectTitle = styled.p`
 
   color: var(--text-main);
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const BottomSelectControl = styled.div`
@@ -2846,7 +2672,7 @@ const BottomSelectControl = styled.div`
     background-color: var(--color-white);
     color: var(--text-main);
     font-size: 14px;
-    font-weight: 900;
+    font-weight: 700;
     cursor: pointer;
   }
 
@@ -2860,7 +2686,7 @@ const BottomSelectControl = styled.div`
 
     color: var(--text-main);
     font-size: 13px;
-    font-weight: 800;
+    font-weight: 700;
   }
 `;
 
@@ -2869,7 +2695,7 @@ const BottomSelectPrice = styled.strong`
 
   color: var(--text-main);
   font-size: 16px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const BottomTotalRow = styled.div`
@@ -2883,13 +2709,13 @@ const BottomTotalRow = styled.div`
   span {
     color: var(--text-sub);
     font-size: 13px;
-    font-weight: 800;
+    font-weight: 700;
   }
 
   strong {
     color: var(--text-main);
     font-size: 22px;
-    font-weight: 900;
+    font-weight: 700;
     letter-spacing: -0.7px;
   }
 `;
@@ -2917,7 +2743,7 @@ const BottomCartButton = styled.button`
   color: var(--color-main);
 
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 700;
   cursor: pointer;
 
   transition:
@@ -2948,7 +2774,7 @@ const BottomBuyButton = styled.button`
   color: var(--color-white);
 
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 700;
   cursor: pointer;
 
   transition:
@@ -2987,5 +2813,5 @@ const MessageBox = styled.div`
 
   color: var(--text-sub);
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 700;
 `;

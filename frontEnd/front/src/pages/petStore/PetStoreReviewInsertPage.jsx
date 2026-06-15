@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 
-import PetStoreUserNav from "./PetStoreUserNav";
-import { insertReview } from "../../features/petStore/api/petStoreReviewApi";
+import usePetStoreReviewForm from "../../features/petStore/hooks/usePetStoreReviewForm";
+import PetStoreNavGate from "./PetStoreNavGate";
 
 const TITLE_MAX_LENGTH = 50;
 const CONTENT_MAX_LENGTH = 500;
@@ -24,7 +24,7 @@ export default function PetStoreReviewInsertPage() {
   const [reviewContent, setReviewContent] = useState("");
   const [fileList, setFileList] = useState([]);
   const [previewList, setPreviewList] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isSubmitting, submitReview } = usePetStoreReviewForm();
 
   const parsedOrderItemId = useMemo(() => Number(orderItemId), [orderItemId]);
 
@@ -142,25 +142,13 @@ export default function PetStoreReviewInsertPage() {
       return;
     }
 
-    try {
-      setIsSubmitting(true);
-
-      await insertReview({
-        orderItemId: parsedOrderItemId,
-        reviewTitle: reviewTitle.trim(),
-        reviewContent: reviewContent.trim(),
-        reviewRating,
-        fileList,
-      });
-
-      alert("리뷰가 등록되었습니다.");
-      navigate("/store/review/list");
-    } catch (error) {
-      console.error("리뷰 등록 실패:", error);
-      alert(error?.response?.data?.message ?? "리뷰 등록에 실패했습니다.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    await submitReview({
+      orderItemId: parsedOrderItemId,
+      reviewTitle: reviewTitle.trim(),
+      reviewContent: reviewContent.trim(),
+      reviewRating,
+      fileList,
+    });
   }
 
   function handleCancel() {
@@ -177,7 +165,7 @@ export default function PetStoreReviewInsertPage() {
 
   return (
     <Wrapper>
-      <PetStoreUserNav />
+      <PetStoreNavGate />
 
       <Inner>
         <PageHeader>

@@ -23,6 +23,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
     backgroundColor: "#5EC8A7",
     isEdit: false,
   };
+
   const trainingInit = {
     id: "",
     content: "",

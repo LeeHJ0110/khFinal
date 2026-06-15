@@ -1,5 +1,6 @@
 export const POINT_ACTION_TYPE = {
   DAILY_ATTENDANCE: "DAILY_ATTENDANCE",
+  EVENT_JOIN: "EVENT_JOIN",
   WEEKLY_TRAINING_DIARY: "WEEKLY_TRAINING_DIARY",
   WEEKLY_COMMUNITY_POST: "WEEKLY_COMMUNITY_POST",
   REVIEW_WRITE: "REVIEW_WRITE",
@@ -12,6 +13,14 @@ export const POINT_ACTION_POLICY = {
     amount: 100,
     successMessage: "[적립] 일일 출석체크 포인트 100P가 지급되었습니다.",
     errorMessage: "출석체크 처리 중 오류가 발생했습니다.",
+  },
+
+  [POINT_ACTION_TYPE.EVENT_JOIN]: {
+    mode: "DIRECT_EARN",
+    amount: 2000,
+    successMessage:
+      "[적립] 회원가입 감사 이벤트 포인트 2,000P가 지급되었습니다.",
+    errorMessage: "회원가입 감사 이벤트 포인트 처리 중 오류가 발생했습니다.",
   },
 
   [POINT_ACTION_TYPE.WEEKLY_TRAINING_DIARY]: {
@@ -41,7 +50,8 @@ export const POINT_ACTION_POLICY = {
   [POINT_ACTION_TYPE.HEALTHCARE_USE]: {
     mode: "USE",
     amount: 2000,
-    successMessage: "[사용] 건강진단 서비스 이용으로 2,000P가 차감되었습니다.",
+    successMessage: "",
+    showSuccessMessage: false,
     blockMessage: "건강진단 신청에는 2,000P 이상 보유해야 합니다.",
     errorMessage: "건강진단 신청 중 오류가 발생했습니다.",
   },
