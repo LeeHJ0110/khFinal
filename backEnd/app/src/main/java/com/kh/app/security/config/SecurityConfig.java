@@ -66,10 +66,53 @@ public class SecurityConfig {
                 )
 
                 // 모든 요청 허용
-                .authorizeHttpRequests(
-                        x -> x.anyRequest().permitAll()
-                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/api/member/login",
+                                "/api/member/join",
+                                "/api/member/check-username",
+                                "/api/member/check-nickname",
+                                "/api/member/kakao/login",
+                                "/api/member/kakao/join",
+                                "/api/pet/breed/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
 
+                        .requestMatchers("/api/mypage/**").authenticated()
+                        .requestMatchers("/api/message/**").authenticated()
+
+
+                        .requestMatchers("/api/admin/message/**")
+                        .hasAnyRole("ADMIN", "BOARD", "DOCTOR", "STORE")
+                        .requestMatchers("/api/admin/members/profile/**")
+                        .hasAnyRole("ADMIN", "BOARD", "DOCTOR", "STORE")
+
+                        .requestMatchers("/api/admin/members/*/role")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers("/api/admin/members/*/status")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers("/api/admin/members/*/nickname/clean")
+                        .hasRole("ADMIN")
+
+                        .requestMatchers("/api/admin/members/**")
+                        .hasAnyRole("ADMIN", "BOARD", "DOCTOR", "STORE")
+
+                        .requestMatchers("/api/admin/insurance/**")
+                        .hasAnyRole("ADMIN", "DOCTOR")
+
+                        .requestMatchers("/api/admin/delivery/**")
+                        .hasAnyRole("ADMIN", "STORE")
+
+                        .requestMatchers("/api/admin/community/blind/**")
+                        .hasAnyRole("ADMIN", "BOARD")
+
+
+
+                        .anyRequest().authenticated()
+                )
                 // login filter
                 .addFilterAt(
                         loginFilter,

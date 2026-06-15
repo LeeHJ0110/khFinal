@@ -87,6 +87,10 @@ export default function AdminMenu({ loginMember }) {
     setIsOpen(false);
     navigate(getAdminHomePath(role));
   }
+  function handleGoAdmin() {
+    setIsOpen(false);
+    navigate("/admin/message/send");
+  }
 
   function handleGoMessageBox() {
     setIsOpen(false);
@@ -135,6 +139,12 @@ export default function AdminMenu({ loginMember }) {
 
       {isOpen && (
         <div className="header-dropdown admin-dropdown">
+          {loginMember?.role !== "ADMIN" && (
+            <button type="button" onClick={handleGoAdmin}>
+              관리자페이지
+            </button>
+          )}
+
           <button type="button" onClick={handleGoAdminHome}>
             {getRoleLabel(role)}
           </button>

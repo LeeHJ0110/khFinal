@@ -26,6 +26,7 @@ public class JwtFilter extends OncePerRequestFilter {
         System.out.println("authorization = " + authorization);
 
 
+
         if( authorization == null || !authorization.startsWith("Bearer ")  ){
             filterChain.doFilter(request, response);
             return;
@@ -43,6 +44,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String role = jwtUtil.getRole(token);
 
         Authentication authToken = new UsernamePasswordAuthenticationToken(username, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
+        System.out.println("role = " + role);
         SecurityContextHolder.getContext().setAuthentication(authToken);
         filterChain.doFilter(request , response);
 
