@@ -87,12 +87,19 @@ export default function AdminMenu({ loginMember }) {
     setIsOpen(false);
     navigate(getAdminHomePath(role));
   }
+  function handleGoAdmin() {
+    setIsOpen(false);
+    navigate("/admin/message/send");
+  }
 
   function handleGoMessageBox() {
     setIsOpen(false);
     navigate("/mypage/message");
   }
-
+  function handleGoMyPage() {
+    setIsOpen(false);
+    navigate("/mypage");
+  }
   function messageCounter(msgList) {
     return msgList.filter((msg) => msg.readYn === "N").length;
   }
@@ -135,6 +142,16 @@ export default function AdminMenu({ loginMember }) {
 
       {isOpen && (
         <div className="header-dropdown admin-dropdown">
+          {loginMember?.role !== "ADMIN" && (
+            <button type="button" onClick={handleGoAdmin}>
+              관리자페이지
+            </button>
+          )}
+
+          <button type="button" onClick={handleGoMyPage}>
+            마이페이지
+          </button>
+
           <button type="button" onClick={handleGoAdminHome}>
             {getRoleLabel(role)}
           </button>
