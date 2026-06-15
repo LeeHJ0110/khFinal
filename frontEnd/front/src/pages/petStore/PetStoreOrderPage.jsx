@@ -43,11 +43,6 @@ export default function PetStoreOrderPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  /*
-    주문 진입 방식
-    - 일반 주문: 장바구니 목록 기준
-    - 바로구매: 상품상세에서 location.state로 넘긴 단일 상품 기준
-  */
   const isDirectOrder = location.state?.orderType === DIRECT_ORDER_TYPE;
   const directItem = location.state?.directItem ?? null;
 
@@ -67,11 +62,6 @@ export default function PetStoreOrderPage() {
     (address) => address.deliveryAddressId === selectedAddressId,
   );
 
-  /*
-    주문내역 표시용 목록
-    - 바로구매는 장바구니를 거치지 않으므로 화면 표시용 item 형태로 변환
-    - 실제 결제 생성은 백엔드에서 productId로 다시 조회해서 계산함
-  */
   const directCartItemList = useMemo(() => {
     if (!isDirectOrder || !directItem) {
       return [];
@@ -132,10 +122,6 @@ export default function PetStoreOrderPage() {
     return Number(savedUsedPoint || 0);
   }
 
-  /*
-    토큰에서 주문자 이름 표시용 정보만 가져옴
-    실패해도 주문 자체에는 영향 없게 "회원"으로 처리
-  */
   function loadOrdererNameFromToken() {
     const accessToken = localStorage.getItem("accessToken");
 
@@ -168,10 +154,6 @@ export default function PetStoreOrderPage() {
     }
   }
 
-  /*
-    일반 주문일 때만 장바구니 목록 조회
-    바로구매는 장바구니를 사용하지 않음
-  */
   async function loadCartList() {
     setIsLoading(true);
 
@@ -186,10 +168,6 @@ export default function PetStoreOrderPage() {
     }
   }
 
-  /*
-    배송지 목록 조회 후 기본 배송지 우선 선택
-    기본 배송지가 없으면 첫 번째 배송지를 선택
-  */
   async function loadDeliveryAddressList() {
     try {
       const response = await fetchMyDeliveryAddressList();
@@ -211,16 +189,14 @@ export default function PetStoreOrderPage() {
     }
   }
 
+  function handleMoveDeliveryManage() {
+    navigate("/mypage/delivery");
+  }
+
   function handleUnavailablePaymentMethod() {
     alert("현재 결제서비스 도입 중입니다.");
   }
 
-  /*
-    결제하기
-    - 바로구매: productId + qty 기준 direct ready API 호출
-    - 일반 주문: 장바구니 기준 ready API 호출
-    - 응답으로 받은 카카오 redirect URL로 이동
-  */
   async function handlePayClick() {
     if (isPaying) {
       return;
@@ -281,11 +257,6 @@ export default function PetStoreOrderPage() {
     }
   }
 
-  /*
-    배송 요청사항
-    - DIRECT 선택 시 input 활성화
-    - 그 외 옵션은 선택값을 그대로 요청사항으로 사용
-  */
   function handleChangeDeliveryRequestOption(event) {
     const selectedValue = event.target.value;
 
@@ -310,10 +281,6 @@ export default function PetStoreOrderPage() {
     loadMyPoint();
   }, []);
 
-  /*
-    바로구매는 새로고침하면 location.state가 사라질 수 있음
-    이 경우 상품 정보가 없으므로 스토어로 돌려보냄
-  */
   useEffect(() => {
     if (isDirectOrder && !directItem) {
       alert("바로구매 상품 정보가 없습니다.");
@@ -362,11 +329,31 @@ export default function PetStoreOrderPage() {
 
               {deliveryAddressList.length === 0 ? (
                 <EmptyDeliveryBox>
-                  등록된 배송지가 없습니다. 마이페이지에서 배송지를
-                  등록해주세요.
+                  <EmptyDeliveryTitle>
+                    아직 등록된 배송지가 없습니다
+                  </EmptyDeliveryTitle>
+
+                  <EmptyDeliveryDesc>
+                    주문을 진행하려면 먼저 배송지를 등록해야 합니다.
+                    <br />
+                    마이페이지에서 받으시는 분, 연락처, 주소를 등록해주세요.
+                  </EmptyDeliveryDesc>
+
+                  <MoveDeliveryButton
+                    type="button"
+                    onClick={handleMoveDeliveryManage}
+                  >
+                    배송지 등록하러 가기
+                    <span>→</span>
+                  </MoveDeliveryButton>
                 </EmptyDeliveryBox>
               ) : !selectedAddress ? (
-                <EmptyDeliveryBox>배송지를 선택해주세요.</EmptyDeliveryBox>
+                <EmptyDeliveryBox>
+                  <EmptyDeliveryTitle>배송지를 선택해주세요</EmptyDeliveryTitle>
+                  <EmptyDeliveryDesc>
+                    등록된 배송지 중 주문에 사용할 배송지를 선택해주세요.
+                  </EmptyDeliveryDesc>
+                </EmptyDeliveryBox>
               ) : (
                 <>
                   <DeliveryInfoGrid>
@@ -896,19 +883,88 @@ const DeliveryCardAddress = styled.div`
 `;
 
 const EmptyDeliveryBox = styled.div`
-  min-height: 120px;
+  min-height: 190px;
+  padding: 30px 24px;
 
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 
-  border: 1px dashed #bdebd9;
-  border-radius: 8px;
-  background: #ffffff;
+  border: 1px dashed rgba(0, 168, 120, 0.42);
+  border-radius: 14px;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(0, 168, 120, 0.08) 0%,
+      rgba(0, 168, 120, 0) 38%
+    ),
+    #ffffff;
 
   color: #777777;
+  text-align: center;
+`;
+
+const EmptyDeliveryTitle = styled.div`
+  color: #123f3a;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.6px;
+`;
+
+const EmptyDeliveryDesc = styled.p`
+  margin: 10px 0 0;
+
+  color: #5f706d;
   font-size: 14px;
   line-height: 1.7;
-  text-align: center;
+  font-weight: 500;
+  letter-spacing: -0.25px;
+`;
+
+const MoveDeliveryButton = styled.button`
+  height: 44px;
+  margin-top: 20px;
+  padding: 0 22px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #00a878 0%, #08bb8a 100%);
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.3px;
+
+  cursor: pointer;
+
+  box-shadow: 0 12px 24px rgba(0, 168, 120, 0.22);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    filter 0.18s ease;
+
+  span {
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 30px rgba(0, 168, 120, 0.28);
+    filter: brightness(1.03);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 8px 18px rgba(0, 168, 120, 0.2);
+  }
 `;
 
 /* ================================

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../../../features/member/store/memberSlice";
+import useMessage from "../../../features/mypage/message/hooks/useMessage";
+import alarmIcon from "../../../assets/images/icon/헤더알림.png";
 
 function getAdminHomePath(role) {
   const pathMap = {
@@ -37,7 +39,10 @@ function getRoleLabel(role) {
 
 export default function AdminMenu({ loginMember }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
+
+  const { messageList, loading, fetchMyMessages } = useMessage();
 
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
@@ -45,6 +50,10 @@ export default function AdminMenu({ loginMember }) {
   const nickname = loginMember?.nickname || "관리자";
   const role = loginMember?.role;
   const profileImageUrl = loginMember?.profileImageUrl;
+
+  useEffect(() => {
+    fetchMyMessages();
+  }, [location.pathname]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -79,8 +88,33 @@ export default function AdminMenu({ loginMember }) {
     navigate(getAdminHomePath(role));
   }
 
+  function handleGoMessageBox() {
+    setIsOpen(false);
+    navigate("/mypage/message");
+  }
+
+  function messageCounter(msgList) {
+    return msgList.filter((msg) => msg.readYn === "N").length;
+  }
+
+  const msgCount = messageCounter(messageList);
+  const hasUnreadMessage = !loading && msgCount > 0;
+
   return (
     <div className="admin-menu" ref={menuRef}>
+      <button
+        type="button"
+        className="header-alarm"
+        aria-label="쪽지함"
+        onClick={handleGoMessageBox}
+      >
+        <span className="header-alarm-icon">
+          <img src={alarmIcon} alt="알림" />
+        </span>
+
+        {hasUnreadMessage && <span className="alarm-badge">{msgCount}</span>}
+      </button>
+
       <button
         type="button"
         className="header-user"

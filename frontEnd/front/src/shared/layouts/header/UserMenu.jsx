@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../../../features/member/store/memberSlice";
 import useMessage from "../../../features/mypage/message/hooks/useMessage";
+import alarmIcon from "../../../assets/images/icon/헤더알림.png";
 
 // 포인트 관련
 import usePointEffect from "../../../features/point/hooks/usePointEffect";
 
 export default function UserMenu({ loginMember }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
+
   const { runDailyAttendancePoint } = usePointEffect();
   const { messageList, loading, fetchMyMessages } = useMessage();
 
@@ -75,22 +78,22 @@ export default function UserMenu({ loginMember }) {
   }
 
   const msgCount = messageCounter(messageList);
+  const hasUnreadMessage = !loading && msgCount > 0;
 
   return (
     <div className="user-menu" ref={menuRef}>
-      {!loading && msgCount > 0 && (
-        <button
-          type="button"
-          className="header-alarm"
-          aria-label="알림"
-          onClick={() => {
-            navigate("/mypage/message");
-          }}
-        >
-          <span className="header-alarm-icon">🔔</span>
-          <span className="alarm-badge">{msgCount}</span>
-        </button>
-      )}
+      <button
+        type="button"
+        className="header-alarm"
+        aria-label="쪽지함"
+        onClick={handleGoMessageBox}
+      >
+        <span className="header-alarm-icon">
+          <img src={alarmIcon} alt="알림" />
+        </span>
+
+        {hasUnreadMessage && <span className="alarm-badge">{msgCount}</span>}
+      </button>
 
       <button
         type="button"
@@ -114,10 +117,6 @@ export default function UserMenu({ loginMember }) {
         <div className="header-dropdown">
           <button type="button" onClick={handleGoMyPage}>
             마이페이지
-          </button>
-
-          <button type="button" onClick={handleGoMessageBox}>
-            쪽지함
           </button>
 
           <button type="button" onClick={handleDailyAttendance}>
