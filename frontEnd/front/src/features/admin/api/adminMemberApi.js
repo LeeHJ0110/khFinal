@@ -23,3 +23,7 @@ export function updateMemberRole(memberId, role) {
 export function cleanMemberNickname(memberId) {
   return api.put(`/admin/members/${memberId}/nickname/clean`);
 }
+
+export function getAdminMe() {
+  return api.get("/admin/members/profile/me");
+}

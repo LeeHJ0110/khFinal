@@ -3,6 +3,7 @@ package com.kh.app.admin.controller;
 import com.kh.app.admin.dto.request.AdminMemberRoleUpdateReqDto;
 import com.kh.app.admin.dto.request.AdminMemberSearchReqDto;
 import com.kh.app.admin.dto.request.AdminMemberStatusUpdateReqDto;
+import com.kh.app.admin.dto.response.AdminMeResDto;
 import com.kh.app.admin.dto.response.AdminMemberDetailResDto;
 import com.kh.app.admin.dto.response.AdminMemberListResDto;
 import com.kh.app.admin.service.AdminMemberService;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/admin/members")
@@ -24,6 +26,11 @@ public class AdminMemberController {
             Pageable pageable
     ) {
         return adminMemberService.searchMembers(reqDto, pageable);
+    }
+
+    @GetMapping("/profile/me")
+    public AdminMeResDto getAdminMe(Authentication authentication) {
+        return adminMemberService.getAdminMe(authentication.getName());
     }
 
     @GetMapping("/{memberId}")

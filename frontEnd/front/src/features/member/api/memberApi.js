@@ -29,3 +29,10 @@ export function kakaoLogin(code) {
     code,
   });
 }
+export function sendPhoneAuthCode(phone) {
+  return api.post("/member/phone/send", { phone });
+}
+
+export function verifyPhoneAuthCode(phone, code) {
+  return api.post("/member/phone/verify", { phone, code });
+}

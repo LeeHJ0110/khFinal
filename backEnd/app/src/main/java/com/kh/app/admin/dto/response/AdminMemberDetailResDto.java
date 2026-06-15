@@ -27,7 +27,7 @@ public class AdminMemberDetailResDto {
 
     private LocalDateTime createdAt;
 
-    public static AdminMemberDetailResDto from(MemberEntity member) {
+    public static AdminMemberDetailResDto from(MemberEntity member, String profileImageUrl) {
         return AdminMemberDetailResDto.builder()
                 .memberId(member.getId())
                 .username(member.getUsername())
@@ -36,7 +36,7 @@ public class AdminMemberDetailResDto {
                 .phone(member.getPhone())
                 .address(member.getAddress())
                 .addressDetail(member.getAddressDetail())
-                .profileImageUrl(member.getProfileImageUrl())
+                .profileImageUrl(profileImageUrl)
                 .marketingAgreeYn(member.getMemberMarketingAgreeYn().name())
                 .status(member.getStatus().name())
                 .role(member.getRole().name())

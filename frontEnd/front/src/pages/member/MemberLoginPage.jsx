@@ -115,14 +115,6 @@ export default function MemberLoginPage() {
             value={formData.password}
           />
 
-          <div className="login-options">
-            <label>
-              <input type="checkbox" />
-              자동 로그인
-            </label>
-            <span>아이디/비밀번호 찾기</span>
-          </div>
-
           <button type="submit" className="login-btn">
             로그인
           </button>
