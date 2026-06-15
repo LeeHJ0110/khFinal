@@ -255,7 +255,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
 }
 
 const Wrapper = styled.div`
-  width: ${({ $small }) => ($small ? "100%" : "1200px")};
+  width: ${({ $small }) => ($small ? "100%" : "1100px")};
 
   /* 1. 달력 내부 메인 스크롤러 및 요소를 대상으로 스크롤바 전면 차단 */
   .fc-scroller,
