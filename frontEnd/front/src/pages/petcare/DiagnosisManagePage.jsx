@@ -3,37 +3,13 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 
 import usePetCareList from "../../features/petcare/hooks/usePetCareList";
-
-// =========================================================
-// JWT 토큰 payload 조회
-// =========================================================
-function getTokenPayload() {
-  const token = localStorage.getItem("accessToken");
-
-  if (!token) {
-    return null;
-  }
-
-  try {
-    const payload = token.split(".")[1];
-    return JSON.parse(atob(payload));
-  } catch (e) {
-    return null;
-  }
-}
-
-// =========================================================
-// 로그인 사용자 권한 조회
-// =========================================================
-function getLoginRole() {
-  const payload = getTokenPayload();
-  return payload?.role ?? null;
-}
+import { getLoginRole } from "../../../src/utils/auth";
 
 export default function DiagnosisManagePage() {
   const navigate = useNavigate();
 
   const [isAllowed, setIsAllowed] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const {
     asyncFetchPetCareList,
@@ -49,24 +25,29 @@ export default function DiagnosisManagePage() {
   const [petTypeFilter, setPetTypeFilter] = useState("ALL");
 
   // =========================================================
-  // 수의사 권한 확인
+  // 수의사 / 관리자 권한 확인
   // =========================================================
   useEffect(() => {
-    const role = getLoginRole();
+    const loginRole = getLoginRole();
 
-    if (!role) {
+    if (!loginRole) {
       alert("로그인 후 이용 가능합니다.");
+      setIsAllowed(false);
+      setIsCheckingAuth(false);
       navigate("/member/login", { replace: true });
       return;
     }
 
-    if (role !== "DOCTOR") {
-      alert("수의사 권한이 없습니다.");
+    if (loginRole !== "DOCTOR" && loginRole !== "ADMIN") {
+      alert("접근 권한이 없습니다.");
+      setIsAllowed(false);
+      setIsCheckingAuth(false);
       navigate("/", { replace: true });
       return;
     }
 
     setIsAllowed(true);
+    setIsCheckingAuth(false);
   }, [navigate]);
 
   // =========================================================
@@ -79,6 +60,7 @@ export default function DiagnosisManagePage() {
     }
 
     asyncFetchPetCareList(currentPage, petTypeFilter);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAllowed, currentPage, petTypeFilter]);
 
   // =========================================================
@@ -137,8 +119,10 @@ export default function DiagnosisManagePage() {
     return "상태 확인 필요";
   }
 
-  // 권한 확인 전에는 화면 렌더링하지 않음
-  if (!isAllowed) {
+  // =========================================================
+  // 권한 확인 중 또는 권한 없음이면 화면 렌더링 차단
+  // =========================================================
+  if (isCheckingAuth || !isAllowed) {
     return null;
   }
 
