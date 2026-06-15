@@ -96,7 +96,10 @@ export default function AdminMenu({ loginMember }) {
     setIsOpen(false);
     navigate("/mypage/message");
   }
-
+  function handleGoMyPage() {
+    setIsOpen(false);
+    navigate("/mypage");
+  }
   function messageCounter(msgList) {
     return msgList.filter((msg) => msg.readYn === "N").length;
   }
@@ -144,6 +147,10 @@ export default function AdminMenu({ loginMember }) {
               관리자페이지
             </button>
           )}
+
+          <button type="button" onClick={handleGoMyPage}>
+            마이페이지
+          </button>
 
           <button type="button" onClick={handleGoAdminHome}>
             {getRoleLabel(role)}
