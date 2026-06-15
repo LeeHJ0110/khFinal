@@ -12,4 +12,6 @@ import java.util.List;
 public interface BoardReplyReportRepository extends JpaRepository<BoardReplyReportEntity, Long> {
     boolean existsByReplyAndReporter(BoardReplyEntity reply, MemberEntity reporter);
     List<BoardReplyReportEntity> findAllByStatus(String status);
+
+    List<BoardReplyReportEntity> findAllByReply_IdOrderByCreatedAtDesc(Long replyId);
 }

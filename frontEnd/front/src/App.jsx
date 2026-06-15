@@ -74,6 +74,7 @@ import PointHistoryPage from "./pages/mypage/PointHistoryPage";
 import ProtectedRoute from "./shared/components/security/ProtectedRoute";
 import KarteListPage from "./pages/karte/KarteLIstPage";
 import ScheduleMainPage from "./pages/schedule/scheduleMainPage";
+import AdminCommunityHistoryPage from "./pages/admin/community/AdminCommunityHistoryPage";
 //
 
 function App() {
@@ -236,6 +237,7 @@ function App() {
             <Route path="message/sent" element={<AdminSentMessagePage />} />
             <Route path="delivery" element={<AdminDeliveryPage />} />
             <Route path="insurance" element={<AdminInsurancePage />} />
+            <Route path="community" element={<AdminCommunityHistoryPage />} />
           </Route>
 
           {/* 공용페이지 (route path 수정해야함)*/}

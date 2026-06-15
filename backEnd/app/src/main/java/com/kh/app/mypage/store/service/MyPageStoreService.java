@@ -1,15 +1,12 @@
 package com.kh.app.mypage.store.service;
 
-
 import com.kh.app.aws.service.S3Service;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.mypage.store.dto.response.StoreOrderHistoryItemResDto;
 import com.kh.app.mypage.store.dto.response.StoreOrderHistoryResDto;
-import com.kh.app.store.entity.StoreOrderEntity;
-import com.kh.app.store.entity.StoreOrderItemEntity;
-import com.kh.app.store.entity.StoreProductImageEntity;
-import com.kh.app.store.entity.StoreReviewEntity;
+import com.kh.app.store.entity.*;
+import com.kh.app.store.repository.StoreOrderDeliveryRepository;
 import com.kh.app.store.repository.StoreOrderItemRepository;
 import com.kh.app.store.repository.StoreOrderRepository;
 import com.kh.app.store.repository.StoreProductImageRepository;
@@ -30,6 +27,7 @@ public class MyPageStoreService {
     private final MemberRepository memberRepository;
     private final StoreOrderRepository storeOrderRepository;
     private final StoreOrderItemRepository storeOrderItemRepository;
+    private final StoreOrderDeliveryRepository storeOrderDeliveryRepository;
     private final StoreProductImageRepository storeProductImageRepository;
     private final StoreReviewRepository storeReviewRepository;
     private final S3Service s3Service;
@@ -45,8 +43,9 @@ public class MyPageStoreService {
                 );
 
         return storeOrderRepository
-                .findByMember_IdOrderByCreatedAtDesc(
+                .findByMember_IdAndOrderStatusOrderByCreatedAtDesc(
                         member.getId(),
+                        StoreOrderStatus.PAID,
                         pageable
                 )
                 .map(this::convertToDto);
@@ -62,9 +61,16 @@ public class MyPageStoreService {
                         .map(this::convertItemDto)
                         .toList();
 
+        StoreDeliveryStatus deliveryStatus =
+                storeOrderDeliveryRepository
+                        .findByOrder_OrderId(order.getOrderId())
+                        .map(StoreOrderDeliveryEntity::getDeliveryStatus)
+                        .orElse(null);
+
         return StoreOrderHistoryResDto.from(
                 order,
-                itemList
+                itemList,
+                deliveryStatus
         );
     }
 

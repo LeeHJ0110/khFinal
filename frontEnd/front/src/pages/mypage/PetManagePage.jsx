@@ -473,6 +473,7 @@ const LoadingBox = styled.div`
 
 const PetTabs = styled.div`
   display: flex;
+  width: 50%;
   align-items: center;
   gap: 16px;
   padding: 18px;
