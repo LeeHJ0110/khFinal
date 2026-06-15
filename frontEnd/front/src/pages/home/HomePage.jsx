@@ -520,14 +520,14 @@ const HeroLeftDim = styled.div`
   background:
     linear-gradient(
       90deg,
-      rgba(0, 150, 110, 0.78) 0%,
-      rgba(0, 150, 110, 0.56) 22%,
-      rgba(0, 150, 110, 0.22) 43%,
+      rgba(0, 150, 110, 0.82) 0%,
+      rgba(0, 150, 110, 0.82) 22%,
+      rgba(0, 150, 110, 0.46) 43%,
       rgba(0, 150, 110, 0) 66%
     ),
     linear-gradient(
       180deg,
-      rgba(0, 169, 123, 0.1) 0%,
+      rgba(0, 169, 123, 0.07) 0%,
       rgba(0, 169, 123, 0) 100%
     );
 
@@ -599,10 +599,10 @@ const HeroLogoText = styled.h1`
   color: var(--color-white);
   font-size: 96px;
   line-height: 0.9;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -4px;
 
-  text-shadow: 0 8px 26px rgba(0, 95, 75, 0.2);
+  text-shadow: 0 6px 18px rgba(0, 95, 75, 0.22);
 `;
 
 const HeroDesc = styled.p`
@@ -614,7 +614,7 @@ const HeroDesc = styled.p`
   font-weight: 600;
   letter-spacing: -0.8px;
 
-  text-shadow: 0 6px 18px rgba(0, 95, 75, 0.22);
+  text-shadow: 0 6px 18px rgba(0, 95, 75, 0.897);
 `;
 
 const HeroButtonGroup = styled.div`
@@ -746,7 +746,7 @@ const IntroKicker = styled.div`
   color: var(--color-main-dark);
 
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.8px;
 `;
 
@@ -765,7 +765,7 @@ const QuoteMark = styled.span`
   margin: 0 10px;
   color: var(--text-main);
   font-size: 36px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const IntroDesc = styled.p`
@@ -912,7 +912,7 @@ const ServiceIcon = styled.div`
 
   color: #ffffff;
   font-size: 28px;
-  font-weight: 900;
+  font-weight: 700;
 
   box-shadow:
     0 14px 28px rgba(0, 110, 83, 0.26),
@@ -932,7 +932,7 @@ const ServiceLabel = styled.div`
   color: rgba(255, 255, 255, 0.96);
 
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -0.2px;
 
   backdrop-filter: blur(10px);
@@ -963,7 +963,7 @@ const ServiceTitle = styled.h3`
   color: #123f3a;
   font-size: 22px;
   line-height: 1.22;
-  font-weight: 900;
+  font-weight: 650;
   letter-spacing: -1px;
 `;
 
@@ -1024,7 +1024,7 @@ const ServiceButton = styled.div`
   color: var(--color-white);
 
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 550;
 
   box-shadow: 0 10px 20px rgba(0, 169, 123, 0.24);
 
@@ -1064,7 +1064,7 @@ const FeatureKicker = styled.div`
   color: var(--color-main-dark);
 
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: 0.8px;
 `;
 
@@ -1074,7 +1074,7 @@ const FeatureTitle = styled.h2`
   color: var(--text-main);
   font-size: 38px;
   line-height: 1.45;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -1.6px;
 `;
 
@@ -1158,7 +1158,7 @@ const FeatureMenuIcon = styled.div`
   background: linear-gradient(135deg, #00a97b 0%, #5ec8a7 100%);
   color: #ffffff;
   font-size: 26px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const FeatureMenuTextBox = styled.div`
@@ -1169,7 +1169,7 @@ const FeatureMenuTextBox = styled.div`
 const FeatureMenuTitle = styled.div`
   color: #1f3d3c;
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -0.6px;
 `;
 
@@ -1185,7 +1185,7 @@ const FeatureMenuArrow = styled.div`
   flex: 0 0 auto;
   color: var(--color-main-dark);
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const PreviewStage = styled.div`
@@ -1307,7 +1307,7 @@ const PreviewTopPill = styled.div`
   color: var(--color-main-dark);
 
   font-size: 13px;
-  font-weight: 900;
+  font-weight: 700;
 `;
 
 const PreviewScreenArea = styled.div`
@@ -1399,7 +1399,7 @@ const PreviewSummaryIcon = styled.div`
 
   font-size: 29px;
   line-height: 1;
-  font-weight: 900;
+  font-weight: 700;
 
   box-shadow:
     0 14px 28px rgba(0, 169, 123, 0.2),
@@ -1414,7 +1414,7 @@ const PreviewSummaryLabel = styled.div`
   color: #7b8c88;
   font-size: 12px;
   line-height: 1;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -0.1px;
 `;
 
@@ -1424,7 +1424,7 @@ const PreviewSummaryTitle = styled.div`
   color: #123f3a;
   font-size: 25px;
   line-height: 1.12;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -1px;
 `;
 
@@ -1502,7 +1502,7 @@ const ReviewMainTitle = styled.h2`
   color: #000000;
   font-size: 42px;
   line-height: 1.2;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -2px;
 `;
 
@@ -1570,7 +1570,7 @@ const CtaTitle = styled.h3`
   margin: 0;
   color: var(--color-main-dark);
   font-size: 26px;
-  font-weight: 900;
+  font-weight: 700;
   letter-spacing: -0.8px;
 `;
 

@@ -96,7 +96,7 @@ export default function AdminMenu({ loginMember }) {
 
         <span className="header-user-name">{nickname}님</span>
 
-        <span className={isOpen ? "user-arrow is-open" : "user-arrow"}>⌄</span>
+        <span className={isOpen ? "user-arrow is-open" : "user-arrow"}>▼</span>
       </button>
 
       {isOpen && (
