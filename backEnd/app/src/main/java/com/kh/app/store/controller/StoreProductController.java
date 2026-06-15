@@ -99,7 +99,7 @@ public class StoreProductController {
     }
 
     // 2. 관리자 : 상품 목록 조회
-    @PreAuthorize("hasRole('Store')")
+    @PreAuthorize("hasRole('STORE')")
     @Operation(
             summary = "관리자 상품 목록조회",
             description = "관리자가 전체 상품목록을 검색, 필터, 정렬 조건으로 조회하는 기능"
