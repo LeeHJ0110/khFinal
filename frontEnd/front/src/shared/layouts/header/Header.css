@@ -10,7 +10,7 @@
   --header-menu-item-width: 126px;
 
   --header-search-width: 320px;
-  --header-alarm-width: 34px;
+  --header-alarm-width: 36px;
   --header-user-width: 180px;
   --header-action-width: 104px;
   --header-user-name-width: 112px;
@@ -116,8 +116,6 @@
 
 /* ================================
    Right Area
-   구조:
-   [검색창] [게스트/유저/관리자 메뉴]
 ================================ */
 
 .header-right {
@@ -128,7 +126,7 @@
   display: grid;
   grid-template-columns: minmax(180px, var(--header-search-width)) auto;
   align-items: center;
-  column-gap: 14px;
+  column-gap: 10px;
 
   min-width: 0;
 }
@@ -204,6 +202,13 @@
   background-color: rgba(0, 169, 123, 0.08);
 }
 
+.header-search button img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  display: block;
+}
+
 /* ================================
    Menu Wrappers
 ================================ */
@@ -216,7 +221,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 14px;
+  gap: 10px;
 
   position: relative;
   white-space: nowrap;
@@ -280,9 +285,14 @@
 .header-alarm {
   position: relative;
   width: var(--header-alarm-width);
-  height: 34px;
+  height: 36px;
+  flex: 0 0 var(--header-alarm-width);
 
+  margin-right: -8px;
+
+  padding: 0;
   border: none;
+  border-radius: 50%;
   background: transparent;
   color: var(--color-white);
 
@@ -291,33 +301,64 @@
   justify-content: center;
 
   cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.header-alarm:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.header-alarm:active {
+  transform: translateY(1px);
 }
 
 .header-alarm-icon {
-  font-size: 21px;
+  width: 23px;
+  height: 23px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
   line-height: 1;
+}
+
+.header-alarm-icon img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+  object-fit: contain;
+  object-position: center;
 }
 
 .alarm-badge {
   position: absolute;
-  right: -2px;
-  top: 0;
+  right: -3px;
+  top: 1px;
 
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
   border-radius: 999px;
-  background-color: #ff4d5a;
-  color: var(--color-white);
+  background-color: #ff3b30;
+  color: #ffffff;
+  border: 2px solid var(--color-main);
 
   font-size: 10px;
   font-weight: 900;
   line-height: 1;
+
+  box-shadow: 0 4px 8px rgba(255, 59, 48, 0.32);
+  pointer-events: none;
 }
 
 /* ================================
@@ -447,13 +488,6 @@
   position: absolute;
   top: calc(100% + 0px);
 
-  /*
-    user-menu 구조:
-    [알림] [프로필/닉네임] [로그아웃]
-
-    드롭다운은 프로필/닉네임 버튼 아래에 떠야 하므로
-    오른쪽 로그아웃 버튼 너비만큼 왼쪽으로 당긴다.
-  */
   right: calc(var(--header-action-width) + 14px);
 
   z-index: 2000;
@@ -533,7 +567,6 @@
    Responsive
 ================================ */
 
-/* 노트북 폭 대응 */
 @media (max-width: 1440px) {
   .header {
     --header-logo-area-width: 120px;
@@ -542,6 +575,7 @@
     --header-action-width: 96px;
     --header-user-width: 164px;
     --header-user-name-width: 98px;
+    --header-alarm-width: 34px;
   }
 
   .header-menu a {
@@ -567,9 +601,13 @@
   .header-dropdown {
     right: calc(var(--header-action-width) + 10px);
   }
+
+  .header-alarm-icon {
+    width: 22px;
+    height: 22px;
+  }
 }
 
-/* 더 작은 화면 대응 */
 @media (max-width: 1200px) {
   .header {
     --header-logo-area-width: 110px;
@@ -578,6 +616,7 @@
     --header-action-width: 88px;
     --header-user-width: 150px;
     --header-user-name-width: 84px;
+    --header-alarm-width: 32px;
   }
 
   .header-right {
@@ -605,17 +644,14 @@
   .header-dropdown {
     right: calc(var(--header-action-width) + 8px);
   }
-}
 
-.header-search button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+  .header-alarm-icon {
+    width: 21px;
+    height: 21px;
+  }
 
-.header-search button img {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  display: block;
+  .alarm-badge {
+    right: -4px;
+    top: 0;
+  }
 }

@@ -19,6 +19,7 @@ function makeStoreMenus(basePath) {
   return [
     { label: "강아지", path: "/store/dog" },
     { label: "고양이", path: "/store/cat" },
+    { type: "divider" },
     ...categoryMenus.map((menu) => ({
       label: menu.label,
       path: `${basePath}/${menu.pathName}`,

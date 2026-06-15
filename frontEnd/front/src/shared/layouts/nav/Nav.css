@@ -152,3 +152,25 @@
     --common-nav-item-width: 104px;
   }
 }
+
+.common-nav li.common-nav-divider {
+  width: 2px;
+  min-width: 2px;
+  height: 16px;
+  margin: 0 14px;
+  padding: 0;
+  flex: 0 0 1px;
+
+  display: block;
+
+  border-left: none;
+  border-right: none;
+
+  background-color: rgba(0, 169, 123, 0.45);
+  border-radius: 999px;
+}
+
+.common-nav li.common-nav-divider::after,
+.common-nav li.common-nav-divider:hover::after {
+  display: none;
+}
