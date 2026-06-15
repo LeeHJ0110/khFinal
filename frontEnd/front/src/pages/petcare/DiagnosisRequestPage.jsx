@@ -426,34 +426,34 @@ function DiagnosisRequestPage() {
   // 건강진단 최종 신청
   // =========================================================
   async function handleSubmit() {
-  if (!selectedPet) {
-    alert("반려동물을 선택해 주세요.");
+    if (!selectedPet) {
+      alert("반려동물을 선택해 주세요.");
 
-    return;
+      return;
+    }
+
+    try {
+      await submitDiagnosis({
+        petId: selectedPet.petId,
+        answerList,
+        eyeFiles,
+        skinFiles,
+        teethFiles,
+      });
+
+      setMainStep("COMPLETE");
+
+      alert("건강진단 신청이 완료되었습니다.");
+    } catch (error) {
+      console.error("건강진단 최종 신청 실패:", error);
+
+      alert(
+        error.response?.data?.message ||
+          submitErrorMessage ||
+          "건강진단 신청에 실패했습니다.",
+      );
+    }
   }
-
-  try {
-    await submitDiagnosis({
-      petId: selectedPet.petId,
-      answerList,
-      eyeFiles,
-      skinFiles,
-      teethFiles,
-    });
-
-    setMainStep("COMPLETE");
-
-    alert("건강진단 신청이 완료되었습니다.");
-  } catch (error) {
-    console.error("건강진단 최종 신청 실패:", error);
-
-    alert(
-      error.response?.data?.message ||
-        submitErrorMessage ||
-        "건강진단 신청에 실패했습니다.",
-    );
-  }
-}
 
   // =========================================================
   // 이전 버튼
