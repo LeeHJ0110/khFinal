@@ -110,7 +110,7 @@ export default function ReviewBoardList({
 
                 <ItemMeta>
                   <WriterName>
-                    {item.writerNickname || "탈퇴한 회원"}
+                    {item.writerNickname || "정지된 회원"}
                   </WriterName>
                   <span>•</span>
                   <RelativeTime>

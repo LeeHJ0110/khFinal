@@ -161,7 +161,10 @@ export default function BoardDetailPage() {
       console.error("신고 실패:", err);
       if (err.response && err.response.data) {
         const errorData = err.response.data;
-        const msg = typeof errorData === "string" ? errorData : (errorData.message || "신고 처리에 실패했습니다.");
+        const msg =
+          typeof errorData === "string"
+            ? errorData
+            : errorData.message || "신고 처리에 실패했습니다.";
         alert(msg);
       } else {
         alert("신고 처리에 실패했습니다.");
@@ -207,7 +210,10 @@ export default function BoardDetailPage() {
       console.error("댓글 신고 실패:", err);
       if (err.response && err.response.data) {
         const errorData = err.response.data;
-        const msg = typeof errorData === "string" ? errorData : (errorData.message || "댓글 신고 처리에 실패했습니다.");
+        const msg =
+          typeof errorData === "string"
+            ? errorData
+            : errorData.message || "댓글 신고 처리에 실패했습니다.";
         alert(msg);
       } else {
         alert("댓글 신고 처리에 실패했습니다.");
@@ -373,7 +379,7 @@ export default function BoardDetailPage() {
                 <AuthorNameRow>
                   <LevelBadge>Lv.{detail.writerLevel || 1}</LevelBadge>
                   <AuthorName>
-                    {detail.writerNickname || "탈퇴한 회원"}
+                    {detail.writerNickname || "정지된 회원"}
                   </AuthorName>
                 </AuthorNameRow>
                 <CreatedAtTime>
