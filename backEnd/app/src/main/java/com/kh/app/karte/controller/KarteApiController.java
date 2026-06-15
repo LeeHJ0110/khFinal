@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,6 +49,8 @@ public class KarteApiController {
                 .build();
     }
 
+    @PreAuthorize("hasRole('DOCTOR')")
+
     @Operation(summary = "게시글 목록 조회", description = "게시글 목록 불러옴(번호, 제목, 작성자")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "게시글조회 성공"),
@@ -78,12 +81,4 @@ public class KarteApiController {
         return ResponseEntity.ok();
     }
 
-//    //수정
-//    @PutMapping("{id}")
-//    public ResponseEntity.BodyBuilder update(
-//            @PathVariable Long id,
-//            @RequestBody KarteReqDto reqDto){
-//        trainingService.update(id, reqDto);
-//        return ResponseEntity.ok();
-//    }
 }
