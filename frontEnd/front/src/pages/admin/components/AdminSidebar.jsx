@@ -28,12 +28,46 @@ export default function AdminSidebar() {
       </ProfileArea>
 
       <MenuArea>
-        <MenuLink to="/admin/member">회원 조회</MenuLink>
-        <MenuLink to="/admin/message/send">쪽지 발송</MenuLink>
-        <MenuLink to="/admin/message/sent">보낸 쪽지함</MenuLink>
-        <MenuLink to="/admin/delivery">배송 관리</MenuLink>
-        <MenuLink to="/admin/community">신고 이력</MenuLink>
-        <MenuLink to="/admin/insurance">보험 신청 관리</MenuLink>
+        {/* 총관리자 */}
+        {admin?.role === "A" && (
+          <>
+            <MenuLink to="/admin/member">회원 조회</MenuLink>
+            <MenuLink to="/admin/message/send">쪽지 발송</MenuLink>
+            <MenuLink to="/admin/message/sent">보낸 쪽지함</MenuLink>
+            <MenuLink to="/admin/delivery">배송 관리</MenuLink>
+            <MenuLink to="/admin/community">신고 이력</MenuLink>
+            <MenuLink to="/admin/insurance">보험 신청 관리</MenuLink>
+          </>
+        )}
+
+        {/* 판매관리자 */}
+        {admin?.role === "S" && (
+          <>
+            <MenuLink to="/admin/message/send">쪽지 발송</MenuLink>
+            <MenuLink to="/admin/message/sent">보낸 쪽지함</MenuLink>
+            <MenuLink to="/admin/delivery">배송 관리</MenuLink>
+            <MenuLink to="/store/product/admin">상품 관리</MenuLink>
+          </>
+        )}
+
+        {/* 수의사 */}
+        {admin?.role === "D" && (
+          <>
+            <MenuLink to="/admin/message/send">쪽지 발송</MenuLink>
+            <MenuLink to="/admin/message/sent">보낸 쪽지함</MenuLink>
+            <MenuLink to="/admin/insurance">보험 신청 관리</MenuLink>
+            <MenuLink to="/healthCare/doctor">건강진단 신청 관리</MenuLink>
+          </>
+        )}
+
+        {/* 게시판관리자 */}
+        {admin?.role === "B" && (
+          <>
+            <MenuLink to="/admin/message/send">쪽지 발송</MenuLink>
+            <MenuLink to="/admin/message/sent">보낸 쪽지함</MenuLink>
+            <MenuLink to="/admin/community">신고 이력</MenuLink>
+          </>
+        )}
       </MenuArea>
     </Sidebar>
   );
