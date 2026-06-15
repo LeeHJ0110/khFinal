@@ -48,7 +48,8 @@ function getLowestHealthCategory(scores) {
 }
 
 export default function KarteDetailPage() {
-  const awsUrl = "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/";
+  const awsUrl =
+    "https://kh251118fileserver-398370180939-ap-northeast-2-an.s3.ap-northeast-2.amazonaws.com/";
   const { isLoading, data, asyncFetchKarteDetail } = useKarte();
   const {
     isLoading: scoreLoaing,
@@ -146,19 +147,28 @@ export default function KarteDetailPage() {
             {/* 상단 프로필 및 통합 리포트 영역 */}
             <ContentRow style={{ marginTop: "40px" }}>
               <PetCard>
-                <PetThumb>
-                  {data.pet?.imageUrl ? (
-                    <img src={awsUrl + data.pet?.imageUrl} alt={data.pet.name} />
-                  ) : (
-                    <span>🐾</span>
-                  )}
-                </PetThumb>
-                <PetInfo>
-                  <BreedName>
-                    {data.pet?.breed.name ?? "입력해주세요"}
-                  </BreedName>
-                  <PetName>{data.pet?.name ?? "반려동물"}</PetName>
-                </PetInfo>
+                <PetMainProfile>
+                  <PetThumb>
+                    {data.pet?.imageUrl ? (
+                      <img
+                        src={awsUrl + data.pet?.imageUrl}
+                        alt={data.pet.name}
+                      />
+                    ) : (
+                      <span>🐾</span>
+                    )}
+                  </PetThumb>
+                  <PetInfo>
+                    <BreedName>
+                      {data.pet?.breed.name ?? "입력해주세요"}
+                    </BreedName>
+                    <PetName>{data.pet?.name ?? "반려동물"}</PetName>
+                  </PetInfo>
+                </PetMainProfile>
+                <CardDateText>
+                  📅 검사 날짜 : {formatDate(data.createdAt)}
+                </CardDateText>
+
                 <InfoRow>
                   <InfoBadge>
                     <InfoIcon src={heart} alt="" />
@@ -173,20 +183,17 @@ export default function KarteDetailPage() {
               </PetCard>
 
               <RightSection>
-                <DateBadge>{formatDate(data.createdAt)}</DateBadge>
-
-                {/* 진단요약과 의사소견 통합 리포트 카드 */}
                 <ReportContainer>
                   <ReportSection>
                     <SectionTitle>📋 진단 요약</SectionTitle>
-                    <SectionContent>{data.summary ?? "진단 요약 데이터가 없습니다."}</SectionContent>
+                    <SummaryBox>
+                      {data.summary ?? "진단 요약 데이터가 없습니다."}
+                    </SummaryBox>
                   </ReportSection>
-                  
-                  <Divider />
 
                   <ReportSection>
                     <SectionTitle>🩺 의사 소견</SectionTitle>
-                    <SectionContent>{data.opinion}</SectionContent>
+                    <OpinionBox>{data.opinion}</OpinionBox>
                   </ReportSection>
                 </ReportContainer>
               </RightSection>
@@ -225,7 +232,7 @@ export default function KarteDetailPage() {
 
                 <Divider />
 
-                {/* 오른쪽: 건강 점수 추이 영역 */}
+                {/* 오른쪽: 건강 점수 추이 영역 (우측 마진 확장 기법 적용) */}
                 <ChartSection>
                   <ChartTitle>📈 현재 건강점수 추이</ChartTitle>
                   {diffText && (
@@ -235,10 +242,15 @@ export default function KarteDetailPage() {
                     <ResponsiveContainer width="100%" height={300}>
                       <AreaChart
                         data={sortedHistory}
+                        margin={{ top: 10, right: 45, left: 0, bottom: 0 }}
                         onContextMenu={(_, e) => e.preventDefault()}
                       >
                         <CartesianGrid strokeDasharray="3 3" vertical={true} />
-                        <XAxis dataKey="createdAt" interval={0} tick={{ fill: "#666", fontSize: 14 }}/>
+                        <XAxis
+                          dataKey="createdAt"
+                          interval={0}
+                          tick={{ fill: "#666", fontSize: 14 }}
+                        />
                         <YAxis width={40} domain={[0, 100]} />
                         <Tooltip />
                         <Area
@@ -257,7 +269,9 @@ export default function KarteDetailPage() {
             {/* 반려동물 평균 비교 차트 카드 */}
             <ContentRow>
               <AverageChartContainer>
-                <AverageChartHeader>📊 {data.pet?.name}와 평균 비교</AverageChartHeader>
+                <AverageChartHeader>
+                  📊 {data.pet?.name}와 평균 비교
+                </AverageChartHeader>
                 <AverageChartContent>
                   <PetScoreChart petData={data} listArr={listArr} />
                 </AverageChartContent>
@@ -279,11 +293,13 @@ export default function KarteDetailPage() {
   );
 }
 
-/* 💡 신규 추가: 카드들을 시각적으로 강력하게 띄워주기 위한 소프트 미색 배경 도포 */
+// ==========================================
+// 스타일드 컴포넌트 정의부
+// ==========================================
 const PageBackground = styled.div`
   width: 100%;
   min-height: 100vh;
-  background-color: #f8fafc; /* 차분하고 고급스러운 Slate 그레이시 화이트 적용 */
+  background-color: #f8fafc;
   padding-bottom: 60px;
 `;
 
@@ -291,10 +307,6 @@ const Wrapper = styled.main`
   max-width: 1300px;
   margin: 0 auto;
   padding: 20px;
-  font-family:
-    "Pretendard",
-    -apple-system,
-    sans-serif;
 `;
 
 const ContentRow = styled.div`
@@ -304,39 +316,35 @@ const ContentRow = styled.div`
   align-items: stretch;
 `;
 
-/* 💡 공통 핵심 변경 사양: 옅은 보더선을 과감히 지우고, 입체적인 뎁스 섀도우 처리로 가독성 극대화 */
 const PetCard = styled.section`
-  position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
   background-color: #ffffff;
   border-left: 6px solid #5ec8a7;
-  border-radius: 4px 24px 24px 4px;
-  padding: 54px 24px 24px 24px;
-  /* 선명하고 묵직하게 바뀐 대시보드 전용 멀티 레이어 섀도우 */
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 10px 25px -5px rgba(42, 65, 57, 0.08);
-  min-width: 300px;
-  text-align: center;
+  border-radius: 4px 20px 20px 4px;
+  padding: 28px 24px;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.02),
+    0 10px 25px -5px rgba(42, 65, 57, 0.06);
+  min-width: 320px;
+`;
+
+const PetMainProfile = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 20px;
 `;
 
 const PetThumb = styled.div`
-  position: absolute;
-  top: -40px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 4px solid #ffffff;
-  box-shadow: 0 8px 24px rgba(42, 65, 57, 0.12);
+  width: 80px;
+  height: 80px;
+  border-radius: 12px;
+  background: #f1f5f9;
   overflow: hidden;
-
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 
   img {
     width: 100%;
@@ -345,44 +353,49 @@ const PetThumb = styled.div`
   }
 
   span {
-    font-size: 32px;
+    font-size: 28px;
   }
 `;
 
 const PetInfo = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center;
-  margin-top: 10px;
-  margin-bottom: 24px;
+  align-items: flex-start;
+  gap: 6px;
+`;
+
+const CardDateText = styled.span`
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: -0.2px;
+  margin: 20px 0;
 `;
 
 const BreedName = styled.h3`
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
-  color: #5ec8a7;
-  background-color: #e6f7f2; /* 조금 더 대비를 높여 뚜렷하게 보이도록 수정 */
-  padding: 4px 12px;
-  border-radius: 20px;
-  margin: 0 0 8px 0;
+  color: #47b291;
+  background-color: #e6f7f2;
+  padding: 4px 10px;
+  border-radius: 8px;
+  margin: 0;
   letter-spacing: -0.3px;
 `;
 
 const PetName = styled.h2`
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
-  color: #1a201e;
+  color: #1e293b;
   margin: 0;
 `;
 
 const InfoRow = styled.div`
   display: flex;
   width: 100%;
-  gap: 1px;
-  background: #eef2f5; /* 절개선 음영 대비 강화 */
-  border-radius: 12px;
-  overflow: hidden;
-  padding: 2px;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 28px;
 `;
 
 const InfoBadge = styled.div`
@@ -392,14 +405,15 @@ const InfoBadge = styled.div`
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 12px 0;
-  background: #ffffff;
-  border-radius: 10px;
+  padding: 14px 0;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
 
   span {
     font-size: 15px;
     font-weight: 700;
-    color: #334155;
+    color: #475569;
   }
 `;
 
@@ -413,58 +427,60 @@ const RightSection = styled.div`
   flex: 1;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 16px;
-`;
-
-const DateBadge = styled.div`
-  background-color: #47b291; /* 폰트 및 바지 가독성을 위해 베이스 컬러 명도 조절 */
-  color: white;
-  padding: 8px 18px;
-  border-radius: 8px;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 12px rgba(71, 178, 145, 0.2);
 `;
 
 const ReportContainer = styled.div`
   width: 100%;
+  height: 100%;
   background-color: #ffffff;
   border-left: 6px solid #5ec8a7;
-  border-radius: 4px 24px 24px 4px;
-  padding: 28px 32px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 10px 25px -5px rgba(42, 65, 57, 0.08);
+  border-radius: 4px 20px 20px 4px;
+  padding: 32px;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.02),
+    0 10px 25px -5px rgba(42, 65, 57, 0.06);
   flex: 1;
-  
   display: flex;
-  gap: 32px;
+  flex-direction: column;
+  gap: 24px;
 `;
 
 const ReportSection = styled.div`
-  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 12px;
 `;
 
 const SectionTitle = styled.div`
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   color: #1e293b;
 `;
 
-const SectionContent = styled.div`
+const SummaryBox = styled.div`
+  background-color: #e6f7f2;
+  color: #2c7a6b;
+  padding: 16px 20px;
+  border-radius: 12px;
   font-size: 15px;
-  line-height: 1.65;
-  color: #475569;
-  word-break: break-all;
+  line-height: 1.6;
   white-space: pre-wrap;
+`;
+
+const OpinionBox = styled.div`
+  background-color: #f8fafc;
+  color: #475569;
+  padding: 16px 20px;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  border: 1px solid #e2e8f0;
 `;
 
 const Divider = styled.div`
   width: 1px;
-  background-color: #f1f5f9; /* 디바이더 선을 훨씬 깨끗하고 부드럽게 정돈 */
+  background-color: #f1f5f9;
   align-self: stretch;
 `;
 
@@ -474,8 +490,10 @@ const CombinedChartContainer = styled.div`
   border-left: 6px solid #5ec8a7;
   border-radius: 4px 24px 24px 4px;
   padding: 28px 32px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 10px 25px -5px rgba(42, 65, 57, 0.08);
-  
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.02),
+    0 10px 25px -5px rgba(42, 65, 57, 0.08);
+
   display: flex;
   gap: 32px;
 `;
@@ -512,7 +530,9 @@ const AverageChartContainer = styled.div`
   border-left: 6px solid #5ec8a7;
   border-radius: 4px 24px 24px 4px;
   padding: 28px 32px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 10px 25px -5px rgba(42, 65, 57, 0.08);
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.02),
+    0 10px 25px -5px rgba(42, 65, 57, 0.08);
   display: flex;
   flex-direction: column;
   gap: 20px;

@@ -8,10 +8,10 @@ import "./Footer.css";
   - 추후 아이콘 이미지가 준비되면 icon 자리에 이미지 경로를 넣어 교체하면 됩니다.
 */
 const footerMenus = [
-  { label: "건강관리", icon: "▣", path: "/health" },
+  { label: "건강관리", icon: "▣", path: "/healthCare" },
   { label: "스토어", icon: "□", path: "/store" },
   { label: "커뮤니티", icon: "♧", path: "/community" },
-  { label: "일정관리", icon: "♢", path: "/schedule" },
+  { label: "일정관리", icon: "♢", path: "/healthCare/schedule" },
 ];
 
 export default function Footer() {
