@@ -77,8 +77,8 @@ public class PetCareController {
                 petCareService.getQuestionList(petType)
         );
     }
-    // 페이징 목록조회 - 수의사만 접근 가능
-    @PreAuthorize("hasRole('DOCTOR')")
+    // 페이징 목록조회 - 수의사만,관리자만 접근 가능
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     @GetMapping("/diagnosis/list")
     public ResponseEntity<Object> requestDiagnosisList(
             @RequestParam(defaultValue = "0") int pno,
@@ -90,7 +90,7 @@ public class PetCareController {
     }
 
     // 상세보기 - 수의사만 접근 가능
-    @PreAuthorize("hasRole('DOCTOR')")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     @GetMapping("/diagnosis/{diagnosisReqId}")
     public ResponseEntity<Object> getDiagnosisDetail(
             @PathVariable Long diagnosisReqId
@@ -101,7 +101,7 @@ public class PetCareController {
     }
 
     // 건강진단 완료 처리 - 수의사만 접근 가능
-    @PreAuthorize("hasRole('DOCTOR')")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     @PatchMapping("/diagnosis/{diagnosisReqId}/complete")
     public ResponseEntity<Object> completeDiagnosis(
             @PathVariable Long diagnosisReqId
@@ -113,7 +113,7 @@ public class PetCareController {
     }
 
     // 건강진단 신청 반려 - 수의사만 접근 가능
-    @PreAuthorize("hasRole('DOCTOR')")
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     @PatchMapping("/diagnosis/{id}/reject")
     public ResponseEntity<Void> rejectDiagnosis(
             @PathVariable Long id,
