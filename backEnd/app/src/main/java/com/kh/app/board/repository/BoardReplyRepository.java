@@ -7,6 +7,7 @@ import com.kh.app.member.entity.MemberEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import java.util.List;
@@ -21,4 +22,22 @@ public interface BoardReplyRepository extends JpaRepository<BoardReplyEntity, Lo
             @Param("delYn") DelYn delYn,
             Pageable pageable
     );
+
+    Page<BoardReplyEntity> findAllByBlindYnAndDelYnOrderByCreatedAtDesc(
+            String blindYn,
+            DelYn delYn,
+            Pageable pageable
+    );
+
+    @Modifying
+    @Query("""
+    update BoardReplyEntity r
+       set r.blindYn = :blindYn
+     where r.id = :replyId
+""")
+    void updateBlindYn(
+            @Param("replyId") Long replyId,
+            @Param("blindYn") String blindYn
+    );
+
 }

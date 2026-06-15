@@ -20,4 +20,5 @@ public interface StoreOrderDeliveryRepository extends JpaRepository<StoreOrderDe
     List<StoreOrderDeliveryEntity> findAllByDeliveryIdIn(List<Long> deliveryIds);
 
     Optional<StoreOrderDeliveryEntity> findByOrder(StoreOrderEntity order);
+    Optional<StoreOrderDeliveryEntity> findByOrder_OrderId(Long orderId);
 }

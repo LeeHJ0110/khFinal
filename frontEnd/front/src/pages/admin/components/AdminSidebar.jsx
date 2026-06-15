@@ -32,7 +32,7 @@ export default function AdminSidebar() {
         <MenuLink to="/admin/message/send">쪽지 발송</MenuLink>
         <MenuLink to="/admin/message/sent">보낸 쪽지함</MenuLink>
         <MenuLink to="/admin/delivery">배송 관리</MenuLink>
-        <MenuLink to="/admin/report">신고 이력</MenuLink>
+        <MenuLink to="/admin/community">신고 이력</MenuLink>
         <MenuLink to="/admin/insurance">보험 신청 관리</MenuLink>
       </MenuArea>
     </Sidebar>
