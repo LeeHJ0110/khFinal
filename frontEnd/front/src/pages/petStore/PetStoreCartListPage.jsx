@@ -113,7 +113,6 @@ export default function PetStoreCartListPage() {
 
       setRecommendProductList(list);
     } catch (error) {
-      console.error("추천 상품 조회 실패", error);
       setRecommendProductList([]);
     } finally {
       setIsRecommendLoading(false);
@@ -239,7 +238,6 @@ export default function PetStoreCartListPage() {
       alert("장바구니에 상품이 담겼습니다.");
       await loadCartList();
     } catch (error) {
-      console.error("추천 상품 장바구니 담기 실패", error);
       alert("장바구니 담기에 실패했습니다.");
     } finally {
       setRecommendCartSubmittingId(null);

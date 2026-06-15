@@ -17,7 +17,6 @@ export function getRecentProducts() {
 
     return parsedValue;
   } catch (error) {
-    console.error("최근 본 상품 조회 실패", error);
     return [];
   }
 }

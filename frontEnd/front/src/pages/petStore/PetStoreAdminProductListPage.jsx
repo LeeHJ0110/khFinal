@@ -1,3 +1,4 @@
+import { getTokenPayload, getLoginRole } from "../../utils/auth";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
@@ -5,10 +6,13 @@ import usePetStoreAdminProductList from "../../features/petStore/hooks/usePetSto
 import usePetStoreProductModal from "../../features/petStore/hooks/usePetStoreProductModal";
 import PetStoreProductModal from "../../features/petStore/components/PetStoreProductModal";
 import PetStoreNavGate from "./PetStoreNavGate";
+import { useEffect, useState } from "react";
 
 const PAGE_GROUP_SIZE = 10;
 
 export default function PetStoreAdminProductListPage() {
+  const [isAllowed, setIsAllowed] = useState(false);
+
   const navigate = useNavigate();
 
   const {
@@ -99,6 +103,18 @@ export default function PetStoreAdminProductListPage() {
     evt.preventDefault();
     handleSearch();
   }
+
+  useEffect(() => {
+    const role = getLoginRole();
+
+    if (role !== "STORE") {
+      alert("스토어 관리자 권한이 없습니다.");
+      navigate("/", { replace: true });
+      return;
+    }
+
+    setIsAllowed(true);
+  }, [navigate]);
 
   return (
     <>

@@ -58,8 +58,6 @@ export default function usePetStoreWishList() {
       const normalized = normalizeWishPage(response.data);
       setWishPage(normalized);
     } catch (error) {
-      console.error("관심상품 목록 조회 실패", error);
-
       setWishPage({
         wishList: [],
         totalElements: 0,

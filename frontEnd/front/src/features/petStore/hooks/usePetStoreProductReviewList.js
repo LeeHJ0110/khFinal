@@ -33,8 +33,6 @@ export default function usePetStoreProductReviewList(productId) {
         sort: nextSort,
       });
 
-      console.log("상품 리뷰 응답:", response.data);
-
       const data = response.data ?? {};
       const nextSummary = data.summary ?? null;
       const nextReviewPage = data.reviewPage ?? null;
@@ -50,7 +48,6 @@ export default function usePetStoreProductReviewList(productId) {
         await loadAllReviewImages(nextReviewPage);
       }
     } catch (error) {
-      console.error("상품 리뷰 목록 조회 실패:", error);
       alert("상품 리뷰를 불러오지 못했습니다.");
     } finally {
       setIsLoading(false);

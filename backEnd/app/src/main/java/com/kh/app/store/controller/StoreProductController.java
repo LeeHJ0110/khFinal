@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -98,6 +99,7 @@ public class StoreProductController {
     }
 
     // 2. 관리자 : 상품 목록 조회
+    @PreAuthorize("hasRole('Store')")
     @Operation(
             summary = "관리자 상품 목록조회",
             description = "관리자가 전체 상품목록을 검색, 필터, 정렬 조건으로 조회하는 기능"

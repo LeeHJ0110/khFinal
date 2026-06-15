@@ -357,10 +357,6 @@ export default function PetStoreProductDetailPage() {
 
       setShowCartBubble(true);
     } catch (error) {
-      console.error("장바구니 담기 실패", error);
-      console.log("status:", error?.response?.status);
-      console.log("data:", error?.response?.data);
-
       if (isAuthError(error)) {
         moveToLoginWithRedirect();
         return;

@@ -73,8 +73,6 @@ export default function PetStoreMyReviewListPage() {
     (_, index) => index,
   );
 
-  console.log(reviewList);
-
   return (
     <Wrapper>
       <PetStoreNavGate />
