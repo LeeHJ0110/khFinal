@@ -30,6 +30,7 @@ public class KarteApiController {
 
     private final KarteService karteService;
     //등록
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "일정작성 성공"),
             @ApiResponse(responseCode = "401", description = "인증정보 없음")
@@ -48,8 +49,6 @@ public class KarteApiController {
                 .status(HttpStatus.CREATED)
                 .build();
     }
-
-    @PreAuthorize("hasRole('DOCTOR')")
 
     @Operation(summary = "게시글 목록 조회", description = "게시글 목록 불러옴(번호, 제목, 작성자")
     @ApiResponses({
