@@ -404,10 +404,12 @@ export default function BoardDetailPage() {
                 <SvgEye />
                 <span>{(detail.hits ?? 0).toLocaleString()}</span>
               </StatItem>
-              <StatItem>
-                <SvgHeart />
-                <span>{likesCount}</span>
-              </StatItem>
+              {activeCategory !== "FAQ" && (
+                <StatItem>
+                  <SvgHeart />
+                  <span>{likesCount}</span>
+                </StatItem>
+              )}
             </MetaRight>
           </PostMetaRow>
 

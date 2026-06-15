@@ -4,6 +4,7 @@ import "react-quill-new/dist/quill.snow.css";
 import styled from "styled-components";
 import { useLocation } from "react-router-dom";
 import useBoardForm from "../../features/board/hooks/useBoardForm";
+import BoardSubNavbar from "./components/BoardSubNavbar";
 
 const getLoginMember = () => {
   const saved = localStorage.getItem("loginMember");
@@ -23,8 +24,10 @@ const getLoginMember = () => {
         const decodedPayload = decodeURIComponent(
           atob(base64)
             .split("")
-            .map((char) => `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`)
-            .join("")
+            .map(
+              (char) => `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`,
+            )
+            .join(""),
         );
         const payload = JSON.parse(decodedPayload);
         return {
@@ -119,103 +122,130 @@ export default function BoardWritePage() {
 
   return (
     <Container>
-      {/* 타이틀 영역 (수정 모드 분기) */}
-      <TitleSection>
-        <MainTitle>{isEdit ? "게시글수정" : "게시글작성"}</MainTitle>
-        <SubTitle>반려동물과의 소중한 추억을 기록하세요!</SubTitle>
-      </TitleSection>
+      <BoardSubNavbar
+        activeTab={boardCategory}
+        bypassPortal={true}
+        onTabChange={(tab) => {
+          if (
+            window.confirm(
+              "작성 중인 내용이 저장되지 않을 수 있습니다. 이동하시겠습니까?"
+            )
+          ) {
+            if (tab === "HOME") {
+              navigate("/community");
+            } else {
+              navigate(`/community/list?category=${tab}`);
+            }
+          }
+        }}
+      />
 
-      {/* 입력 폼 */}
-      <FormWrapper onSubmit={handleSubmit}>
-        {/* 게시판 & 말머리 셀렉터 (작성 가능한 게시판만 옵션 제공) */}
-        <SelectorWrapper>
-          <CustomSelect value={boardCategory} onChange={handleCategoryChange}>
-            <option value="FREE">자유게시판</option>
-            <option value="PRODUCT_REVIEW">상품후기게시판</option>
-            <option value="FAC_REVIEW">시설후기게시판</option>
-            {isAdmin && (
-              <>
-                <option value="FAQ">FAQ게시판</option>
-                <option value="NEWS">뉴스게시판</option>
-              </>
-            )}
-          </CustomSelect>
+      <ContentWrapper>
+        {/* 타이틀 영역 (수정 모드 분기) */}
+        <TitleSection>
+          <MainTitle>{isEdit ? "게시글수정" : "게시글작성"}</MainTitle>
+          <SubTitle>반려동물과의 소중한 추억을 기록하세요!</SubTitle>
+        </TitleSection>
 
-          {boardCategory === "FREE" && (
-            <CustomSelect
-              value={boardSubCategory}
-              onChange={handleSubCategoryChange}
-            >
-              <option value="잡담">잡담</option>
-              <option value="정보">정보</option>
-              <option value="유머">유머</option>
+        {/* 입력 폼 */}
+        <FormWrapper onSubmit={handleSubmit}>
+          {/* 게시판 & 말머리 셀렉터 (작성 가능한 게시판만 옵션 제공) */}
+          <SelectorWrapper>
+            <CustomSelect value={boardCategory} onChange={handleCategoryChange}>
+              <option value="FREE">자유게시판</option>
+              <option value="PRODUCT_REVIEW">상품후기게시판</option>
+              <option value="FAC_REVIEW">시설후기게시판</option>
+              {isAdmin && (
+                <>
+                  <option value="FAQ">FAQ게시판</option>
+                  <option value="NEWS">뉴스게시판</option>
+                </>
+              )}
             </CustomSelect>
+
+            {boardCategory === "FREE" && (
+              <CustomSelect
+                value={boardSubCategory}
+                onChange={handleSubCategoryChange}
+              >
+                <option value="잡담">잡담</option>
+                <option value="정보">정보</option>
+                <option value="유머">유머</option>
+              </CustomSelect>
+            )}
+          </SelectorWrapper>
+
+          {/* 별점 선택기 (상품후기, 시설후기일 때만 동적으로 활성화되는 프리미엄 기능) */}
+          {(boardCategory === "PRODUCT_REVIEW" ||
+            boardCategory === "FAC_REVIEW") && (
+            <StarsRatingContainer>
+              <StarsLabel>리뷰 평점</StarsLabel>
+              <StarsList>
+                {[1, 2, 3, 4, 5].map((score) => (
+                  <StarIcon
+                    key={score}
+                    filled={boardStars >= score}
+                    onClick={() => handleStarClick(score)}
+                  >
+                    ★
+                  </StarIcon>
+                ))}
+              </StarsList>
+            </StarsRatingContainer>
           )}
-        </SelectorWrapper>
 
-        {/* 별점 선택기 (상품후기, 시설후기일 때만 동적으로 활성화되는 프리미엄 기능) */}
-        {(boardCategory === "PRODUCT_REVIEW" ||
-          boardCategory === "FAC_REVIEW") && (
-          <StarsRatingContainer>
-            <StarsLabel>리뷰 평점</StarsLabel>
-            <StarsList>
-              {[1, 2, 3, 4, 5].map((score) => (
-                <StarIcon
-                  key={score}
-                  filled={boardStars >= score}
-                  onClick={() => handleStarClick(score)}
-                >
-                  ★
-                </StarIcon>
-              ))}
-            </StarsList>
-          </StarsRatingContainer>
-        )}
+          {/* 제목 입력 */}
+          <TitleInputGroup>
+            <TitleLabel>제목</TitleLabel>
+            <TitleField
+              type="text"
+              placeholder="제목을 입력해주세요"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </TitleInputGroup>
 
-        {/* 제목 입력 */}
-        <TitleInputGroup>
-          <TitleLabel>제목</TitleLabel>
-          <TitleField
-            type="text"
-            placeholder="제목을 입력해주세요"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </TitleInputGroup>
+          {/* 에디터 (React Quill) */}
+          <EditorContainer>
+            <ReactQuill
+              value={content}
+              onChange={handleEditorChange}
+              modules={modules}
+              formats={formats}
+              placeholder="내용을 작성해주세요. 타인을 비방하거나 불쾌감을 주는 게시글은 무통보 삭제될 수 있습니다. 가장 첫 번째 사진이 썸네일로 지정됩니다."
+            />
+          </EditorContainer>
 
-        {/* 에디터 (React Quill) */}
-        <EditorContainer>
-          <ReactQuill
-            value={content}
-            onChange={handleEditorChange}
-            modules={modules}
-            formats={formats}
-            placeholder="내용을 작성해주세요. 타인을 비방하거나 불쾌감을 주는 게시글은 무통보 삭제될 수 있습니다. 가장 첫 번째 사진이 썸네일로 지정됩니다."
-          />
-        </EditorContainer>
-
-        {/* 액션 버튼 */}
-        <ActionsWrapper>
-          <CancelButton type="button" onClick={() => navigate(-1)}>
-            취소
-          </CancelButton>
-          <SubmitButton type="submit">
-            {isEdit ? "수정하기" : "등록하기"}
-          </SubmitButton>
-        </ActionsWrapper>
-      </FormWrapper>
+          {/* 액션 버튼 */}
+          <ActionsWrapper>
+            <CancelButton type="button" onClick={() => navigate(-1)}>
+              취소
+            </CancelButton>
+            <SubmitButton type="submit">
+              {isEdit ? "수정하기" : "등록하기"}
+            </SubmitButton>
+          </ActionsWrapper>
+        </FormWrapper>
+      </ContentWrapper>
     </Container>
   );
 }
 
 const Container = styled.div`
-  width: var(--layout-width);
-  margin: 0 auto;
-  padding: 60px var(--layout-padding-x);
-  background-color: #ffffff;
+  width: 100%;
+  background-color: #fafbfc;
   display: flex;
   flex-direction: column;
   align-items: center;
+  font-family: "Paperozi", "Noto Sans KR", sans-serif;
+  padding-bottom: 80px;
+`;
+
+const ContentWrapper = styled.div`
+  width: 1000px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 40px;
 `;
 //test
 
@@ -461,4 +491,59 @@ const SubmitButton = styled.button`
   &:active {
     transform: scale(0.98);
   }
+`;
+
+// 상단 서브 내비게이션 바
+const SubNavbar = styled.div`
+  width: 100%;
+  height: 48px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #eef1f2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+`;
+
+const SubNavInner = styled.div`
+  width: 1400px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 0 20px;
+`;
+
+const SubNavItem = styled.button`
+  height: 100%;
+  background: none;
+  border: none;
+  font-size: 14px;
+  font-weight: ${(props) => (props.$active ? "700" : "500")};
+  color: ${(props) => (props.$active ? "var(--color-main)" : "#555555")};
+  position: relative;
+  cursor: pointer;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--color-main);
+  }
+
+  ${(props) =>
+    props.$active &&
+    `
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background-color: var(--color-main);
+      border-radius: 3px 3px 0 0;
+    }
+  `}
 `;

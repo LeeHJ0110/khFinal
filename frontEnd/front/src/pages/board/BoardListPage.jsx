@@ -31,8 +31,11 @@ export default function BoardListPage() {
           const decodedPayload = decodeURIComponent(
             atob(base64)
               .split("")
-              .map((char) => `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`)
-              .join("")
+              .map(
+                (char) =>
+                  `%${`00${char.charCodeAt(0).toString(16)}`.slice(-2)}`,
+              )
+              .join(""),
           );
           const payload = JSON.parse(decodedPayload);
           return {
@@ -219,27 +222,27 @@ export default function BoardListPage() {
                 loginMember?.role === "A" ||
                 loginMember?.role === "BOARD" ||
                 loginMember?.role === "B") && (
-              <WriteButton
-                onClick={() => {
-                  if (!loginMember) {
-                    alert(
-                      "로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.",
-                    );
-                    navigate("/member/login");
-                    return;
-                  }
-                  navigate("/community/write", {
-                    state: { defaultCategory: activeTab },
-                  });
-                }}
-              >
-                <SvgPencil />
-                글쓰기
-              </WriteButton>
-            )}
+                <WriteButton
+                  onClick={() => {
+                    if (!loginMember) {
+                      alert(
+                        "로그인이 필요한 서비스입니다. 로그인 페이지로 이동합니다.",
+                      );
+                      navigate("/member/login");
+                      return;
+                    }
+                    navigate("/community/write", {
+                      state: { defaultCategory: activeTab },
+                    });
+                  }}
+                >
+                  <SvgPencil />
+                  글쓰기
+                </WriteButton>
+              )}
           </BoardHeader>
 
-          {activeTab !== "NEWS" && (
+          {activeTab !== "NEWS" && activeTab !== "FAQ" && (
             <FilterBar>
               <TextFilters>
                 <TextFilterItem
@@ -291,10 +294,6 @@ export default function BoardListPage() {
               )}
             </FilterBar>
           )}
-
-          {/* ========================================================= */}
-          {/* [수정] 카테고리별 특화 리스트 컴포넌트 호출 실연동 */}
-          {/* ========================================================= */}
 
           {activeTab === "FREE" && (
             <FreeBoardList

@@ -183,7 +183,7 @@ const SidebarContainer = styled.div`
   flex-direction: column;
   gap: 24px;
   flex-shrink: 0;
-  font-family: "Noto Sans KR", sans-serif;
+  font-family: "Paperozi", "Noto Sans KR", sans-serif;
 `;
 
 const WidgetCard = styled.div`
