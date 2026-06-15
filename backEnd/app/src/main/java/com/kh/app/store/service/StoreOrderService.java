@@ -46,6 +46,7 @@ public class StoreOrderService {
     private final StoreOrderItemRepository storeOrderItemRepository;
     private final StorePaymentRepository storePaymentRepository;
     private final StoreKakaoPayService storeKakaoPayService;
+    private final StoreOrderDeliveryRepository storeOrderDeliveryRepository;
 
     //포인트 관련
     private final PointService pointService;
@@ -455,6 +456,8 @@ public class StoreOrderService {
         }
         order.paid();
 
+        createOrderDeliveryIfNotExists(order);
+
         //주문 포인트 사용 처리
         pointService.useOrderPoint(
                 order.getMember(),
@@ -662,5 +665,33 @@ public class StoreOrderService {
                 .partnerOrderId(partnerOrderId)
                 .nextRedirectPcUrl(kakaoReadyRes.getNextRedirectPcUrl())
                 .build();
+    }
+
+
+    private void createOrderDeliveryIfNotExists(StoreOrderEntity order) {
+        boolean alreadyExists = storeOrderDeliveryRepository.findByOrder(order).isPresent();
+
+        if (alreadyExists) {
+            return;
+        }
+
+        StoreOrderDeliveryEntity delivery = StoreOrderDeliveryEntity.builder()
+                .order(order)
+                .deliveryAddressId(order.getDeliveryAddressId())
+                .deliveryReceiverName(order.getOrderReceiverName())
+                .deliveryReceiverPhone(order.getOrderReceiverPhone())
+                .deliveryZipCode(order.getOrderZipCode())
+                .deliveryAddress(order.getOrderAddress())
+                .deliveryAddressDetail(order.getOrderAddressDetail())
+                .deliveryRequestMemo(order.getOrderDeliveryRequest())
+                .deliveryStatus(StoreDeliveryStatus.READY)
+                .build();
+
+        storeOrderDeliveryRepository.save(delivery);
+
+        log.info("[스토어 배송 정보 생성] orderId={}, deliveryId={}",
+                order.getOrderId(),
+                delivery.getDeliveryId()
+        );
     }
 }

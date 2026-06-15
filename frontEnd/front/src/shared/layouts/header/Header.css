@@ -174,12 +174,12 @@
   background: transparent;
 
   color: var(--text-main);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .header-search input::placeholder {
-  color: #7c9a8f;
+  color: var(--text-desc);
   font-weight: 500;
 }
 
@@ -384,7 +384,7 @@
 
   color: var(--color-white);
   font-size: 15px;
-  font-weight: 900;
+  font-weight: 600;
 
   white-space: nowrap;
   overflow: hidden;
@@ -410,8 +410,8 @@
 ================================ */
 
 .header-logout-btn {
-  width: var(--header-action-width);
-  height: 31px;
+  width: 75px;
+  height: 25px;
   padding: 0;
   margin: 0;
 
@@ -420,8 +420,8 @@
   background-color: var(--color-white);
   color: var(--color-main);
 
-  font-size: 13px;
-  font-weight: 900;
+  font-size: 11px;
+  font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
 
