@@ -44,7 +44,6 @@ export default function usePetStoreReviewForm() {
       alert("리뷰가 등록되었습니다.");
       navigate("/mypage/orders");
     } catch (error) {
-      console.error("리뷰 등록 실패:", error);
       alert(error?.response?.data?.message ?? "리뷰 등록에 실패했습니다.");
     } finally {
       setIsSubmitting(false);

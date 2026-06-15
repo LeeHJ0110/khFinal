@@ -149,7 +149,6 @@ export default function PetStoreOrderPage() {
 
       setOrdererName(payload.nickname || payload.username || "회원");
     } catch (error) {
-      console.error("accessToken 파싱 실패:", error);
       setOrdererName("회원");
     }
   }
@@ -161,7 +160,6 @@ export default function PetStoreOrderPage() {
       const response = await fetchCartList();
       setCart(response.data);
     } catch (error) {
-      console.error(error);
       alert("주문 정보를 불러오지 못했습니다.");
     } finally {
       setIsLoading(false);
@@ -184,7 +182,6 @@ export default function PetStoreOrderPage() {
           null,
       );
     } catch (error) {
-      console.error(error);
       alert("배송지 정보를 불러오지 못했습니다.");
     }
   }
@@ -245,8 +242,6 @@ export default function PetStoreOrderPage() {
       sessionStorage.removeItem("storeCheckoutUsedPoint");
       window.location.href = redirectUrl;
     } catch (error) {
-      console.error("결제 준비 실패", error);
-
       const serverMessage =
         error?.response?.data?.message ||
         error?.response?.data?.error ||

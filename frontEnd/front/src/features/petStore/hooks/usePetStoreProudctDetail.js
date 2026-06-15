@@ -23,7 +23,6 @@ export default function usePetStoreProductDetail(productId) {
       //최근조회 상품 저장
       addRecentProduct(resp.data);
     } catch (error) {
-      console.error("상품 상세 조회 실패", error);
       setProduct(null);
       setError(error);
     } finally {

@@ -13,9 +13,6 @@ export default function PetStoreNavGate({ targetPetType, activeCategory }) {
     getLoginMemberFromToken(),
   );
 
-  console.log("스토어 네브 loginMember:", loginMember);
-  console.log("스토어 네브 role:", loginMember?.role);
-
   useEffect(() => {
     function handleAuthChange() {
       setLoginMember(getLoginMemberFromToken());

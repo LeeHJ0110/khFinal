@@ -155,7 +155,6 @@ export default function PetStoreWishListPage() {
 
       alert("장바구니에 상품이 담겼습니다.");
     } catch (error) {
-      console.error("장바구니 담기 실패", error);
       alert("장바구니 담기에 실패했습니다.");
     } finally {
       setCartSubmittingId(null);
@@ -184,7 +183,6 @@ export default function PetStoreWishListPage() {
 
       alert("선택한 상품이 장바구니에 담겼습니다.");
     } catch (error) {
-      console.error("선택 상품 장바구니 담기 실패", error);
       alert("장바구니 담기에 실패했습니다.");
     } finally {
       setIsSelectedCartSubmitting(false);

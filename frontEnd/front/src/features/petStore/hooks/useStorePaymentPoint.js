@@ -21,7 +21,6 @@ export default function useStorePaymentPoint({
       const response = await fetchMyPoint();
       setCurrentPoint(Number(response.data || 0));
     } catch (error) {
-      console.error("내 포인트 조회 실패:", error);
       setCurrentPoint(0);
     } finally {
       setIsPointLoaded(true);
