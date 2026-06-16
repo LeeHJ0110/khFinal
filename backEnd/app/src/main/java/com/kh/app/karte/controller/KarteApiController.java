@@ -40,10 +40,6 @@ public class KarteApiController {
             @RequestBody KarteReqDto reqDto,
             @AuthenticationPrincipal String username
     ){
-        log.info("데이터 id" + reqDto.getDiaReqId());
-        log.info("데이터 의견" + reqDto.getOpinion());
-        log.info("데이터 요약" + reqDto.getSummary());
-        log.info("데이터 score" + reqDto.getScores());
         karteService.write(reqDto, username);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -66,18 +62,18 @@ public class KarteApiController {
     //상세조회
     @GetMapping("{id}")
     public ResponseEntity<KarteResDto> selectOne(
-            @PathVariable Long id
-//            @AuthenticationPrincipal String username    //TODO 유저가 맞는지 확인 방어 로직
+            @PathVariable Long id,
+            @AuthenticationPrincipal String username
     ){
-        KarteResDto resDto = karteService.selectOne(id);
+        KarteResDto resDto = karteService.selectOne(id, username);
         return ResponseEntity.ok(resDto);
     }
 
-    //삭제
-    @DeleteMapping("{id}")
-    public ResponseEntity.BodyBuilder delete(@PathVariable Long id){
-        karteService.delete(id);
-        return ResponseEntity.ok();
-    }
+//    //삭제
+//    @DeleteMapping("{id}")
+//    public ResponseEntity.BodyBuilder delete(@PathVariable Long id){
+//        karteService.delete(id);
+//        return ResponseEntity.ok();
+//    }
 
 }

@@ -92,6 +92,14 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/store/review/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/store/review/**").authenticated()
 
+                        //일정 로그인 전용
+                        .requestMatchers("/api/schedule/**").authenticated()
+                        .requestMatchers("/api/training/**").authenticated()
+
+                        //진단결과 로그인 전용
+                        .requestMatchers("/api/karte/**").authenticated()
+                        .requestMatchers("/api/score/**").authenticated()
+
                         .requestMatchers("/api/mypage/**").authenticated()
                         .requestMatchers("/api/message/**").authenticated()
 
