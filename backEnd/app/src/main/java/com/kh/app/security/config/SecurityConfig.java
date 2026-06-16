@@ -6,6 +6,7 @@ import com.kh.app.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -78,6 +79,18 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
+
+                        //비로그인자 스토어 허용
+                        .requestMatchers(HttpMethod.GET, "/api/store/product/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/store/review/product/**").permitAll()
+
+                        // 로그인 사용자 스토어 전용
+                        .requestMatchers("/api/store/order/**").authenticated()
+                        .requestMatchers("/api/store/review/my").authenticated()
+                        .requestMatchers("/api/store/review/my/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/store/review/**").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/store/review/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/store/review/**").authenticated()
 
                         .requestMatchers("/api/mypage/**").authenticated()
                         .requestMatchers("/api/message/**").authenticated()
