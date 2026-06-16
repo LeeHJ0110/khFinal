@@ -120,8 +120,8 @@ public class PetInsuranceController {
 
     // =========================================================
     // 보험 신청 취소 또는 가입 완료 보험 해지
-    // SID가 존재하면 카카오페이 정기결제도 비활성화
-    // =========================================================
+  // SID가 존재하면 카카오페이 정기결제도 비활성화
+   // =========================================================
     @PatchMapping("/application/{applicationId}/cancel")
     public ResponseEntity<Void> cancelInsurance(
             @PathVariable Long applicationId,
