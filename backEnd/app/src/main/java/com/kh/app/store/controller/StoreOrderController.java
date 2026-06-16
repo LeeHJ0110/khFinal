@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.util.UriComponentsBuilder;
 
 
 //<완성>
@@ -37,6 +39,8 @@ import org.springframework.web.bind.annotation.*;
 public class StoreOrderController {
 
     private final StoreOrderService storeOrderService;
+    @Value("${kakaopay.store.front-redirect-base-url}")
+    private String frontRedirectBaseUrl;
 
     // 1. 사용자 : 장바구니 등록
     @Operation(summary = "장바구니 상품 등록", description = "사용자가 장바구니에 상품을 등록하는 기능")
@@ -112,8 +116,14 @@ public class StoreOrderController {
     ) {
         storeOrderService.payApprove(orderId, pgToken);
 
+        String redirectUrl = UriComponentsBuilder
+                .fromUriString(frontRedirectBaseUrl)
+                .path("/store/order/complete")
+                .queryParam("orderId", orderId)
+                .toUriString();
+
         return ResponseEntity.status(HttpStatus.FOUND)
-                .header("Location", "http://localhost:5173/store/order/complete?orderId=" + orderId)
+                .header("Location", redirectUrl)
                 .build();
     }
 
@@ -121,8 +131,15 @@ public class StoreOrderController {
     public ResponseEntity<Void> payCancel(
             @RequestParam Long orderId
     ) {
+        String redirectUrl = UriComponentsBuilder
+                .fromUriString(frontRedirectBaseUrl)
+                .path("/store/order")
+                .queryParam("payStatus", "cancel")
+                .queryParam("orderId", orderId)
+                .toUriString();
+
         return ResponseEntity.status(HttpStatus.FOUND)
-                .header("Location", "http://localhost:5173/store/order/cancel?orderId=" + orderId)
+                .header("Location", redirectUrl)
                 .build();
     }
 
@@ -130,8 +147,15 @@ public class StoreOrderController {
     public ResponseEntity<Void> payFail(
             @RequestParam Long orderId
     ) {
+        String redirectUrl = UriComponentsBuilder
+                .fromUriString(frontRedirectBaseUrl)
+                .path("/store/order")
+                .queryParam("payStatus", "fail")
+                .queryParam("orderId", orderId)
+                .toUriString();
+
         return ResponseEntity.status(HttpStatus.FOUND)
-                .header("Location", "http://localhost:5173/store/order/fail?orderId=" + orderId)
+                .header("Location", redirectUrl)
                 .build();
     }
 

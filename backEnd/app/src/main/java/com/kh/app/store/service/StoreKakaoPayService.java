@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,9 +48,31 @@ public class StoreKakaoPayService {
         body.put("total_amount", totalAmount);
         body.put("tax_free_amount", 0);
 
-        body.put("approval_url", redirectBaseUrl + "/api/store/order/pay/approve?orderId=" + orderId);
-        body.put("cancel_url", redirectBaseUrl + "/api/store/order/pay/cancel?orderId=" + orderId);
-        body.put("fail_url", redirectBaseUrl + "/api/store/order/pay/fail?orderId=" + orderId);
+        String approvalUrl = UriComponentsBuilder
+                .fromUriString(redirectBaseUrl)
+                .path("/api/store/order/pay/approve")
+                .queryParam("orderId", orderId)
+                .toUriString();
+
+        String cancelUrl = UriComponentsBuilder
+                .fromUriString(redirectBaseUrl)
+                .path("/api/store/order/pay/cancel")
+                .queryParam("orderId", orderId)
+                .toUriString();
+
+        String failUrl = UriComponentsBuilder
+                .fromUriString(redirectBaseUrl)
+                .path("/api/store/order/pay/fail")
+                .queryParam("orderId", orderId)
+                .toUriString();
+
+        body.put("approval_url", approvalUrl);
+        body.put("cancel_url", cancelUrl);
+        body.put("fail_url", failUrl);
+
+        log.info("[스토어 카카오페이 ready] approvalUrl={}", approvalUrl);
+        log.info("[스토어 카카오페이 ready] cancelUrl={}", cancelUrl);
+        log.info("[스토어 카카오페이 ready] failUrl={}", failUrl);
 
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, getHeaders());
 

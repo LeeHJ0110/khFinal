@@ -84,10 +84,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/store/product/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/store/review/product/**").permitAll()
 
+                        // 카카오페이 결제 결과 URL은 인증 없이 허용
+                        .requestMatchers(
+                                "/api/store/order/pay/approve",
+                                "/api/store/order/pay/cancel",
+                                "/api/store/order/pay/fail"
+                        ).permitAll()
+
                         // 로그인 사용자 스토어 전용
                         .requestMatchers("/api/store/order/**").authenticated()
                         .requestMatchers("/api/store/review/my").authenticated()
                         .requestMatchers("/api/store/review/my/**").authenticated()
+                        .requestMatchers("/api/store/review/edit/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/store/review/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/store/review/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/store/review/**").authenticated()
