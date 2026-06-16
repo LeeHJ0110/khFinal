@@ -202,15 +202,10 @@ public class PetCareService {
             ImgCategory category
     ) throws IOException {
 
-        if (files == null || files.isEmpty()) {
-            return;
+        if (files == null || files.isEmpty()) {return;
         }
-
         for (MultipartFile file : files) {
-
-            if (file == null || file.isEmpty()) {
-                continue;
-            }
+            if (file == null || file.isEmpty()) {continue;}
 
             // S3에 업로드하고 저장 경로 반환
             String s3Key = s3Service.upload(
@@ -218,8 +213,7 @@ public class PetCareService {
                     "diagnosis/" + category.name().toLowerCase()
             );
 
-            ImgUrlEntity image =
-                    ImgUrlEntity.builder()
+            ImgUrlEntity image = ImgUrlEntity.builder()
                             .diagnosisReq(diagnosisReq)
                             .imgCategory(category)
 
