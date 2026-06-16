@@ -95,6 +95,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/mypage/**").authenticated()
                         .requestMatchers("/api/message/**").authenticated()
 
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/board/*",
+                                "/api/board/detail/*",
+                                "/api/board/search/unified"
+                        ).permitAll()
+
 
                         .requestMatchers("/api/admin/message/**")
                         .hasAnyRole("ADMIN", "BOARD", "DOCTOR", "STORE")
@@ -121,7 +127,6 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/admin/community/blind/**")
                         .hasAnyRole("ADMIN", "BOARD")
-
 
 
                         .anyRequest().authenticated()
