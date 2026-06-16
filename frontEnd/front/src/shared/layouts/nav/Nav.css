@@ -9,24 +9,40 @@
 
   width: 100%;
   height: var(--common-nav-height);
+
   background-color: var(--color-white);
   border-bottom: 1px solid var(--color-bg-soft);
 }
 
-/* Nav Inner */
+/* ================================
+   Nav Inner
+   - Header/Footer와 같은 shell 기준 사용
+================================ */
+
 .common-nav-inner {
   width: 100%;
-  max-width: var(--layout-max-width);
+  max-width: var(--shell-max-width);
   height: 100%;
   margin: 0 auto;
-  padding: 0 var(--layout-padding-x);
+  padding: 0 var(--shell-padding-x);
 
   display: flex;
   align-items: center;
   min-width: 0;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
 }
 
-/* Nav Group */
+.common-nav-inner::-webkit-scrollbar {
+  display: none;
+}
+
+/* ================================
+   Nav Groups
+================================ */
+
 .common-nav-left,
 .common-nav-right {
   height: 100%;
@@ -39,17 +55,25 @@
   list-style: none;
 }
 
+.common-nav-left {
+  flex-shrink: 0;
+}
+
 .common-nav-right {
   margin-left: auto;
   margin-right: var(--common-nav-edge-correction);
   flex-shrink: 0;
 }
 
-/* Nav Item */
+/* ================================
+   Nav Item
+================================ */
+
 .common-nav li {
   position: relative;
 
   width: var(--common-nav-item-width);
+  min-width: var(--common-nav-item-width);
   height: 100%;
   flex-shrink: 0;
 
@@ -85,7 +109,10 @@
     background-color 0.18s ease;
 }
 
-/* Active / Hover */
+/* ================================
+   Active / Hover
+================================ */
+
 .common-nav li.active a {
   color: var(--color-main);
   font-weight: 800;
@@ -100,6 +127,7 @@
   bottom: 0;
 
   height: 2px;
+
   background-color: var(--color-main);
 }
 
@@ -108,7 +136,10 @@
   background-color: var(--color-bg-light);
 }
 
-/* Icon */
+/* ================================
+   Icon
+================================ */
+
 .common-nav-icon {
   display: inline-flex;
   align-items: center;
@@ -122,7 +153,10 @@
   object-fit: contain;
 }
 
-/* Count Badge */
+/* ================================
+   Count Badge
+================================ */
+
 .common-nav-count {
   min-width: 16px;
   height: 16px;
@@ -141,17 +175,9 @@
   line-height: 1;
 }
 
-@media (max-width: 1440px) {
-  .common-nav {
-    --common-nav-item-width: 118px;
-  }
-}
-
-@media (max-width: 1200px) {
-  .common-nav {
-    --common-nav-item-width: 104px;
-  }
-}
+/* ================================
+   Divider
+================================ */
 
 .common-nav li.common-nav-divider {
   width: 2px;
@@ -173,4 +199,47 @@
 .common-nav li.common-nav-divider::after,
 .common-nav li.common-nav-divider:hover::after {
   display: none;
+}
+
+/* ================================
+   Responsive
+================================ */
+
+@media (max-width: 1440px) {
+  .common-nav {
+    --common-nav-item-width: 118px;
+  }
+
+  .common-nav a {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .common-nav {
+    --common-nav-item-width: 104px;
+  }
+
+  .common-nav a {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 900px) {
+  .common-nav {
+    --common-nav-item-width: 96px;
+  }
+
+  .common-nav-inner {
+    padding: 0 var(--layout-padding-x);
+  }
+
+  .common-nav a {
+    font-size: 12px;
+  }
+
+  .common-nav-icon img {
+    width: 15px;
+    height: 15px;
+  }
 }

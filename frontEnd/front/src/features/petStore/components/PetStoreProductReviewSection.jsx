@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import styled, { keyframes } from "styled-components";
 import usePetStoreProductReviewList from "../hooks/usePetStoreProductReviewList";
+import noImgIcon from "../../../assets/images/icon/녹색발바닥아이콘.png";
 
 function renderStars(rating) {
   const score = Math.round(Number(rating ?? 0));
@@ -52,6 +53,7 @@ export default function PetStoreProductReviewSection({ productId }) {
   const [selectedImageIndex, setSelectedImageIndex] = useState(-1);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [isGalleryModalOpen, setIsGalleryModalOpen] = useState(false);
+  const [failedProfileImageMap, setFailedProfileImageMap] = useState({});
 
   const modalImageList = galleryImageList
     .map((image) => image.url)
@@ -127,6 +129,13 @@ export default function PetStoreProductReviewSection({ productId }) {
     }
 
     handleChangeSort(nextSort);
+  }
+
+  function handleProfileImageError(reviewId) {
+    setFailedProfileImageMap((prev) => ({
+      ...prev,
+      [reviewId]: true,
+    }));
   }
 
   useEffect(() => {
@@ -239,6 +248,7 @@ export default function PetStoreProductReviewSection({ productId }) {
                     onClick={() => setIsGalleryModalOpen(true)}
                   >
                     <GalleryThumb src={image.url} alt="리뷰 이미지 더보기" />
+
                     <MoreOverlay>
                       <span>전체보기</span>
                       <strong>+{galleryImageList.length - 5}</strong>
@@ -304,13 +314,21 @@ export default function PetStoreProductReviewSection({ productId }) {
               <ReviewCard key={review.reviewId}>
                 <ReviewerArea>
                   <ProfileImageBox>
-                    {review.memberProfileImageUrl ? (
+                    {review.memberProfileImageUrl &&
+                    !failedProfileImageMap[review.reviewId] ? (
                       <ProfileImage
                         src={review.memberProfileImageUrl}
                         alt={review.memberNickname ?? "리뷰 작성자"}
+                        onError={() => handleProfileImageError(review.reviewId)}
                       />
                     ) : (
-                      <ProfilePlaceholder />
+                      <ProfilePlaceholder aria-label="기본 프로필">
+                        <ProfilePlaceholderIcon
+                          src={noImgIcon}
+                          alt=""
+                          aria-hidden="true"
+                        />
+                      </ProfilePlaceholder>
                     )}
                   </ProfileImageBox>
 
@@ -930,13 +948,27 @@ const ReviewerArea = styled.div`
 `;
 
 const ProfileImageBox = styled.div`
-  width: 42px;
-  height: 42px;
+  width: 50px;
+  height: 50px;
   overflow: hidden;
+  flex-shrink: 0;
 
-  border: 2px solid #e6f6f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(0, 174, 142, 0.28);
   border-radius: 50%;
-  background-color: #f0f0f0;
+  background: radial-gradient(
+    circle at 35% 25%,
+    #ffffff 0%,
+    #f7fffc 38%,
+    #e8fbf5 100%
+  );
+
+  box-shadow:
+    0 8px 20px rgba(18, 45, 46, 0.08),
+    inset 0 0 0 3px rgba(255, 255, 255, 0.82);
 `;
 
 const ProfileImage = styled.img`
@@ -948,7 +980,32 @@ const ProfileImage = styled.img`
 const ProfilePlaceholder = styled.div`
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #e7f4ef, #d9ebe5);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    radial-gradient(
+      circle at 35% 24%,
+      rgba(255, 255, 255, 0.95),
+      transparent 38%
+    ),
+    linear-gradient(135deg, #f4fffb 0%, #e0f8f0 100%);
+`;
+
+const ProfilePlaceholderIcon = styled.img`
+  width: 31px;
+  height: 31px;
+  object-fit: contain;
+  display: block;
+
+  opacity: 0.96;
+  transform: translateY(1px);
+  filter: drop-shadow(0 4px 7px rgba(0, 174, 142, 0.2));
+
+  user-select: none;
+  pointer-events: none;
 `;
 
 const ReviewerInfo = styled.div`
@@ -1436,6 +1493,7 @@ const ImageMoveButton = styled.button`
     box-shadow: 0 18px 40px rgba(0, 174, 142, 0.26);
   }
 `;
+
 const ImageCounter = styled.div`
   position: fixed;
   left: 48px;
