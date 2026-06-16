@@ -16,6 +16,11 @@ import storeIntroduction from "../../assets/images/homePage/홈용스토어.png"
 import insuIntroduction from "../../assets/images/homePage/홈용펫보험.png";
 import commuIntroduction from "../../assets/images/homePage/홈용커뮤니티.png";
 import careIntroduction from "../../assets/images/homePage/홈용맞춤관리.png";
+import card4andPersonalCareIcon from "../../assets/images/icon/흰달력.png";
+import card3andStoreIcon from "../../assets/images/icon/흰가방.png";
+import card2andCommuIcon from "../../assets/images/icon/흰커뮤니티.png";
+import card1andHealthCardIcon from "../../assets/images/icon/흰그래프.png";
+import petInsuIcon from "../../assets/images/icon/흰보험.png";
 
 const HOME_IMAGES = {
   heroBg: heroBgImg,
@@ -41,7 +46,7 @@ const serviceCards = [
     strongTitle: "우리 아이 상태를 점수로 확인",
     desc: "문진과 사진 기반으로 건강 상태를 확인하고, 필요한 관리 방향을 쉽게 파악합니다.",
     image: HOME_IMAGES.cardHealth,
-    icon: "✚",
+    iconSrc: card1andHealthCardIcon,
     tags: ["건강점수", "비대면 진단", "맞춤 리포트"],
     path: "/healthcare",
     buttonText: "진단 시작",
@@ -51,7 +56,7 @@ const serviceCards = [
     strongTitle: "반려인들의 경험을 한곳에",
     desc: "자유글, 시설후기, 상품후기, 뉴스까지 반려 생활에 필요한 정보를 공유합니다.",
     image: HOME_IMAGES.cardCommunity,
-    icon: "💬",
+    iconSrc: card2andCommuIcon,
     tags: ["자유", "시설후기", "뉴스"],
     path: "/community",
     buttonText: "둘러보기",
@@ -61,7 +66,7 @@ const serviceCards = [
     strongTitle: "건강 데이터 기반 맞춤 쇼핑",
     desc: "사료, 간식, 영양제, 배변용품까지 반려동물에게 필요한 제품을 편하게 찾습니다.",
     image: HOME_IMAGES.cardStore,
-    icon: "🛍",
+    iconSrc: card3andStoreIcon,
     tags: ["사료", "간식", "영양제", "배변용품"],
     path: "/store",
     buttonText: "스토어 이동",
@@ -71,7 +76,7 @@ const serviceCards = [
     strongTitle: "기록과 일정, 포인트까지 관리",
     desc: "훈련일기, 일정관리, 포인트 미션을 통해 보호자의 일상을 더 쉽게 관리합니다.",
     image: HOME_IMAGES.cardCare,
-    icon: "✓",
+    iconSrc: card4andPersonalCareIcon,
     tags: ["일정관리", "훈련일기", "포인트"],
     path: "/healthcare",
     buttonText: "관리 시작",
@@ -82,35 +87,35 @@ const featureTabs = [
   {
     key: "health",
     label: "건강관리",
-    icon: "＋",
+    iconSrc: card1andHealthCardIcon,
     screen: HOME_IMAGES.screenHealth,
     desc: "건강 상태를 확인하고 기록을 쌓아보세요.",
   },
   {
     key: "store",
     label: "스토어",
-    icon: "▣",
+    iconSrc: card3andStoreIcon,
     screen: HOME_IMAGES.screenStore,
     desc: "필요한 제품을 카테고리별로 쉽게 탐색합니다.",
   },
   {
     key: "insurance",
     label: "펫보험",
-    icon: "♡",
+    iconSrc: petInsuIcon,
     screen: HOME_IMAGES.screenInsurance,
     desc: "우리 아이에게 맞는 보험 정보를 비교해보세요.",
   },
   {
     key: "community",
     label: "커뮤니티",
-    icon: "♣",
+    iconSrc: card2andCommuIcon,
     screen: HOME_IMAGES.screenCommunity,
     desc: "반려인들과 정보와 경험을 자유롭게 공유합니다.",
   },
   {
     key: "custom",
     label: "맞춤형관리",
-    icon: "♧",
+    iconSrc: card4andPersonalCareIcon,
     screen: HOME_IMAGES.screenCustom,
     desc: "일정, 기록, 포인트까지 한 흐름으로 관리합니다.",
   },
@@ -219,7 +224,9 @@ export default function HomePage() {
               <ServiceBorder />
 
               <ServiceTop>
-                <ServiceIcon>{card.icon}</ServiceIcon>
+                <ServiceIcon>
+                  <IconImage src={card.iconSrc} alt="" aria-hidden="true" />
+                </ServiceIcon>
                 <ServiceLabel>{card.title}</ServiceLabel>
               </ServiceTop>
 
@@ -272,7 +279,9 @@ export default function HomePage() {
                   $active={activeFeature.key === tab.key}
                   onClick={() => handleClickFeature(tab)}
                 >
-                  <FeatureMenuIcon>{tab.icon}</FeatureMenuIcon>
+                  <FeatureMenuIcon>
+                    <IconImage src={tab.iconSrc} alt="" aria-hidden="true" />
+                  </FeatureMenuIcon>
 
                   <FeatureMenuTextBox>
                     <FeatureMenuTitle>{tab.label}</FeatureMenuTitle>
@@ -313,7 +322,13 @@ export default function HomePage() {
 
               <PreviewSummaryBar>
                 <PreviewSummaryItem>
-                  <PreviewSummaryIcon>{activeFeature.icon}</PreviewSummaryIcon>
+                  <PreviewSummaryIcon>
+                    <IconImage
+                      src={activeFeature.iconSrc}
+                      alt=""
+                      aria-hidden="true"
+                    />
+                  </PreviewSummaryIcon>
 
                   <PreviewSummaryTextBox>
                     <PreviewSummaryLabel>
@@ -462,14 +477,13 @@ const screenSlide = keyframes`
 
 const Wrapper = styled.main`
   width: 100%;
-  min-width: var(--layout-width);
   overflow: hidden;
   background-color: var(--color-white);
   color: var(--text-main);
 `;
 
 const SectionInner = styled.div`
-  width: 1200px;
+  width: var(--section-width-md);
   margin: 0 auto;
 `;
 
@@ -556,7 +570,7 @@ const HeroInner = styled.div`
   position: relative;
   z-index: 4;
 
-  width: 1440px;
+  width: var(--section-width-lg);
   height: calc(100% - var(--header-height));
   margin: 0 auto;
 
@@ -565,7 +579,7 @@ const HeroInner = styled.div`
 `;
 
 const HeroTextBox = styled.div`
-  width: 580px;
+  width: min(580px, 100%);
   margin-top: -120px;
   color: var(--color-white);
   animation: ${fadeRight} 0.9s ease forwards;
@@ -597,7 +611,7 @@ const HeroLogoText = styled.h1`
   margin: 26px 0 0;
 
   color: var(--color-white);
-  font-size: 96px;
+  font-size: clamp(64px, 5vw, 96px);
   line-height: 0.9;
   font-weight: 700;
   letter-spacing: -4px;
@@ -609,7 +623,7 @@ const HeroDesc = styled.p`
   margin: 28px 0 0;
 
   color: rgba(255, 255, 255, 0.96);
-  font-size: 23px;
+  font-size: clamp(18px, 1.4vw, 23px);
   line-height: 1.55;
   font-weight: 600;
   letter-spacing: -0.8px;
@@ -622,6 +636,11 @@ const HeroButtonGroup = styled.div`
   align-items: center;
   gap: 16px;
   margin-top: 34px;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 `;
 
 const HeroPrimaryButton = styled.button`
@@ -754,7 +773,7 @@ const IntroTitle = styled.h2`
   margin: 0;
   text-align: center;
   color: var(--text-main);
-  font-size: 40px;
+  font-size: clamp(30px, 2.5vw, 40px);
   line-height: 1.48;
   font-weight: 800;
   letter-spacing: -1.8px;
@@ -782,12 +801,16 @@ const ServiceGrid = styled.div`
   position: relative;
   z-index: 2;
 
-  width: 1180px;
+  width: min(1180px, calc(100vw - 48px));
   margin: 72px auto 0;
 
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 34px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const ServiceCard = styled.button`
@@ -832,6 +855,15 @@ const ServiceCard = styled.button`
 
   &:hover img {
     transform: scale(1.04);
+  }
+
+  @media (max-width: 900px) {
+    &:nth-child(2),
+    &:nth-child(4),
+    &:nth-child(2):hover,
+    &:nth-child(4):hover {
+      transform: none;
+    }
   }
 `;
 
@@ -910,13 +942,14 @@ const ServiceIcon = styled.div`
     rgba(94, 200, 167, 0.95)
   );
 
-  color: #ffffff;
-  font-size: 28px;
-  font-weight: 700;
-
   box-shadow:
     0 14px 28px rgba(0, 110, 83, 0.26),
     inset 0 1px 0 rgba(255, 255, 255, 0.25);
+
+  img {
+    width: 30px;
+    height: 30px;
+  }
 `;
 
 const ServiceLabel = styled.div`
@@ -1035,7 +1068,7 @@ const ServiceButton = styled.div`
 `;
 
 /* ================================
-   Feature Section - Rebuilt
+   Feature Section
 ================================ */
 
 const FeatureSection = styled.section`
@@ -1072,7 +1105,7 @@ const FeatureTitle = styled.h2`
   margin: 0;
   text-align: center;
   color: var(--text-main);
-  font-size: 38px;
+  font-size: clamp(30px, 2.4vw, 38px);
   line-height: 1.45;
   font-weight: 700;
   letter-spacing: -1.6px;
@@ -1091,9 +1124,13 @@ const FeatureShowcase = styled.div`
   margin-top: 66px;
 
   display: grid;
-  grid-template-columns: 340px 1fr;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
   gap: 34px;
   align-items: stretch;
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const FeatureMenuCard = styled.div`
@@ -1156,9 +1193,15 @@ const FeatureMenuIcon = styled.div`
 
   border-radius: 18px;
   background: linear-gradient(135deg, #00a97b 0%, #5ec8a7 100%);
-  color: #ffffff;
-  font-size: 26px;
-  font-weight: 700;
+
+  box-shadow:
+    0 10px 20px rgba(0, 169, 123, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.26);
+
+  img {
+    width: 27px;
+    height: 27px;
+  }
 `;
 
 const FeatureMenuTextBox = styled.div`
@@ -1191,7 +1234,7 @@ const FeatureMenuArrow = styled.div`
 const PreviewStage = styled.div`
   position: relative;
   min-height: 640px;
-  padding: 26px;
+  padding: clamp(18px, 2vw, 26px);
 
   border-radius: 34px;
   background:
@@ -1347,8 +1390,8 @@ const PreviewScreenImage = styled.img`
 
 const PreviewSummaryBar = styled.div`
   position: absolute;
-  left: 40px;
-  right: 40px;
+  left: clamp(18px, 3vw, 40px);
+  right: clamp(18px, 3vw, 40px);
   bottom: 38px;
   z-index: 3;
 
@@ -1356,7 +1399,7 @@ const PreviewSummaryBar = styled.div`
   padding: 18px 22px;
 
   display: grid;
-  grid-template-columns: 240px 1px 1fr 122px;
+  grid-template-columns: minmax(180px, 240px) 1px minmax(0, 1fr);
   align-items: center;
   column-gap: 22px;
 
@@ -1370,6 +1413,17 @@ const PreviewSummaryBar = styled.div`
     0 22px 42px rgba(18, 45, 46, 0.1),
     0 8px 18px rgba(18, 45, 46, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.62);
+
+  @media (max-width: 900px) {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    margin-top: 18px;
+
+    grid-template-columns: 1fr;
+    row-gap: 14px;
+  }
 `;
 
 const PreviewSummaryItem = styled.div`
@@ -1395,15 +1449,15 @@ const PreviewSummaryIcon = styled.div`
 
   border-radius: 20px;
   background: linear-gradient(135deg, #00a97b 0%, #5ec8a7 100%);
-  color: #ffffff;
-
-  font-size: 29px;
-  line-height: 1;
-  font-weight: 700;
 
   box-shadow:
     0 14px 28px rgba(0, 169, 123, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.28);
+
+  img {
+    width: 31px;
+    height: 31px;
+  }
 `;
 
 const PreviewSummaryTextBox = styled.div`
@@ -1447,6 +1501,10 @@ const PreviewSummaryDivider = styled.div`
     rgba(0, 169, 123, 0.2) 50%,
     rgba(0, 169, 123, 0) 100%
   );
+
+  @media (max-width: 900px) {
+    display: none;
+  }
 `;
 
 /* ================================
@@ -1460,17 +1518,23 @@ const ReviewSection = styled.section`
 `;
 
 const ReviewInner = styled.div`
-  width: 1220px;
+  width: min(1220px, calc(100vw - 48px));
   margin: 0 auto;
 
   display: grid;
-  grid-template-columns: 560px 1fr;
+  grid-template-columns: minmax(360px, 560px) minmax(0, 1fr);
   align-items: center;
-  column-gap: 88px;
+  column-gap: clamp(36px, 5vw, 88px);
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+    row-gap: 36px;
+  }
 `;
 
 const ReviewMediaArea = styled.div`
-  width: 560px;
+  width: 100%;
+  max-width: 560px;
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -1500,7 +1564,7 @@ const ReviewMainTitle = styled.h2`
   margin: 0;
 
   color: #000000;
-  font-size: 42px;
+  font-size: clamp(30px, 2.7vw, 42px);
   line-height: 1.2;
   font-weight: 700;
   letter-spacing: -2px;
@@ -1514,7 +1578,7 @@ const ReviewSubText = styled.p`
   margin: 34px 0 0;
 
   color: #666666;
-  font-size: 24px;
+  font-size: clamp(18px, 1.6vw, 24px);
   line-height: 1.55;
   font-weight: 500;
   letter-spacing: -1px;
@@ -1532,10 +1596,10 @@ const CtaSection = styled.section`
 
 const CtaInner = styled.div`
   position: relative;
-  width: 1100px;
-  height: 142px;
+  width: min(1100px, calc(100vw - 48px));
+  min-height: 142px;
   margin: 0 auto;
-  padding: 0 36px;
+  padding: 0 clamp(22px, 3vw, 36px);
 
   display: flex;
   align-items: center;
@@ -1549,6 +1613,7 @@ const CtaIcon = styled.div`
   width: 70px;
   height: 70px;
   margin-right: 22px;
+  flex: 0 0 auto;
 
   display: flex;
   align-items: center;
@@ -1564,12 +1629,14 @@ const CtaIcon = styled.div`
 const CtaTextBox = styled.div`
   position: relative;
   z-index: 2;
+  min-width: 0;
+  max-width: calc(100% - 520px);
 `;
 
 const CtaTitle = styled.h3`
   margin: 0;
   color: var(--color-main-dark);
-  font-size: 26px;
+  font-size: clamp(20px, 2vw, 26px);
   font-weight: 700;
   letter-spacing: -0.8px;
 `;
@@ -1577,7 +1644,7 @@ const CtaTitle = styled.h3`
 const CtaDesc = styled.p`
   margin: 9px 0 0;
   color: var(--text-sub);
-  font-size: 16px;
+  font-size: clamp(13px, 1.1vw, 16px);
   font-weight: 600;
 `;
 
@@ -1613,4 +1680,14 @@ const CtaPetsBox = styled.div`
     object-fit: contain;
     object-position: center bottom;
   }
+`;
+
+const IconImage = styled.img`
+  width: 28px;
+  height: 28px;
+  display: block;
+  object-fit: contain;
+
+  user-select: none;
+  pointer-events: none;
 `;

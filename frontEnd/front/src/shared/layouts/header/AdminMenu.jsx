@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { logout } from "../../../features/member/store/memberSlice";
 import useMessage from "../../../features/mypage/message/hooks/useMessage";
 import alarmIcon from "../../../assets/images/icon/헤더알림.png";
+import noImgIcon from "../../../assets/images/icon/녹색발바닥아이콘.png";
 
 function getAdminHomePath(role) {
   const pathMap = {
@@ -45,15 +46,23 @@ export default function AdminMenu({ loginMember }) {
   const { messageList, loading, fetchMyMessages } = useMessage();
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isProfileImageError, setIsProfileImageError] = useState(false);
+
   const menuRef = useRef(null);
 
   const nickname = loginMember?.nickname || "관리자";
   const role = loginMember?.role;
   const profileImageUrl = loginMember?.profileImageUrl;
 
+  const showProfileImage = profileImageUrl && !isProfileImageError;
+
   useEffect(() => {
     fetchMyMessages();
   }, [location.pathname]);
+
+  useEffect(() => {
+    setIsProfileImageError(false);
+  }, [profileImageUrl]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -87,6 +96,7 @@ export default function AdminMenu({ loginMember }) {
     setIsOpen(false);
     navigate(getAdminHomePath(role));
   }
+
   function handleGoAdmin() {
     setIsOpen(false);
     navigate("/admin/message/send");
@@ -96,12 +106,18 @@ export default function AdminMenu({ loginMember }) {
     setIsOpen(false);
     navigate("/mypage/message");
   }
+
   function handleGoMyPage() {
     setIsOpen(false);
     navigate("/mypage");
   }
+
   function messageCounter(msgList) {
     return msgList.filter((msg) => msg.readYn === "N").length;
+  }
+
+  function handleProfileImageError() {
+    setIsProfileImageError(true);
   }
 
   const msgCount = messageCounter(messageList);
@@ -128,10 +144,24 @@ export default function AdminMenu({ loginMember }) {
         onClick={() => setIsOpen((prev) => !prev)}
       >
         <span className="header-profile-img">
-          {profileImageUrl ? (
-            <img src={profileImageUrl} alt={`${nickname} 프로필`} />
+          {showProfileImage ? (
+            <img
+              src={profileImageUrl}
+              alt={`${nickname} 프로필`}
+              onError={handleProfileImageError}
+            />
           ) : (
-            <span className="header-profile-placeholder">🐾</span>
+            <span
+              className="header-profile-placeholder"
+              aria-label="기본 프로필"
+            >
+              <img
+                src={noImgIcon}
+                alt=""
+                aria-hidden="true"
+                className="header-profile-placeholder-icon"
+              />
+            </span>
           )}
         </span>
 
