@@ -19,7 +19,7 @@ public class BoardReportEntity extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY) //test
     @JoinColumn(name = "BOARD_ID", nullable = false)
     private BoardEntity board;
 
