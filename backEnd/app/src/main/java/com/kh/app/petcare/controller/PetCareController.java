@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -76,18 +77,20 @@ public class PetCareController {
                 petCareService.getQuestionList(petType)
         );
     }
-//페이징 목록조회
-@GetMapping("/diagnosis/list")
-public ResponseEntity<Object> requestDiagnosisList(
-        @RequestParam(defaultValue = "0") int pno,
-        @RequestParam(defaultValue = "ALL") String petType
-) {
-    return ResponseEntity.ok(
-            petCareService.requestDiagnosisList(pno, petType)
-    );
-}
+    // 페이징 목록조회 - 수의사만,관리자만 접근 가능
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
+    @GetMapping("/diagnosis/list")
+    public ResponseEntity<Object> requestDiagnosisList(
+            @RequestParam(defaultValue = "0") int pno,
+            @RequestParam(defaultValue = "ALL") String petType
+    ) {
+        return ResponseEntity.ok(
+                petCareService.requestDiagnosisList(pno, petType)
+        );
+    }
 
-    //상세보기
+    // 상세보기 - 수의사만 접근 가능
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     @GetMapping("/diagnosis/{diagnosisReqId}")
     public ResponseEntity<Object> getDiagnosisDetail(
             @PathVariable Long diagnosisReqId
@@ -96,7 +99,9 @@ public ResponseEntity<Object> requestDiagnosisList(
                 petCareService.getDiagnosisDetail(diagnosisReqId)
         );
     }
-    // 건강진단 완료 처리
+
+    // 건강진단 완료 처리 - 수의사만 접근 가능
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     @PatchMapping("/diagnosis/{diagnosisReqId}/complete")
     public ResponseEntity<Object> completeDiagnosis(
             @PathVariable Long diagnosisReqId
@@ -106,13 +111,9 @@ public ResponseEntity<Object> requestDiagnosisList(
 
         return ResponseEntity.ok().build();
     }
-    // =========================================================
-// =========================================================
-// 건강진단 신청 반려
-//
-// 제출 이미지가 부적절하거나 자료가 부족한 경우
-// 진행 상태를 해제하여 사용자가 다시 신청할 수 있도록 처리
-// =========================================================
+
+    // 건강진단 신청 반려 - 수의사만 접근 가능
+    @PreAuthorize("hasAnyRole('DOCTOR', 'ADMIN')")
     @PatchMapping("/diagnosis/{id}/reject")
     public ResponseEntity<Void> rejectDiagnosis(
             @PathVariable Long id,
@@ -126,5 +127,4 @@ public ResponseEntity<Object> requestDiagnosisList(
         return ResponseEntity
                 .noContent()
                 .build();
-    }
-}
+    }}

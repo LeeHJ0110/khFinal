@@ -54,10 +54,13 @@ export default function AdminMemberDetail({ member, onUpdated }) {
   }
   return (
     <DetailCard>
-      <ProfileImg
-        src={member.profileImageUrl || "/images/default-profile.png"}
-        alt="프로필"
-      />
+      <ProfileArea>
+        {member?.profileImageUrl ? (
+          <ProfileImg src={member.profileImageUrl} alt="프로필 이미지" />
+        ) : (
+          <DefaultProfile>👤</DefaultProfile>
+        )}
+      </ProfileArea>
 
       <Nickname>{member.nickname || "-"}</Nickname>
       <Username>{member.username || "-"}</Username>
@@ -159,11 +162,10 @@ const DetailCard = styled.div`
 `;
 
 const ProfileImg = styled.img`
-  width: 96px;
-  height: 96px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
   object-fit: cover;
-  background-color: #eee;
 `;
 
 const Nickname = styled.h2`
@@ -247,4 +249,20 @@ const CleanNicknameButton = styled.button`
   &:hover {
     background-color: #ffecec;
   }
+`;
+
+const DefaultProfile = styled.div`
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 46px;
+  line-height: 1;
+`;
+const ProfileArea = styled.div`
+  padding: 5px 10px 5px;
+  text-align: center;
 `;

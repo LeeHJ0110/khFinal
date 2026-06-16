@@ -25,6 +25,13 @@ export default function MemberJoinPage() {
     phoneMessage,
     isSuccess,
     emailMessage,
+    authCode,
+    setAuthCode,
+    phoneAuthMessage,
+    isPhoneVerified,
+    isPhoneAuthSent,
+    handleSendPhoneAuthCode,
+    handleVerifyPhoneAuthCode,
   } = useMemberJoinForm(marketingAgreeYn);
 
   useEffect(() => {
@@ -126,17 +133,39 @@ export default function MemberJoinPage() {
 
             <div className="with-btn">
               <input
-                type="text"
-                placeholder="전화번호"
                 name="phone"
-                onChange={handleChange}
                 value={formData.phone}
+                onChange={handleChange}
+                placeholder="전화번호"
+                disabled={isPhoneVerified}
               />
 
-              <button type="button">인증</button>
+              <button
+                type="button"
+                onClick={handleSendPhoneAuthCode}
+                disabled={isPhoneVerified}
+              >
+                인증
+              </button>
             </div>
 
-            <p className="form-message">{phoneMessage}</p>
+            {isPhoneAuthSent && !isPhoneVerified && (
+              <div className="with-btn">
+                <input
+                  value={authCode}
+                  onChange={(e) => setAuthCode(e.target.value)}
+                  placeholder="인증번호 입력"
+                />
+
+                <button type="button" onClick={handleVerifyPhoneAuthCode}>
+                  인증 확인
+                </button>
+              </div>
+            )}
+
+            {phoneAuthMessage && (
+              <p className="form-message">{phoneAuthMessage}</p>
+            )}
           </div>
 
           <div className="form-field">

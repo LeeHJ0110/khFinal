@@ -4,18 +4,7 @@ import usePetStoreWishToggle from "../../petStore/hooks/usePetStoreWishToggle";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useStoreForKarte from "../hooks/useStoreForKarte";
-
-function getTempReviewInfo(index) {
-  const tempReviewList = [
-    { rating: "4.9", count: 128 },
-    { rating: "4.8", count: 92 },
-    { rating: "4.7", count: 76 },
-    { rating: "4.6", count: 54 },
-    { rating: "4.5", count: 31 },
-  ];
-
-  return tempReviewList[index % tempReviewList.length];
-}
+import usePetStoreBestProductList from "../../petStore/hooks/usePetStoreBestProductList";
 
 export default function StoreList({ targetPetType, category, tagId }) {
   const navigate = useNavigate();
@@ -29,7 +18,6 @@ export default function StoreList({ targetPetType, category, tagId }) {
     loadProductList({ targetPetType, category, tagId });
   }, [targetPetType, category, tagId]);
 
-  // 최대 1줄(5개)까지만 렌더링되도록 제한
   const limitedProductList = productList ? productList.slice(0, 5) : [];
 
   return (
@@ -43,8 +31,6 @@ export default function StoreList({ targetPetType, category, tagId }) {
         ) : (
           <ProductGrid>
             {limitedProductList.map((product, index) => {
-              const tempReview = getTempReviewInfo(index);
-
               return (
                 <ProductCard
                   key={product.productId}
@@ -68,7 +54,7 @@ export default function StoreList({ targetPetType, category, tagId }) {
 
                     <ProductReviewInfo>
                       <ReviewStar>★</ReviewStar>
-                      {tempReview.rating} ({tempReview.count})
+                      {product.averageRating.toFixed(1)} ({product.reviewCount})
                     </ProductReviewInfo>
 
                     <ProductPrice>
@@ -127,7 +113,9 @@ const ProductCard = styled.article`
   border: 1px solid #f2f2f2;
   background-color: #fff;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-  transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
   cursor: pointer;
 
   &:hover {

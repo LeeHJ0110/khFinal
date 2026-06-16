@@ -157,7 +157,6 @@ export default function PetStoreReviewEditPage() {
       alert("리뷰가 수정되었습니다.");
       navigate("/store/review/list");
     } catch (error) {
-      console.error("리뷰 수정 실패:", error);
       alert(error?.response?.data?.message ?? "리뷰 수정에 실패했습니다.");
     } finally {
       setIsSubmitting(false);
@@ -202,7 +201,7 @@ export default function PetStoreReviewEditPage() {
 
   return (
     <Wrapper>
-      <PetStoreUserNav />
+      <PetStoreNavGate />
 
       <Inner>
         <PageHeader>

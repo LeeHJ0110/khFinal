@@ -29,7 +29,13 @@ export function kakaoLogin(code) {
     code,
   });
 }
+export function sendPhoneAuthCode(phone) {
+  return api.post("/member/phone/send", { phone });
+}
 
+export function verifyPhoneAuthCode(phone, code) {
+  return api.post("/member/phone/verify", { phone, code });
+}
 // 로그인한 내 정보 조회(헤더용)
 export function fetchMyInfo() {
   return api.get("/member/me");

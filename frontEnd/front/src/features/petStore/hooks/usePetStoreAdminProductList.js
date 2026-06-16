@@ -43,9 +43,7 @@ export default function usePetStoreAdminProductList() {
         selling: sellingResp.data.totalElements,
         stopped: stoppedResp.data.totalElements,
       });
-    } catch (error) {
-      console.error("상품 상태 카운트 조회 실패", error);
-    }
+    } catch (error) {}
   }
 
   async function loadProductList(page = 0, condition = searchCondition) {
@@ -66,7 +64,6 @@ export default function usePetStoreAdminProductList() {
       setTotalPages(resp.data.totalPages);
       setTotalElements(resp.data.totalElements);
     } catch (error) {
-      console.error("관리자 상품 목록 조회 실패", error);
       setProductList([]);
       setCurrentPage(0);
       setTotalPages(0);

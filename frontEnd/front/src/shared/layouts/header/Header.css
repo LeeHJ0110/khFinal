@@ -10,10 +10,10 @@
   --header-menu-item-width: 126px;
 
   --header-search-width: 320px;
-  --header-alarm-width: 34px;
-  --header-user-width: 180px;
-  --header-action-width: 104px;
-  --header-user-name-width: 112px;
+  --header-alarm-width: 38px;
+  --header-user-width: 178px;
+  --header-action-width: 80px;
+  --header-user-name-width: 92px;
 
   width: 100%;
   height: var(--header-height);
@@ -30,10 +30,10 @@
 
 .header-inner {
   width: 100%;
-  max-width: var(--layout-max-width);
+  max-width: var(--shell-max-width);
   height: 100%;
   margin: 0 auto;
-  padding: 0 var(--layout-padding-x);
+  padding: 0 var(--shell-padding-x);
 
   display: flex;
   align-items: center;
@@ -116,8 +116,6 @@
 
 /* ================================
    Right Area
-   구조:
-   [검색창] [게스트/유저/관리자 메뉴]
 ================================ */
 
 .header-right {
@@ -126,16 +124,16 @@
   margin-right: var(--header-edge-correction);
 
   display: grid;
-  grid-template-columns: minmax(180px, var(--header-search-width)) auto;
+  grid-template-columns: minmax(220px, var(--header-search-width)) auto;
   align-items: center;
-  column-gap: 14px;
+  column-gap: 12px;
 
   min-width: 0;
 }
 
 .header-right.is-login,
 .header-right.is-guest {
-  grid-template-columns: minmax(180px, var(--header-search-width)) auto;
+  grid-template-columns: minmax(220px, var(--header-search-width)) auto;
 }
 
 .header-action-area {
@@ -174,12 +172,12 @@
   background: transparent;
 
   color: var(--text-main);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .header-search input::placeholder {
-  color: #7c9a8f;
+  color: var(--text-desc);
   font-weight: 500;
 }
 
@@ -204,6 +202,13 @@
   background-color: rgba(0, 169, 123, 0.08);
 }
 
+.header-search button img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  display: block;
+}
+
 /* ================================
    Menu Wrappers
 ================================ */
@@ -212,14 +217,27 @@
 .user-menu,
 .admin-menu {
   height: 100%;
+  position: relative;
+  white-space: nowrap;
+}
 
+.guest-menu {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 14px;
+  gap: 10px;
+}
 
-  position: relative;
-  white-space: nowrap;
+.user-menu,
+.admin-menu {
+  display: grid;
+  grid-template-columns:
+    var(--header-alarm-width)
+    var(--header-user-width)
+    var(--header-action-width);
+  align-items: center;
+  column-gap: 10px;
+  justify-content: end;
 }
 
 /* ================================
@@ -280,9 +298,14 @@
 .header-alarm {
   position: relative;
   width: var(--header-alarm-width);
-  height: 34px;
+  height: 36px;
+  flex: 0 0 var(--header-alarm-width);
+
+  margin: 0;
+  padding: 0;
 
   border: none;
+  border-radius: 50%;
   background: transparent;
   color: var(--color-white);
 
@@ -291,33 +314,64 @@
   justify-content: center;
 
   cursor: pointer;
+
+  transition:
+    background-color 0.18s ease,
+    transform 0.18s ease;
+}
+
+.header-alarm:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.header-alarm:active {
+  transform: translateY(1px);
 }
 
 .header-alarm-icon {
-  font-size: 21px;
+  width: 23px;
+  height: 23px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
   line-height: 1;
+}
+
+.header-alarm-icon img {
+  width: 100%;
+  height: 100%;
+
+  display: block;
+  object-fit: contain;
+  object-position: center;
 }
 
 .alarm-badge {
   position: absolute;
-  right: -2px;
-  top: 0;
+  right: -3px;
+  top: 1px;
 
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 5px;
 
   display: inline-flex;
   align-items: center;
   justify-content: center;
 
   border-radius: 999px;
-  background-color: #ff4d5a;
-  color: var(--color-white);
+  background-color: #ff3b30;
+  color: #ffffff;
+  border: 2px solid var(--color-main);
 
   font-size: 10px;
   font-weight: 900;
   line-height: 1;
+
+  box-shadow: 0 4px 8px rgba(255, 59, 48, 0.32);
+  pointer-events: none;
 }
 
 /* ================================
@@ -327,16 +381,17 @@
 .header-user {
   width: var(--header-user-width);
   height: 38px;
-  padding: 0;
+  padding: 0 8px;
 
   border: none;
+  border-radius: 999px;
   background: transparent;
   color: var(--color-white);
 
-  display: flex;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 14px;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
+  column-gap: 7px;
 
   cursor: pointer;
 }
@@ -357,45 +412,84 @@
   align-items: center;
   justify-content: center;
 
-  background:
-    linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.38),
-      rgba(255, 255, 255, 0.12)
-    ),
-    var(--color-bg-soft);
+  background: radial-gradient(
+    circle at 34% 24%,
+    #ffffff 0%,
+    #f7fffc 38%,
+    #e8fbf5 100%
+  );
 
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+
+  box-shadow:
+    0 6px 14px rgba(0, 90, 72, 0.16),
+    inset 0 0 0 2px rgba(255, 255, 255, 0.82);
 }
 
-.header-profile-img img {
+.header-profile-img > img {
   width: 100%;
   height: 100%;
+
+  display: block;
   object-fit: cover;
+  object-position: center;
 }
 
 .header-profile-placeholder {
-  font-size: 18px;
-  line-height: 1;
+  width: 100%;
+  height: 100%;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background:
+    radial-gradient(
+      circle at 35% 24%,
+      rgba(255, 255, 255, 0.96),
+      transparent 38%
+    ),
+    linear-gradient(135deg, #f4fffb 0%, #e0f8f0 100%);
+}
+
+.header-profile-placeholder-icon {
+  width: 22px;
+  height: 22px;
+
+  display: block;
+  object-fit: contain;
+  object-position: center;
+
+  opacity: 0.98;
+  transform: translateY(1px);
+
+  filter: drop-shadow(0 3px 5px rgba(0, 174, 142, 0.18));
+
+  user-select: none;
+  pointer-events: none;
 }
 
 .header-user-name {
-  max-width: var(--header-user-name-width);
+  min-width: 0;
+  max-width: none;
 
   color: var(--color-white);
-  font-size: 15px;
-  font-weight: 900;
+  font-size: 14px;
+  font-weight: 700;
 
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: left;
 }
 
 .user-arrow {
+  width: 14px;
   color: var(--color-white);
-  font-size: 17px;
+  font-size: 12px;
   font-weight: 900;
   line-height: 1;
+  text-align: center;
 
   transform: translateY(-1px);
   transition: transform 0.18s ease;
@@ -411,7 +505,7 @@
 
 .header-logout-btn {
   width: var(--header-action-width);
-  height: 31px;
+  height: 28px;
   padding: 0;
   margin: 0;
 
@@ -420,8 +514,8 @@
   background-color: var(--color-white);
   color: var(--color-main);
 
-  font-size: 13px;
-  font-weight: 900;
+  font-size: 11px;
+  font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
 
@@ -446,14 +540,6 @@
 .header-dropdown {
   position: absolute;
   top: calc(100% + 0px);
-
-  /*
-    user-menu 구조:
-    [알림] [프로필/닉네임] [로그아웃]
-
-    드롭다운은 프로필/닉네임 버튼 아래에 떠야 하므로
-    오른쪽 로그아웃 버튼 너비만큼 왼쪽으로 당긴다.
-  */
   right: calc(var(--header-action-width) + 14px);
 
   z-index: 2000;
@@ -533,25 +619,19 @@
    Responsive
 ================================ */
 
-/* 노트북 폭 대응 */
 @media (max-width: 1440px) {
   .header {
     --header-logo-area-width: 120px;
     --header-menu-item-width: 118px;
     --header-search-width: 260px;
-    --header-action-width: 96px;
-    --header-user-width: 164px;
-    --header-user-name-width: 98px;
+    --header-action-width: 76px;
+    --header-user-width: 166px;
+    --header-user-name-width: 86px;
+    --header-alarm-width: 36px;
   }
 
   .header-menu a {
     font-size: 13px;
-  }
-
-  .guest-menu,
-  .user-menu,
-  .admin-menu {
-    gap: 10px;
   }
 
   .header-login-btn,
@@ -560,24 +640,35 @@
     font-size: 12px;
   }
 
-  .header-user-name {
-    font-size: 14px;
-  }
-
   .header-dropdown {
     right: calc(var(--header-action-width) + 10px);
   }
+
+  .header-alarm-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .header-profile-img {
+    width: 33px;
+    height: 33px;
+  }
+
+  .header-profile-placeholder-icon {
+    width: 21px;
+    height: 21px;
+  }
 }
 
-/* 더 작은 화면 대응 */
 @media (max-width: 1200px) {
   .header {
     --header-logo-area-width: 110px;
     --header-menu-item-width: 104px;
     --header-search-width: 220px;
-    --header-action-width: 88px;
-    --header-user-width: 150px;
-    --header-user-name-width: 84px;
+    --header-action-width: 72px;
+    --header-user-width: 152px;
+    --header-user-name-width: 74px;
+    --header-alarm-width: 34px;
   }
 
   .header-right {
@@ -596,26 +687,47 @@
     font-size: 12px;
   }
 
-  .guest-menu,
+  .guest-menu {
+    gap: 8px;
+  }
+
   .user-menu,
   .admin-menu {
-    gap: 8px;
+    column-gap: 8px;
+  }
+
+  .header-user {
+    grid-template-columns: 32px minmax(0, 1fr) 12px;
+    column-gap: 6px;
+    padding: 0 6px;
   }
 
   .header-dropdown {
     right: calc(var(--header-action-width) + 8px);
   }
-}
 
-.header-search button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+  .header-alarm-icon {
+    width: 21px;
+    height: 21px;
+  }
 
-.header-search button img {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  display: block;
+  .alarm-badge {
+    right: -4px;
+    top: 0;
+  }
+
+  .header-profile-img {
+    width: 32px;
+    height: 32px;
+  }
+
+  .header-profile-placeholder-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .user-arrow {
+    width: 12px;
+    font-size: 11px;
+  }
 }

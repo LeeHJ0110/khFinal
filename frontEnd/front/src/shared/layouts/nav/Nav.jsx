@@ -13,9 +13,19 @@ export default function Nav({
   const location = useLocation();
 
   const isMenuActive = (menu) => {
+    // 구분선은 active 대상 아님
+    if (menu.type === "divider") {
+      return false;
+    }
+
     // activeMenu가 있으면 label 기준으로 직접 활성화
     if (activeMenu) {
       return activeMenu === menu.label;
+    }
+
+    // path가 없는 메뉴는 active 불가
+    if (!menu.path) {
+      return false;
     }
 
     // path가 "/"인 경우 startsWith 처리를 하면 전부 active 될 수 있어서 따로 처리
@@ -43,13 +53,25 @@ export default function Nav({
     <nav className="common-nav">
       <div className="common-nav-inner">
         <ul className="common-nav-left">
-          {leftMenus.map((menu) => (
-            <NavItem
-              key={menu.label}
-              menu={menu}
-              isActive={isMenuActive(menu)}
-            />
-          ))}
+          {leftMenus.map((menu, index) => {
+            if (menu.type === "divider") {
+              return (
+                <li
+                  key={`left-divider-${index}`}
+                  className="common-nav-divider"
+                  aria-hidden="true"
+                />
+              );
+            }
+
+            return (
+              <NavItem
+                key={menu.label}
+                menu={menu}
+                isActive={isMenuActive(menu)}
+              />
+            );
+          })}
         </ul>
 
         {rightMenus.length > 0 && (

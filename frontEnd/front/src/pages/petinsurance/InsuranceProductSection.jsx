@@ -91,9 +91,23 @@ function InsuranceProductSection() {
   }, [currentProduct, selectedPet, selectedPetAge, calculatedPriceMap]);
 
   // =========================================================
+  // 상품 상세 JSON 파싱
+  //
+  // productContent가 JSON이면 실제 보장표/특약/혜택으로 사용하고,
+  // 기존 문장형 데이터면 기존처럼 문장 단위 혜택으로 표시
+  // =========================================================
+  const productContentData = useMemo(() => {
+    return parseProductContent(currentProduct?.productContent);
+  }, [currentProduct]);
+
+  // =========================================================
   // 상품 설명을 화면에서 읽기 쉽게 문장 단위로 분리
   // =========================================================
   const productBenefitList = useMemo(() => {
+    if (productContentData.benefits.length > 0) {
+      return productContentData.benefits.slice(0, 4);
+    }
+
     if (!currentProduct?.productContent) {
       return [];
     }
@@ -103,7 +117,7 @@ function InsuranceProductSection() {
       .map((text) => text.trim())
       .filter(Boolean)
       .slice(0, 4);
-  }, [currentProduct]);
+  }, [currentProduct, productContentData]);
 
   // =========================================================
   // 실제 신청·가입 상품과 현재 상세 보기 상품을 구분
@@ -537,9 +551,10 @@ function InsuranceProductSection() {
             <ProductDetailTop>
               <ProductMainContent>
                 <DetailGuide>
-                  {selectedPet
-                    ? `${selectedPet.petName}에게 추천하는 보험`
-                    : "보험 상품 상세"}
+                  {productContentData.tagline ||
+                    (selectedPet
+                      ? `${selectedPet.petName}에게 추천하는 보험`
+                      : "보험 상품 상세")}
                 </DetailGuide>
 
                 <DetailProductName>
@@ -547,7 +562,8 @@ function InsuranceProductSection() {
                 </DetailProductName>
 
                 <DetailDescription>
-                  반려동물 정보를 반영한 맞춤형 펫 보험 상품입니다.
+                  {productContentData.summary ||
+                    "반려동물 정보를 반영한 맞춤형 펫 보험 상품입니다."}
                 </DetailDescription>
 
                 <BenefitList>
@@ -576,7 +592,7 @@ function InsuranceProductSection() {
                     : "월 보험료"}
                 </PricePanelLabel>
 
-                <PricePanelPrice>
+                <PricePanelPrice $tone={currentProductTone}>
                   {isAgeRestricted ? (
                     "가입 불가"
                   ) : isPriceLoading && !selectedPet?.applicationId ? (
@@ -611,36 +627,91 @@ function InsuranceProductSection() {
                 </CoverageHeader>
 
                 <CoverageBody>
-                  <CoverageRow>
-                    <CoverageName>기본 진료비</CoverageName>
-                    <CoverageDescription>
-                      통원 및 입원 치료비를 기본 보장합니다.
-                    </CoverageDescription>
-                  </CoverageRow>
+                  {productContentData.coverages.length > 0 ? (
+                    productContentData.coverages.map((coverage, index) => (
+                      <CoverageRow key={`${coverage.title}-${index}`}>
+                        <CoverageName>
+                          {coverage.title}
 
-                  <CoverageRow>
-                    <CoverageName>수술비</CoverageName>
-                    <CoverageDescription>
-                      수술이 필요한 상황에 대비한 보장을 포함합니다.
-                    </CoverageDescription>
-                  </CoverageRow>
+                          <CoverageMeta>
+                            {coverage.rate && (
+                              <CoverageMetaChip>
+                                {coverage.rate}
+                              </CoverageMetaChip>
+                            )}
 
-                  <CoverageRow>
-                    <CoverageName>맞춤형 보험료</CoverageName>
-                    <CoverageDescription>
-                      등록된 반려동물 정보와 상품에 따라 월 보험료가 계산됩니다.
-                    </CoverageDescription>
-                  </CoverageRow>
+                            {coverage.limit && (
+                              <CoverageMetaChip>
+                                {coverage.limit}
+                              </CoverageMetaChip>
+                            )}
 
-                  <CoverageRow>
-                    <CoverageName>가입 절차</CoverageName>
-                    <CoverageDescription>
-                      신청 후 결제수단 등록과 관리자 승인을 거쳐 가입이
-                      완료됩니다.
-                    </CoverageDescription>
-                  </CoverageRow>
+                            {coverage.deductible && (
+                              <CoverageMetaChip>
+                                자기부담 {coverage.deductible}
+                              </CoverageMetaChip>
+                            )}
+                          </CoverageMeta>
+                        </CoverageName>
+
+                        <CoverageDescription>
+                          {coverage.description}
+                        </CoverageDescription>
+                      </CoverageRow>
+                    ))
+                  ) : (
+                    <CoverageRow>
+                      <CoverageName>상품 보장 안내</CoverageName>
+
+                      <CoverageDescription>
+                        {productContentData.summary ||
+                          "선택한 상품의 보장 내용을 확인해 주세요."}
+                      </CoverageDescription>
+                    </CoverageRow>
+                  )}
                 </CoverageBody>
               </CoverageTable>
+
+              {productContentData.riders.length > 0 && (
+                <RiderSection>
+                  <CoverageTitle>선택 특약</CoverageTitle>
+
+                  <CoverageTable>
+                    <CoverageHeader>
+                      <CoverageRow>
+                        <CoverageHeaderCell>특약 항목</CoverageHeaderCell>
+                        <CoverageHeaderCell>안내</CoverageHeaderCell>
+                      </CoverageRow>
+                    </CoverageHeader>
+
+                    <CoverageBody>
+                      {productContentData.riders.map((rider, index) => (
+                        <CoverageRow key={`${rider.title}-${index}`}>
+                          <CoverageName>
+                            {rider.title}
+
+                            <CoverageMeta>
+                              {rider.limit && (
+                                <CoverageMetaChip>
+                                  {rider.limit}
+                                </CoverageMetaChip>
+                              )}
+
+                              <CoverageMetaChip $included={rider.included}>
+                                {rider.included ? "포함" : "선택"}
+                              </CoverageMetaChip>
+                            </CoverageMeta>
+                          </CoverageName>
+
+                          <CoverageDescription>
+                            {rider.description}
+                          </CoverageDescription>
+                        </CoverageRow>
+                      ))}
+                    </CoverageBody>
+                  </CoverageTable>
+                </RiderSection>
+              )}
             </CoverageSection>
           </ProductDetailCard>
         )}
@@ -787,37 +858,78 @@ function InsuranceProductSection() {
 
 export default InsuranceProductSection;
 
+function parseProductContent(productContent) {
+  if (!productContent) {
+    return {
+      tagline: "",
+      summary: "",
+      benefits: [],
+      coverages: [],
+      riders: [],
+    };
+  }
+
+  try {
+    const parsed = JSON.parse(productContent);
+
+    return {
+      tagline: parsed.tagline || "",
+      summary: parsed.summary || "",
+      benefits: Array.isArray(parsed.benefits) ? parsed.benefits : [],
+      coverages: Array.isArray(parsed.coverages) ? parsed.coverages : [],
+      riders: Array.isArray(parsed.riders) ? parsed.riders : [],
+    };
+  } catch (error) {
+    const fallbackBenefits = productContent
+      .split(".")
+      .map((text) => text.trim())
+      .filter(Boolean);
+
+    return {
+      tagline: "",
+      summary: productContent,
+      benefits: fallbackBenefits,
+      coverages: [],
+      riders: [],
+    };
+  }
+}
+
 // =========================================================
 // 상품 탭 색상
 //
-// 0: 민트
-// 1: 블루
-// 2: 퍼플
+// 기능 로직에는 영향 없는 화면 색상 설정
 // =========================================================
 function getProductTabColor(tone) {
   if (tone === 1) {
     return {
       main: "#6f8fb8",
-      border: "#ccd8e7",
-      light: "#f4f7fb",
-      hover: "#eef3f9",
+      deep: "#3f6385",
+      border: "#ccdceb",
+      light: "rgba(244, 248, 252, 0.72)",
+      hover: "#eef5fb",
+      glow: "rgba(111, 143, 184, 0.18)",
     };
   }
 
   if (tone === 2) {
     return {
-      main: "#c68c72",
-      border: "#ead5cb",
-      light: "#fcf7f4",
-      hover: "#f9f1ed",
+      main: "#9c8fb8",
+      deep: "#6d5f91",
+      border: "#ded6ec",
+      light: "rgba(249, 247, 253, 0.72)",
+      hover: "#f3effa",
+      glow: "rgba(156, 143, 184, 0.16)",
     };
   }
 
   return {
-    main: "#5f9f8b",
-    border: "#c8dfd8",
-    light: "#f3f9f7",
-    hover: "#edf6f3",
+    main: "#58aa8d",
+    deep: "#2f7f67",
+    border: "#c8e5da",
+    light: "rgba(241, 250, 246, 0.72)",
+    hover: "#eaf7f1",
+    glow: "rgba(88, 170, 141, 0.18)",
   };
 }
 
@@ -833,30 +945,48 @@ const ProductSection = styled.section`
 const MainLayout = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 18px;
 `;
 
 const SectionHeader = styled.div`
-  margin-bottom: 14px;
+  position: relative;
+  margin-bottom: 18px;
+  padding-left: 2px;
+
+  &::after {
+    content: "✦";
+    position: absolute;
+    top: 2px;
+    left: 330px;
+    color: rgba(88, 170, 141, 0.28);
+    font-size: 24px;
+    font-weight: 900;
+  }
+
+  @media (max-width: 768px) {
+    &::after {
+      display: none;
+    }
+  }
 `;
 
 const PageSectionTitle = styled.h2`
   margin: 0;
-  font-size: 23px;
-  font-weight: 900;
-  letter-spacing: -0.8px;
-  color: var(--text-main);
+  color: #17211f;
+  font-size: 26px;
+  font-weight: 950;
+  letter-spacing: -1px;
 
   @media (max-width: 768px) {
-    font-size: 21px;
+    font-size: 22px;
   }
 `;
 
 const SectionDescription = styled.p`
-  margin: 6px 0 0;
+  margin: 7px 0 0;
+  color: #71807a;
   font-size: 13px;
-  line-height: 1.5;
-  color: var(--text-sub);
+  line-height: 1.6;
 `;
 
 /* =========================================================
@@ -876,15 +1006,29 @@ const LoginRequiredBox = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
   width: min(100%, 660px);
   min-height: 300px;
   padding: 42px 38px;
-  border: 1px solid rgba(0, 169, 123, 0.16);
-  border-radius: 18px;
-  background: linear-gradient(145deg, var(--color-white) 0%, #f8fdfb 100%);
-  box-shadow:
-    0 14px 30px rgba(0, 169, 123, 0.07),
-    0 3px 10px rgba(0, 0, 0, 0.025);
+
+  border: 1px solid rgba(100, 178, 148, 0.2);
+  border-radius: 28px;
+
+  background:
+    radial-gradient(
+      circle at 18% 0%,
+      rgba(100, 178, 148, 0.13),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 92% 92%,
+      rgba(232, 121, 103, 0.1),
+      transparent 30%
+    ),
+    #ffffff;
+
+  box-shadow: 0 20px 48px rgba(31, 62, 54, 0.08);
+
   text-align: center;
   box-sizing: border-box;
 `;
@@ -893,44 +1037,55 @@ const LoginBadge = styled.span`
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
   margin-bottom: 14px;
-  padding: 5px 10px;
+  padding: 6px 11px;
+
   border-radius: 999px;
-  background: var(--color-bg-light);
+
+  background: #f2fbf7;
+  color: #3f9275;
+
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: 0.5px;
-  color: var(--color-main-dark);
 `;
 
 const LoginRequiredTitle = styled.h3`
   margin: 0;
+  color: #17211f;
   font-size: 22px;
-  font-weight: 800;
-  color: var(--text-main);
+  font-weight: 950;
 `;
 
 const LoginRequiredDescription = styled.p`
   margin: 12px 0 0;
+  color: #71807a;
   font-size: 13px;
   line-height: 1.7;
-  color: var(--text-desc);
 `;
 
 const LoginButton = styled.button`
-  height: 40px;
-  margin-top: 22px;
-  padding: 0 20px;
+  height: 42px;
+  margin-top: 24px;
+  padding: 0 22px;
+
   border: none;
-  border-radius: 8px;
-  background: var(--color-main);
+  border-radius: 14px;
+
+  background: linear-gradient(180deg, #76c5a6 0%, #58aa8d 100%);
+
+  color: #ffffff;
+
   font-size: 13px;
-  font-weight: 800;
-  color: var(--color-white);
+  font-weight: 900;
+
   cursor: pointer;
 
+  box-shadow: 0 12px 22px rgba(88, 170, 141, 0.24);
+
   &:hover {
-    background: var(--color-main-dark);
+    filter: brightness(0.98);
   }
 `;
 
@@ -939,13 +1094,53 @@ const LoginButton = styled.button`
 ========================================================= */
 
 const PetSummaryCard = styled.div`
+  position: relative;
+  overflow: visible;
+
   display: flex;
   justify-content: space-between;
-  gap: 18px;
-  padding: 18px 20px;
-  border: 1px solid #e4ece8;
-  border-radius: 16px;
-  background: linear-gradient(180deg, #fcfefd 0%, #f6fbf9 100%);
+  gap: 22px;
+
+  padding: 24px 26px;
+
+  border: 1px solid rgba(100, 178, 148, 0.22);
+  border-radius: 28px;
+
+  background:
+    radial-gradient(
+      circle at 86% 18%,
+      rgba(88, 170, 141, 0.14),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 0% 100%,
+      rgba(205, 238, 225, 0.45),
+      transparent 34%
+    ),
+    linear-gradient(135deg, #ffffff 0%, #fffdfb 50%, #f2fbf7 100%);
+
+  box-shadow:
+    0 20px 44px rgba(31, 62, 54, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+
+  &::before {
+    content: "✦";
+    position: absolute;
+    top: 24px;
+    right: 155px;
+    color: rgba(108, 180, 154, 0.3);
+    font-size: 28px;
+  }
+
+  &::after {
+    content: "♡";
+    position: absolute;
+    right: 34px;
+    bottom: 28px;
+    color: rgba(108, 180, 154, 0.28);
+    font-size: 34px;
+    font-weight: 900;
+  }
 
   @media (max-width: 820px) {
     flex-direction: column;
@@ -953,6 +1148,8 @@ const PetSummaryCard = styled.div`
 `;
 
 const PetSummaryContent = styled.div`
+  position: relative;
+  z-index: 2;
   flex: 1;
   min-width: 0;
 `;
@@ -966,86 +1163,123 @@ const SummaryLabelRow = styled.div`
 const SummaryMiniLabel = styled.span`
   font-size: 11px;
   font-weight: 700;
-  color: #7b8883;
+  color: #6f817a;
+
+  &::before {
+    content: "";
+    display: inline-flex;
+    width: 6px;
+    height: 6px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: #6cb49a;
+  }
 `;
 
 const SummaryStatusBadge = styled.span`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 9px;
+
+  padding: 5px 10px;
+
   border-radius: 999px;
+
   background: ${({ $status }) => getStatusBackground($status)};
   color: ${({ $status }) => getStatusColor($status)};
+
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 900;
 `;
 
 const SummaryPetRow = styled.div`
   display: flex;
   align-items: flex-end;
   flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 8px;
+  gap: 9px;
+
+  margin-top: 10px;
 `;
 
 const SummaryPetName = styled.h3`
   margin: 0;
-  font-size: 25px;
-  font-weight: 900;
-  letter-spacing: -0.8px;
-  color: var(--text-main);
+
+  color: #14211d;
+
+  font-size: 31px;
+  font-weight: 950;
+  letter-spacing: -1.2px;
 `;
 
 const SummaryPetAge = styled.span`
-  padding-bottom: 3px;
+  padding-bottom: 5px;
+
+  color: #71807a;
+
   font-size: 13px;
-  font-weight: 700;
-  color: var(--text-sub);
+  font-weight: 800;
 `;
 
 const SummaryInfoRow = styled.div`
-  display: flex;
+  display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 16px;
+
+  margin-top: 17px;
+  padding: 14px 16px;
+
+  border: 1px solid rgba(100, 178, 148, 0.18);
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.78);
+
+  box-shadow: 0 10px 22px rgba(31, 62, 54, 0.055);
+
+  backdrop-filter: blur(8px);
 `;
 
 const SummaryInfoItem = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 5px;
 `;
 
 const SummaryInfoLabel = styled.span`
+  color: #7d8b86;
+
   font-size: 11px;
-  color: #7b8883;
+  font-weight: 800;
 `;
 
 const SummaryInfoValue = styled.span`
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--text-main);
+  color: #17211f;
+
+  font-size: 15px;
+  font-weight: 950;
 `;
 
 const SummaryPrice = styled.span`
   font-size: 19px;
   font-weight: 900;
-  color: var(--color-main-dark);
+  color: #3f9d7f;
 `;
 
 const SummaryDivider = styled.span`
   width: 1px;
-  height: 30px;
-  background: #dbe6e1;
+  height: 34px;
+
+  background: rgba(100, 178, 148, 0.24);
 `;
 
 const SummaryGuide = styled.p`
-  margin: 11px 0 0;
-  font-size: 11px;
-  line-height: 1.55;
-  color: var(--text-desc);
+  max-width: 620px;
+  margin: 13px 0 0;
+
+  color: #6f7b77;
+
+  font-size: 12px;
+  line-height: 1.65;
 `;
 
 /* =========================================================
@@ -1054,6 +1288,8 @@ const SummaryGuide = styled.p`
 
 const PetMenuWrapper = styled.div`
   position: relative;
+  z-index: 8;
+
   align-self: flex-start;
   flex-shrink: 0;
 `;
@@ -1063,60 +1299,81 @@ const PetMenuButton = styled.button`
   align-items: center;
   justify-content: center;
   gap: 5px;
-  min-width: 116px;
-  height: 36px;
-  padding: 0 13px;
+
+  min-width: 122px;
+  height: 40px;
+  padding: 0 15px;
+
   border: none;
-  border-radius: 8px;
-  background: var(--color-main);
+  border-radius: 15px;
+
+  background: linear-gradient(180deg, #76c5a6 0%, #58aa8d 100%);
+
+  color: #ffffff;
+
   font-size: 12px;
-  font-weight: 800;
-  color: var(--color-white);
+  font-weight: 950;
+
   cursor: pointer;
 
+  box-shadow: 0 12px 22px rgba(88, 170, 141, 0.24);
+
   &:hover {
-    background: var(--color-main-dark);
+    filter: brightness(0.98);
   }
 `;
 
 const MenuArrow = styled.span`
   display: inline-block;
+
   font-size: 15px;
   line-height: 1;
+
   transform: ${({ $isOpen }) => ($isOpen ? "rotate(180deg)" : "rotate(0deg)")};
   transition: transform 0.18s ease;
 `;
 
 const PetDropdown = styled.div`
   position: absolute;
-  top: calc(100% + 7px);
+  top: calc(100% + 9px);
   right: 0;
   z-index: 30;
-  width: 220px;
-  max-height: 260px;
-  padding: 6px;
+
+  width: 240px;
+  max-height: 280px;
+  padding: 8px;
+
   overflow-y: auto;
-  border: 1px solid #e2e2e2;
-  border-radius: 10px;
-  background: var(--color-white);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.1);
+
+  border: 1px solid rgba(100, 178, 148, 0.22);
+  border-radius: 18px;
+
+  background: #ffffff;
+
+  box-shadow: 0 18px 38px rgba(31, 62, 54, 0.15);
 `;
 
 const PetOptionButton = styled.button`
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
+
   width: 100%;
-  padding: 10px 11px;
-  border: none;
-  border-radius: 7px;
-  background: ${({ $isSelected }) =>
-    $isSelected ? "var(--color-bg-light)" : "var(--color-white)"};
+  padding: 11px 12px;
+
+  border: 1px solid
+    ${({ $isSelected }) =>
+      $isSelected ? "rgba(100, 178, 148, 0.28)" : "transparent"};
+  border-radius: 13px;
+
+  background: ${({ $isSelected }) => ($isSelected ? "#f1faf6" : "#ffffff")};
+
   text-align: left;
+
   cursor: pointer;
 
   &:hover {
-    background: var(--color-bg-light);
+    background: #f7fbfa;
   }
 `;
 
@@ -1135,33 +1392,41 @@ const PetOptionBottom = styled.div`
 `;
 
 const PetName = styled.span`
+  color: #17211f;
+
   font-size: 13px;
-  font-weight: 700;
-  color: var(--text-main);
+  font-weight: 900;
 `;
 
 const SelectedPetDot = styled.span`
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
+
   border-radius: 50%;
-  background: var(--color-main);
+
+  background: #58aa8d;
 `;
 
 const PetAgeText = styled.span`
+  color: #7c8682;
+
   font-size: 11px;
-  color: var(--text-desc);
 `;
 
 const PetStatusText = styled.span`
-  font-size: 11px;
   color: ${({ $status }) => getStatusColor($status)};
+
+  font-size: 11px;
+  font-weight: 800;
 `;
 
 const EmptyPetMessage = styled.p`
   margin: 0;
   padding: 12px 10px;
+
+  color: #7c8682;
+
   font-size: 12px;
-  color: var(--text-desc);
 `;
 
 /* =========================================================
@@ -1171,21 +1436,23 @@ const EmptyPetMessage = styled.p`
 const ProductTabArea = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 `;
 
 const ProductTabTitle = styled.h3`
   margin: 0;
+
+  color: #17211f;
+
   font-size: 19px;
-  font-weight: 900;
+  font-weight: 950;
   letter-spacing: -0.6px;
-  color: var(--text-main);
 `;
 
 const ProductTabs = styled.div`
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 11px;
 
   @media (max-width: 720px) {
     grid-template-columns: 1fr;
@@ -1193,13 +1460,15 @@ const ProductTabs = styled.div`
 `;
 
 const ProductTabButton = styled.button`
+  position: relative;
+  overflow: hidden;
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 
-  min-height: 62px;
-
-  padding: 9px 11px;
+  min-height: 78px;
+  padding: 14px 15px;
 
   border: 1.5px solid
     ${({ $tone, $isViewing, $isAppliedProduct }) => {
@@ -1208,67 +1477,81 @@ const ProductTabButton = styled.button`
       }
 
       if ($isAppliedProduct) {
-        return "#b8d8ce";
+        return "#9bd1c1";
       }
 
-      return "#e7ecea";
+      return "#e4ebe8";
     }};
 
-  border-radius: 10px;
+  border-radius: 18px;
 
-  background:
-    ${({ $tone, $isViewing, $isAppliedProduct }) => {
-      if ($isViewing) {
-        return getProductTabColor($tone).light;
-      }
+  background: ${({ $tone, $isViewing, $isAppliedProduct }) => {
+    if ($isViewing) {
+      return `
+      linear-gradient(
+        135deg,
+        ${getProductTabColor($tone).light} 0%,
+        rgba(255, 255, 255, 0.92) 100%
+      )
+    `;
+    }
 
-      if ($isAppliedProduct) {
-        return "#f6fbf9";
-      }
+    if ($isAppliedProduct) {
+      return "linear-gradient(135deg, rgba(241, 250, 246, 0.72) 0%, rgba(255, 255, 255, 0.92) 100%)";
+    }
 
-      return "#ffffff";
-    }};
+    return "rgba(255, 255, 255, 0.72)";
+  }};
 
   text-align: left;
 
   cursor: pointer;
 
-  box-shadow:
-    ${({ $tone, $isViewing }) =>
-      $isViewing
-        ? `0 4px 12px ${getProductTabColor($tone).main}18`
-        : "none"};
+  box-shadow: ${({ $tone, $isViewing, $isAppliedProduct }) =>
+    $isViewing || $isAppliedProduct
+      ? `0 12px 24px ${getProductTabColor($tone).glow}`
+      : "0 5px 14px rgba(31, 62, 54, 0.035)"};
 
-  transform:
-    ${({ $isViewing }) =>
-      $isViewing
-        ? "translateY(-1px)"
-        : "translateY(0)"};
+  transform: ${({ $isViewing }) =>
+    $isViewing ? "translateY(-2px)" : "translateY(0)"};
 
   transition:
-    background-color 0.18s ease,
     border-color 0.18s ease,
+    background-color 0.18s ease,
     box-shadow 0.18s ease,
     transform 0.18s ease;
 
+  &::after {
+    content: "";
+    position: absolute;
+    right: -28px;
+    bottom: -34px;
+
+    width: 88px;
+    height: 88px;
+
+    border-radius: 50%;
+
+    background: ${({ $tone }) => getProductTabColor($tone).glow};
+
+    opacity: ${({ $isViewing, $isAppliedProduct }) =>
+      $isViewing || $isAppliedProduct ? 1 : 0};
+  }
+
   &:hover {
-    background:
-      ${({ $tone }) =>
-        getProductTabColor($tone).hover};
-
-    border-color:
-      ${({ $tone }) =>
-        getProductTabColor($tone).main};
-
-    transform: translateY(-1px);
+    background: ${({ $tone }) => getProductTabColor($tone).hover};
+    border-color: ${({ $tone }) => getProductTabColor($tone).main};
+    transform: translateY(-2px);
   }
 `;
 
 const ProductTabTop = styled.div`
+  position: relative;
+  z-index: 1;
+
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   gap: 8px;
 
   width: 100%;
@@ -1279,10 +1562,10 @@ const ProductTabName = styled.span`
 
   overflow: hidden;
 
-  font-size: 13px;
-  font-weight: 800;
+  color: #182320;
 
-  color: #28332f;
+  font-size: 14px;
+  font-weight: 950;
 
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1300,9 +1583,7 @@ const ViewingCheck = styled.span`
 
   border-radius: 50%;
 
-  background:
-    ${({ $tone }) =>
-      getProductTabColor($tone).main};
+  background: #6cb49a;
 
   color: #ffffff;
 
@@ -1311,65 +1592,82 @@ const ViewingCheck = styled.span`
 `;
 
 const ProductTabBottom = styled.div`
+  position: relative;
+  z-index: 1;
+
   display: flex;
   align-items: center;
 
-  min-height: 20px;
-
-  margin-top: 5px;
+  min-height: 22px;
+  margin-top: 8px;
 `;
 
 const AppliedProductBadge = styled.span`
   display: inline-flex;
   align-items: center;
+  gap: 5px;
 
-  padding: 3px 7px;
+  padding: 5px 9px;
 
   border-radius: 999px;
 
-  background: #4f8f7d;
+  background: linear-gradient(180deg, #7cc3a8 0%, #57a98c 100%);
 
   color: #ffffff;
 
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 950;
+
+  box-shadow: 0 6px 12px rgba(87, 169, 140, 0.22);
+
+  &::before {
+    content: "✓";
+    font-size: 10px;
+    font-weight: 950;
+  }
 `;
 
 const ViewingProductText = styled.span`
-  color:
-    ${({ $tone }) =>
-      getProductTabColor($tone).main};
+  color: ${({ $tone }) => getProductTabColor($tone).deep};
+
+  font-size: 11px;
+  font-weight: 900;
+`;
+
+const AvailableProductText = styled.span`
+  color: #91a19b;
 
   font-size: 11px;
   font-weight: 800;
 `;
 
-const AvailableProductText = styled.span`
-  color: #a1aaa7;
-
-  font-size: 11px;
-  font-weight: 700;
-`;
 /* =========================================================
    선택 상품 상세
 ========================================================= */
 
 const ProductDetailCard = styled.div`
   overflow: hidden;
-  border: 1px solid #edf0ef;
-  border-radius: 17px;
-  background: var(--color-white);
+
+  border: 1px solid rgba(31, 62, 54, 0.08);
+  border-radius: 26px;
+
+  background: #ffffff;
+
   box-shadow:
-    0 10px 24px rgba(0, 0, 0, 0.035),
-    0 2px 7px rgba(0, 0, 0, 0.018);
+    0 18px 44px rgba(31, 62, 54, 0.07),
+    0 4px 12px rgba(31, 62, 54, 0.035);
 `;
 
 const ProductDetailTop = styled.div`
   display: grid;
-  grid-template-columns: minmax(0, 1.8fr) minmax(240px, 0.75fr);
-  gap: 16px;
-  padding: 20px;
-  background: linear-gradient(180deg, #fffdf9 0%, #ffffff 100%);
+  grid-template-columns: minmax(0, 1.72fr) minmax(260px, 0.78fr);
+  gap: 20px;
+
+  padding: 26px;
+
+  background:
+    radial-gradient(circle at 0% 0%, rgba(88, 170, 141, 0.08), transparent 34%),
+    linear-gradient(180deg, #fffdfb 0%, #ffffff 100%);
 
   @media (max-width: 900px) {
     grid-template-columns: 1fr;
@@ -1382,51 +1680,65 @@ const ProductMainContent = styled.div`
 
 const DetailGuide = styled.p`
   margin: 0;
+
+  color: #6f7f79;
+
   font-size: 12px;
-  font-weight: 700;
-  color: #7c867f;
+  font-weight: 900;
 `;
 
 const DetailProductName = styled.h3`
-  margin: 7px 0 0;
-  font-size: 26px;
-  font-weight: 900;
-  letter-spacing: -0.8px;
-  color: var(--text-main);
+  margin: 8px 0 0;
+
+  color: #111b19;
+
+  font-size: 29px;
+  font-weight: 950;
+  letter-spacing: -1.1px;
 `;
 
 const DetailDescription = styled.p`
-  margin: 7px 0 0;
+  margin: 9px 0 0;
+
+  color: #65746f;
+
   font-size: 13px;
-  line-height: 1.55;
-  color: var(--text-sub);
+  line-height: 1.65;
 `;
 
 const BenefitList = styled.ul`
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  margin: 16px 0 0;
+  gap: 9px;
+
+  margin: 18px 0 0;
   padding: 0;
+
   list-style: none;
 `;
 
 const BenefitItem = styled.li`
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: 9px;
+
+  color: #23302c;
+
   font-size: 13px;
-  line-height: 1.55;
-  color: var(--text-main);
+  line-height: 1.65;
+
   word-break: keep-all;
 `;
 
 const BenefitDot = styled.span`
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   margin-top: 7px;
+
   border-radius: 50%;
+
   background: ${({ $tone }) => getProductTabColor($tone).main};
+
   flex-shrink: 0;
 `;
 
@@ -1435,46 +1747,95 @@ const BenefitDot = styled.span`
 ========================================================= */
 
 const PricePanel = styled.div`
+  position: relative;
+  overflow: hidden;
+
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 17px;
+
+  padding: 20px;
+
   border: 1px solid ${({ $tone }) => getProductTabColor($tone).border};
-  border-radius: 15px;
-  background: ${({ $tone }) => getProductTabColor($tone).light};
+  border-radius: 22px;
+
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      ${({ $tone }) => getProductTabColor($tone).glow},
+      transparent 42%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.92) 0%,
+      ${({ $tone }) => getProductTabColor($tone).light} 100%
+    );
+
+  box-shadow: 0 14px 30px ${({ $tone }) => getProductTabColor($tone).glow};
+
+  &::after {
+    content: "♡";
+    position: absolute;
+    right: 16px;
+    top: 12px;
+
+    color: ${({ $tone }) => getProductTabColor($tone).main};
+    opacity: 0.22;
+
+    font-size: 26px;
+    font-weight: 900;
+  }
 `;
 
 const PricePanelLabel = styled.span`
+  position: relative;
+  z-index: 1;
+
+  color: #66756f;
+
   font-size: 12px;
-  font-weight: 700;
-  color: #6e756f;
+  font-weight: 900;
 `;
 
 const PricePanelPrice = styled.div`
-  margin-top: 7px;
-  font-size: 30px;
-  font-weight: 900;
-  line-height: 1.1;
-  letter-spacing: -1px;
-  color: var(--text-main);
-`;
+  position: relative;
+  z-index: 1;
 
+  margin-top: 10px;
+
+  color: ${({ $tone }) => getProductTabColor($tone).deep};
+
+  font-size: 32px;
+  font-weight: 950;
+  line-height: 1.05;
+  letter-spacing: -1.2px;
+`;
 const PriceUnit = styled.span`
-  margin-left: 5px;
+  margin-left: 6px;
+
+  color: #697a74;
+
   font-size: 13px;
-  font-weight: 700;
-  color: var(--text-sub);
+  font-weight: 800;
 `;
 
 const PricePanelDescription = styled.p`
-  margin: 9px 0 0;
+  position: relative;
+  z-index: 1;
+
+  margin: 11px 0 0;
+
+  color: #697a74;
+
   font-size: 11px;
-  line-height: 1.5;
-  color: #6e756f;
+  line-height: 1.6;
 `;
 
 const PricePanelAction = styled.div`
-  margin-top: 14px;
+  position: relative;
+  z-index: 1;
+
+  margin-top: 18px;
 `;
 
 /* =========================================================
@@ -1483,18 +1844,24 @@ const PricePanelAction = styled.div`
 
 const PrimaryActionButton = styled.button`
   width: 100%;
-  height: 36px;
-  padding: 0 13px;
+  height: 46px;
+
   border: none;
-  border-radius: 8px;
-  background: var(--color-main);
-  color: var(--color-white);
-  font-size: 12px;
-  font-weight: 800;
+  border-radius: 15px;
+
+  background: linear-gradient(180deg, #75c7a9 0%, #4fa98b 100%);
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 900;
+
   cursor: pointer;
 
+  box-shadow: 0 12px 22px rgba(88, 170, 141, 0.24);
+
   &:hover {
-    background: var(--color-main-dark);
+    background: linear-gradient(180deg, #67bc9e 0%, #429a7e 100%);
   }
 
   &:disabled {
@@ -1505,18 +1872,23 @@ const PrimaryActionButton = styled.button`
 
 const SecondaryActionButton = styled.button`
   width: 100%;
-  height: 36px;
-  padding: 0 13px;
-  border: 1px solid #e2c7c1;
-  border-radius: 8px;
-  background: var(--color-white);
-  color: #d45a4d;
+  height: 40px;
+  padding: 0 14px;
+
+  border: 1px solid #cfe4dc;
+  border-radius: 14px;
+
+  background: #f7fbfa;
+
+  color: #5f7f72;
+
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 950;
+
   cursor: pointer;
 
   &:hover {
-    background: #fff8f7;
+    background: #eef8f4;
   }
 
   &:disabled {
@@ -1529,14 +1901,20 @@ const DisabledActionBadge = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
+
   width: 100%;
-  height: 36px;
+  height: 40px;
   padding: 0 13px;
-  border-radius: 8px;
-  background: #f0f0f0;
-  color: var(--text-desc);
+
+  border-radius: 14px;
+
+  background: #eef1f0;
+
+  color: #87938f;
+
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 900;
+
   box-sizing: border-box;
 `;
 
@@ -1544,16 +1922,22 @@ const CompareOnlyBadge = styled.span`
   display: flex;
   align-items: center;
   justify-content: center;
+
   width: 100%;
-  min-height: 36px;
+  min-height: 40px;
   padding: 0 12px;
-  border: 1px solid #e1e5e4;
-  border-radius: 8px;
-  background: #f7f8f8;
-  color: #7f8a87;
+
+  border: 1px solid #dce6e2;
+  border-radius: 14px;
+
+  background: #f7fbfa;
+
+  color: #73827c;
+
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 900;
   text-align: center;
+
   box-sizing: border-box;
 `;
 
@@ -1562,29 +1946,32 @@ const CompareOnlyBadge = styled.span`
 ========================================================= */
 
 const CoverageSection = styled.div`
-  padding: 0 20px 20px;
+  padding: 0 26px 26px;
 `;
 
 const CoverageTitle = styled.h4`
-  margin: 0 0 10px;
-  font-size: 17px;
-  font-weight: 900;
-  letter-spacing: -0.5px;
-  color: var(--text-main);
+  margin: 0 0 12px;
+
+  color: #17211f;
+
+  font-size: 18px;
+  font-weight: 950;
+  letter-spacing: -0.6px;
 `;
 
 const CoverageTable = styled.div`
   overflow: hidden;
-  border: 1px solid #ecefef;
-  border-radius: 13px;
+
+  border: 1px solid #e7efeb;
+  border-radius: 18px;
 `;
 
 const CoverageHeader = styled.div`
-  background: #f7f8fa;
+  background: #f4f8f6;
 `;
 
 const CoverageBody = styled.div`
-  background: var(--color-white);
+  background: #ffffff;
 `;
 
 const CoverageRow = styled.div`
@@ -1592,7 +1979,7 @@ const CoverageRow = styled.div`
   grid-template-columns: minmax(140px, 190px) 1fr;
 
   &:not(:last-child) {
-    border-bottom: 1px solid #eeeeee;
+    border-bottom: 1px solid #edf2f0;
   }
 
   @media (max-width: 640px) {
@@ -1601,35 +1988,78 @@ const CoverageRow = styled.div`
 `;
 
 const CoverageHeaderCell = styled.div`
-  padding: 11px 14px;
+  padding: 12px 15px;
+
+  color: #66756f;
+
   font-size: 12px;
-  font-weight: 800;
-  color: #67736f;
+  font-weight: 900;
 
   &:not(:last-child) {
-    border-right: 1px solid #ecefef;
+    border-right: 1px solid #e7efeb;
   }
 `;
 
 const CoverageName = styled.div`
-  padding: 13px 14px;
-  background: #fcfdfd;
+  padding: 14px 15px;
+
+  background: #fbfdfc;
+
+  color: #17211f;
+
   font-size: 13px;
-  font-weight: 800;
-  color: var(--text-main);
+  font-weight: 950;
 `;
 
 const CoverageDescription = styled.div`
-  padding: 13px 14px;
+  padding: 14px 15px;
+
+  color: #64736e;
+
   font-size: 13px;
-  line-height: 1.55;
-  color: var(--text-sub);
+  line-height: 1.6;
+`;
+
+const CoverageMeta = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+
+  margin-top: 7px;
+`;
+
+const CoverageMetaChip = styled.span`
+  display: inline-flex;
+  align-items: center;
+
+  padding: 4px 7px;
+
+  border-radius: 999px;
+
+  background: ${({ $included }) => ($included ? "#eaf7f1" : "#f4f7f6")};
+  color: ${({ $included }) => ($included ? "#2f7f67" : "#6f7f79")};
+
+  font-size: 10px;
+  font-weight: 800;
+`;
+
+const RiderSection = styled.div`
+  margin-top: 18px;
 `;
 
 const ErrorMessage = styled.p`
   margin: 0;
+  padding: 11px 13px;
+
+  border: 1px solid #d9eae3;
+  border-radius: 12px;
+
+  background: #f7fbfa;
+
+  color: #5f7f72;
+
   font-size: 13px;
-  color: #e74c3c;
+  font-weight: 800;
 `;
 
 /* =========================================================
@@ -1640,22 +2070,30 @@ const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
   z-index: 9999;
+
   display: flex;
   align-items: center;
   justify-content: center;
+
   padding: 20px;
-  background: rgba(0, 0, 0, 0.45);
+
+  background: rgba(10, 22, 18, 0.52);
 `;
 
 const ModalBox = styled.div`
   display: flex;
   flex-direction: column;
+
   width: min(540px, 100%);
   max-height: 86vh;
+
   overflow: hidden;
-  border-radius: 18px;
-  background: var(--color-white);
-  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.2);
+
+  border-radius: 24px;
+
+  background: #ffffff;
+
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
 `;
 
 const ModalHeader = styled.div`
@@ -1663,48 +2101,64 @@ const ModalHeader = styled.div`
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 20px 20px 16px;
-  border-bottom: 1px solid #eeeeee;
+
+  padding: 22px 22px 17px;
+
+  border-bottom: 1px solid #edf2f0;
 `;
 
 const FormBadge = styled.span`
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 5px 9px;
+
+  padding: 5px 10px;
+
   border-radius: 999px;
-  background: var(--color-bg-light);
+
+  background: #f0faf6;
+
+  color: #24876d;
+
   font-size: 11px;
-  font-weight: 700;
-  color: var(--color-main-dark);
+  font-weight: 900;
 `;
 
 const ModalTitle = styled.h2`
-  margin: 9px 0 0;
-  font-size: 19px;
-  font-weight: 800;
-  color: var(--text-main);
+  margin: 10px 0 0;
+
+  color: #17211f;
+
+  font-size: 20px;
+  font-weight: 950;
 `;
 
 const ModalDescription = styled.p`
-  margin: 6px 0 0;
+  margin: 7px 0 0;
+
+  color: #697a74;
+
   font-size: 12px;
-  line-height: 1.55;
-  color: var(--text-desc);
+  line-height: 1.6;
 `;
 
 const CloseButton = styled.button`
   border: none;
+
   background: transparent;
-  font-size: 25px;
+
+  color: #8a9691;
+
+  font-size: 26px;
   line-height: 1;
-  color: var(--text-desc);
+
   cursor: pointer;
 `;
 
 const ModalBody = styled.div`
   overflow-y: auto;
-  padding: 18px 20px;
+
+  padding: 20px 22px;
 `;
 
 const FormSection = styled.section`
@@ -1712,28 +2166,34 @@ const FormSection = styled.section`
 `;
 
 const ModalSectionTitle = styled.h3`
-  margin: 0 0 9px;
+  margin: 0 0 10px;
+
+  color: #17211f;
+
   font-size: 13px;
-  font-weight: 800;
-  color: var(--text-main);
+  font-weight: 950;
 `;
 
 const RequiredMark = styled.span`
-  color: #e74c3c;
+  color: #58aa8d;
 `;
 
 const InfoTable = styled.div`
   overflow: hidden;
-  border: 1px solid #e8eeeb;
-  border-radius: 11px;
-  background: var(--color-white);
+
+  border: 1px solid #e7efeb;
+  border-radius: 14px;
+
+  background: #ffffff;
 `;
 
 const InfoRow = styled.div`
   display: grid;
-  grid-template-columns: 110px 1fr;
-  min-height: 40px;
-  border-bottom: 1px solid #eeeeee;
+  grid-template-columns: 112px 1fr;
+
+  min-height: 42px;
+
+  border-bottom: 1px solid #edf2f0;
 
   &:last-child {
     border-bottom: none;
@@ -1743,20 +2203,27 @@ const InfoRow = styled.div`
 const InfoLabel = styled.span`
   display: flex;
   align-items: center;
-  padding: 0 12px;
-  background: #f8fbfa;
+
+  padding: 0 13px;
+
+  background: #f7fbfa;
+
+  color: #6f7f79;
+
   font-size: 12px;
-  font-weight: 700;
-  color: #71807a;
+  font-weight: 900;
 `;
 
 const InfoValue = styled.span`
   display: flex;
   align-items: center;
-  padding: 0 12px;
+
+  padding: 0 13px;
+
+  color: #17211f;
+
   font-size: 12px;
-  font-weight: 700;
-  color: var(--text-main);
+  font-weight: 800;
 `;
 
 const PriceValue = styled.span`
@@ -1765,21 +2232,25 @@ const PriceValue = styled.span`
   padding: 0 12px;
   font-size: 15px;
   font-weight: 800;
-  color: var(--color-main-dark);
+  color: #3f9d7f;
 `;
 
 const UploadCard = styled.div`
-  padding: 13px;
-  border: 1px solid #eeeeee;
-  border-radius: 10px;
-  background: var(--color-white);
+  padding: 14px;
+
+  border: 1px solid #e7efeb;
+  border-radius: 14px;
+
+  background: #fbfdfc;
 `;
 
 const UploadGuide = styled.p`
-  margin: 0 0 10px;
+  margin: 0 0 11px;
+
+  color: #697a74;
+
   font-size: 12px;
-  line-height: 1.55;
-  color: #7c867f;
+  line-height: 1.6;
 `;
 
 const UploadRow = styled.div`
@@ -1790,17 +2261,24 @@ const UploadRow = styled.div`
 
 const FileInputLabel = styled.label`
   flex-shrink: 0;
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 34px;
-  padding: 0 11px;
-  border: 1px solid #cfe5dc;
-  border-radius: 7px;
-  background: #f5fbf8;
+
+  height: 36px;
+  padding: 0 12px;
+
+  border: 1px solid #c3e2d7;
+  border-radius: 10px;
+
+  background: #f0faf6;
+
+  color: #24876d;
+
   font-size: 12px;
-  font-weight: 700;
-  color: var(--color-main-dark);
+  font-weight: 900;
+
   cursor: pointer;
 `;
 
@@ -1812,80 +2290,118 @@ const SelectedFileName = styled.div`
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  padding: 9px 10px;
-  border: 1px solid ${({ $hasFile }) => ($hasFile ? "#b9e2d3" : "#e3e3e3")};
-  border-radius: 7px;
-  background: ${({ $hasFile }) => ($hasFile ? "#f4fbf8" : "#fafafa")};
+
+  padding: 10px 11px;
+
+  border: 1px solid ${({ $hasFile }) => ($hasFile ? "#b7dfd2" : "#e2e7e5")};
+  border-radius: 10px;
+
+  background: ${({ $hasFile }) => ($hasFile ? "#f0faf6" : "#ffffff")};
+
+  color: ${({ $hasFile }) => ($hasFile ? "#24876d" : "#8a9691")};
+
   font-size: 12px;
-  color: ${({ $hasFile }) =>
-    $hasFile ? "var(--color-main-dark)" : "var(--text-desc)"};
+
   text-overflow: ellipsis;
   white-space: nowrap;
 `;
 
 const ModalErrorMessage = styled.p`
   margin: 0 0 12px;
+  padding: 10px 11px;
+
+  border: 1px solid #d9eae3;
+  border-radius: 10px;
+
+  background: #f7fbfa;
+
+  color: #5f7f72;
+
   font-size: 12px;
   line-height: 1.5;
-  color: #e74c3c;
 `;
 
 const NoticeBox = styled.div`
-  padding: 12px 13px;
-  border-radius: 10px;
-  background: #f7f8fa;
+  padding: 13px 14px;
+
+  border-radius: 14px;
+
+  background: #f7fbfa;
 `;
 
 const NoticeTitle = styled.h4`
-  margin: 0 0 6px;
+  margin: 0 0 7px;
+
+  color: #17211f;
+
   font-size: 12px;
-  font-weight: 800;
-  color: var(--text-main);
+  font-weight: 950;
 `;
 
 const NoticeText = styled.p`
   margin: 0;
+
+  color: #64736e;
+
   font-size: 12px;
-  line-height: 1.55;
-  color: var(--text-sub);
+  line-height: 1.6;
 `;
 
 const ModalFooter = styled.div`
   display: grid;
   grid-template-columns: 1fr 1.5fr;
-  gap: 9px;
-  padding: 14px 20px 18px;
-  border-top: 1px solid #eeeeee;
-  background: var(--color-white);
+  gap: 10px;
+
+  padding: 15px 22px 20px;
+
+  border-top: 1px solid #edf2f0;
+
+  background: #ffffff;
 `;
 
 const ModalCancelButton = styled.button`
-  height: 42px;
-  border: 1px solid #dddddd;
-  border-radius: 8px;
-  background: var(--color-white);
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--text-sub);
-  cursor: pointer;
-`;
+  height: 43px;
 
-const SubmitButton = styled.button`
-  height: 42px;
-  border: none;
-  border-radius: 8px;
-  background: var(--color-main);
+  border: 1px solid #dde6e2;
+  border-radius: 11px;
+
+  background: #ffffff;
+
+  color: #64736e;
+
   font-size: 12px;
-  font-weight: 800;
-  color: var(--color-white);
+  font-weight: 900;
+
   cursor: pointer;
 
   &:hover {
-    background: var(--color-main-dark);
+    background: #f7fbfa;
+  }
+`;
+
+const SubmitButton = styled.button`
+  height: 44px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: linear-gradient(180deg, #75c7a9 0%, #4fa98b 100%);
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 900;
+
+  cursor: pointer;
+
+  box-shadow: 0 10px 18px rgba(88, 170, 141, 0.22);
+
+  &:hover {
+    background: linear-gradient(180deg, #67bc9e 0%, #429a7e 100%);
   }
 
   &:disabled {
-    background: var(--color-mint);
+    opacity: 0.7;
     cursor: default;
   }
 `;

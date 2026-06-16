@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { getLoginRole } from "../../utils/auth";
+import { useNavigate, Navigate } from "react-router-dom";
 import styled from "styled-components";
 
 import usePetStoreAdminProductList from "../../features/petStore/hooks/usePetStoreAdminProductList";
@@ -9,6 +10,25 @@ import PetStoreNavGate from "./PetStoreNavGate";
 const PAGE_GROUP_SIZE = 10;
 
 export default function PetStoreAdminProductListPage() {
+  const rawRole = getLoginRole();
+  const role = normalizeRole(rawRole);
+
+  const isAllowed = role === "ADMIN" || role === "STORE";
+
+  if (!role) {
+    alert("로그인 후 이용 가능합니다.");
+    return <Navigate to="/member/login" replace />;
+  }
+
+  if (!isAllowed) {
+    alert("스토어 관리자 권한이 없습니다.");
+    return <Navigate to="/store" replace />;
+  }
+
+  return <PetStoreAdminProductListContent />;
+}
+
+function PetStoreAdminProductListContent() {
   const navigate = useNavigate();
 
   const {
@@ -411,6 +431,13 @@ function formatDate(value) {
   }
 
   return String(value).slice(0, 10);
+}
+
+function normalizeRole(role) {
+  return String(role ?? "")
+    .replace("ROLE_", "")
+    .trim()
+    .toUpperCase();
 }
 
 const Wrapper = styled.main`

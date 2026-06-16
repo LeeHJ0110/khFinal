@@ -5,8 +5,10 @@ import {
   fetchKarteList,
   fetchKarteWrite,
 } from "../api/karteApi";
+import { useNavigate } from "react-router-dom";
 
 export default function useKarte() {
+  const navigation = useNavigate();
   const [list, setList] = useState([]);
   const [data, setData] = useState({});
   const [isLoading, setLoading] = useState(false);
@@ -28,10 +30,15 @@ export default function useKarte() {
 
   async function asyncFetchKarteDetail(id) {
     setLoading(true);
-    const resp = await fetchKarteDetail(id);
-    setData(resp.data);
-
-    setLoading(false);
+    try {
+      const resp = await fetchKarteDetail(id);
+      setData(resp.data);
+    } catch (err) {
+      alert(err.response?.data.message);
+      navigation("/");
+    } finally {
+      setLoading(false);
+    }
   }
 
   //등록

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import MyPageLayout from "./components/MyPageLayout";
 import useOrderHistory from "../../features/mypage/store/hooks/useOrderHistory";
+import { cancelStoreOrder } from "../../features/mypage/store/api/mypageStoreApi";
 
 function getStatusLabel(status) {
   const map = {
@@ -17,7 +18,7 @@ function getStatusLabel(status) {
 }
 
 function canCancel(status) {
-  return status === "ORDERED" || status === "PAID";
+  return status === "READY";
 }
 
 function canReview(status) {
@@ -39,8 +40,21 @@ export default function OrderHistoryPage() {
     setOpenedOrderId((prev) => (prev === orderId ? null : orderId));
   }
 
-  function handleCancelOrder(orderId) {
-    alert(`주문취소 기능은 API 연결 후 처리됩니다. 주문번호: ${orderId}`);
+  async function handleCancelOrder(orderId) {
+    if (!window.confirm("주문을 취소하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      await cancelStoreOrder(orderId);
+
+      alert("주문이 취소되었습니다.");
+      window.location.reload();
+    } catch (err) {
+      console.error("주문 취소 실패", err);
+
+      alert(err.response?.data?.message || "주문 취소에 실패했습니다.");
+    }
   }
 
   function handleWriteReview(item) {
@@ -111,8 +125,8 @@ export default function OrderHistoryPage() {
                   </LeftArea>
 
                   <RightArea>
-                    <StatusBadge $status={order.orderStatus}>
-                      {getStatusLabel(order.orderStatus)}
+                    <StatusBadge $status={order.deliveryStatus}>
+                      {order.deliveryStatusName}
                     </StatusBadge>
 
                     <FinalAmount>
@@ -147,18 +161,19 @@ export default function OrderHistoryPage() {
                         <ItemRight>
                           <strong>{formatPrice(item.totalPrice)}원</strong>
 
-                          {item.reviewed ? (
-                            <ReviewDoneButton type="button" disabled>
-                              리뷰완료
-                            </ReviewDoneButton>
-                          ) : (
-                            <ReviewButton
-                              type="button"
-                              onClick={() => handleWriteReview(item)}
-                            >
-                              리뷰작성
-                            </ReviewButton>
-                          )}
+                          {canReview(order.deliveryStatus) &&
+                            (item.reviewed ? (
+                              <ReviewDoneButton type="button" disabled>
+                                리뷰완료
+                              </ReviewDoneButton>
+                            ) : (
+                              <ReviewButton
+                                type="button"
+                                onClick={() => handleWriteReview(item)}
+                              >
+                                리뷰작성
+                              </ReviewButton>
+                            ))}
                         </ItemRight>
                       </ItemRow>
                     ))}
@@ -199,7 +214,7 @@ export default function OrderHistoryPage() {
                     </DeliveryBox>
 
                     <ButtonArea>
-                      {canCancel(order.orderStatus) && (
+                      {canCancel(order.deliveryStatus) && (
                         <CancelButton
                           type="button"
                           onClick={() => handleCancelOrder(order.orderId)}

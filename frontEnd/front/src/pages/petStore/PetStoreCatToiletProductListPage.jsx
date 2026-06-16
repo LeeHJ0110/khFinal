@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import toiletBannerImg from "../../assets/images/petStore/배변목록배너.png";
 import PetStoreNavGate from "./PetStoreNavGate";
 import searchIcon from "../../assets/images/icon/녹색돋보기.png";
+
 const sortOptions = [
   { label: "최신순", value: "latest" },
   { label: "인기순", value: "popular" },
@@ -46,16 +47,24 @@ const tagThemeMap = {
   },
 };
 
-function getTempReviewInfo(index) {
-  const tempReviewList = [
-    { rating: "4.9", count: 128 },
-    { rating: "4.8", count: 92 },
-    { rating: "4.7", count: 76 },
-    { rating: "4.6", count: 54 },
-    { rating: "4.5", count: 31 },
-  ];
+function formatReviewRating(value) {
+  const rating = Number(value ?? 0);
 
-  return tempReviewList[index % tempReviewList.length];
+  if (Number.isNaN(rating) || rating <= 0) {
+    return "0.0";
+  }
+
+  return rating.toFixed(1);
+}
+
+function formatReviewCount(value) {
+  const count = Number(value ?? 0);
+
+  if (Number.isNaN(count) || count <= 0) {
+    return 0;
+  }
+
+  return count;
 }
 
 function getProductTagLabel(product) {
@@ -194,9 +203,12 @@ export default function PetStoreCatToiletProductListPage() {
                 <EmptyBox>조건에 맞는 상품이 없습니다.</EmptyBox>
               ) : (
                 <ProductGrid>
-                  {productList.map((product, index) => {
-                    const tempReview = getTempReviewInfo(index);
+                  {productList.map((product) => {
                     const tagLabel = getProductTagLabel(product);
+                    const averageRating = formatReviewRating(
+                      product.averageRating,
+                    );
+                    const reviewCount = formatReviewCount(product.reviewCount);
 
                     return (
                       <ProductCard
@@ -235,6 +247,8 @@ export default function PetStoreCatToiletProductListPage() {
                             <ProductImage
                               src={product.mainImageUrl}
                               alt={product.productName}
+                              loading="lazy"
+                              decoding="async"
                             />
                           ) : (
                             <ProductImageText>상품 이미지</ProductImageText>
@@ -246,7 +260,7 @@ export default function PetStoreCatToiletProductListPage() {
 
                           <ProductReviewInfo>
                             <ReviewStar>★</ReviewStar>
-                            {tempReview.rating} ({tempReview.count})
+                            {averageRating} ({reviewCount})
                           </ProductReviewInfo>
 
                           <ProductPrice>
@@ -473,6 +487,7 @@ const SearchButton = styled.button`
     transform: scale(1.08);
   }
 `;
+
 const SearchIcon = styled.img`
   width: 15px;
   height: 15px;

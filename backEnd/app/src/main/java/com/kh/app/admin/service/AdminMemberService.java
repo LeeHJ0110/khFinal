@@ -5,6 +5,7 @@ import com.kh.app.admin.dto.request.AdminMemberSearchReqDto;
 import com.kh.app.admin.dto.request.AdminMemberStatusUpdateReqDto;
 import com.kh.app.admin.dto.response.AdminMemberDetailResDto;
 import com.kh.app.admin.dto.response.AdminMemberListResDto;
+import com.kh.app.aws.service.S3Service;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.kh.app.admin.dto.response.AdminMeResDto;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
@@ -21,6 +22,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class AdminMemberService {
 
     private final MemberRepository memberRepository;
+    private final S3Service s3Service;
 
     public Page<AdminMemberListResDto> searchMembers(AdminMemberSearchReqDto reqDto, Pageable pageable) {
         return memberRepository.searchMembers(reqDto, pageable);
@@ -30,7 +32,9 @@ public class AdminMemberService {
         MemberEntity member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalStateException("회원 정보를 찾을 수 없습니다."));
 
-        return AdminMemberDetailResDto.from(member);
+        String profileImageUrl = s3Service.getFileUrl(member.getProfileImageUrl());
+
+        return AdminMemberDetailResDto.from(member,profileImageUrl);
     }
     @Transactional
     public void updateMemberStatus(
@@ -72,6 +76,13 @@ public class AdminMemberService {
         return newNickname;
     }
 
+    public AdminMeResDto getAdminMe(String username) {
+        MemberEntity member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalStateException("관리자 정보를 찾을 수 없습니다."));
 
+        String profileImageUrl = s3Service.getFileUrl(member.getProfileImageUrl());
+
+        return AdminMeResDto.from(member, profileImageUrl);
+    }
 
 }

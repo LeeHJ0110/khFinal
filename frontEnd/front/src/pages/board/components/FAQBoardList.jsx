@@ -92,7 +92,6 @@ export default function FAQBoardList({
                 <SubCategoryTag>질문</SubCategoryTag>
                 <ItemTitle>{item.title}</ItemTitle>
                 <ItemMeta>
-                  <LevelBadge>M.1</LevelBadge>
                   <WriterName>{item.writerNickname || "관리자"}</WriterName>
                   <RelativeTime>
                     {formatRelativeTime(item.createdAt)}
@@ -187,18 +186,6 @@ const ItemMeta = styled.div`
   gap: 12px;
   font-size: 12px;
   color: var(--text-desc);
-`;
-
-const LevelBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px 6px;
-  background-color: #e8f2ff;
-  color: #228be6;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 800;
 `;
 
 const WriterName = styled.span`

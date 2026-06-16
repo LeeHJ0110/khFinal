@@ -5,12 +5,12 @@ import usePetStoreProductDetail from "../../features/petStore/hooks/usePetStoreP
 import { insertCartProduct } from "../../features/petStore/api/petStoreOrderApi";
 import usePetStoreWishToggle from "../../features/petStore/hooks/usePetStoreWishToggle";
 import PetStoreProductReviewSection from "../../features/petStore/components/PetStoreProductReviewSection";
+import usePetStoreProductReviewList from "../../features/petStore/hooks/usePetStoreProductReviewList";
 
 import foodImg from "../../assets/images/petStore/사료홍보.png";
 import snackImg from "../../assets/images/petStore/간식홍보.png";
 import supplementImg from "../../assets/images/petStore/영양제홍보.png";
 import toiletImg from "../../assets/images/petStore/배변홍보.png";
-PetStoreProductReviewSection;
 import tagCard from "../../assets/images/petStore/상품태그카드.png";
 import PetStoreNavGate from "./PetStoreNavGate";
 
@@ -22,6 +22,10 @@ export default function PetStoreProductDetailPage() {
     isLoading,
     error,
   } = usePetStoreProductDetail(productId);
+
+  // 상단 리뷰 요약: 상품별 리뷰 API의 summary 값을 사용합니다.
+  const { summary: reviewSummary, reviewPage: topReviewPage } =
+    usePetStoreProductReviewList(productId);
 
   const [product, setProduct] = useState(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState("");
@@ -357,10 +361,6 @@ export default function PetStoreProductDetailPage() {
 
       setShowCartBubble(true);
     } catch (error) {
-      console.error("장바구니 담기 실패", error);
-      console.log("status:", error?.response?.status);
-      console.log("data:", error?.response?.data);
-
       if (isAuthError(error)) {
         moveToLoginWithRedirect();
         return;
@@ -490,6 +490,16 @@ export default function PetStoreProductDetailPage() {
   const bottomToggleText = "구매하기";
   const promoImage = getPromoImageByCategory(product.productCategory);
 
+  // 리뷰 요약 표시값
+  const reviewCount = Number(
+    reviewSummary?.reviewCount ?? topReviewPage?.totalElements ?? 0,
+  );
+  const averageRating = Number(reviewSummary?.averageRating ?? 0);
+  const reviewMiniText =
+    reviewCount > 0
+      ? `${averageRating.toFixed(1)} (${reviewCount.toLocaleString()})`
+      : "리뷰 0개";
+
   const showNutritionAndFeeding = isNutritionAndFeedingCategory(
     product.productCategory,
   );
@@ -545,7 +555,7 @@ export default function PetStoreProductDetailPage() {
 
               <ReviewMiniLine>
                 <ReviewStar>★</ReviewStar>
-                <span>4.9 (128)</span>
+                <span>{reviewMiniText}</span>
               </ReviewMiniLine>
 
               <Price>{product.productPrice?.toLocaleString()}원</Price>

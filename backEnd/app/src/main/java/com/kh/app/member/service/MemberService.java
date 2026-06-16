@@ -39,6 +39,7 @@ public class MemberService {
     private final JwtUtil jwtUtil;
     private final DeliveryAddressService deliveryAddressService;
     private final S3Service s3Service;
+    private final PhoneAuthService phoneAuthService;
 
     @Transactional
     public void join(MemberJoinReqDto dto) {
@@ -48,6 +49,10 @@ public class MemberService {
 
         if (memberRepository.existsByNickname(dto.getNickname())) {
             throw new CustomException(MemberErrorCode.DUPLICATE_NICKNAME);
+        }
+
+        if (!phoneAuthService.isVerified(dto.getPhone())) {
+            throw new IllegalStateException("전화번호 인증이 필요합니다.");
         }
 
         String encodedPassword = passwordEncoder.encode(dto.getPassword());
@@ -63,6 +68,7 @@ public class MemberService {
         );
 
         log.info("[회원가입 완료] username : {}", dto.getUsername());
+        phoneAuthService.clearVerified(dto.getPhone());
     }
 
     @Transactional

@@ -13,7 +13,6 @@ export default function usePetStoreBestProductList(targetPetType) {
 
       setBestProductList(resp.data);
     } catch (error) {
-      console.error("베스트 상품 조회 실패", error);
       setBestProductList([]);
     } finally {
       setIsBestLoading(false);

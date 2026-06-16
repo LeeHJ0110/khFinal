@@ -27,7 +27,6 @@ export default function usePetStoreProductList(targetPetType, category) {
 
       setProductList(response.data ?? []);
     } catch (error) {
-      console.error("상품 목록 조회 실패", error);
       setProductList([]);
     } finally {
       setLoading(false);

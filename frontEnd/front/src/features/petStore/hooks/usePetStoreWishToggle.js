@@ -140,8 +140,6 @@ export default function usePetStoreWishToggle() {
         wished: true,
       });
     } catch (error) {
-      console.error("관심상품 토글 실패", error);
-
       if (isAuthError(error)) {
         moveToLoginWithRedirect();
         return;

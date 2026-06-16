@@ -1,6 +1,6 @@
 import { Route, Routes, Navigate, Outlet } from "react-router-dom";
 import "./App.css";
-
+import AdminRoleRoute from "./shared/components/security/AdminRoleRoute";
 import DefaultLayout from "./app/layouts/DefaultLayout";
 
 // member
@@ -74,6 +74,7 @@ import PointHistoryPage from "./pages/mypage/PointHistoryPage";
 import ProtectedRoute from "./shared/components/security/ProtectedRoute";
 import KarteListPage from "./pages/karte/KarteLIstPage";
 import ScheduleMainPage from "./pages/schedule/scheduleMainPage";
+import AdminCommunityHistoryPage from "./pages/admin/community/AdminCommunityHistoryPage";
 //
 
 function App() {
@@ -218,11 +219,16 @@ function App() {
           </Route>
 
           {/* 마이페이지 */}
-          <Route path="mypage">
+          <Route
+            path="mypage"
+            element={
+              <ProtectedRoute>
+                <Outlet />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<MyPageHomePage />} />
-
             <Route path="member-edit" element={<MemberEditPage />} />
-
             <Route path="pet-manage" element={<PetManagePage />} />
             <Route path="message" element={<MessageBoxPage />} />
             <Route path="community" element={<CommunityHistoryPage />} />
@@ -231,11 +237,58 @@ function App() {
             <Route path="points" element={<PointHistoryPage />} />
           </Route>
           <Route path="admin">
-            <Route path="member" element={<AdminMemberPage />} />
-            <Route path="message/send" element={<AdminMessageSendPage />} />
-            <Route path="message/sent" element={<AdminSentMessagePage />} />
-            <Route path="delivery" element={<AdminDeliveryPage />} />
-            <Route path="insurance" element={<AdminInsurancePage />} />
+            <Route
+              path="member"
+              element={
+                <AdminRoleRoute allowedRoles={["ADMIN"]}>
+                  <AdminMemberPage />
+                </AdminRoleRoute>
+              }
+            />
+            <Route
+              path="message/send"
+              element={
+                <AdminRoleRoute
+                  allowedRoles={["ADMIN", "BOARD", "DOCTOR", "STORE"]}
+                >
+                  <AdminMessageSendPage />
+                </AdminRoleRoute>
+              }
+            />
+            <Route
+              path="message/sent"
+              element={
+                <AdminRoleRoute
+                  allowedRoles={["ADMIN", "BOARD", "DOCTOR", "STORE"]}
+                >
+                  <AdminSentMessagePage />
+                </AdminRoleRoute>
+              }
+            />
+            <Route
+              path="delivery"
+              element={
+                <AdminRoleRoute allowedRoles={["ADMIN", "STORE"]}>
+                  <AdminDeliveryPage />
+                </AdminRoleRoute>
+              }
+            />
+            <Route
+              path="insurance"
+              element={
+                <AdminRoleRoute allowedRoles={["ADMIN", "DOCTOR"]}>
+                  <AdminInsurancePage />
+                </AdminRoleRoute>
+              }
+            />
+            <Route
+              path="community"
+              element={
+                <AdminRoleRoute allowedRoles={["ADMIN", "BOARD"]}>
+                  <AdminCommunityHistoryPage />
+                </AdminRoleRoute>
+              }
+            />
           </Route>
 
           {/* 공용페이지 (route path 수정해야함)*/}

@@ -23,15 +23,12 @@ export default function usePetStoreReviewList() {
         sort: nextSort,
       });
 
-      console.log("내 리뷰내역 응답:", response.data);
-
       setReviewPage(response.data);
       setReviewList(response.data?.content ?? []);
 
       setPage(nextPage);
       setSort(nextSort);
     } catch (error) {
-      console.error("내 리뷰 목록 조회 실패:", error);
       alert("내 리뷰 목록을 불러오지 못했습니다.");
     } finally {
       setIsLoading(false);
@@ -51,7 +48,6 @@ export default function usePetStoreReviewList() {
 
       await loadMyReviewList(page, sort);
     } catch (error) {
-      console.error("리뷰 삭제 실패:", error);
       alert("리뷰 삭제에 실패했습니다.");
     }
   }
@@ -76,7 +72,6 @@ export default function usePetStoreReviewList() {
 
       await loadMyReviewList(page, sort);
     } catch (error) {
-      console.error("리뷰 수정 실패:", error);
       alert("리뷰 수정에 실패했습니다.");
     }
   }

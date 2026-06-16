@@ -1,5 +1,6 @@
 package com.kh.app.mypage.store.dto.response;
 
+import com.kh.app.store.entity.StoreDeliveryStatus;
 import com.kh.app.store.entity.StoreOrderEntity;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,6 +17,10 @@ public class StoreOrderHistoryResDto {
     private String orderDate;
 
     private String orderStatus;
+
+    private String deliveryStatus;
+
+    private String deliveryStatusName;
 
     private Long deliveryFee;
 
@@ -45,7 +50,8 @@ public class StoreOrderHistoryResDto {
 
     public static StoreOrderHistoryResDto from(
             StoreOrderEntity order,
-            List<StoreOrderHistoryItemResDto> items
+            List<StoreOrderHistoryItemResDto> items,
+            StoreDeliveryStatus deliveryStatus
     ) {
         StoreOrderHistoryItemResDto firstItem =
                 items.isEmpty() ? null : items.get(0);
@@ -60,6 +66,12 @@ public class StoreOrderHistoryResDto {
                                 : null
                 )
                 .orderStatus(order.getOrderStatus().name())
+                .deliveryStatus(
+                        deliveryStatus != null
+                                ? deliveryStatus.name()
+                                : null
+                )
+                .deliveryStatusName(getDeliveryStatusName(deliveryStatus))
                 .deliveryFee(order.getOrderDeliveryFee())
                 .usedPoint(order.getOrderUsedPoint())
                 .finalAmount(order.getOrderFinalAmount())
@@ -84,6 +96,18 @@ public class StoreOrderHistoryResDto {
                 .build();
     }
 
+    private static String getDeliveryStatusName(StoreDeliveryStatus status) {
+        if (status == null) {
+            return "배송정보없음";
+        }
+
+        return switch (status) {
+            case READY -> "배송준비중";
+            case SHIPPING -> "배송중";
+            case DELIVERED -> "배송완료";
+        };
+    }
+
     private static String formatPhone(String phone) {
         if (phone == null) {
             return null;
@@ -100,6 +124,4 @@ public class StoreOrderHistoryResDto {
 
         return phone;
     }
-
-
 }

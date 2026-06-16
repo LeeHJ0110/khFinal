@@ -48,16 +48,24 @@ const tagThemeMap = {
   },
 };
 
-function getTempReviewInfo(index) {
-  const tempReviewList = [
-    { rating: "4.9", count: 128 },
-    { rating: "4.8", count: 92 },
-    { rating: "4.7", count: 76 },
-    { rating: "4.6", count: 54 },
-    { rating: "4.5", count: 31 },
-  ];
+function formatReviewRating(value) {
+  const rating = Number(value ?? 0);
 
-  return tempReviewList[index % tempReviewList.length];
+  if (Number.isNaN(rating) || rating <= 0) {
+    return "0.0";
+  }
+
+  return rating.toFixed(1);
+}
+
+function formatReviewCount(value) {
+  const count = Number(value ?? 0);
+
+  if (Number.isNaN(count) || count <= 0) {
+    return 0;
+  }
+
+  return count;
 }
 
 function getProductTagLabel(product) {
@@ -145,6 +153,7 @@ export default function PetStoreDogFoodProductListPage() {
                     }}
                     placeholder="제품명을 입력하세요."
                   />
+
                   <SearchButton type="button" onClick={handleSearch}>
                     <SearchIcon src={searchIcon} alt="검색" />
                   </SearchButton>
@@ -191,9 +200,12 @@ export default function PetStoreDogFoodProductListPage() {
                 <EmptyBox>조건에 맞는 상품이 없습니다.</EmptyBox>
               ) : (
                 <ProductGrid>
-                  {productList.map((product, index) => {
-                    const tempReview = getTempReviewInfo(index);
+                  {productList.map((product) => {
                     const tagLabel = getProductTagLabel(product);
+                    const averageRating = formatReviewRating(
+                      product.averageRating,
+                    );
+                    const reviewCount = formatReviewCount(product.reviewCount);
 
                     return (
                       <ProductCard
@@ -232,6 +244,8 @@ export default function PetStoreDogFoodProductListPage() {
                             <ProductImage
                               src={product.mainImageUrl}
                               alt={product.productName}
+                              loading="lazy"
+                              decoding="async"
                             />
                           ) : (
                             <ProductImageText>상품 이미지</ProductImageText>
@@ -243,7 +257,7 @@ export default function PetStoreDogFoodProductListPage() {
 
                           <ProductReviewInfo>
                             <ReviewStar>★</ReviewStar>
-                            {tempReview.rating} ({tempReview.count})
+                            {averageRating} ({reviewCount})
                           </ProductReviewInfo>
 
                           <ProductPrice>

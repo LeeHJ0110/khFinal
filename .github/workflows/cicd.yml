@@ -15,7 +15,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v5
 
-      # 깃허브 Secrets에서 비밀키 파일(application-private.properties)을 읽어와 동적으로 생성합니다.
       - name: Generate application-private.properties
         run: |
           mkdir -p backEnd/app/src/main/resources
@@ -59,10 +58,17 @@ jobs:
           username: ubuntu
           port: 22
           script: |
-            sudo docker rm -f petandifor-container || true
-            sudo docker rmi -f ${{ secrets.DOCKER_HUB_ID }}/petandifor:latest || true
+            echo "1. 최신 도커 이미지 먼저 다운로드 (Pulling...)"
+            sudo docker pull ${{ secrets.DOCKER_HUB_ID }}/petandifor:latest
 
-            # RDS 커넥션 및 필요한 환경변수들을 주입하여 컨테이너를 가동합니다.
+            echo "2. 기존 실행 중인 컨테이너 안전하게 중지 및 삭제"
+            sudo docker stop petandifor-container || true
+            sudo docker rm -f petandifor-container || true
+
+            echo "3. 사용하지 않는 이전 이미지 정리 (디스크 용량 확보)"
+            sudo docker image prune -f
+
+            echo "4. 새 컨테이너 가동 (RDS 커넥션 및 환경변수 주입)"
             sudo docker run -d --name petandifor-container -p 80:80 \
               -e SPRING_DATASOURCE_URL=jdbc:postgresql://kh-final.cfm8i6sw6238.ap-northeast-2.rds.amazonaws.com:5432/postgres \
               -e SPRING_DATASOURCE_USERNAME=postgres \
@@ -79,24 +85,20 @@ jobs:
   Deploy-Frontend:
     runs-on: ubuntu-latest
     steps:
-      # 1. 소스 코드 가져오기
       - name: Checkout Repository
         uses: actions/checkout@v5
 
-      # 2. Node.js 환경 구축
       - name: Setup Node.js
         uses: actions/setup-node@v5
         with:
           node-version: "20"
 
-      # 3. 의존성 패키지 설치 및 리액트 프로덕션 빌드
       - name: Install Dependencies and Build React
         run: |
           cd frontEnd/front
           npm install
           npm run build
 
-      # 4. AWS 자격 증명(Credentials) 설정
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -104,12 +106,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
-      # 5. 빌드 결과물(dist 폴더)을 S3 버킷으로 동기화 업로드
+      # 5. S3 동기화 시 --delete 옵션 제거 (MIME 타입 에러 해결 핵심)
       - name: Deploy to S3
         run: |
-          aws s3 sync ./frontEnd/front/dist s3://${{ secrets.AWS_S3_BUCKET_NAME }} --delete
+          aws s3 sync ./frontEnd/front/dist s3://${{ secrets.AWS_S3_BUCKET_NAME }}
 
-      # 6. 새로고침 시 즉시 반영을 위해 CloudFront 캐시 무효화 실행
+      # 6. 새로고침 즉시 반영을 위한 캐시 무효화
       - name: CloudFront Invalidation
         run: |
           aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/*"

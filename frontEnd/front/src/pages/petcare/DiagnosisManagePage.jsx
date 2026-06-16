@@ -3,9 +3,13 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 
 import usePetCareList from "../../features/petcare/hooks/usePetCareList";
+import { getLoginRole } from "../../../src/utils/auth";
 
 export default function DiagnosisManagePage() {
   const navigate = useNavigate();
+
+  const [isAllowed, setIsAllowed] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const {
     asyncFetchPetCareList,
@@ -21,11 +25,43 @@ export default function DiagnosisManagePage() {
   const [petTypeFilter, setPetTypeFilter] = useState("ALL");
 
   // =========================================================
-  // 페이지 또는 필터 변경 시 목록 다시 조회
+  // 수의사 / 관리자 권한 확인
   // =========================================================
   useEffect(() => {
+    const loginRole = getLoginRole();
+
+    if (!loginRole) {
+      alert("로그인 후 이용 가능합니다.");
+      setIsAllowed(false);
+      setIsCheckingAuth(false);
+      navigate("/member/login", { replace: true });
+      return;
+    }
+
+    if (loginRole !== "DOCTOR" && loginRole !== "ADMIN") {
+      alert("접근 권한이 없습니다.");
+      setIsAllowed(false);
+      setIsCheckingAuth(false);
+      navigate("/", { replace: true });
+      return;
+    }
+
+    setIsAllowed(true);
+    setIsCheckingAuth(false);
+  }, [navigate]);
+
+  // =========================================================
+  // 페이지 또는 필터 변경 시 목록 다시 조회
+  // 권한 확인이 끝난 뒤에만 API 호출
+  // =========================================================
+  useEffect(() => {
+    if (!isAllowed) {
+      return;
+    }
+
     asyncFetchPetCareList(currentPage, petTypeFilter);
-  }, [currentPage, petTypeFilter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAllowed, currentPage, petTypeFilter]);
 
   // =========================================================
   // 필터 변경
@@ -81,6 +117,13 @@ export default function DiagnosisManagePage() {
     }
 
     return "상태 확인 필요";
+  }
+
+  // =========================================================
+  // 권한 확인 중 또는 권한 없음이면 화면 렌더링 차단
+  // =========================================================
+  if (isCheckingAuth || !isAllowed) {
+    return null;
   }
 
   return (

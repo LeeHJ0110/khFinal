@@ -81,11 +81,17 @@ public class KarteService {
     }
 
     @Transactional
-    public KarteResDto selectOne(Long id) {
+    public KarteResDto selectOne(Long id, String username) {
+        MemberEntity memberEntity = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new CustomException(MemberErrorCode.MEMBER_NOT_FOUND));
         KarteEntity karte = karteRepository.findById(id)
                 .orElseThrow(() -> new CustomException(KarteErrorCode.KARTE_NOTFOUND));
         DiagnosisReqEntity diagReq = diagnosisReqRepository.findById(karte.getDiaReq().getDiagnosisReqId())
                 .orElseThrow(() -> new IllegalArgumentException("진단신청 없음"));
+        log.info("회원정보일치: "+ diagReq.getPetEntity().getMember().equals(memberEntity));
+        if(!diagReq.getPetEntity().getMember().equals(memberEntity)){
+            throw new CustomException(KarteErrorCode.INCORRECT_MEMBER);
+        }
         List<ScoreEntity> scores = scoreRepository.findAllByKarte(karte);
         List<ScoreResDto> scoreDtos = scores.stream()
                 .map(ScoreResDto::from)
