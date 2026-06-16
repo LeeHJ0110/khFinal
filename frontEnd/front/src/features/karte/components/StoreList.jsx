@@ -54,7 +54,7 @@ export default function StoreList({ targetPetType, category, tagId }) {
 
                     <ProductReviewInfo>
                       <ReviewStar>★</ReviewStar>
-                      {product.averageRating} ({product.reviewCount})
+                      {product.averageRating.toFixed(1)} ({product.reviewCount})
                     </ProductReviewInfo>
 
                     <ProductPrice>
