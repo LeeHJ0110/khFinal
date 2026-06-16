@@ -300,7 +300,6 @@ export default function HealthCareHome() {
                     data={totalChartData}
                     margin={{ top: 8, right: 16, left: 0, bottom: 0 }}
                   >
-                    {console.log(totalChartData[0]?.score)}
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="name" />
                     <YAxis
