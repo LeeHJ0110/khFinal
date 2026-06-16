@@ -11,6 +11,7 @@ import com.kh.app.petinsurance.service.PetInsuranceService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -40,10 +42,10 @@ import java.util.List;
 @Slf4j
 public class PetInsuranceController {
 
-    private static final String FRONT_BASE_URL =
-            "http://localhost:5173";
-
     private final PetInsuranceService petInsuranceService;
+
+    @Value("${front.base-url}")
+    private String frontBaseUrl;
 
     // =========================================================
     // 보험 상품 목록 조회
@@ -135,11 +137,11 @@ public class PetInsuranceController {
     }
 
     // =========================================================
-// 관리자 보험 가입 승인
-//
-// 승인 시 최초 월 보험료 결제
-// 승인 완료 후 회원에게 자동 쪽지 발송
-// =========================================================
+    // 관리자 보험 가입 승인
+    //
+    // 승인 시 최초 월 보험료 결제
+    // 승인 완료 후 회원에게 자동 쪽지 발송
+    // =========================================================
     @PatchMapping("/application/{applicationId}/approve")
     public ResponseEntity<Void> approveApplication(
             @PathVariable Long applicationId,
@@ -153,11 +155,12 @@ public class PetInsuranceController {
 
         return ResponseEntity.ok().build();
     }
+
     // =========================================================
-// 관리자 보험 가입 반려
-//
-// 반려 처리 후 회원에게 자동 쪽지 발송
-// =========================================================
+    // 관리자 보험 가입 반려
+    //
+    // 반려 처리 후 회원에게 자동 쪽지 발송
+    // =========================================================
     @PatchMapping("/application/{applicationId}/reject")
     public ResponseEntity<Void> rejectApplication(
             @PathVariable Long applicationId,
@@ -171,6 +174,7 @@ public class PetInsuranceController {
 
         return ResponseEntity.ok().build();
     }
+
     // =========================================================
     // 카카오페이 정기결제 수단 등록 준비
     // =========================================================
@@ -215,7 +219,7 @@ public class PetInsuranceController {
                 .status(HttpStatus.FOUND)
                 .location(
                         URI.create(
-                                FRONT_BASE_URL
+                                frontBaseUrl
                                         + "/healthcare/petinsurance/payment/success"
                         )
                 )
@@ -224,26 +228,36 @@ public class PetInsuranceController {
 
     // =========================================================
     // 사용자가 카카오페이 결제창에서 취소
-    // 아직 별도 프론트 페이지가 없으므로 문자열 응답
     // =========================================================
     @GetMapping("/payment/cancel")
-    public ResponseEntity<String> paymentCancel() {
+    public ResponseEntity<Void> paymentCancel() {
 
-        return ResponseEntity.ok(
-                "카카오페이 결제수단 등록이 취소되었습니다."
-        );
+        return ResponseEntity
+                .status(HttpStatus.FOUND)
+                .location(
+                        URI.create(
+                                frontBaseUrl
+                                        + "/healthcare/petinsurance"
+                        )
+                )
+                .build();
     }
 
     // =========================================================
     // 카카오페이 결제수단 등록 실패
-    // 아직 별도 프론트 페이지가 없으므로 문자열 응답
     // =========================================================
     @GetMapping("/payment/fail")
-    public ResponseEntity<String> paymentFail() {
+    public ResponseEntity<Void> paymentFail() {
 
-        return ResponseEntity.ok(
-                "카카오페이 결제수단 등록에 실패했습니다."
-        );
+        return ResponseEntity
+                .status(HttpStatus.FOUND)
+                .location(
+                        URI.create(
+                                frontBaseUrl
+                                        + "/healthcare/petinsurance"
+                        )
+                )
+                .build();
     }
 
     // =========================================================
