@@ -56,11 +56,6 @@ export default function TrainingDiaryModal({ open, onClose, data }) {
               petList: checkedPetIds,
             };
 
-            if (!formData.content || formData.content.trim() === "") {
-              alert("일기 내용을 입력해주세요");
-              return;
-            }
-
             if (formData.isEdit) {
               editDiary(payload);
             } else {
