@@ -201,7 +201,7 @@ export default function PetStoreReviewEditPage() {
 
   return (
     <Wrapper>
-      <PetStoreUserNav />
+      <PetStoreNavGate />
 
       <Inner>
         <PageHeader>

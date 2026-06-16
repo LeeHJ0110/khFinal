@@ -4,6 +4,7 @@ import com.kh.app.common.entity.BaseEntity;
 import com.kh.app.member.entity.MemberEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Table(name = "STORE_ORDER")
@@ -65,6 +66,12 @@ public class StoreOrderEntity extends BaseEntity {
     @Column(name = "ORDER_DELIVERY_REQUEST", length = 200)
     private String orderDeliveryRequest;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "ORDER_TYPE", nullable = false, length = 20)
+    @ColumnDefault("'CART'")
+    @Builder.Default
+    private StoreOrderType orderType = StoreOrderType.CART;
+
     public void paid() {
         this.orderStatus = StoreOrderStatus.PAID;
     }
@@ -91,6 +98,14 @@ public class StoreOrderEntity extends BaseEntity {
 
     public void delivered() {
         this.deliveryStatus = StoreDeliveryStatus.DELIVERED;
+    }
+
+    public boolean isCartOrder() {
+        return this.orderType == StoreOrderType.CART;
+    }
+
+    public boolean isDirectOrder() {
+        return this.orderType == StoreOrderType.DIRECT;
     }
 
 

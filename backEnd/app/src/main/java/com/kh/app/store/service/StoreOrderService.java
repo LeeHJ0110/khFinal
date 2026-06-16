@@ -19,6 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.kh.app.message.service.SystemMessageService;
+import com.kh.app.message.entity.MessageReasonType;
+
 
 import java.util.List;
 
@@ -35,6 +38,7 @@ public class StoreOrderService {
 
     private static final Long FREE_DELIVERY_MIN_AMOUNT = 30000L;
     private static final Long BASIC_DELIVERY_FEE = 3000L;
+    private static final String STORE_SYSTEM_ADMIN_USERNAME = "store01";
 
     private final StoreCartItemRepository storeCartItemRepository;
     private final StoreProductRepository storeProductRepository;
@@ -47,6 +51,8 @@ public class StoreOrderService {
     private final StorePaymentRepository storePaymentRepository;
     private final StoreKakaoPayService storeKakaoPayService;
     private final StoreOrderDeliveryRepository storeOrderDeliveryRepository;
+    private final SystemMessageService systemMessageService;
+
 
     //포인트 관련
     private final PointService pointService;
@@ -346,6 +352,7 @@ public class StoreOrderService {
 
         StoreOrderEntity order = StoreOrderEntity.builder()
                 .member(member)
+                .orderType(StoreOrderType.CART)
                 .orderDeliveryFee(deliveryFee)
                 .orderUsedPoint(usedPoint)
                 .orderFinalAmount(finalAmount)
@@ -472,7 +479,11 @@ public class StoreOrderService {
                 java.time.LocalDateTime.now()
         );
 
-        storeCartItemRepository.deleteByMember(order.getMember());
+        sendOrderCompleteMessage(order);
+
+        if (order.isCartOrder()) {
+            storeCartItemRepository.deleteByMember(order.getMember());
+        }
 
         log.info("[스토어 결제 완료] orderId={}, paymentId={}, amount={}",
                 order.getOrderId(),
@@ -605,6 +616,7 @@ public class StoreOrderService {
 
         StoreOrderEntity order = StoreOrderEntity.builder()
                 .member(member)
+                .orderType(StoreOrderType.DIRECT)
                 .orderDeliveryFee(deliveryFee)
                 .orderUsedPoint(usedPoint)
                 .orderFinalAmount(finalAmount)
@@ -693,5 +705,33 @@ public class StoreOrderService {
                 order.getOrderId(),
                 delivery.getDeliveryId()
         );
+    }
+
+    private void sendOrderCompleteMessage(StoreOrderEntity order) {
+        try {
+            String title = "[주문완료] 주문해주셔서 감사합니다.";
+
+            String content = String.format(
+                    "결제가 정상적으로 완료되었습니다.\n" +
+                            "최종 결제금액은 %,d원입니다.\n" +
+                            "주문하신 상품은 곧 배송 준비가 시작될 예정입니다.\n" +
+                            "PET&I FOR를 이용해주셔서 감사합니다.",
+                    order.getOrderFinalAmount()
+            );
+
+            systemMessageService.sendByAdmin(
+                    STORE_SYSTEM_ADMIN_USERNAME,
+                    order.getMember(),
+                    MessageReasonType.NOTICE,
+                    title,
+                    content
+            );
+        } catch (Exception e) {
+            log.warn("[스토어 결제 완료 쪽지 발송 실패] orderId={}, memberId={}, message={}",
+                    order.getOrderId(),
+                    order.getMember().getId(),
+                    e.getMessage()
+            );
+        }
     }
 }
