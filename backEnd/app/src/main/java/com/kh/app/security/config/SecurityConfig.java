@@ -6,6 +6,7 @@ import com.kh.app.security.jwt.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -82,6 +83,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/mypage/**").authenticated()
                         .requestMatchers("/api/message/**").authenticated()
 
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/board/*",
+                                "/api/board/detail/*",
+                                "/api/board/search/unified"
+                        ).permitAll()
+
 
                         .requestMatchers("/api/admin/message/**")
                         .hasAnyRole("ADMIN", "BOARD", "DOCTOR", "STORE")
@@ -108,7 +115,6 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/admin/community/blind/**")
                         .hasAnyRole("ADMIN", "BOARD")
-
 
 
                         .anyRequest().authenticated()
