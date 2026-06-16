@@ -23,8 +23,6 @@ export default function usePetStoreReviewList() {
         sort: nextSort,
       });
 
-      c;
-
       setReviewPage(response.data);
       setReviewList(response.data?.content ?? []);
 
