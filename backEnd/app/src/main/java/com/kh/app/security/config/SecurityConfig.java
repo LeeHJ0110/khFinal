@@ -75,6 +75,8 @@ public class SecurityConfig {
                                 "/api/member/check-nickname",
                                 "/api/member/kakao/login",
                                 "/api/member/kakao/join",
+                                "/api/member/phone/send",
+                                "/api/member/phone/verify",
                                 "/api/pet/breed/**",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
