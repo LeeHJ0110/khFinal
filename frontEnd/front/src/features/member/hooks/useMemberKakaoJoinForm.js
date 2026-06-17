@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { checkNickname, kakaoJoin } from "../api/memberApi";
+import {
+  checkNickname,
+  kakaoJoin,
+  sendPhoneAuthCode,
+  verifyPhoneAuthCode,
+} from "../api/memberApi";
 
 export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
   const [isSuccess, setSuccess] = useState(false);
@@ -15,9 +20,14 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
 
   const [nicknameMessage, setNicknameMessage] = useState("");
   const [phoneMessage, setPhoneMessage] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
 
   const [isNicknameChecked, setNicknameChecked] = useState(false);
-  const [emailMessage, setEmailMessage] = useState("");
+
+  const [authCode, setAuthCode] = useState("");
+  const [phoneAuthMessage, setPhoneAuthMessage] = useState("");
+  const [isPhoneAuthSent, setIsPhoneAuthSent] = useState(false);
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
 
   function formatPhoneNumber(value) {
     const numbers = value.replace(/[^0-9]/g, "");
@@ -39,6 +49,7 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
   function getOnlyPhoneNumber(value) {
     return value.replace(/[^0-9]/g, "");
   }
+
   function validateEmail(email) {
     const regex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
@@ -52,6 +63,7 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
 
     return "올바른 이메일 형식입니다.";
   }
+
   function validatePhone(phone) {
     const numbers = getOnlyPhoneNumber(phone);
 
@@ -80,6 +92,10 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
 
       nextValue = formatPhoneNumber(numbers);
       setPhoneMessage(validatePhone(nextValue));
+      setPhoneAuthMessage("");
+      setIsPhoneAuthSent(false);
+      setIsPhoneVerified(false);
+      setAuthCode("");
     }
 
     if (name === "email") {
@@ -114,6 +130,56 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
     }
   }
 
+  async function handleSendPhoneAuthCode() {
+    const phoneOnlyNumber = getOnlyPhoneNumber(formData.phone);
+
+    if (!phoneOnlyNumber) {
+      alert("전화번호를 입력해주세요.");
+      return;
+    }
+
+    if (!/^010\d{8}$/.test(phoneOnlyNumber)) {
+      alert("전화번호는 010으로 시작하는 11자리 숫자여야 합니다.");
+      return;
+    }
+
+    try {
+      await sendPhoneAuthCode(phoneOnlyNumber);
+      setIsPhoneAuthSent(true);
+      setIsPhoneVerified(false);
+      setAuthCode("");
+      setPhoneAuthMessage("인증번호가 발송되었습니다.");
+    } catch (err) {
+      console.error(err);
+      setPhoneAuthMessage("인증번호 발송에 실패했습니다.");
+    }
+  }
+
+  async function handleVerifyPhoneAuthCode() {
+    const phoneOnlyNumber = getOnlyPhoneNumber(formData.phone);
+
+    if (!authCode) {
+      alert("인증번호를 입력해주세요.");
+      return;
+    }
+
+    try {
+      const resp = await verifyPhoneAuthCode(phoneOnlyNumber, authCode);
+
+      if (resp.data === true) {
+        setIsPhoneVerified(true);
+        setPhoneAuthMessage("전화번호 인증이 완료되었습니다.");
+      } else {
+        setIsPhoneVerified(false);
+        setPhoneAuthMessage("인증번호가 올바르지 않습니다.");
+      }
+    } catch (err) {
+      console.error(err);
+      setIsPhoneVerified(false);
+      setPhoneAuthMessage("인증번호 확인에 실패했습니다.");
+    }
+  }
+
   async function handleSubmit(evt) {
     evt.preventDefault();
 
@@ -139,10 +205,16 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
       return;
     }
 
+    if (!isPhoneVerified) {
+      alert("전화번호 인증을 완료해주세요.");
+      return;
+    }
+
     if (!formData.email) {
       alert("이메일을 입력해주세요.");
       return;
     }
+
     if (
       !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(formData.email)
     ) {
@@ -183,5 +255,13 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
     phoneMessage,
     isSuccess,
     emailMessage,
+
+    authCode,
+    setAuthCode,
+    phoneAuthMessage,
+    isPhoneVerified,
+    isPhoneAuthSent,
+    handleSendPhoneAuthCode,
+    handleVerifyPhoneAuthCode,
   };
 }
