@@ -32,10 +32,21 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         String token = authorization.replace("Bearer ", "");
-
-        if( jwtUtil.isExpired(token) ){
-            filterChain.doFilter(request, response);
-            return;
+        
+        try{
+            if( jwtUtil.isExpired(token) ){
+                filterChain.doFilter(request, response);
+                return;
+            }
+        }catch (Exception e){
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("""
+                {
+                    "code":"M002",
+                    "message":"유효하지 않은 토큰입니다."
+                }
+            """);
         }
 
         String username = jwtUtil.getUsername(token);
