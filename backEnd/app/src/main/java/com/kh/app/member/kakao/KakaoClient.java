@@ -30,36 +30,49 @@ public class KakaoClient {
     public String getAccessToken(String code) {
         String url = "https://kauth.kakao.com/oauth/token";
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        log.info("[카카오 토큰 요청 redirectUri] {}", redirectUri);
+        log.info("[카카오 토큰 요청 clientId] {}", clientId);
+        log.info("[카카오 토큰 요청 code 앞 10자리] {}",
+                code == null ? null : code.substring(0, Math.min(10, code.length())));
 
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("grant_type", "authorization_code");
-        params.add("client_id", clientId);
-        params.add("redirect_uri", redirectUri);
-        params.add("code", code);
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        if (clientSecret != null && !clientSecret.isBlank()) {
-            params.add("client_secret", clientSecret);
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("grant_type", "authorization_code");
+            params.add("client_id", clientId);
+            params.add("redirect_uri", redirectUri);
+            params.add("code", code);
+
+            if (clientSecret != null && !clientSecret.isBlank()) {
+                params.add("client_secret", clientSecret);
+            }
+
+            HttpEntity<MultiValueMap<String, String>> request =
+                    new HttpEntity<>(params, headers);
+
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    request,
+                    Map.class
+            );
+
+            log.info("[카카오 토큰 응답] {}", response.getBody());
+
+            Map<String, Object> body = response.getBody();
+
+            if (body == null || body.get("access_token") == null) {
+                throw new IllegalStateException("카카오 access token 요청 실패");
+            }
+
+            return body.get("access_token").toString();
+
+        } catch (Exception e) {
+            log.error("[카카오 토큰 요청 실패]", e);
+            throw e;
         }
-
-        HttpEntity<MultiValueMap<String, String>> request =
-                new HttpEntity<>(params, headers);
-
-        ResponseEntity<Map> response = restTemplate.exchange(
-                url,
-                HttpMethod.POST,
-                request,
-                Map.class
-        );
-
-        Map<String, Object> body = response.getBody();
-
-        if (body == null || body.get("access_token") == null) {
-            throw new IllegalStateException("카카오 access token 요청 실패");
-        }
-
-        return body.get("access_token").toString();
     }
 
     public KakaoUserInfo getUserInfo(String accessToken) {
