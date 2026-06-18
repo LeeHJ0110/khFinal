@@ -12,12 +12,8 @@ function PetInsuranceMain() {
     <Wrapper>
       <PetCareNav />
 
-      {/* 상단 배너 */}
-      <HeroArea>
-        <InsuranceHeroSection />
-      </HeroArea>
+      <InsuranceHeroSection />
 
-      {/* 하단: 안내 카드 + 상품 목록 */}
       <BottomLayout>
         <EstimateArea>
           <InsuranceEstimateSection />
@@ -44,23 +40,14 @@ const Wrapper = styled.div`
   width: 100%;
   min-height: 100vh;
 
-  box-sizing: border-box;
-`;
-
-const HeroArea = styled.section`
-  width: 100%;
-
-  margin: 0;
-  padding: 0;
+  background: #fff;
 
   box-sizing: border-box;
 `;
 
 // =========================================================
 // 하단 레이아웃
-//
 // 왼쪽 안내 카드 + 오른쪽 보험 상품 목록
-// 오른쪽 영역은 무한정 늘어나지 않도록 최대 너비 제한
 // =========================================================
 const BottomLayout = styled.main`
   display: grid;
@@ -75,41 +62,45 @@ const BottomLayout = styled.main`
 
   width: min(1600px, calc(100% - 48px));
 
-  margin: 38px auto 100px;
+  margin: 40px auto 100px;
 
   box-sizing: border-box;
 
   @media (max-width: 1100px) {
     grid-template-columns:
-      220px
+      280px
       minmax(0, 1fr);
 
+    gap: 32px;
 
     width: calc(100% - 32px);
   }
 
   @media (max-width: 760px) {
-    grid-template-columns:
-      minmax(210px, 220px)
-      minmax(0, 1fr);
+    grid-template-columns: 1fr;
 
-    gap: 8px;
+    gap: 20px;
 
     width: calc(100% - 24px);
 
-    margin: 22px auto 46px;
+    margin: 28px auto 46px;
   }
 `;
+
 // =========================================================
 // 왼쪽 보험 이용 안내 카드
 // =========================================================
 const EstimateArea = styled.aside`
   position: sticky;
   top: 24px;
- 
+
   width: 100%;
 
   box-sizing: border-box;
+
+  @media (max-width: 760px) {
+    position: static;
+  }
 `;
 
 // =========================================================
@@ -120,7 +111,6 @@ const InsuranceArea = styled.section`
   flex-direction: column;
 
   width: 100%;
-  max-width: 1330px;
   min-width: 0;
 
   box-sizing: border-box;

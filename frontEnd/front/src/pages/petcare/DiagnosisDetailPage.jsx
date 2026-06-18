@@ -13,6 +13,7 @@ import {
 // =========================================================
 // 카테고리 정보
 // =========================================================
+
 const CATEGORY_META = {
   VACCINE: {
     label: "예방접종",
@@ -262,6 +263,8 @@ function DiagnosisDetailPage() {
   const [summary, setSummary] = useState("");
 
   const [isRejecting, setIsRejecting] = useState(false);
+
+  const [imageModal, setImageModal] = useState(null);
 
   // 평가 저장 성공 후 완료 API 중복 호출 방지
   const completeRequestRef = useRef(false);
@@ -570,6 +573,41 @@ function DiagnosisDetailPage() {
       </Wrapper>
     );
   }
+  const modalFiles = imageModal
+    ? (groupedFiles[imageModal.category] ?? [])
+    : [];
+
+  const currentModalFile = imageModal ? modalFiles[imageModal.index] : null;
+
+  const currentModalImageUrl = currentModalFile
+    ? getImageUrl(currentModalFile)
+    : null;
+
+  const currentModalCategoryLabel = imageModal
+    ? getImageCategoryLabel(imageModal.category)
+    : "";
+
+  function handlePrevImage() {
+    if (!imageModal || modalFiles.length === 0) {
+      return;
+    }
+
+    setImageModal((previous) => ({
+      ...previous,
+      index: previous.index === 0 ? modalFiles.length - 1 : previous.index - 1,
+    }));
+  }
+
+  function handleNextImage() {
+    if (!imageModal || modalFiles.length === 0) {
+      return;
+    }
+
+    setImageModal((previous) => ({
+      ...previous,
+      index: previous.index === modalFiles.length - 1 ? 0 : previous.index + 1,
+    }));
+  }
 
   const age = calculateAge(petCareVo.birthDate);
 
@@ -591,7 +629,6 @@ function DiagnosisDetailPage() {
           목록으로
         </BackButton>
       </PageHeader>
-
       {/* =====================================================
           반려동물 및 보호자 정보
       ===================================================== */}
@@ -666,7 +703,6 @@ function DiagnosisDetailPage() {
           </ProfileInfoItem>
         </ProfileGrid>
       </ProfileCard>
-
       {/* =====================================================
           평균 평가 점수
       ===================================================== */}
@@ -691,7 +727,6 @@ function DiagnosisDetailPage() {
           <AverageScoreUnit>/ 100</AverageScoreUnit>
         </AverageScoreBox>
       </EvaluationSummary>
-
       {/* =====================================================
           카테고리별 문진 평가
       ===================================================== */}
@@ -826,7 +861,6 @@ function DiagnosisDetailPage() {
           </CategoryList>
         )}
       </Section>
-
       {/* =====================================================
           업로드 이미지
       ===================================================== */}
@@ -835,7 +869,7 @@ function DiagnosisDetailPage() {
           <div>
             <SectionEyebrow>IMAGE REVIEW</SectionEyebrow>
 
-            <SectionTitle>업로드 이미지</SectionTitle>
+            <SectionTitle>진단 이미지 확인</SectionTitle>
 
             <SectionDescription>
               눈, 피부, 치아 관련 이미지를 확인해 주세요.
@@ -868,25 +902,19 @@ function DiagnosisDetailPage() {
                         {imageUrl ? (
                           <UploadedImage
                             src={imageUrl}
-                            alt={file.imageOriginName ?? `${category} 이미지`}
+                            alt={`${getImageCategoryLabel(category)} 이미지`}
+                            onClick={() =>
+                              setImageModal({
+                                category,
+                                index,
+                              })
+                            }
                           />
                         ) : (
                           <ImagePlaceholder>
                             이미지 미리보기 URL이 없습니다.
                           </ImagePlaceholder>
                         )}
-
-                        <ImageInfo>
-                          <ImageFileName
-                            title={
-                              file.imageOriginName || file.imageChangedName
-                            }
-                          >
-                            {file.imageOriginName ||
-                              file.imageChangedName ||
-                              "파일명 없음"}
-                          </ImageFileName>
-                        </ImageInfo>
                       </ImageCard>
                     );
                   })}
@@ -896,7 +924,6 @@ function DiagnosisDetailPage() {
           </ImageCategoryList>
         )}
       </Section>
-
       {/* =====================================================
           수의사 종합 의견
       ===================================================== */}
@@ -919,7 +946,6 @@ function DiagnosisDetailPage() {
           onChange={(event) => setOpinion(event.target.value)}
         />
       </Section>
-
       {/* =====================================================
           진단 요약
       ===================================================== */}
@@ -942,7 +968,6 @@ function DiagnosisDetailPage() {
           onChange={(event) => setSummary(event.target.value)}
         />
       </Section>
-
       {/* =====================================================
           하단 버튼
       ===================================================== */}
@@ -963,6 +988,50 @@ function DiagnosisDetailPage() {
           평가 저장
         </PrimaryButton>
       </ActionArea>
+      {/* 이미지 크게 보기 모달 */}
+      {imageModal && currentModalImageUrl && (
+        <ImageModalOverlay onClick={() => setImageModal(null)}>
+          <ImageModalContent onClick={(event) => event.stopPropagation()}>
+            <ImageModalCloseButton
+              type="button"
+              onClick={() => setImageModal(null)}
+            >
+              ×
+            </ImageModalCloseButton>
+
+            <ImageModalCount>
+              {imageModal.index + 1} / {modalFiles.length}
+            </ImageModalCount>
+
+            <ImageModalImageWrap>
+              <LargeImage
+                src={currentModalImageUrl}
+                alt={`${currentModalCategoryLabel} 이미지`}
+              />
+            </ImageModalImageWrap>
+
+            {modalFiles.length > 1 && (
+              <>
+                <ImageNavButton
+                  type="button"
+                  $position="left"
+                  onClick={handlePrevImage}
+                >
+                  ‹
+                </ImageNavButton>
+
+                <ImageNavButton
+                  type="button"
+                  $position="right"
+                  onClick={handleNextImage}
+                >
+                  ›
+                </ImageNavButton>
+              </>
+            )}
+          </ImageModalContent>
+        </ImageModalOverlay>
+      )}
     </Wrapper>
   );
 }
@@ -1759,6 +1828,17 @@ const UploadedImage = styled.img`
   aspect-ratio: 4 / 3;
 
   object-fit: cover;
+
+  cursor: zoom-in;
+
+  transition:
+    transform 0.18s ease,
+    filter 0.18s ease;
+
+  &:hover {
+    transform: scale(1.04);
+    filter: brightness(0.92);
+  }
 `;
 
 const ImagePlaceholder = styled.div`
@@ -1776,24 +1856,6 @@ const ImagePlaceholder = styled.div`
   font-size: 11px;
   font-weight: 600;
   text-align: center;
-`;
-
-const ImageInfo = styled.div`
-  padding: 9px 10px;
-`;
-
-const ImageFileName = styled.p`
-  overflow: hidden;
-
-  margin: 0;
-
-  color: #74807c;
-
-  font-size: 12px;
-  font-weight: 600;
-
-  text-overflow: ellipsis;
-  white-space: nowrap;
 `;
 
 const CommentBox = styled.textarea`
@@ -1959,4 +2021,139 @@ const EmptyPageTitle = styled.p`
 
   font-size: 15px;
   font-weight: 800;
+`;
+
+const ImageModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 28px;
+
+  background: rgba(21, 34, 30, 0.72);
+`;
+
+const ImageModalContent = styled.div`
+  position: relative;
+
+  width: min(720px, calc(100vw - 56px));
+  max-height: calc(100vh - 56px);
+
+  padding: 14px;
+
+  border-radius: 18px;
+
+  background: #ffffff;
+
+  box-shadow: 0 20px 55px rgba(0, 0, 0, 0.24);
+`;
+
+const ImageModalImageWrap = styled.div`
+  overflow: hidden;
+
+  border-radius: 13px;
+
+  background: #f7faf9;
+`;
+
+const LargeImage = styled.img`
+  display: block;
+
+  width: 100%;
+  max-height: calc(100vh - 120px);
+
+  object-fit: contain;
+
+  border-radius: 13px;
+`;
+
+const ImageModalCount = styled.div`
+  position: absolute;
+  top: 26px;
+  left: 28px;
+  z-index: 2;
+
+  min-width: 58px;
+  padding: 7px 12px;
+
+  border-radius: 999px;
+
+  background: rgba(255, 255, 255, 0.92);
+  color: #26332f;
+
+  font-size: 13px;
+  font-weight: 900;
+  text-align: center;
+
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.12);
+`;
+
+const ImageModalCloseButton = styled.button`
+  position: absolute;
+  top: 26px;
+  right: 28px;
+  z-index: 2;
+
+  width: 34px;
+  height: 34px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.92);
+  color: #66736f;
+
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+
+  cursor: pointer;
+
+  box-shadow: 0 5px 14px rgba(0, 0, 0, 0.12);
+
+  &:hover {
+    background: #00a97b;
+    color: #ffffff;
+  }
+`;
+
+const ImageNavButton = styled.button`
+  position: absolute;
+  top: 50%;
+
+  ${({ $position }) =>
+    $position === "left" ? "left: -24px;" : "right: -24px;"}
+
+  transform: translateY(-50%);
+
+  width: 48px;
+  height: 48px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #ffffff;
+  color: #00a97b;
+
+  font-size: 34px;
+  font-weight: 300;
+  line-height: 1;
+
+  cursor: pointer;
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+
+  &:hover {
+    background: #00a97b;
+    color: #ffffff;
+  }
+
+  @media (max-width: 760px) {
+    ${({ $position }) =>
+      $position === "left" ? "left: 12px;" : "right: 12px;"}
+  }
 `;
