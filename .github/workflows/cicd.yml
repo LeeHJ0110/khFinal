@@ -51,8 +51,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: executing remote ssh command
-         uses: appleboy/ssh-action@master
-         with:
+        uses: appleboy/ssh-action@master
+        with:
           host: ${{ secrets.EC2_IP }}
           key: ${{ secrets.EC2_KEY }}
           username: ubuntu
