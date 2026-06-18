@@ -1,6 +1,5 @@
 package com.kh.app.store.controller;
 
-
 import com.kh.app.store.dto.request.StoreCartInsertReqDto;
 import com.kh.app.store.dto.request.StoreCartQtyUpdateReqDto;
 import com.kh.app.store.dto.request.StoreDirectPayReadyReqDto;
@@ -12,24 +11,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.util.UriComponentsBuilder;
-
-
-//<완성>
-//사용자 : 장바구니 상품 등록
-//사용자 : 장바구니 상품 목록 조회
-//사용자 : 장바구니 상품 삭제
-//사용자 : 장바구니 상품 수량 변경
-//주문하기 (카카오 결제 API) + 배송정보 받아오기
-//결제하기
-//주문 취소
-
-
 
 @Tag(name = "스토어주문", description = "스토어주문 관련 API")
 @RestController
@@ -38,11 +25,16 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Slf4j
 public class StoreOrderController {
 
+
     private final StoreOrderService storeOrderService;
+
     @Value("${kakaopay.store.front-redirect-base-url}")
     private String frontRedirectBaseUrl;
 
-    // 1. 사용자 : 장바구니 등록
+// =====================================================
+// 장바구니
+// =====================================================
+
     @Operation(summary = "장바구니 상품 등록", description = "사용자가 장바구니에 상품을 등록하는 기능")
     @PostMapping("/cart/insert")
     public ResponseEntity<Void> cartInsert(
@@ -51,11 +43,9 @@ public class StoreOrderController {
     ) {
         storeOrderService.cartInsert(reqDto, username);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .build();
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    // 2. 사용자 : 장바구니 목록 조회
     @Operation(summary = "장바구니 목록 조회", description = "사용자의 장바구니 상품 목록과 주문금액을 조회하는 기능")
     @GetMapping("/cart/list")
     public ResponseEntity<StoreCartListResDto> getCartList(
@@ -66,7 +56,6 @@ public class StoreOrderController {
         return ResponseEntity.ok(result);
     }
 
-    // 3. 사용자 : 장바구니 상품 삭제
     @Operation(summary = "장바구니 상품 삭제", description = "사용자가 장바구니에 담긴 특정 상품을 삭제하는 기능")
     @DeleteMapping("/cart/delete/{cartItemId}")
     public ResponseEntity<Void> cartDelete(
@@ -75,27 +64,25 @@ public class StoreOrderController {
     ) {
         storeOrderService.cartDelete(cartItemId, username);
 
-        return ResponseEntity.noContent()
-                .build();
+        return ResponseEntity.noContent().build();
     }
 
-    // 4. 사용자 : 장바구니 상품 수량 변경
     @Operation(summary = "장바구니 상품 수량 변경", description = "사용자가 장바구니에 담긴 특정 상품의 수량을 변경하는 기능")
     @PatchMapping("/cart/update/{cartItemId}")
-    public ResponseEntity<Object> cartQtyUpdate(
+    public ResponseEntity<Void> cartQtyUpdate(
             @PathVariable Long cartItemId,
             @RequestBody StoreCartQtyUpdateReqDto reqDto,
             @AuthenticationPrincipal String username
-
-    ){
+    ) {
         storeOrderService.cartQtyUpdate(cartItemId, reqDto, username);
 
-        return ResponseEntity.ok()
-                .build();
+        return ResponseEntity.ok().build();
     }
 
-    //결제
-    // 5. 사용자 : 카카오페이 결제 준비
+// =====================================================
+// 결제 준비 / 승인
+// =====================================================
+
     @Operation(summary = "카카오페이 결제 준비", description = "장바구니 상품 기준으로 주문을 생성하고 카카오페이 결제 URL을 발급받는 기능")
     @PostMapping("/checkout/ready")
     public ResponseEntity<StorePayReadyResDto> payReady(
@@ -107,7 +94,17 @@ public class StoreOrderController {
         return ResponseEntity.ok(result);
     }
 
-    // 6. 사용자 : 카카오페이 결제 승인
+    @Operation(summary = "카카오페이 바로구매 결제 준비", description = "상품 상세에서 선택한 단일 상품과 수량 기준으로 주문을 생성하고 카카오페이 결제 URL을 발급받는 기능")
+    @PostMapping("/checkout/direct/ready")
+    public ResponseEntity<StorePayReadyResDto> payReadyDirect(
+            @RequestBody StoreDirectPayReadyReqDto reqDto,
+            @AuthenticationPrincipal String username
+    ) {
+        StorePayReadyResDto result = storeOrderService.payReadyDirect(reqDto, username);
+
+        return ResponseEntity.ok(result);
+    }
+
     @Operation(summary = "카카오페이 결제 승인", description = "카카오페이 결제 성공 후 pg_token으로 최종 결제 승인을 처리하는 기능")
     @GetMapping("/pay/approve")
     public ResponseEntity<Void> payApprove(
@@ -126,6 +123,10 @@ public class StoreOrderController {
                 .header("Location", redirectUrl)
                 .build();
     }
+
+// =====================================================
+// 결제 취소 / 실패 콜백
+// =====================================================
 
     @GetMapping("/pay/cancel")
     public ResponseEntity<Void> payCancel(
@@ -159,8 +160,10 @@ public class StoreOrderController {
                 .build();
     }
 
+// =====================================================
+// 주문 취소
+// =====================================================
 
-    // 7. 사용자 : 주문 취소
     @Operation(summary = "주문 취소", description = "배송준비중 상태의 주문을 취소하고 사용 포인트를 환불하는 기능")
     @PatchMapping("/cancel/{orderId}")
     public ResponseEntity<Void> cancelOrder(
@@ -172,17 +175,5 @@ public class StoreOrderController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(
-            summary = "카카오페이 바로구매 결제 준비",
-            description = "상품 상세에서 선택한 단일 상품과 수량 기준으로 주문을 생성하고 카카오페이 결제 URL을 발급받는 기능"
-    )
-    @PostMapping("/checkout/direct/ready")
-    public ResponseEntity<StorePayReadyResDto> payReadyDirect(
-            @RequestBody StoreDirectPayReadyReqDto reqDto,
-            @AuthenticationPrincipal String username
-    ) {
-        StorePayReadyResDto result = storeOrderService.payReadyDirect(reqDto, username);
 
-        return ResponseEntity.ok(result);
-    }
 }

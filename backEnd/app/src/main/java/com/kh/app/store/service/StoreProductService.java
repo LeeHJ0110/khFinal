@@ -10,8 +10,9 @@ import com.kh.app.pet.repository.PetRepository;
 import com.kh.app.store.dto.request.*;
 import com.kh.app.store.dto.response.*;
 import com.kh.app.store.entity.*;
+import com.kh.app.store.exception.StoreErrorCode;
+import com.kh.app.store.exception.StoreException;
 import com.kh.app.store.repository.*;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,14 +22,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
-
-
-import java.math.BigDecimal;
-import java.util.Comparator;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -47,19 +44,24 @@ public class StoreProductService {
     private final StoreWishRepository storeWishRepository;
     private final StoreReviewRepository storeReviewRepository;
 
-
     private final S3Service s3Service;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
+    // =====================================================
+    // 관리자 상품 기능
+    // =====================================================
+
     @Transactional
-    public void insert(StoreInsertReqDto reqDto,
-                       MultipartFile mainImage,
-                       List<MultipartFile> subImages) throws IOException {
+    public void insert(
+            StoreInsertReqDto reqDto,
+            MultipartFile mainImage,
+            List<MultipartFile> subImages
+    ) throws IOException {
 
         StoreProductTagEntity tagEntity = storeProductTagRepository.findById(reqDto.getTagId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품 태그입니다."));
+                .orElseThrow(() -> new StoreException(StoreErrorCode.PRODUCT_TAG_NOT_FOUND));
 
         StoreProductEntity productEntity = reqDto.toEntity(tagEntity);
 
@@ -69,10 +71,12 @@ public class StoreProductService {
         saveFeedingGuides(productEntity, reqDto.getFeedingGuideList());
         saveImages(productEntity, mainImage, subImages);
 
-        log.info("[상품 등록 완료] 상품ID : {}, 상품명 : {}, 가격 : {}",
+        log.info(
+                "[상품 등록 완료] 상품ID={}, 상품명={}, 가격={}",
                 productEntity.getProductId(),
                 productEntity.getProductName(),
-                productEntity.getProductPrice());
+                productEntity.getProductPrice()
+        );
     }
 
     public Page<StoreProductAdminListResDto> getAdminProductList(
@@ -113,7 +117,77 @@ public class StoreProductService {
         ));
     }
 
-    //검색 및 필터링 목록조회
+    public StoreProductAdminDetailResDto getAdminProductDetail(Long productId) {
+        StoreProductEntity productEntity = getProductEntity(productId);
+
+        StoreProductNutritionEntity nutritionEntity =
+                storeProductNutritionRepository.findByProduct_ProductId(productId)
+                        .orElse(null);
+
+        List<StoreProductFeedingGuideEntity> feedingGuideList =
+                storeProductFeedingGuideRepository.findByProduct_ProductIdOrderByFeedingGuideIdAsc(productId);
+
+        List<StoreProductImageEntity> imageList =
+                storeProductImageRepository.findByProduct_ProductIdOrderBySortOrderAsc(productId);
+
+        return StoreProductAdminDetailResDto.from(
+                productEntity,
+                nutritionEntity,
+                feedingGuideList,
+                imageList
+        );
+    }
+
+    @Transactional
+    public void update(
+            Long productId,
+            StoreUpdateReqDto reqDto,
+            MultipartFile mainImage,
+            List<MultipartFile> subImages
+    ) throws IOException {
+
+        StoreProductEntity productEntity = getProductEntity(productId);
+
+        StoreProductTagEntity tagEntity = storeProductTagRepository.findById(reqDto.getTagId())
+                .orElseThrow(() -> new StoreException(StoreErrorCode.PRODUCT_TAG_NOT_FOUND));
+
+        productEntity.update(
+                reqDto.getProductCategory(),
+                tagEntity,
+                reqDto.getProductName(),
+                reqDto.getProductTargetPetType(),
+                reqDto.getProductPrice()
+        );
+
+        updateNutrition(productEntity, reqDto.getNutrition());
+        updateFeedingGuides(productEntity, reqDto.getFeedingGuideList());
+        updateImages(productEntity, mainImage, subImages);
+
+        log.info("[상품 수정 완료] 상품ID={}, 상품명={}", productId, productEntity.getProductName());
+    }
+
+    @Transactional
+    public void stopSelling(Long productId) {
+        StoreProductEntity productEntity = getProductEntity(productId);
+
+        productEntity.stopSelling();
+
+        log.info("[상품 판매중지] 상품ID={}", productId);
+    }
+
+    @Transactional
+    public void resumeSelling(Long productId) {
+        StoreProductEntity productEntity = getProductEntity(productId);
+
+        productEntity.resumeSelling();
+
+        log.info("[상품 판매재개] 상품ID={}", productId);
+    }
+
+    // =====================================================
+    // 사용자 상품 기능
+    // =====================================================
+
     public List<StoreProductListResDto> getProductList(
             String targetPetType,
             StoreProductCategory category,
@@ -138,15 +212,7 @@ public class StoreProductService {
                         sortType
                 );
 
-        MemberEntity member = null;
-
-        if (!isNotLogin(username)) {
-            member = memberRepository
-                    .findByUsernameAndDelYn(username, DelYn.N)
-                    .orElse(null);
-        }
-
-        MemberEntity loginMember = member;
+        MemberEntity loginMember = getNullableLoginMember(username);
 
         return productList.stream()
                 .map(product -> toStoreProductListResDto(product, loginMember))
@@ -170,7 +236,7 @@ public class StoreProductService {
             String petType = targetPetType.trim().toUpperCase();
 
             if (!petType.equals("D") && !petType.equals("C")) {
-                throw new IllegalArgumentException("대상동물 타입은 D 또는 C만 가능합니다.");
+                throw new StoreException(StoreErrorCode.INVALID_TARGET_PET_TYPE);
             }
 
             productList =
@@ -182,20 +248,187 @@ public class StoreProductService {
                     );
         }
 
-        MemberEntity member = null;
-
-        if (!isNotLogin(username)) {
-            member = memberRepository
-                    .findByUsernameAndDelYn(username, DelYn.N)
-                    .orElse(null);
-        }
-
-        MemberEntity loginMember = member;
+        MemberEntity loginMember = getNullableLoginMember(username);
 
         return productList.stream()
                 .map(product -> toStoreProductListResDto(product, loginMember))
                 .toList();
     }
+
+    @Transactional
+    public StoreProductDetailResDto getProductDetail(Long productId, String username) {
+        StoreProductEntity productEntity = getProductEntity(productId);
+
+        // 사용자 상세 화면에서는 판매중지 상품도 없는 상품처럼 404 처리
+        if (!productEntity.isOnSale()) {
+            throw new StoreException(StoreErrorCode.PRODUCT_NOT_ON_SALE);
+        }
+
+        productEntity.increaseViewCount();
+
+        StoreProductNutritionEntity nutritionEntity =
+                storeProductNutritionRepository.findByProduct_ProductId(productId)
+                        .orElse(null);
+
+        List<StoreProductFeedingGuideEntity> feedingGuideList =
+                storeProductFeedingGuideRepository.findByProduct_ProductIdOrderByFeedingGuideIdAsc(productId);
+
+        List<StoreProductImageEntity> imageList =
+                storeProductImageRepository.findByProduct_ProductIdOrderBySortOrderAsc(productId);
+
+        String mainImageUrl = getMainImageUrl(imageList);
+        List<String> subImageUrls = getSubImageUrls(imageList);
+
+        StoreProductDetailResDto result = StoreProductDetailResDto.from(
+                productEntity,
+                nutritionEntity,
+                feedingGuideList,
+                mainImageUrl,
+                subImageUrls
+        );
+
+        applyWishInfo(result, productEntity, username);
+        applyFeedingRecommend(result, productEntity, feedingGuideList, username);
+
+        return result;
+    }
+
+    // =====================================================
+    // 관심상품 기능
+    // =====================================================
+
+    @Transactional
+    public void wishInsert(StoreWishInsertReqDto reqDto, String username) {
+        if (isNotLogin(username)) {
+            throw new StoreException(StoreErrorCode.WISH_LOGIN_REQUIRED);
+        }
+
+        if (reqDto == null || reqDto.getProductId() == null) {
+            throw new StoreException(StoreErrorCode.PRODUCT_ID_REQUIRED);
+        }
+
+        MemberEntity member = getLoginMember(username);
+        StoreProductEntity product = getProductEntity(reqDto.getProductId());
+
+        if (!product.isOnSale()) {
+            throw new StoreException(StoreErrorCode.PRODUCT_NOT_ON_SALE);
+        }
+
+        boolean alreadyExists = storeWishRepository.existsByMember_IdAndProduct_ProductId(
+                member.getId(),
+                product.getProductId()
+        );
+
+        if (alreadyExists) {
+            throw new StoreException(StoreErrorCode.ALREADY_WISHED_PRODUCT);
+        }
+
+        StoreWishEntity newWish = StoreWishEntity.builder()
+                .member(member)
+                .product(product)
+                .build();
+
+        storeWishRepository.save(newWish);
+
+        log.info(
+                "[관심상품 등록] memberId={}, username={}, productId={}",
+                member.getId(),
+                member.getUsername(),
+                product.getProductId()
+        );
+    }
+
+    public Page<StoreWishListResDto> getWishList(
+            String username,
+            int page,
+            StoreProductCategory category
+    ) {
+        if (isNotLogin(username)) {
+            throw new StoreException(StoreErrorCode.WISH_LOGIN_REQUIRED);
+        }
+
+        MemberEntity member = getLoginMember(username);
+
+        int pageNo = Math.max(page, 0);
+        Pageable pageable = PageRequest.of(pageNo, 10);
+
+        Page<StoreWishEntity> wishPage;
+
+        if (category == null) {
+            wishPage = storeWishRepository.findByMemberOrderByWishlistIdDesc(member, pageable);
+        } else {
+            wishPage = storeWishRepository.findByMemberAndProduct_ProductCategoryOrderByWishlistIdDesc(
+                    member,
+                    category,
+                    pageable
+            );
+        }
+
+        return wishPage.map(wishItem -> {
+            String mainImageUrl = getMainImageUrlByProductId(
+                    wishItem.getProduct().getProductId()
+            );
+
+            return StoreWishListResDto.from(wishItem, mainImageUrl);
+        });
+    }
+
+    @Transactional
+    public void wishDelete(Long wishlistId, String username) {
+        if (isNotLogin(username)) {
+            throw new StoreException(StoreErrorCode.WISH_LOGIN_REQUIRED);
+        }
+
+        if (wishlistId == null) {
+            throw new StoreException(StoreErrorCode.WISHLIST_ID_REQUIRED);
+        }
+
+        MemberEntity member = getLoginMember(username);
+
+        StoreWishEntity wish = storeWishRepository.findByWishlistIdAndMember(wishlistId, member)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.WISH_NOT_FOUND));
+
+        storeWishRepository.delete(wish);
+
+        log.info(
+                "[관심상품 삭제] memberId={}, username={}, wishlistId={}, productId={}",
+                member.getId(),
+                member.getUsername(),
+                wish.getWishlistId(),
+                wish.getProduct().getProductId()
+        );
+    }
+
+    @Transactional
+    public void wishDeleteByProductId(Long productId, String username) {
+        if (isNotLogin(username)) {
+            throw new StoreException(StoreErrorCode.WISH_LOGIN_REQUIRED);
+        }
+
+        if (productId == null) {
+            throw new StoreException(StoreErrorCode.PRODUCT_ID_REQUIRED);
+        }
+
+        MemberEntity member = getLoginMember(username);
+
+        StoreWishEntity wish = storeWishRepository
+                .findByMember_IdAndProduct_ProductId(member.getId(), productId)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.WISH_NOT_FOUND));
+
+        storeWishRepository.delete(wish);
+
+        log.info(
+                "[관심상품 상품ID 기준 삭제] memberId={}, username={}, wishlistId={}, productId={}",
+                member.getId(),
+                member.getUsername(),
+                wish.getWishlistId(),
+                productId
+        );
+    }
+
+    // =====================================================
+    // DTO 변환
+    // =====================================================
 
     private StoreProductListResDto toStoreProductListResDto(
             StoreProductEntity product,
@@ -252,193 +485,24 @@ public class StoreProductService {
         );
     }
 
-    private StoreProductListResDto toStoreProductListResDto(StoreProductEntity product) {
-        return toStoreProductListResDto(product, null);
-    }
+    // =====================================================
+    // 이미지 / S3 처리
+    // =====================================================
 
-    //이거 관리자 수정할때 기존정보가져오는거
-    public StoreProductAdminDetailResDto getAdminProductDetail(Long productId) {
-        StoreProductEntity productEntity = storeProductRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
-
-        StoreProductNutritionEntity nutritionEntity =
-                storeProductNutritionRepository.findByProduct_ProductId(productId)
-                        .orElse(null);
-
-        List<StoreProductFeedingGuideEntity> feedingGuideList =
-                storeProductFeedingGuideRepository.findByProduct_ProductIdOrderByFeedingGuideIdAsc(productId);
-
-        List<StoreProductImageEntity> imageList =
-                storeProductImageRepository.findByProduct_ProductIdOrderBySortOrderAsc(productId);
-
-        return StoreProductAdminDetailResDto.from(
-                productEntity,
-                nutritionEntity,
-                feedingGuideList,
-                imageList
-        );
-    }
-
-    @Transactional
-    public StoreProductDetailResDto getProductDetail(Long productId, String username) {
-
-        StoreProductEntity productEntity = storeProductRepository.findById(productId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "존재하지 않는 상품입니다."
-                ));
-
-        if (!productEntity.isOnSale()) {
-            throw new IllegalStateException("판매중지된 상품입니다.");
-        }
-
-        // 조회수 증가
-        productEntity.increaseViewCount();
-
-        StoreProductNutritionEntity nutritionEntity =
-                storeProductNutritionRepository.findByProduct_ProductId(productId)
-                        .orElse(null);
-
-        List<StoreProductFeedingGuideEntity> feedingGuideList =
-                storeProductFeedingGuideRepository.findByProduct_ProductIdOrderByFeedingGuideIdAsc(productId);
-
-        List<StoreProductImageEntity> imageList =
-                storeProductImageRepository.findByProduct_ProductIdOrderBySortOrderAsc(productId);
-
-        String mainImageUrl = getMainImageUrl(imageList);
-        List<String> subImageUrls = getSubImageUrls(imageList);
-
-        StoreProductDetailResDto result = StoreProductDetailResDto.from(
-                productEntity,
-                nutritionEntity,
-                feedingGuideList,
-                mainImageUrl,
-                subImageUrls
-        );
-
-        applyWishInfo(result, productEntity, username);
-        applyFeedingRecommend(result, productEntity, feedingGuideList, username);
-
-        return result;
-    }
-
-    @Transactional
-    public void update(Long productId,
-                       StoreUpdateReqDto reqDto,
-                       MultipartFile mainImage,
-                       List<MultipartFile> subImages) throws IOException {
-
-        StoreProductEntity productEntity = storeProductRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
-
-        StoreProductTagEntity tagEntity = storeProductTagRepository.findById(reqDto.getTagId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품 태그입니다."));
-
-        productEntity.update(
-                reqDto.getProductCategory(),
-                tagEntity,
-                reqDto.getProductName(),
-                reqDto.getProductTargetPetType(),
-                reqDto.getProductPrice()
-        );
-
-        updateNutrition(productEntity, reqDto.getNutrition());
-        updateFeedingGuides(productEntity, reqDto.getFeedingGuideList());
-        updateImages(productEntity, mainImage, subImages);
-
-        log.info("[상품 수정 완료] 상품ID : {}, 상품명 : {}",
-                productId,
-                productEntity.getProductName());
-    }
-
-    private void saveNutrition(StoreProductEntity productEntity,
-                               StoreNutritionInsertReqDto nutritionDto) {
-
-        if (nutritionDto == null) {
-            return;
-        }
-
-        StoreProductNutritionEntity nutritionEntity = nutritionDto.toEntity(productEntity);
-        storeProductNutritionRepository.save(nutritionEntity);
-    }
-
-    private void updateNutrition(StoreProductEntity productEntity,
-                                 StoreNutritionInsertReqDto nutritionDto) {
-
-        if (nutritionDto == null) {
-            return;
-        }
-
-        StoreProductNutritionEntity nutritionEntity =
-                storeProductNutritionRepository.findByProduct_ProductId(productEntity.getProductId())
-                        .orElse(null);
-
-        if (nutritionEntity == null) {
-            StoreProductNutritionEntity newNutrition = nutritionDto.toEntity(productEntity);
-            storeProductNutritionRepository.save(newNutrition);
-            return;
-        }
-
-        nutritionEntity.update(
-                nutritionDto.getNutritionCalorie(),
-                nutritionDto.getNutritionProtein(),
-                nutritionDto.getNutritionFat(),
-                nutritionDto.getNutritionFiber(),
-                nutritionDto.getNutritionMoisture(),
-                nutritionDto.getNutritionCalcium(),
-                nutritionDto.getNutritionPhosphorus()
-        );
-    }
-
-    private void saveFeedingGuides(StoreProductEntity productEntity,
-                                   List<StoreFeedingGuideInsertReqDto> feedingGuideList) {
-
-        if (feedingGuideList == null || feedingGuideList.isEmpty()) {
-            return;
-        }
-
-        validateFeedingGuideList(feedingGuideList);
-
-        for (StoreFeedingGuideInsertReqDto guideDto : feedingGuideList) {
-            StoreProductFeedingGuideEntity guideEntity = guideDto.toEntity(productEntity);
-            storeProductFeedingGuideRepository.save(guideEntity);
-        }
-    }
-
-    private void updateFeedingGuides(StoreProductEntity productEntity,
-                                     List<StoreFeedingGuideInsertReqDto> feedingGuideList) {
-
-        if (feedingGuideList == null) {
-            return;
-        }
-
-        if (!feedingGuideList.isEmpty()) {
-            validateFeedingGuideList(feedingGuideList);
-        }
-
-        storeProductFeedingGuideRepository.deleteByProduct_ProductId(productEntity.getProductId());
-
-        if (feedingGuideList.isEmpty()) {
-            return;
-        }
-
-        for (StoreFeedingGuideInsertReqDto guideDto : feedingGuideList) {
-            StoreProductFeedingGuideEntity guideEntity = guideDto.toEntity(productEntity);
-            storeProductFeedingGuideRepository.save(guideEntity);
-        }
-    }
-
-    private void saveImages(StoreProductEntity productEntity,
-                            MultipartFile mainImage,
-                            List<MultipartFile> subImages) throws IOException {
-
+    private void saveImages(
+            StoreProductEntity productEntity,
+            MultipartFile mainImage,
+            List<MultipartFile> subImages
+    ) throws IOException {
         saveMainImage(productEntity, mainImage);
         saveSubImages(productEntity, subImages);
     }
 
-    private void updateImages(StoreProductEntity productEntity,
-                              MultipartFile mainImage,
-                              List<MultipartFile> subImages) throws IOException {
+    private void updateImages(
+            StoreProductEntity productEntity,
+            MultipartFile mainImage,
+            List<MultipartFile> subImages
+    ) throws IOException {
 
         if (mainImage != null && !mainImage.isEmpty()) {
             storeProductImageRepository.deleteByProduct_ProductIdAndImageRepresentYn(
@@ -459,8 +523,10 @@ public class StoreProductService {
         }
     }
 
-    private void saveMainImage(StoreProductEntity productEntity,
-                               MultipartFile mainImage) throws IOException {
+    private void saveMainImage(
+            StoreProductEntity productEntity,
+            MultipartFile mainImage
+    ) throws IOException {
 
         if (mainImage == null || mainImage.isEmpty()) {
             return;
@@ -479,8 +545,10 @@ public class StoreProductService {
         storeProductImageRepository.save(imageEntity);
     }
 
-    private void saveSubImages(StoreProductEntity productEntity,
-                               List<MultipartFile> subImages) throws IOException {
+    private void saveSubImages(
+            StoreProductEntity productEntity,
+            List<MultipartFile> subImages
+    ) throws IOException {
 
         if (subImages == null || subImages.isEmpty()) {
             return;
@@ -528,63 +596,6 @@ public class StoreProductService {
         return "https://" + bucketName + ".s3.ap-northeast-2.amazonaws.com/" + keyPath;
     }
 
-    @Transactional
-    public void stopSelling(Long productId) {
-        StoreProductEntity storeProductEntity = storeProductRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
-
-        storeProductEntity.stopSelling();
-    }
-
-    @Transactional
-    public void resumeSelling(Long productId) {
-        StoreProductEntity storeProductEntity = storeProductRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
-
-        storeProductEntity.resumeSelling();
-    }
-
-    //검색 및 필터링을 위한 메서드
-    private String normalizeTargetPetType(String targetPetType) {
-        if (targetPetType == null || targetPetType.isBlank()) {
-            return null;
-        }
-
-        String petType = targetPetType.trim().toUpperCase();
-
-        if (!petType.equals("D") && !petType.equals("C")) {
-            throw new IllegalArgumentException("대상동물 타입은 D 또는 C만 가능합니다.");
-        }
-
-        return petType;
-    }
-
-    private String normalizeKeyword(String keyword) {
-        if (keyword == null || keyword.isBlank()) {
-            return null;
-        }
-
-        return keyword.trim();
-    }
-
-    private String normalizeSort(String sort) {
-        if (sort == null || sort.isBlank()) {
-            return "latest";
-        }
-
-        String sortType = sort.trim();
-
-        if (
-                !sortType.equals("latest") &&
-                        !sortType.equals("popular") &&
-                        !sortType.equals("lowPrice") &&
-                        !sortType.equals("highPrice")
-        ) {
-            throw new IllegalArgumentException("지원하지 않는 정렬 조건입니다.");
-        }
-
-        return sortType;
-    }
     private String getMainImageUrl(List<StoreProductImageEntity> imageList) {
         if (imageList == null || imageList.isEmpty()) {
             return null;
@@ -610,32 +621,105 @@ public class StoreProductService {
                 .toList();
     }
 
-    private String normalizeSaleYn(String saleYn) {
-        if (saleYn == null || saleYn.isBlank()) {
+    private String getMainImageUrlByProductId(Long productId) {
+        StoreProductImageEntity mainImage =
+                storeProductImageRepository
+                        .findFirstByProduct_ProductIdAndImageRepresentYnOrderBySortOrderAsc(
+                                productId,
+                                "Y"
+                        )
+                        .orElse(null);
+
+        if (mainImage == null) {
             return null;
         }
 
-        String saleYnValue = saleYn.trim().toUpperCase();
-
-        if (!saleYnValue.equals("Y") && !saleYnValue.equals("N")) {
-            throw new IllegalArgumentException("판매상태는 Y 또는 N만 가능합니다.");
-        }
-
-        return saleYnValue;
+        return makeS3Url(mainImage.getImageChangedName());
     }
 
-    private String normalizeAdminSort(String sort) {
-        if (sort == null || sort.isBlank()) {
-            return "latest";
+    // =====================================================
+    // 영양성분 / 급여기준
+    // =====================================================
+
+    private void saveNutrition(
+            StoreProductEntity productEntity,
+            StoreNutritionInsertReqDto nutritionDto
+    ) {
+        if (nutritionDto == null) {
+            return;
         }
 
-        String sortValue = sort.trim();
+        StoreProductNutritionEntity nutritionEntity = nutritionDto.toEntity(productEntity);
+        storeProductNutritionRepository.save(nutritionEntity);
+    }
 
-        if (!sortValue.equals("latest") && !sortValue.equals("oldest")) {
-            throw new IllegalArgumentException("관리자 상품 목록 정렬 조건은 latest 또는 oldest만 가능합니다.");
+    private void updateNutrition(
+            StoreProductEntity productEntity,
+            StoreNutritionInsertReqDto nutritionDto
+    ) {
+        if (nutritionDto == null) {
+            return;
         }
 
-        return sortValue;
+        StoreProductNutritionEntity nutritionEntity =
+                storeProductNutritionRepository.findByProduct_ProductId(productEntity.getProductId())
+                        .orElse(null);
+
+        if (nutritionEntity == null) {
+            StoreProductNutritionEntity newNutrition = nutritionDto.toEntity(productEntity);
+            storeProductNutritionRepository.save(newNutrition);
+            return;
+        }
+
+        nutritionEntity.update(
+                nutritionDto.getNutritionCalorie(),
+                nutritionDto.getNutritionProtein(),
+                nutritionDto.getNutritionFat(),
+                nutritionDto.getNutritionFiber(),
+                nutritionDto.getNutritionMoisture(),
+                nutritionDto.getNutritionCalcium(),
+                nutritionDto.getNutritionPhosphorus()
+        );
+    }
+
+    private void saveFeedingGuides(
+            StoreProductEntity productEntity,
+            List<StoreFeedingGuideInsertReqDto> feedingGuideList
+    ) {
+        if (feedingGuideList == null || feedingGuideList.isEmpty()) {
+            return;
+        }
+
+        validateFeedingGuideList(feedingGuideList);
+
+        for (StoreFeedingGuideInsertReqDto guideDto : feedingGuideList) {
+            StoreProductFeedingGuideEntity guideEntity = guideDto.toEntity(productEntity);
+            storeProductFeedingGuideRepository.save(guideEntity);
+        }
+    }
+
+    private void updateFeedingGuides(
+            StoreProductEntity productEntity,
+            List<StoreFeedingGuideInsertReqDto> feedingGuideList
+    ) {
+        if (feedingGuideList == null) {
+            return;
+        }
+
+        if (!feedingGuideList.isEmpty()) {
+            validateFeedingGuideList(feedingGuideList);
+        }
+
+        storeProductFeedingGuideRepository.deleteByProduct_ProductId(productEntity.getProductId());
+
+        if (feedingGuideList.isEmpty()) {
+            return;
+        }
+
+        for (StoreFeedingGuideInsertReqDto guideDto : feedingGuideList) {
+            StoreProductFeedingGuideEntity guideEntity = guideDto.toEntity(productEntity);
+            storeProductFeedingGuideRepository.save(guideEntity);
+        }
     }
 
     private void validateFeedingGuideList(List<StoreFeedingGuideInsertReqDto> feedingGuideList) {
@@ -644,7 +728,7 @@ public class StoreProductService {
         }
 
         if (feedingGuideList.size() != 3) {
-            throw new IllegalArgumentException("급여기준은 3개를 입력해야 합니다.");
+            throw new StoreException(StoreErrorCode.INVALID_FEEDING_GUIDE);
         }
 
         for (StoreFeedingGuideInsertReqDto guideDto : feedingGuideList) {
@@ -652,19 +736,19 @@ public class StoreProductService {
             Long maxWeight = guideDto.getFeedingMaxWeight();
 
             if (guideDto.getFeedingDailyAmount() == null || guideDto.getFeedingDailyAmount() <= 0) {
-                throw new IllegalArgumentException("1일 급여량은 0보다 커야 합니다.");
+                throw new StoreException(StoreErrorCode.INVALID_FEEDING_GUIDE);
             }
 
             if (minWeight != null && minWeight < 0) {
-                throw new IllegalArgumentException("최소 체중은 0 이상이어야 합니다.");
+                throw new StoreException(StoreErrorCode.INVALID_FEEDING_GUIDE);
             }
 
             if (maxWeight != null && maxWeight <= 0) {
-                throw new IllegalArgumentException("최대 체중은 0보다 커야 합니다.");
+                throw new StoreException(StoreErrorCode.INVALID_FEEDING_GUIDE);
             }
 
             if (minWeight != null && maxWeight != null && minWeight >= maxWeight) {
-                throw new IllegalArgumentException("최소 체중은 최대 체중보다 작아야 합니다.");
+                throw new StoreException(StoreErrorCode.INVALID_FEEDING_GUIDE);
             }
         }
 
@@ -673,33 +757,37 @@ public class StoreProductService {
         StoreFeedingGuideInsertReqDto third = feedingGuideList.get(2);
 
         if (first.getFeedingMinWeight() != null) {
-            throw new IllegalArgumentException("1번 급여기준의 최소 체중은 비워야 합니다.");
+            throw new StoreException(StoreErrorCode.INVALID_FEEDING_GUIDE);
         }
 
         if (first.getFeedingMaxWeight() == null) {
-            throw new IllegalArgumentException("1번 급여기준의 최대 체중은 필수입니다.");
+            throw new StoreException(StoreErrorCode.INVALID_FEEDING_GUIDE);
         }
 
         if (second.getFeedingMinWeight() == null || second.getFeedingMaxWeight() == null) {
-            throw new IllegalArgumentException("2번 급여기준은 최소/최대 체중이 모두 필요합니다.");
+            throw new StoreException(StoreErrorCode.INVALID_FEEDING_GUIDE);
         }
 
         if (third.getFeedingMinWeight() == null) {
-            throw new IllegalArgumentException("3번 급여기준의 최소 체중은 필수입니다.");
+            throw new StoreException(StoreErrorCode.INVALID_FEEDING_GUIDE);
         }
 
         if (third.getFeedingMaxWeight() != null) {
-            throw new IllegalArgumentException("3번 급여기준의 최대 체중은 비워야 합니다.");
+            throw new StoreException(StoreErrorCode.INVALID_FEEDING_GUIDE);
         }
 
         if (!first.getFeedingMaxWeight().equals(second.getFeedingMinWeight())) {
-            throw new IllegalArgumentException("1번 최대 체중과 2번 최소 체중이 같아야 합니다.");
+            throw new StoreException(StoreErrorCode.INVALID_FEEDING_GUIDE);
         }
 
         if (!second.getFeedingMaxWeight().equals(third.getFeedingMinWeight())) {
-            throw new IllegalArgumentException("2번 최대 체중과 3번 최소 체중이 같아야 합니다.");
+            throw new StoreException(StoreErrorCode.INVALID_FEEDING_GUIDE);
         }
     }
+
+    // =====================================================
+    // 맞춤 급여 추천
+    // =====================================================
 
     private void applyFeedingRecommend(
             StoreProductDetailResDto result,
@@ -707,19 +795,15 @@ public class StoreProductService {
             List<StoreProductFeedingGuideEntity> feedingGuideList,
             String username
     ) {
-        // 1. 비로그인
-        if (username == null || username.isBlank() || "anonymousUser".equals(username)) {
+        if (isNotLogin(username)) {
             result.setFeedingRecommendStatus("NEED_LOGIN");
             result.setFeedingRecommendMessage("로그인 후 맞춤 급여 정보를 확인할 수 있습니다.");
             result.setRecommendPetList(List.of());
             return;
         }
 
-        // 2. 로그인 회원 조회
         // 상품 상세는 공개 페이지이므로 회원 조회 실패 시 상세 전체를 터뜨리지 않음
-        MemberEntity memberEntity = memberRepository
-                .findByUsernameAndDelYn(username, DelYn.N)
-                .orElse(null);
+        MemberEntity memberEntity = getNullableLoginMember(username);
 
         if (memberEntity == null) {
             result.setFeedingRecommendStatus("NEED_LOGIN");
@@ -728,11 +812,9 @@ public class StoreProductService {
             return;
         }
 
-        // 3. 회원의 반려동물 전체 조회
         List<PetEntity> allPetList =
                 petRepository.findAllByMember_IdAndDelYn(memberEntity.getId(), DelYn.N);
 
-        // 4. 등록된 반려동물이 아예 없는 경우
         if (allPetList.isEmpty()) {
             result.setFeedingRecommendStatus("NEED_PET_REGISTER");
             result.setFeedingRecommendMessage("등록된 반려동물이 없습니다. 반려동물을 등록하고 맞춤 급여량을 확인해보세요.");
@@ -740,18 +822,14 @@ public class StoreProductService {
             return;
         }
 
-        // 5. 상품 대상동물 타입을 PetType으로 변환
         PetType targetPetType = convertToPetType(productEntity.getProductTargetPetType());
 
-        // 6. 상품 대상동물과 같은 반려동물만 필터링
-        //    최신순은 id가 큰 순서로 처리
         List<PetEntity> matchedPetList = allPetList.stream()
                 .filter(pet -> pet.getBreed() != null)
                 .filter(pet -> pet.getBreed().getPetType() == targetPetType)
                 .sorted(Comparator.comparing(PetEntity::getId).reversed())
                 .toList();
 
-        // 7. 반려동물은 있지만 이 상품 타입에 맞는 동물이 없는 경우
         if (matchedPetList.isEmpty()) {
             result.setFeedingRecommendStatus("NO_MATCHED_PET");
             result.setFeedingRecommendMessage("이 상품에 맞는 반려동물이 등록되어 있지 않습니다.");
@@ -759,7 +837,6 @@ public class StoreProductService {
             return;
         }
 
-        // 8. 반려동물별 추천 급여량 만들기
         List<StorePetFeedingRecommendResDto> recommendPetList = matchedPetList.stream()
                 .map(pet -> toPetFeedingRecommendDto(pet, feedingGuideList))
                 .toList();
@@ -767,14 +844,6 @@ public class StoreProductService {
         result.setFeedingRecommendStatus("SUCCESS");
         result.setFeedingRecommendMessage("맞춤 급여량 조회 성공");
         result.setRecommendPetList(recommendPetList);
-    }
-
-    private PetType convertToPetType(String productTargetPetType) {
-        if (productTargetPetType == null || productTargetPetType.isBlank()) {
-            throw new IllegalArgumentException("상품 대상동물 타입이 없습니다.");
-        }
-
-        return PetType.valueOf(productTargetPetType.trim().toUpperCase());
     }
 
     private StorePetFeedingRecommendResDto toPetFeedingRecommendDto(
@@ -812,8 +881,8 @@ public class StoreProductService {
                 )
                 .petWeight(pet.getWeight())
 
-                // 현재 PetEntity에는 이미지 필드가 없으므로 일단 null
-                // 나중에 펫 담당자가 이미지 URL을 만들면 여기만 수정하면 됨
+                // 현재 PetEntity에는 이미지 필드가 없으므로 null 처리
+                // 추후 반려동물 이미지 필드가 추가되면 여기만 변경
                 .petImageUrl(null)
 
                 .matchedFeedingGuide(matchedGuideDto)
@@ -833,16 +902,11 @@ public class StoreProductService {
             Long minWeight = guide.getFeedingMinWeight();
             Long maxWeight = guide.getFeedingMaxWeight();
 
-            boolean minOk = true;
-            boolean maxOk = true;
+            boolean minOk = minWeight == null ||
+                    petWeight.compareTo(BigDecimal.valueOf(minWeight)) >= 0;
 
-            if (minWeight != null) {
-                minOk = petWeight.compareTo(BigDecimal.valueOf(minWeight)) >= 0;
-            }
-
-            if (maxWeight != null) {
-                maxOk = petWeight.compareTo(BigDecimal.valueOf(maxWeight)) < 0;
-            }
+            boolean maxOk = maxWeight == null ||
+                    petWeight.compareTo(BigDecimal.valueOf(maxWeight)) < 0;
 
             if (minOk && maxOk) {
                 return guide;
@@ -852,208 +916,23 @@ public class StoreProductService {
         return null;
     }
 
-    @Transactional
-    public void wishInsert(StoreWishInsertReqDto reqDto, String username) {
-        // 1. 로그인 여부 확인
-        if (isNotLogin(username)) {
-            throw new IllegalStateException("로그인 후 관심상품을 이용할 수 있습니다.");
-        }
-
-        // 2. 요청값 검증
-        if (reqDto == null || reqDto.getProductId() == null) {
-            throw new IllegalArgumentException("상품 ID는 필수입니다.");
-        }
-
-        // 3. 로그인 회원 조회
-        MemberEntity member = getLoginMember(username);
-
-        // 4. 상품 조회
-        StoreProductEntity product = storeProductRepository.findById(reqDto.getProductId())
-                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 상품입니다."));
-
-        // 5. 판매중 여부 확인
-        if (!product.isOnSale()) {
-            throw new IllegalStateException("판매중지된 상품은 관심상품에 등록할 수 없습니다.");
-        }
-
-        // 6. 중복 관심상품 확인
-        boolean alreadyExists = storeWishRepository.existsByMember_IdAndProduct_ProductId(
-                member.getId(),
-                product.getProductId()
-        );
-
-        if (alreadyExists) {
-            throw new IllegalStateException("이미 관심상품에 등록된 상품입니다.");
-        }
-
-        // 7. 관심상품 등록
-        StoreWishEntity newWish = StoreWishEntity.builder()
-                .member(member)
-                .product(product)
-                .build();
-
-        storeWishRepository.save(newWish);
-
-        log.info("[관심상품 신규 등록] memberId={}, username={}, productId={}",
-                member.getId(),
-                member.getUsername(),
-                product.getProductId()
-        );
-    }
-
-    public Page<StoreWishListResDto> getWishList(
-            String username,
-            int page,
-            StoreProductCategory category
-    ) {
-        // 1. 로그인 여부 확인
-        if (isNotLogin(username)) {
-            throw new IllegalStateException("로그인 후 관심상품을 이용할 수 있습니다.");
-        }
-
-        // 2. 로그인 회원 조회
-        MemberEntity member = getLoginMember(username);
-
-        // 3. 페이지 번호 보정
-        int pageNo = Math.max(page, 0);
-
-        // 4. 페이지 설정
-        Pageable pageable = PageRequest.of(pageNo, 10);
-
-        // 5. 카테고리 조건에 따라 관심상품 조회
-        Page<StoreWishEntity> wishPage;
-
-        if (category == null) {
-            wishPage = storeWishRepository.findByMemberOrderByWishlistIdDesc(
-                    member,
-                    pageable
-            );
-        } else {
-            wishPage = storeWishRepository.findByMemberAndProduct_ProductCategoryOrderByWishlistIdDesc(
-                    member,
-                    category,
-                    pageable
-            );
-        }
-
-        // 6. DTO 변환
-        return wishPage.map(wishItem -> {
-            String mainImageUrl = getMainImageUrlByProductId(
-                    wishItem.getProduct().getProductId()
-            );
-
-            return StoreWishListResDto.from(wishItem, mainImageUrl);
-        });
-    }
-
-    private String getMainImageUrlByProductId(Long productId) {
-        StoreProductImageEntity mainImage =
-                storeProductImageRepository
-                        .findFirstByProduct_ProductIdAndImageRepresentYnOrderBySortOrderAsc(
-                                productId,
-                                "Y"
-                        )
-                        .orElse(null);
-
-        if (mainImage == null) {
-            return null;
-        }
-
-        return makeS3Url(mainImage.getImageChangedName());
-    }
-
-    private MemberEntity getLoginMember(String username) {
-        return memberRepository
-                .findByUsernameAndDelYn(username, DelYn.N)
-                .orElseThrow(() -> new EntityNotFoundException("로그인 회원을 찾을 수 없습니다."));
-    }
-
-    private boolean isNotLogin(String username) {
-        return username == null || username.isBlank() || "anonymousUser".equals(username);
-    }
-
-    @Transactional
-    public void wishDelete(Long wishlistId, String username) {
-        // 1. 로그인 여부 확인
-        if (isNotLogin(username)) {
-            throw new IllegalStateException("로그인 후 관심상품을 이용할 수 있습니다.");
-        }
-
-        // 2. 요청값 검증
-        if (wishlistId == null) {
-            throw new IllegalArgumentException("관심상품 ID는 필수입니다.");
-        }
-
-        // 3. 로그인 회원 조회
-        MemberEntity member = getLoginMember(username);
-
-        // 4. 로그인 회원의 관심상품인지 확인하면서 단건 조회
-        StoreWishEntity wish = storeWishRepository.findByWishlistIdAndMember(wishlistId, member)
-                .orElseThrow(() -> new EntityNotFoundException("관심상품을 찾을 수 없습니다."));
-
-        // 5. 삭제
-        storeWishRepository.delete(wish);
-
-        // 6. 로그
-        log.info("[관심상품 삭제] memberId={}, username={}, wishlistId={}, productId={}",
-                member.getId(),
-                member.getUsername(),
-                wish.getWishlistId(),
-                wish.getProduct().getProductId()
-        );
-    }
-
-    @Transactional
-    public void wishDeleteByProductId(Long productId, String username) {
-        // 1. 로그인 여부 확인
-        if (isNotLogin(username)) {
-            throw new IllegalStateException("로그인 후 관심상품을 이용할 수 있습니다.");
-        }
-
-        // 2. 요청값 검증
-        if (productId == null) {
-            throw new IllegalArgumentException("상품 ID는 필수입니다.");
-        }
-
-        // 3. 로그인 회원 조회
-        MemberEntity member = getLoginMember(username);
-
-        // 4. 로그인 회원의 해당 상품 관심상품 조회
-        StoreWishEntity wish = storeWishRepository
-                .findByMember_IdAndProduct_ProductId(
-                        member.getId(),
-                        productId
-                )
-                .orElseThrow(() -> new EntityNotFoundException("관심상품을 찾을 수 없습니다."));
-
-        // 5. 삭제
-        storeWishRepository.delete(wish);
-
-        log.info("[관심상품 상품ID 기준 삭제] memberId={}, username={}, wishlistId={}, productId={}",
-                member.getId(),
-                member.getUsername(),
-                wish.getWishlistId(),
-                productId
-        );
-    }
+    // =====================================================
+    // 관심상품 표시 정보
+    // =====================================================
 
     private void applyWishInfo(
             StoreProductDetailResDto result,
             StoreProductEntity productEntity,
             String username
     ) {
-        // 1. 비로그인 상태면 관심상품 아님으로 내려줌
         if (isNotLogin(username)) {
             result.setWished(false);
             result.setWishlistId(null);
             return;
         }
 
-        // 2. 로그인 회원 조회
         // 상품 상세는 공개 페이지이므로 회원 조회 실패 시 상세 전체를 터뜨리지 않음
-        MemberEntity member = memberRepository
-                .findByUsernameAndDelYn(username, DelYn.N)
-                .orElse(null);
+        MemberEntity member = getNullableLoginMember(username);
 
         if (member == null) {
             result.setWished(false);
@@ -1061,7 +940,6 @@ public class StoreProductService {
             return;
         }
 
-        // 3. 현재 상품이 로그인 회원의 관심상품인지 조회
         StoreWishEntity wish = storeWishRepository
                 .findByMember_IdAndProduct_ProductId(
                         member.getId(),
@@ -1079,6 +957,109 @@ public class StoreProductService {
         result.setWishlistId(wish.getWishlistId());
     }
 
+    // =====================================================
+    // 공통 조회 / 검증 유틸
+    // =====================================================
 
-
+    private StoreProductEntity getProductEntity(Long productId) {
+        return storeProductRepository.findById(productId)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.PRODUCT_NOT_FOUND));
     }
+
+    private MemberEntity getLoginMember(String username) {
+        return memberRepository
+                .findByUsernameAndDelYn(username, DelYn.N)
+                .orElseThrow(() -> new StoreException(StoreErrorCode.LOGIN_MEMBER_NOT_FOUND));
+    }
+
+    private MemberEntity getNullableLoginMember(String username) {
+        if (isNotLogin(username)) {
+            return null;
+        }
+
+        return memberRepository
+                .findByUsernameAndDelYn(username, DelYn.N)
+                .orElse(null);
+    }
+
+    private boolean isNotLogin(String username) {
+        return username == null || username.isBlank() || "anonymousUser".equals(username);
+    }
+
+    private String normalizeTargetPetType(String targetPetType) {
+        if (targetPetType == null || targetPetType.isBlank()) {
+            return null;
+        }
+
+        String petType = targetPetType.trim().toUpperCase();
+
+        if (!petType.equals("D") && !petType.equals("C")) {
+            throw new StoreException(StoreErrorCode.INVALID_TARGET_PET_TYPE);
+        }
+
+        return petType;
+    }
+
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return null;
+        }
+
+        return keyword.trim();
+    }
+
+    private String normalizeSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return "latest";
+        }
+
+        String sortType = sort.trim();
+
+        if (
+                !sortType.equals("latest") &&
+                        !sortType.equals("popular") &&
+                        !sortType.equals("lowPrice") &&
+                        !sortType.equals("highPrice")
+        ) {
+            throw new StoreException(StoreErrorCode.INVALID_PRODUCT_SORT);
+        }
+
+        return sortType;
+    }
+
+    private String normalizeSaleYn(String saleYn) {
+        if (saleYn == null || saleYn.isBlank()) {
+            return null;
+        }
+
+        String saleYnValue = saleYn.trim().toUpperCase();
+
+        if (!saleYnValue.equals("Y") && !saleYnValue.equals("N")) {
+            throw new StoreException(StoreErrorCode.INVALID_PRODUCT_SALE_YN);
+        }
+
+        return saleYnValue;
+    }
+
+    private String normalizeAdminSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return "latest";
+        }
+
+        String sortValue = sort.trim();
+
+        if (!sortValue.equals("latest") && !sortValue.equals("oldest")) {
+            throw new StoreException(StoreErrorCode.INVALID_ADMIN_PRODUCT_SORT);
+        }
+
+        return sortValue;
+    }
+
+    private PetType convertToPetType(String productTargetPetType) {
+        if (productTargetPetType == null || productTargetPetType.isBlank()) {
+            throw new StoreException(StoreErrorCode.PRODUCT_TARGET_PET_TYPE_REQUIRED);
+        }
+
+        return PetType.valueOf(productTargetPetType.trim().toUpperCase());
+    }
+}
