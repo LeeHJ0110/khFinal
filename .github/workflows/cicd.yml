@@ -51,8 +51,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: executing remote ssh command
-        uses: appleboy/ssh-action@master
-        with:
+         uses: appleboy/ssh-action@master
+         with:
           host: ${{ secrets.EC2_IP }}
           key: ${{ secrets.EC2_KEY }}
           username: ubuntu
@@ -77,6 +77,7 @@ jobs:
               -e KAKAOPAY_REDIRECT_BASE_URL=https://www.petandifor.store \
               -e KAKAOPAY_STORE_REDIRECT_BASE_URL=https://www.petandifor.store \
               -e KAKAOPAY_STORE_FRONT_REDIRECT_BASE_URL=https://www.petandifor.store \
+              -e SPRING_DATA_REDIS_HOST=172.17.0.1 \
               ${{ secrets.DOCKER_HUB_ID }}/petandifor:latest
 
   # ==========================================
