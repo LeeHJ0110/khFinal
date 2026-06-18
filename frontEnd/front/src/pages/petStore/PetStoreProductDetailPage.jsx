@@ -16,6 +16,10 @@ import PetStoreNavGate from "./PetStoreNavGate";
 
 export default function PetStoreProductDetailPage() {
   const { productId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isValidProductId = /^\d+$/.test(String(productId ?? ""));
 
   const {
     product: productDetail,
@@ -23,9 +27,9 @@ export default function PetStoreProductDetailPage() {
     error,
   } = usePetStoreProductDetail(productId);
 
-  // 상단 리뷰 요약: 상품별 리뷰 API의 summary 값을 사용합니다.
+  // 상품 ID 형식이 이상하면 리뷰 API까지 호출하지 않도록 방어
   const { summary: reviewSummary, reviewPage: topReviewPage } =
-    usePetStoreProductReviewList(productId);
+    usePetStoreProductReviewList(isValidProductId ? productId : null);
 
   const [product, setProduct] = useState(null);
   const [selectedImageUrl, setSelectedImageUrl] = useState("");
@@ -45,9 +49,35 @@ export default function PetStoreProductDetailPage() {
   const detailRef = useRef(null);
   const reviewRef = useRef(null);
 
-  const navigate = useNavigate();
-  const location = useLocation();
   const { wishSubmittingId, handleToggleWishlist } = usePetStoreWishToggle();
+
+  useEffect(() => {
+    if (!error) {
+      return;
+    }
+
+    const status =
+      error?.response?.status ?? error?.status ?? error?.response?.data?.status;
+
+    if (String(status) === "404") {
+      navigate("/error/home", {
+        replace: true,
+        state: {
+          title: "상품을 찾을 수 없습니다.",
+          message: "존재하지 않거나 판매가 중지된 상품입니다.",
+        },
+      });
+      return;
+    }
+
+    navigate("/error/home", {
+      replace: true,
+      state: {
+        title: "상품 조회 오류",
+        message: "상품 정보를 불러오지 못했습니다.",
+      },
+    });
+  }, [error, navigate]);
 
   useEffect(() => {
     setProduct(productDetail ?? null);
@@ -76,6 +106,8 @@ export default function PetStoreProductDetailPage() {
   useEffect(() => {
     if (product?.mainImageUrl) {
       setSelectedImageUrl(product.mainImageUrl);
+    } else {
+      setSelectedImageUrl("");
     }
   }, [product]);
 
@@ -102,7 +134,6 @@ export default function PetStoreProductDetailPage() {
       const footer = document.querySelector("footer");
       const footerTop = footer ? footer.getBoundingClientRect().top : Infinity;
 
-      // footer가 화면 아래쪽에 들어오기 시작하면 구매바를 올리지 말고 아예 숨김
       const isFooterNear = footerTop < window.innerHeight + 40;
 
       setBottomOffset(0);
@@ -130,7 +161,7 @@ export default function PetStoreProductDetailPage() {
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("resize", handleScroll);
     };
-  }, []);
+  }, [product]);
 
   useEffect(() => {
     const revealItems = document.querySelectorAll("[data-reveal]");
@@ -451,14 +482,7 @@ export default function PetStoreProductDetailPage() {
   }
 
   if (error || !product) {
-    return (
-      <>
-        <PetStoreNavGate />
-        <Wrapper>
-          <MessageBox>상품 정보를 불러오지 못했습니다.</MessageBox>
-        </Wrapper>
-      </>
-    );
+    return null;
   }
 
   function formatNutritionValue(type, value) {

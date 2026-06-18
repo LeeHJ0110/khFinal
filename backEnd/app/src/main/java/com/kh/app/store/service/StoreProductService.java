@@ -21,6 +21,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 
 import java.math.BigDecimal;
@@ -281,7 +283,10 @@ public class StoreProductService {
     public StoreProductDetailResDto getProductDetail(Long productId, String username) {
 
         StoreProductEntity productEntity = storeProductRepository.findById(productId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 상품입니다."));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "존재하지 않는 상품입니다."
+                ));
 
         if (!productEntity.isOnSale()) {
             throw new IllegalStateException("판매중지된 상품입니다.");
