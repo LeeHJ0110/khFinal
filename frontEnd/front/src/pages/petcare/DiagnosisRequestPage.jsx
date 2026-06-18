@@ -426,11 +426,19 @@ function DiagnosisRequestPage() {
   // 건강진단 최종 신청
   // =========================================================
   async function handleSubmit() {
+    
     if (!selectedPet) {
       alert("반려동물을 선택해 주세요.");
 
       return;
     }
+      console.log("최종 제출 petId:", selectedPet.petId);
+  console.log("최종 제출 answerList:", answerList);
+  console.log(
+    "빈 답변 목록:",
+    answerList.filter((answer) => answer.answerValue === ""),
+  );
+
 
     try {
       await submitDiagnosis({
@@ -536,22 +544,24 @@ function DiagnosisRequestPage() {
           />
         )}
 
-        {/* 기본정보 2: 예방접종 */}
-        {mainStep === "BASIC" && basicStep === "VACCINE" && (
-          <YnQuestionStep
-            title="예방접종"
-            description="최근 1년 이내 접종한 항목을 모두 선택해 주세요."
-            questionList={vaccineQuestionList}
-            isSelected={isYnSelected}
-            onToggle={handleYnToggle}
-          />
-        )}
+       {/* 기본정보 2: 예방접종 */}
+{mainStep === "BASIC" && basicStep === "VACCINE" && (
+  <YnQuestionStep
+    title="예방접종"
+    description="최근 1년 이내 접종한 항목을 선택해 주세요."
+    helperText="접종한 항목이 없다면 선택하지 않고 다음으로 넘어가도 됩니다."
+    questionList={vaccineQuestionList}
+    isSelected={isYnSelected}
+    onToggle={handleYnToggle}
+  />
+)}
 
         {/* 기본정보 3: 질병 이력 */}
         {mainStep === "BASIC" && basicStep === "DISEASE" && (
           <YnQuestionStep
             title="질병 이력"
-            description="진단받거나 치료받은 이력이 있는 항목을 모두 선택해 주세요."
+         description="최근 진단받았거나 치료받은 이력이 있는 항목을 선택해 주세요."
+helperText="해당되는 항목이 없다면 선택하지 않고 다음으로 넘어가도 됩니다."
             questionList={diseaseQuestionList}
             isSelected={isYnSelected}
             onToggle={handleYnToggle}
@@ -563,7 +573,7 @@ function DiagnosisRequestPage() {
           <ScoreQuestionStep
             category={selfStep}
             title={formatQuestionCategory(selfStep)}
-            description="현재 상태와 가장 가까운 항목을 선택해 주세요."
+         description="최근 건강 상태와 생활 패턴을 기준으로 가장 가까운 답변을 선택해 주세요."
             questionList={currentScoreQuestionList}
             getAnswerValue={getAnswerValue}
             onSelect={handleAnswerChange}

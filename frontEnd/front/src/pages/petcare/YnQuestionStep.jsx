@@ -6,6 +6,7 @@ import diseaseImage from "../../features/petcare/img/질병이력.png";
 function YnQuestionStep({
   title,
   description,
+  helperText,
   questionList,
   isSelected,
   onToggle,
@@ -30,6 +31,8 @@ function YnQuestionStep({
       <Category>{title}</Category>
 
       <Title>{description}</Title>
+
+      {helperText && <HelperText>{helperText}</HelperText>}
 
       {questionList.length === 0 ? (
         <Empty>등록된 문항이 없습니다.</Empty>
@@ -219,5 +222,39 @@ const QuestionButton = styled.button`
 
   &:active {
     transform: translateY(-1px) scale(0.99);
+  }
+`;
+const HelperText = styled.p`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  width: fit-content;
+  max-width: 560px;
+
+  margin: 8px auto 24px;
+  padding: 7px 12px;
+
+  border-radius: 10px;
+
+  background: #f6fbf9;
+
+  color: #5d6f69;
+
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: center;
+
+  word-break: keep-all;
+
+  &::before {
+    content: "✓";
+
+    color: var(--color-main-dark);
+
+    font-size: 13px;
+    font-weight: 900;
   }
 `;

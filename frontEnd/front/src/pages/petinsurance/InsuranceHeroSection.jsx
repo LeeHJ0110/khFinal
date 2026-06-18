@@ -40,35 +40,75 @@ function InsuranceHeroSection() {
         ===================================================== */}
         <PawDecorationArea>
           <PawItem $left="4%" $top="66%" $delay="0s">
-            <PawImage src={petModel2} alt="" $size="25px" $rotate="-18deg" />
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="25px"
+              $rotate="-18deg"
+            />
           </PawItem>
 
           <PawItem $left="17%" $top="42%" $delay="0.45s">
-            <PawImage src={petModel2} alt="" $size="30px" $rotate="15deg" />
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="30px"
+              $rotate="15deg"
+            />
           </PawItem>
 
           <PawItem $left="29%" $top="70%" $delay="0.9s">
-            <PawImage src={petModel2} alt="" $size="27px" $rotate="-12deg" />
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="27px"
+              $rotate="-12deg"
+            />
           </PawItem>
 
           <PawItem $left="42%" $top="36%" $delay="1.35s">
-            <PawImage src={petModel2} alt="" $size="34px" $rotate="18deg" />
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="34px"
+              $rotate="18deg"
+            />
           </PawItem>
 
           <PawItem $left="55%" $top="62%" $delay="1.8s">
-            <PawImage src={petModel2} alt="" $size="29px" $rotate="-14deg" />
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="29px"
+              $rotate="-14deg"
+            />
           </PawItem>
 
           <PawItem $left="67%" $top="30%" $delay="2.25s">
-            <PawImage src={petModel2} alt="" $size="32px" $rotate="16deg" />
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="32px"
+              $rotate="16deg"
+            />
           </PawItem>
 
           <PawItem $left="78%" $top="57%" $delay="2.7s">
-            <PawImage src={petModel2} alt="" $size="26px" $rotate="-12deg" />
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="26px"
+              $rotate="-12deg"
+            />
           </PawItem>
 
           <PawItem $left="89%" $top="38%" $delay="3.15s">
-            <PawImage src={petModel2} alt="" $size="29px" $rotate="14deg" />
+            <PawImage
+              src={petModel2}
+              alt=""
+              $size="29px"
+              $rotate="14deg"
+            />
           </PawItem>
         </PawDecorationArea>
 
@@ -78,7 +118,10 @@ function InsuranceHeroSection() {
         <ImageArea>
           <ImageHalo />
 
-          <HeroImage src={petModel1} alt="펫 보험 소개 이미지" />
+          <HeroImage
+            src={petModel1}
+            alt="펫 보험 소개 이미지"
+          />
         </ImageArea>
 
         <LargeCircle />
@@ -95,21 +138,29 @@ export default InsuranceHeroSection;
 // =========================================================
 const pawFloat = keyframes`
   0% {
-    transform: translateY(0);
     opacity: 0.14;
   }
 
-  50% {
-    transform: translateY(-6px);
-    opacity: 0.28;
+  8% {
+    opacity: 0.75;
+  }
+
+  22% {
+    opacity: 0.75;
+  }
+
+  42% {
+    opacity: 0.14;
   }
 
   100% {
-    transform: translateY(0);
     opacity: 0.14;
   }
 `;
 
+// =========================================================
+// styled-components
+// =========================================================
 // =========================================================
 // styled-components
 // =========================================================
@@ -118,21 +169,18 @@ const HeroWrapper = styled.section`
   z-index: 1;
 
   width: 100%;
-  margin: 0;
-  padding: 0;
+  height: 245px;
 
   overflow: hidden;
 
-  background: color-mix(in srgb, var(--color-bg-soft) 40%, var(--color-white));
+ background: color-mix(in srgb, var(--color-bg-soft)35%, var(--color-white));
+
 
   box-sizing: border-box;
 
-  cursor: pointer;
-
   transition:
     transform 0.3s ease,
-    box-shadow 0.3s ease,
-    filter 0.3s ease;
+    box-shadow 0.3s ease;
 
   &:hover {
     z-index: 5;
@@ -140,17 +188,16 @@ const HeroWrapper = styled.section`
     transform: scale(1.015);
 
     box-shadow: 0 14px 32px rgba(0, 169, 123, 0.12);
-
-    filter: brightness(1.015);
   }
 
-  &:active {
-    transform: scale(1.008);
+  @media (max-width: 900px) {
+    height: 260px;
   }
 
   @media (max-width: 640px) {
-    &:hover,
-    &:active {
+    height: 280px;
+
+    &:hover {
       transform: none;
     }
   }
@@ -159,31 +206,25 @@ const HeroWrapper = styled.section`
 const HeroInner = styled.div`
   position: relative;
 
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  width: min(
-    var(--layout-max-width),
-    calc(100% - (var(--layout-padding-x) * 2))
-  );
-  height: 230px;
+  width: min(1600px, calc(100% - 180px));
+  height: 100%;
 
   margin: 0 auto;
-  padding: 26px 34px;
 
   overflow: hidden;
 
   box-sizing: border-box;
 
+  @media (max-width: 1200px) {
+    width: calc(100% - 96px);
+  }
+
   @media (max-width: 900px) {
-    height: 220px;
-    padding: 24px 28px;
+    width: calc(100% - 48px);
   }
 
   @media (max-width: 640px) {
-    height: 205px;
-    padding: 20px;
+    width: calc(100% - 32px);
   }
 `;
 
@@ -191,38 +232,45 @@ const HeroInner = styled.div`
 // 왼쪽 문구 영역
 // =========================================================
 const TextArea = styled.div`
-  position: relative;
+  position: absolute;
+  top: 28px;
+  left: 0;
   z-index: 6;
 
-  width: 320px;
-  flex-shrink: 0;
-
-  transform: translateX(60px);
+  width: min(530px, 55%);
 
   @media (max-width: 900px) {
-    transform: translateX(0);
+    top: 24px;
+
+    width: min(470px, 68%);
+  }
+
+  @media (max-width: 640px) {
+    top: 22px;
+
+    width: 100%;
   }
 `;
 
 const BrandText = styled.p`
   margin: 0;
 
+  color: var(--color-main-dark);
+
   font-size: 13px;
   font-weight: 900;
   letter-spacing: 2px;
-
-  color: var(--color-main-dark);
 `;
 
 const Title = styled.h1`
   margin: 8px 0 0;
 
+  color: var(--text-main);
+
   font-size: 34px;
   font-weight: 900;
   line-height: 1.18;
   letter-spacing: -1.4px;
-
-  color: var(--text-main);
 
   @media (max-width: 640px) {
     font-size: 27px;
@@ -234,14 +282,25 @@ const Highlight = styled.span`
 `;
 
 const Description = styled.p`
-  margin: 12px 0 0;
+  width: min(500px, 100%);
 
-  font-size: 14px;
-  line-height: 1.75;
+  margin: 12px 0 0;
 
   color: var(--text-sub);
 
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.75;
+
+  word-break: keep-all;
+
   @media (max-width: 640px) {
+    width: 100%;
+
+    padding-right: 92px;
+
+    box-sizing: border-box;
+
     font-size: 12px;
   }
 `;
@@ -271,20 +330,20 @@ const FeatureChip = styled.span`
 
   background: rgba(255, 255, 255, 0.64);
 
+  color: var(--color-main-dark);
+
   font-size: 11px;
   font-weight: 700;
-
-  color: var(--color-main-dark);
 `;
 
 // =========================================================
-// 발자국 영역
+// 발자국 장식 영역
 // =========================================================
 const PawDecorationArea = styled.div`
   position: absolute;
 
-  left: 390px;
-  right: clamp(320px, 22vw, 400px);
+  left: 410px;
+  right: 330px;
   top: 0;
   bottom: 0;
 
@@ -292,9 +351,14 @@ const PawDecorationArea = styled.div`
 
   pointer-events: none;
 
-  @media (max-width: 1100px) {
-    left: 340px;
-    right: 280px;
+  @media (max-width: 1200px) {
+    left: 390px;
+    right: 300px;
+  }
+
+  @media (max-width: 900px) {
+    left: 330px;
+    right: 230px;
   }
 
   @media (max-width: 760px) {
@@ -308,8 +372,11 @@ const PawItem = styled.div`
   left: ${({ $left }) => $left};
   top: ${({ $top }) => $top};
 
-  animation: ${pawFloat} 3.8s ease-in-out infinite;
+  opacity: 0.14;
+
+  animation: ${pawFloat} 6s ease-in-out infinite;
   animation-delay: ${({ $delay }) => $delay};
+  animation-fill-mode: both;
 `;
 
 const PawImage = styled.img`
@@ -324,61 +391,52 @@ const PawImage = styled.img`
 `;
 
 // =========================================================
-// 펫 모델 영역
-//
-// --pet-image-offset-x 값만 바꾸면 위치 조절 가능
-// 음수: 왼쪽 이동
-// 양수: 오른쪽 이동
+// 오른쪽 펫 이미지 영역
+// 건강진단 TopSection 기준으로 위치 맞춤
 // =========================================================
 const ImageArea = styled.div`
-  --pet-image-offset-x: -85px;
-
   position: absolute;
 
-  right: 0;
+  right: -50px;
   bottom: 0;
-
   z-index: 5;
 
   display: flex;
   align-items: flex-end;
   justify-content: center;
 
-  width: clamp(280px, 24vw, 390px);
+  width: 410px;
   height: 100%;
-
-  transform: translateX(var(--pet-image-offset-x));
 
   pointer-events: none;
 
-  @media (max-width: 900px) {
-    --pet-image-offset-x: -45px;
+  @media (max-width: 1350px) {
+    right: 10px;
+  }
 
-    width: 300px;
+  @media (max-width: 1100px) {
+    right: -30px;
+
+    width: 355px;
+  }
+
+  @media (max-width: 900px) {
+    right: -55px;
+
+    width: 310px;
   }
 
   @media (max-width: 640px) {
-    --pet-image-offset-x: -18px;
+    right: -95px;
 
-    right: -20px;
-    width: 205px;
+    width: 245px;
+
+    opacity: 0.28;
   }
 `;
 
 const ImageHalo = styled.div`
-  position: absolute;
-
-  left: 50%;
-  bottom: 8px;
-
-  width: 205px;
-  height: 205px;
-
-  border-radius: 50%;
-
-  background: rgba(255, 255, 255, 0.56);
-
-  transform: translateX(-50%);
+  display: none;
 `;
 
 const HeroImage = styled.img`
@@ -388,53 +446,25 @@ const HeroImage = styled.img`
   display: block;
 
   width: 100%;
-  max-height: 250px;
+  max-height: 232px;
 
   object-fit: contain;
   object-position: center bottom;
-
-  @media (max-width: 640px) {
-    max-height: 188px;
-  }
 `;
 
 const LargeCircle = styled.div`
-  position: absolute;
-
-  right: -100px;
-  bottom: -180px;
-
-  width: 430px;
-  height: 430px;
-
-  border-radius: 50%;
-
-  background: rgba(255, 255, 255, 0.34);
+  display: none;
 `;
 
 const SmallCircle = styled.div`
-  position: absolute;
-
-  right: 300px;
-  top: -100px;
-
-  width: 230px;
-  height: 230px;
-
-  border-radius: 50%;
-
-  background: rgba(255, 255, 255, 0.2);
-
-  @media (max-width: 700px) {
-    display: none;
-  }
+  display: none;
 `;
 
 const DotPattern = styled.div`
   position: absolute;
   inset: 0;
 
-  opacity: 0.22;
+  opacity: 0.16;
 
   background-image: radial-gradient(
     rgba(0, 169, 123, 0.22) 1px,

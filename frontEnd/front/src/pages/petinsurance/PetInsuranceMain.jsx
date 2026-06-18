@@ -12,8 +12,12 @@ function PetInsuranceMain() {
     <Wrapper>
       <PetCareNav />
 
-      <InsuranceHeroSection />
+      {/* 상단 배너 */}
+      <HeroArea>
+        <InsuranceHeroSection />
+      </HeroArea>
 
+      {/* 하단: 안내 카드 + 상품 목록 */}
       <BottomLayout>
         <EstimateArea>
           <InsuranceEstimateSection />
@@ -34,62 +38,55 @@ export default PetInsuranceMain;
 // =========================================================
 
 const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-
   width: 100%;
   min-height: 100vh;
 
-  background: #fff;
+  display: flex;
+  flex-direction: column;
 
   box-sizing: border-box;
 `;
 
-// =========================================================
-// 하단 레이아웃
-// 왼쪽 안내 카드 + 오른쪽 보험 상품 목록
-// =========================================================
-const BottomLayout = styled.main`
-  display: grid;
+const HeroArea = styled.section`
+  width: 100%;
 
-  grid-template-columns:
-    400px
-    minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+
+  box-sizing: border-box;
+`;
+
+const BottomLayout = styled.main`
+  width: 85%;
+
+  display: grid;
+  grid-template-columns: 400px minmax(0, 1fr);
+  gap: 48px;
 
   align-items: start;
 
-  gap: 70px;
-
-  width: min(1600px, calc(100% - 48px));
-
-  margin: 40px auto 100px;
+  margin: 38px auto 100px;
 
   box-sizing: border-box;
 
-  @media (max-width: 1100px) {
-    grid-template-columns:
-      280px
-      minmax(0, 1fr);
-
+  @media (max-width: 1200px) {
+    width: calc(100% - 96px);
+    grid-template-columns: 320px minmax(0, 1fr);
     gap: 32px;
-
-    width: calc(100% - 32px);
   }
 
-  @media (max-width: 760px) {
+  @media (max-width: 900px) {
+    width: calc(100% - 48px);
     grid-template-columns: 1fr;
+    gap: 28px;
+  }
 
-    gap: 20px;
-
-    width: calc(100% - 24px);
-
-    margin: 28px auto 46px;
+  @media (max-width: 640px) {
+    width: calc(100% - 32px);
+    margin: 24px auto 60px;
   }
 `;
 
-// =========================================================
-// 왼쪽 보험 이용 안내 카드
-// =========================================================
 const EstimateArea = styled.aside`
   position: sticky;
   top: 24px;
@@ -98,14 +95,11 @@ const EstimateArea = styled.aside`
 
   box-sizing: border-box;
 
-  @media (max-width: 760px) {
+  @media (max-width: 900px) {
     position: static;
   }
 `;
 
-// =========================================================
-// 오른쪽 보험 상품 목록
-// =========================================================
 const InsuranceArea = styled.section`
   display: flex;
   flex-direction: column;
