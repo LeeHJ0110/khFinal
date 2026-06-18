@@ -64,8 +64,8 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
     return "올바른 이메일 형식입니다.";
   }
 
-  function validatePhone(phone) {
-    const numbers = getOnlyPhoneNumber(phone);
+  function validatePhone(콜) {
+    const numbers = getOnlyPhoneNumber(콜);
 
     if (!numbers) {
       return "";
@@ -164,19 +164,24 @@ export default function useMemberKakaoJoinForm(socialId, marketingAgreeYn) {
     }
 
     try {
-      const resp = await verifyPhoneAuthCode(phoneOnlyNumber, authCode);
-
-      if (resp.data === true) {
-        setIsPhoneVerified(true);
-        setPhoneAuthMessage("전화번호 인증이 완료되었습니다.");
-      } else {
-        setIsPhoneVerified(false);
-        setPhoneAuthMessage("인증번호가 올바르지 않습니다.");
-      }
+      await verifyPhoneAuthCode(phoneOnlyNumber, authCode);
+      setIsPhoneVerified(true);
+      setPhoneAuthMessage("전화번호 인증이 완료되었습니다.");
     } catch (err) {
       console.error(err);
+      const data = err.response?.data;
+      const message =
+        typeof data === "string"
+          ? data
+          : data?.message
+            ? data.message
+            : data?.error
+              ? data.error
+              : "인증번호 확인에 실패했습니다.";
+
       setIsPhoneVerified(false);
-      setPhoneAuthMessage("인증번호 확인에 실패했습니다.");
+      setPhoneAuthMessage(message);
+      alert(message);
     }
   }
 
