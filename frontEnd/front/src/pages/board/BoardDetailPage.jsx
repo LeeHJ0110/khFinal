@@ -22,6 +22,18 @@ export default function BoardDetailPage() {
   const navigate = useNavigate();
   const { detail, isLoading, error, refetch } = useBoardDetail(id);
 
+  useEffect(() => {
+    if (error) {
+      alert("존재하지 않거나 삭제된 게시글입니다.");
+
+      if (window.history.length > 1) {
+        navigate(-1);
+      } else {
+        navigate("/community/FREE");
+      }
+    }
+  }, [error, navigate]);
+
   const loginMember = useSelector((state) =>
     state.member.accessToken ? state.member : null,
   );
