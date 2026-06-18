@@ -15,6 +15,8 @@ import com.kh.app.pet.dto.response.PetMyPageResDto;
 import com.kh.app.pet.entity.PetEntity;
 import com.kh.app.pet.repository.PetRepository;
 import com.kh.app.petinsurance.dto.response.PetInsurancePaymentHistoryResDto;
+import com.kh.app.petinsurance.entity.PetInsuranceApproveStatus;
+import com.kh.app.petinsurance.repository.PetInsuranceApplicationRepository;
 import com.kh.app.petinsurance.repository.PetInsurancePaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,6 +36,7 @@ public class PetService {
     private final BreedRepository breedRepository;
     private final S3Service s3Service;
     private final PetInsurancePaymentRepository petInsurancePaymentRepository;
+    private final PetInsuranceApplicationRepository petInsuranceApplicationRepository;
 
     public Long create(PetCreateReqDto request, String loginKey) {
 
@@ -66,10 +69,24 @@ public class PetService {
 
         return petRepository.findAllByMember_IdAndDelYnOrderByRepresentYnDesc(member.getId(), DelYn.N)
                 .stream()
-                .map(pet -> PetMyPageResDto.from(
-                        pet,
-                        s3Service.getFileUrl(pet.getImageUrl())
-                ))
+                .map(pet -> {
+                    boolean hasInsurance =
+                            petInsuranceApplicationRepository.existsByPet_IdAndApproveStatusInAndDelYn(
+                                    pet.getId(),
+                                    List.of(
+                                            PetInsuranceApproveStatus.WAITING,
+                                            PetInsuranceApproveStatus.APPROVED
+                                    ),
+                                    DelYn.N
+                            );
+
+                    return PetMyPageResDto.from(
+                            pet,
+                            s3Service.getFileUrl(pet.getImageUrl()),
+                            !hasInsurance,
+                            hasInsurance ? "보험 가입 또는 신청 중인 펫은 삭제할 수 없습니다." : null
+                    );
+                })
                 .toList();
     }
 
@@ -135,6 +152,19 @@ public class PetService {
 
         if (!pet.getMember().getId().equals(member.getId())) {
             throw new IllegalStateException("본인 펫만 삭제 가능합니다.");
+        }
+        boolean hasActiveInsurance =
+                petInsuranceApplicationRepository.existsByPet_IdAndApproveStatusInAndDelYn(
+                        petId,
+                        List.of(
+                                PetInsuranceApproveStatus.WAITING,
+                                PetInsuranceApproveStatus.APPROVED
+                        ),
+                        DelYn.N
+                );
+
+        if (hasActiveInsurance) {
+            throw new IllegalStateException("보험 가입 또는 신청 중인 펫은 삭제할 수 없습니다.");
         }
 
         pet.delete();

@@ -112,7 +112,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/mypage/**").authenticated()
                         .requestMatchers("/api/message/**").authenticated()
-
+                        .requestMatchers(HttpMethod.DELETE, "/api/pet/**").authenticated()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/board/*",
                                 "/api/board/detail/*",
