@@ -69,6 +69,7 @@ public class SecurityConfig {
                 // 모든 요청 허용
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/",
                                 "/api/member/login",
                                 "/api/member/join",
                                 "/api/member/check-username",
