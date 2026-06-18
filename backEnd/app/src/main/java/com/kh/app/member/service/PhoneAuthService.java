@@ -2,12 +2,13 @@ package com.kh.app.member.service;
 
 import com.kh.app.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.Random;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PhoneAuthService {
@@ -19,6 +20,7 @@ public class PhoneAuthService {
     private static final String AUTH_DONE_PREFIX = "phone:auth:done:";
 
     public void sendCode(String phone) {
+        log.info("===== PHONE SEND API 진입 =====");
         phone = normalizePhone(phone);
 
         if (memberRepository.existsByPhone(phone)) {
