@@ -1,5 +1,6 @@
 package com.kh.app.delivery.repository;
 
+import com.kh.app.common.entity.DelYn;
 import com.kh.app.delivery.entity.DeliveryAddressEntity;
 import com.kh.app.delivery.entity.DeliveryDefaultYn;
 import com.kh.app.member.entity.MemberEntity;
@@ -28,5 +29,5 @@ public interface DeliveryAddressRepository extends JpaRepository<DeliveryAddress
     );
 
     // 회원의 배송지 개수 확인
-    long countByMember(MemberEntity member);
+    long countByMemberAndDelYn(MemberEntity member, DelYn delYn);
 }

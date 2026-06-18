@@ -12,7 +12,6 @@ const emptyForm = {
   address: "",
   addressDetail: "",
 };
-
 function formatPhoneNumber(value) {
   const numbers = value.replace(/[^0-9]/g, "");
 
@@ -85,6 +84,11 @@ export default function DeliveryManagePage() {
   }
 
   function handleOpenCreate() {
+    if (deliveryList.length >= 3) {
+      alert("배송지는 최대 3개까지 등록할 수 있습니다.");
+      return;
+    }
+
     setCreateMode(true);
     setOpenedId(null);
     setFormData(emptyForm);
@@ -172,10 +176,17 @@ export default function DeliveryManagePage() {
       <Header>
         <Title>배송지 관리</Title>
 
-        <AddButton type="button" onClick={handleOpenCreate}>
-          + 배송지 추가
+        <AddButton
+          type="button"
+          onClick={handleOpenCreate}
+          disabled={deliveryList.length >= 3}
+        >
+          배송지 추가
         </AddButton>
       </Header>
+      {deliveryList.length >= 3 && (
+        <LimitMessage>배송지는 최대 3개까지 등록할 수 있습니다.</LimitMessage>
+      )}
 
       <DeliveryBox>
         {loading ? (
@@ -426,6 +437,10 @@ const AddButton = styled.button`
   color: white;
   font-weight: 800;
   cursor: pointer;
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
 
 const DeliveryBox = styled.section`
@@ -589,4 +604,9 @@ const EmptyBox = styled.div`
   color: #777;
   font-weight: 700;
   line-height: 1.8;
+`;
+const LimitMessage = styled.p`
+  margin-top: 8px;
+  color: red;
+  font-size: 13px;
 `;

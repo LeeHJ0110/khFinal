@@ -1,5 +1,6 @@
 package com.kh.app.delivery.service;
 
+import com.kh.app.common.entity.DelYn;
 import com.kh.app.delivery.dto.request.DeliveryAddressCreateReqDto;
 import com.kh.app.delivery.dto.request.DeliveryAddressUpdateReqDto;
 import com.kh.app.delivery.dto.response.DeliveryAddressListResDto;
@@ -43,7 +44,13 @@ public class DeliveryAddressService {
     ) {
         MemberEntity member = getLoginMember(loginKey);
 
-        long count = deliveryAddressRepository.countByMember(member);
+        long count = deliveryAddressRepository.countByMemberAndDelYn(
+                member,
+                DelYn.N
+        );
+        if (count >= 3) {
+            throw new IllegalStateException("배송지는 최대 3개까지 등록할 수 있습니다.");
+        }
 
         DeliveryAddressEntity deliveryAddress =
                 DeliveryAddressEntity.builder()

@@ -138,6 +138,11 @@ export default function PetManagePage() {
       return;
     }
 
+    if (selectedPet.deletable === false) {
+      alert(selectedPet.deleteBlockReason);
+      return;
+    }
+
     const result = confirm("정말 삭제하시겠습니까?");
 
     if (!result) {
@@ -410,9 +415,19 @@ export default function PetManagePage() {
 
                       <Button type="submit">수정하기</Button>
 
-                      <Button type="button" onClick={handleDelete}>
+                      <Button
+                        type="button"
+                        onClick={handleDelete}
+                        disabled={selectedPet?.deletable === false}
+                      >
                         삭제하기
                       </Button>
+
+                      {selectedPet?.deletable === false && (
+                        <DeleteMessage>
+                          {selectedPet?.deleteBlockReason}
+                        </DeleteMessage>
+                      )}
                     </>
                   )}
                 </ButtonRow>
@@ -647,6 +662,11 @@ const Button = styled.button`
   color: #00a982;
   font-weight: 700;
   cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 `;
 
 const EmptyInsurance = styled.div`
@@ -754,4 +774,9 @@ const PaymentStatus = styled.div`
     if ($status === "FAILED") return "#fff0f0";
     return "#f1f3f5";
   }};
+`;
+const DeleteMessage = styled.p`
+  margin-top: 8px;
+  color: red;
+  font-size: 13px;
 `;

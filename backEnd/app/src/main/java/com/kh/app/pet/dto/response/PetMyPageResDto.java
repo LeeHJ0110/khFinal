@@ -35,40 +35,39 @@ public class PetMyPageResDto {
 
     private String imageUrl;
 
-    public static PetMyPageResDto from(PetEntity pet, String imageUrl) {
+    private boolean deletable;
+    private String deleteBlockReason;
 
+    public static PetMyPageResDto from(
+            PetEntity pet,
+            String imageUrl,
+            boolean deletable,
+            String deleteBlockReason
+    ) {
         return PetMyPageResDto.builder()
                 .petId(pet.getId())
-                .petType(
-                        pet.getBreed().getPetType().name()
-                )
+                .petType(pet.getBreed().getPetType().name())
                 .name(pet.getName())
-
-                // 품종명
                 .breedName(
                         pet.getBreed() != null
                                 ? pet.getBreed().getName()
                                 : null
                 )
-
-                // 성별 enum -> 문자열
                 .gender(
                         pet.getGender() != null
                                 ? pet.getGender().name()
                                 : null
                 )
-
                 .birthDate(pet.getBirthDate())
-
                 .weight(pet.getWeight())
-
-                // 대표동물 여부 enum/string
                 .representYn(
                         pet.getRepresentYn() != null
                                 ? pet.getRepresentYn().name()
                                 : null
                 )
                 .imageUrl(imageUrl)
+                .deletable(deletable)
+                .deleteBlockReason(deleteBlockReason)
                 .build();
     }
 }
