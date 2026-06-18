@@ -91,7 +91,10 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/store/order/pay/approve",
                                 "/api/store/order/pay/cancel",
-                                "/api/store/order/pay/fail"
+                                "/api/store/order/pay/fail",
+                                "/api/petinsurance/payment/success",
+                                "/api/petinsurance/payment/cancel",
+                                "/api/petinsurance/payment/fail"
                         ).permitAll()
 
                         // 로그인 사용자 스토어 전용
