@@ -156,20 +156,27 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
           cursor: "pointer",
         }}
       >
-        <span
+        <div
           style={{
             width: "100%",
-            fontSize: small ? "8px" : "15px",
-            padding: "3px",
-            fontWeight: "bolder",
-            lineHeight: "1",
-            whiteSpace: "nowrap",
-            pointerEvents: "none",
+            overflow: "hidden",
             textOverflow: "ellipsis",
           }}
         >
-          {info.event.title}
-        </span>
+          <span
+            style={{
+              width: "100%",
+              fontSize: small ? "8px" : "15px",
+              padding: "3px",
+              fontWeight: "bolder",
+              lineHeight: "1",
+              whiteSpace: "nowrap",
+              pointerEvents: "none",
+            }}
+          >
+            {info.event.title}
+          </span>
+        </div>
       </div>
     );
   };
