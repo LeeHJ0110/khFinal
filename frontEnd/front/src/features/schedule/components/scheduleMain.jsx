@@ -120,7 +120,6 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
     return (
       <CellWrapper
         $isLongPressing={isLongPressing}
-        $hasTraining={hasTraining}
         onMouseDown={handleCellMouseDown}
         onMouseUp={handleCellMouseUp}
         onMouseLeave={handleCellMouseLeave}
@@ -215,7 +214,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
   };
 
   return (
-    <Wrapper $small={small}>
+    <Wrapper $small={small} $isLongPressing={isLongPressing}>
       {sLoading || tLoading ? (
         <p>불러오는 중...</p>
       ) : (
@@ -244,10 +243,10 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
     </Wrapper>
   );
 }
-
 const Wrapper = styled.div`
   width: ${({ $small }) => ($small ? "100%" : "1100px")};
 
+  /* 1. 달력 내부 메인 스크롤러 및 요소를 대상으로 스크롤바 전면 차단 */
   .fc-scroller,
   .fc-scroller-liquid-absolute {
     overflow: hidden !important;
@@ -257,11 +256,13 @@ const Wrapper = styled.div`
     }
   }
 
+  /* 2. 테이블 가로축이 깨지며 가로 스크롤 유발하는 현상 방지 */
   .fc .fc-scrollgrid-sync-table {
     table-layout: fixed !important;
     width: 100% !important;
   }
 
+  /* 3. 날짜 격자 내부 프레임 오버플로우 제한 */
   .fc-daygrid-day-frame {
     height: 100% !important;
     min-height: 0 !important;
@@ -269,10 +270,12 @@ const Wrapper = styled.div`
     position: relative;
   }
 
+  /* 4. 일자 텍스트 줄 정돈 */
   .fc-daygrid-day-top {
     padding: 2px 0 !important;
   }
 
+  /* 5. 이벤트 컨테이너 내 과도한 스크롤 방지 */
   .fc-daygrid-day-events {
     padding: 2px !important;
   }
@@ -301,24 +304,17 @@ const Wrapper = styled.div`
   .fc .fc-button {
     background: transparent !important;
     border: none !important;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.07);
     color: #444 !important;
     width: 32px;
     height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
-
-    transition:
-      transform 0.2s ease-in-out,
-      box-shadow 0.2s ease-in-out !important;
-
-    &:hover {
-      transform: scale(1.04);
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.15) !important;
-      z-index: 5 !important;
-    }
+    transition: 0.2s;
   }
 
+  /* FullCalendar의 기본 이벤트 바(.fc-event) 호버 애니메이션 제어 */
   .fc-v-event,
   .fc-h-event {
     transition:
@@ -331,8 +327,16 @@ const Wrapper = styled.div`
       z-index: 5 !important;
     }
   }
-`;
 
+  /* 💡 🔥 여기에 추가: 드래그 시 하이라이트 영역 색상 지정 */
+  .fc .fc-highlight {
+    background: ${({ $isLongPressing }) =>
+      $isLongPressing
+        ? "var(--color-mint) !important"
+        : "rgba(188, 232, 241, 0.3) !important"};
+    opacity: ${({ $isLongPressing }) => ($isLongPressing ? 0.35 : 1)};
+  }
+`;
 const Stamp = styled.img`
   position: absolute;
   width: 28px;
@@ -353,8 +357,8 @@ const CellWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: ${({ $isLongPressing, $hasTraining }) =>
-    $isLongPressing ? "copy" : $hasTraining ? "pointer" : "default"};
+  cursor: ${({ $isLongPressing }) =>
+    $isLongPressing ? "ew-resize" : "pointer"};
   user-select: none;
 
   &:hover ${Stamp} {
