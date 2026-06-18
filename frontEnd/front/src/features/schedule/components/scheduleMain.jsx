@@ -126,21 +126,7 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
         onMouseLeave={handleCellMouseLeave}
         onClick={hasTraining ? handleTrainingClick : undefined}
       >
-        {hasTraining && (
-          <img
-            src={pawPrint}
-            alt="stamp"
-            style={{
-              position: "absolute",
-              width: "28px",
-              height: "28px",
-              opacity: 0.4,
-              zIndex: 1,
-              pointerEvents: "none",
-              cursor: "pointer",
-            }}
-          />
-        )}
+        {hasTraining && <Stamp src={pawPrint} alt="stamp" />}
         <span
           style={{
             position: "absolute",
@@ -173,7 +159,8 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
         <span
           style={{
             width: "100%",
-            fontSize: small ? "8px" : "20px",
+            fontSize: small ? "8px" : "15px",
+            padding: "3px",
             fontWeight: "bolder",
             lineHeight: "1",
             whiteSpace: "nowrap",
@@ -208,18 +195,15 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
   const handleCalendarBodyClick = (e) => {
     if (!small) return;
 
-    // 만약 롱프레스 모달이나 기존 커스텀 클릭 이벤트가 동작 중이라면 이동을 막음
     if (isLongPress.current) return;
 
-    // 더보기 버튼(+1, +2 등)을 누를 때는 이동하지 않도록 예외 처리
     if (e.target.closest(".fc-more-link")) return;
 
-    // 요일 헤더(.fc-col-header)나 실제 날짜판(.fc-daygrid-body) 영역을 눌렀을 때만 이동
     if (
       e.target.closest(".fc-col-header") ||
       e.target.closest(".fc-daygrid-body")
     ) {
-      navigate("/healthCare/schedule"); // TODO 날짜는 넘길 수 있게 해주기
+      navigate("/healthCare/schedule");
     }
   };
 
@@ -257,23 +241,20 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
 const Wrapper = styled.div`
   width: ${({ $small }) => ($small ? "100%" : "1100px")};
 
-  /* 1. 달력 내부 메인 스크롤러 및 요소를 대상으로 스크롤바 전면 차단 */
   .fc-scroller,
   .fc-scroller-liquid-absolute {
     overflow: hidden !important;
-    scrollbar-width: none; /* Firefox 스크롤바 제거 */
+    scrollbar-width: none;
     &::-webkit-scrollbar {
-      display: none !important; /* Chrome, Safari, Whale 스크롤바 제거 */
+      display: none !important;
     }
   }
 
-  /* 2. 테이블 가로축이 깨지며 가로 스크롤 유발하는 현상 방지 */
   .fc .fc-scrollgrid-sync-table {
     table-layout: fixed !important;
     width: 100% !important;
   }
 
-  /* 3. 날짜 격자 내부 프레임 오버플로우 제한 */
   .fc-daygrid-day-frame {
     height: 100% !important;
     min-height: 0 !important;
@@ -281,12 +262,10 @@ const Wrapper = styled.div`
     position: relative;
   }
 
-  /* 4. 일자 텍스트 줄 정돈 */
   .fc-daygrid-day-top {
     padding: 2px 0 !important;
   }
 
-  /* 5. 이벤트 컨테이너 내 과도한 스크롤 방지 */
   .fc-daygrid-day-events {
     padding: 2px !important;
   }
@@ -315,18 +294,49 @@ const Wrapper = styled.div`
   .fc .fc-button {
     background: transparent !important;
     border: none !important;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.07);
     color: #444 !important;
-
     width: 32px;
     height: 32px;
-
     display: flex;
     align-items: center;
     justify-content: center;
 
-    transition: 0.2s;
+    transition:
+      transform 0.2s ease-in-out,
+      box-shadow 0.2s ease-in-out !important;
+
+    &:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.15) !important;
+      z-index: 5 !important;
+    }
   }
+
+  .fc-v-event,
+  .fc-h-event {
+    transition:
+      transform 0.2s ease-in-out,
+      box-shadow 0.2s ease-in-out !important;
+
+    &:hover {
+      transform: scale(1.04);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+      z-index: 5 !important;
+    }
+  }
+`;
+
+const Stamp = styled.img`
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  opacity: 0.4;
+  z-index: 1;
+  pointer-events: none;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease-in-out,
+    opacity 0.2s ease-in-out;
 `;
 
 const CellWrapper = styled.div`
@@ -339,11 +349,11 @@ const CellWrapper = styled.div`
   cursor: ${({ $isLongPressing, $hasTraining }) =>
     $isLongPressing ? "copy" : $hasTraining ? "pointer" : "default"};
   user-select: none;
-`;
 
-const Stamp = styled.img`
-  position: absolute;
-  opacity: 0.3;
-  width: 20px;
-  height: 20px;
+  &:hover ${Stamp} {
+    transform: scale(1.25);
+    opacity: 0.85;
+    border: 1px solid var(--color-mint);
+    border-radius: 5px;
+  }
 `;
