@@ -120,27 +120,12 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
     return (
       <CellWrapper
         $isLongPressing={isLongPressing}
-        $hasTraining={hasTraining}
         onMouseDown={handleCellMouseDown}
         onMouseUp={handleCellMouseUp}
         onMouseLeave={handleCellMouseLeave}
         onClick={hasTraining ? handleTrainingClick : undefined}
       >
-        {hasTraining && (
-          <img
-            src={pawPrint}
-            alt="stamp"
-            style={{
-              position: "absolute",
-              width: "28px",
-              height: "28px",
-              opacity: 0.4,
-              zIndex: 1,
-              pointerEvents: "none",
-              cursor: "pointer",
-            }}
-          />
-        )}
+        {hasTraining && <Stamp src={pawPrint} alt="stamp" />}
         <span
           style={{
             position: "absolute",
@@ -170,19 +155,27 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
           cursor: "pointer",
         }}
       >
-        <span
+        <div
           style={{
             width: "100%",
-            fontSize: small ? "8px" : "20px",
-            fontWeight: "bolder",
-            lineHeight: "1",
-            whiteSpace: "nowrap",
-            pointerEvents: "none",
+            overflow: "hidden",
             textOverflow: "ellipsis",
           }}
         >
-          {info.event.title}
-        </span>
+          <span
+            style={{
+              width: "100%",
+              fontSize: small ? "8px" : "15px",
+              padding: "3px",
+              fontWeight: "bolder",
+              lineHeight: "1",
+              whiteSpace: "nowrap",
+              pointerEvents: "none",
+            }}
+          >
+            {info.event.title}
+          </span>
+        </div>
       </div>
     );
   };
@@ -208,23 +201,20 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
   const handleCalendarBodyClick = (e) => {
     if (!small) return;
 
-    // 만약 롱프레스 모달이나 기존 커스텀 클릭 이벤트가 동작 중이라면 이동을 막음
     if (isLongPress.current) return;
 
-    // 더보기 버튼(+1, +2 등)을 누를 때는 이동하지 않도록 예외 처리
     if (e.target.closest(".fc-more-link")) return;
 
-    // 요일 헤더(.fc-col-header)나 실제 날짜판(.fc-daygrid-body) 영역을 눌렀을 때만 이동
     if (
       e.target.closest(".fc-col-header") ||
       e.target.closest(".fc-daygrid-body")
     ) {
-      navigate("/healthCare/schedule"); // TODO 날짜는 넘길 수 있게 해주기
+      navigate("/healthCare/schedule");
     }
   };
 
   return (
-    <Wrapper $small={small}>
+    <Wrapper $small={small} $isLongPressing={isLongPressing}>
       {sLoading || tLoading ? (
         <p>불러오는 중...</p>
       ) : (
@@ -253,7 +243,6 @@ export default function ScheduleMain({ onOpenModal, detailOpen, small }) {
     </Wrapper>
   );
 }
-
 const Wrapper = styled.div`
   width: ${({ $small }) => ($small ? "100%" : "1100px")};
 
@@ -261,9 +250,9 @@ const Wrapper = styled.div`
   .fc-scroller,
   .fc-scroller-liquid-absolute {
     overflow: hidden !important;
-    scrollbar-width: none; /* Firefox 스크롤바 제거 */
+    scrollbar-width: none;
     &::-webkit-scrollbar {
-      display: none !important; /* Chrome, Safari, Whale 스크롤바 제거 */
+      display: none !important;
     }
   }
 
@@ -317,16 +306,48 @@ const Wrapper = styled.div`
     border: none !important;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.07);
     color: #444 !important;
-
     width: 32px;
     height: 32px;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     transition: 0.2s;
   }
+
+  /* FullCalendar의 기본 이벤트 바(.fc-event) 호버 애니메이션 제어 */
+  .fc-v-event,
+  .fc-h-event {
+    transition:
+      transform 0.2s ease-in-out,
+      box-shadow 0.2s ease-in-out !important;
+
+    &:hover {
+      transform: scale(1.04);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+      z-index: 5 !important;
+    }
+  }
+
+  /* 💡 🔥 여기에 추가: 드래그 시 하이라이트 영역 색상 지정 */
+  .fc .fc-highlight {
+    background: ${({ $isLongPressing }) =>
+      $isLongPressing
+        ? "var(--color-mint) !important"
+        : "rgba(188, 232, 241, 0.3) !important"};
+    opacity: ${({ $isLongPressing }) => ($isLongPressing ? 0.35 : 1)};
+  }
+`;
+const Stamp = styled.img`
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  opacity: 0.4;
+  z-index: 1;
+  pointer-events: none;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease-in-out,
+    opacity 0.2s ease-in-out;
 `;
 
 const CellWrapper = styled.div`
@@ -336,14 +357,14 @@ const CellWrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: ${({ $isLongPressing, $hasTraining }) =>
-    $isLongPressing ? "copy" : $hasTraining ? "pointer" : "default"};
+  cursor: ${({ $isLongPressing }) =>
+    $isLongPressing ? "ew-resize" : "pointer"};
   user-select: none;
-`;
 
-const Stamp = styled.img`
-  position: absolute;
-  opacity: 0.3;
-  width: 20px;
-  height: 20px;
+  &:hover ${Stamp} {
+    transform: scale(1.25);
+    opacity: 0.85;
+    border: 1px solid var(--color-mint);
+    border-radius: 5px;
+  }
 `;
