@@ -203,7 +203,7 @@ public class BoardService {
 
         if (categoryEnum == com.kh.app.board.entity.BoardCategory.FAQ) {
             if (memberEntity.getRole() != MemberRole.A && memberEntity.getRole() != MemberRole.B) {
-                throw new IllegalStateException("Only ADMIN or BOARD manager can create FAQ posts.");
+                throw new IllegalStateException("관리자만이 FAQ 게시판에 글을 작성할 수 있습니다.");
             }
         }
 
@@ -250,12 +250,12 @@ public class BoardService {
         if (boardEntity.getCategory() == com.kh.app.board.entity.BoardCategory.FAQ ||
             categoryEnum == com.kh.app.board.entity.BoardCategory.FAQ) {
             if (memberEntity.getRole() != MemberRole.A && memberEntity.getRole() != MemberRole.B) {
-                throw new IllegalStateException("Only ADMIN or BOARD manager can manage FAQ posts.");
+                throw new IllegalStateException("관리자만이 FAQ 게시글을 수정할 수 있습니다.");
             }
         }
 
         if (!boardEntity.getWriter().getUsername().equals(username) && memberEntity.getRole() != MemberRole.A && memberEntity.getRole() != MemberRole.B) {
-            throw new IllegalStateException("NO PERMISSION TO UPDATE BOARD ........");
+            throw new IllegalStateException("게시글을 업데이트 할 권한이 없습니다.");
         }
 
         boardEntity.setTitle(reqDto.getTitle());
@@ -397,11 +397,11 @@ public class BoardService {
 
         if (boardEntity.getCategory() == com.kh.app.board.entity.BoardCategory.FAQ) {
             if (memberEntity.getRole() != MemberRole.A && memberEntity.getRole() != MemberRole.B) {
-                throw new IllegalStateException("Only ADMIN or BOARD manager can delete FAQ posts.");
+                throw new IllegalStateException("관리자만이 FAQ 게시글을 삭제할 수 있습니다.");
             }
         } else {
             if (!boardEntity.getWriter().getUsername().equals(username) && memberEntity.getRole() != MemberRole.A && memberEntity.getRole() != MemberRole.B) {
-                throw new IllegalStateException("NO PERMISSION TO DELETE BOARD ........");
+                throw new IllegalStateException("작성자 본인만 삭제할 수 있습니다.");
             }
         }
 
@@ -536,11 +536,11 @@ public class BoardService {
                 .orElseThrow(() -> new EntityNotFoundException("MEMBER NOT FOUND ........"));
 
         if (board.getWriter().getId().equals(reporter.getId())) {
-            throw new IllegalStateException("You cannot report your own post.");
+            throw new IllegalStateException("본인은 신고가 불가능합니다.");
         }
 
         if (boardReportRepository.existsByBoardAndReporter(board, reporter)) {
-            throw new IllegalStateException("Already reported this post.");
+            throw new IllegalStateException("이미 신고한 게시글입니다.");
         }
 
         BoardReportEntity report = BoardReportEntity.builder()

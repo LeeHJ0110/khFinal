@@ -75,7 +75,7 @@ public class BoardReplyService {
 
         // 본인 글이거나 관리자일 때만 삭제 허용
         if (!reply.getMember().getUsername().equals(username) && member.getRole() != MemberRole.A && member.getRole() != MemberRole.B) {
-            throw new IllegalStateException("NO PERMISSION TO DELETE REPLY");
+            throw new IllegalStateException("삭제할 권한이 없습니다.");
         }
 
         reply.delete();
@@ -87,7 +87,7 @@ public class BoardReplyService {
                 .orElseThrow(() -> new EntityNotFoundException("REPLY NOT FOUND"));
 
         if (!reply.getMember().getUsername().equals(username)) {
-            throw new IllegalStateException("NO PERMISSION TO UPDATE REPLY");
+            throw new IllegalStateException("수정할 권한이 없습니다.");
         }
 
         reply.setContent(reqDto.getContent());
