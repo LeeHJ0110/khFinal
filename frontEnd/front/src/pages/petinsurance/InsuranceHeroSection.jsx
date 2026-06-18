@@ -40,75 +40,35 @@ function InsuranceHeroSection() {
         ===================================================== */}
         <PawDecorationArea>
           <PawItem $left="4%" $top="66%" $delay="0s">
-            <PawImage
-              src={petModel2}
-              alt=""
-              $size="25px"
-              $rotate="-18deg"
-            />
+            <PawImage src={petModel2} alt="" $size="25px" $rotate="-18deg" />
           </PawItem>
 
           <PawItem $left="17%" $top="42%" $delay="0.45s">
-            <PawImage
-              src={petModel2}
-              alt=""
-              $size="30px"
-              $rotate="15deg"
-            />
+            <PawImage src={petModel2} alt="" $size="30px" $rotate="15deg" />
           </PawItem>
 
           <PawItem $left="29%" $top="70%" $delay="0.9s">
-            <PawImage
-              src={petModel2}
-              alt=""
-              $size="27px"
-              $rotate="-12deg"
-            />
+            <PawImage src={petModel2} alt="" $size="27px" $rotate="-12deg" />
           </PawItem>
 
           <PawItem $left="42%" $top="36%" $delay="1.35s">
-            <PawImage
-              src={petModel2}
-              alt=""
-              $size="34px"
-              $rotate="18deg"
-            />
+            <PawImage src={petModel2} alt="" $size="34px" $rotate="18deg" />
           </PawItem>
 
           <PawItem $left="55%" $top="62%" $delay="1.8s">
-            <PawImage
-              src={petModel2}
-              alt=""
-              $size="29px"
-              $rotate="-14deg"
-            />
+            <PawImage src={petModel2} alt="" $size="29px" $rotate="-14deg" />
           </PawItem>
 
           <PawItem $left="67%" $top="30%" $delay="2.25s">
-            <PawImage
-              src={petModel2}
-              alt=""
-              $size="32px"
-              $rotate="16deg"
-            />
+            <PawImage src={petModel2} alt="" $size="32px" $rotate="16deg" />
           </PawItem>
 
           <PawItem $left="78%" $top="57%" $delay="2.7s">
-            <PawImage
-              src={petModel2}
-              alt=""
-              $size="26px"
-              $rotate="-12deg"
-            />
+            <PawImage src={petModel2} alt="" $size="26px" $rotate="-12deg" />
           </PawItem>
 
           <PawItem $left="89%" $top="38%" $delay="3.15s">
-            <PawImage
-              src={petModel2}
-              alt=""
-              $size="29px"
-              $rotate="14deg"
-            />
+            <PawImage src={petModel2} alt="" $size="29px" $rotate="14deg" />
           </PawItem>
         </PawDecorationArea>
 
@@ -118,10 +78,7 @@ function InsuranceHeroSection() {
         <ImageArea>
           <ImageHalo />
 
-          <HeroImage
-            src={petModel1}
-            alt="펫 보험 소개 이미지"
-          />
+          <HeroImage src={petModel1} alt="펫 보험 소개 이미지" />
         </ImageArea>
 
         <LargeCircle />
@@ -166,11 +123,7 @@ const HeroWrapper = styled.section`
 
   overflow: hidden;
 
-  background: color-mix(
-    in srgb,
-    var(--color-bg-soft) 40%,
-    var(--color-white)
-  );
+  background: color-mix(in srgb, var(--color-bg-soft) 40%, var(--color-white));
 
   box-sizing: border-box;
 
@@ -214,7 +167,6 @@ const HeroInner = styled.div`
     var(--layout-max-width),
     calc(100% - (var(--layout-padding-x) * 2))
   );
-
   height: 230px;
 
   margin: 0 auto;

@@ -1,57 +1,126 @@
-import { useState } from "react";
+import React from "react";
 import styled from "styled-components";
 
-import TopSection from "../../features/petcare/components/petcarehome/TopSection";
-import CheckSection from "../../features/petcare/components/petcarehome/CheckSection";
-import PreviewSection from "../../features/petcare/components/petcarehome/PreviewSection";
 import PetCareNav from "../../features/petcare/components/petcarehome/PetCareNav";
 
-function PetCareMain() {
-  // PreviewSection과 TopSection이 함께 사용할 선택된 펫
-  const [selectedPet, setSelectedPet] = useState(null);
+import InsuranceEstimateSection from "../petinsurance/InsuranceEstimateSection";
+import InsuranceHeroSection from "../petinsurance/InsuranceHeroSection";
+import InsuranceProductSection from "../petinsurance/InsuranceProductSection";
 
+function PetInsuranceMain() {
   return (
     <Wrapper>
       <PetCareNav />
 
-      <TopSection selectedPet={selectedPet} />
+      {/* 상단 배너 */}
+      <HeroArea>
+        <InsuranceHeroSection />
+      </HeroArea>
 
-      <BottomArea>
-        <CheckSection />
+      {/* 하단: 안내 카드 + 상품 목록 */}
+      <BottomLayout>
+        <EstimateArea>
+          <InsuranceEstimateSection />
+        </EstimateArea>
 
-        <PreviewSection
-          selectedPet={selectedPet}
-          onChangeSelectedPet={setSelectedPet}
-        />
-      </BottomArea>
+        <InsuranceArea>
+          <InsuranceProductSection />
+        </InsuranceArea>
+      </BottomLayout>
     </Wrapper>
   );
 }
 
-export default PetCareMain;
+export default PetInsuranceMain;
+
+// =========================================================
+// styled-components
+// =========================================================
 
 const Wrapper = styled.div`
-  width: 100%;
-  height: 100%;
-
   display: flex;
   flex-direction: column;
 
-  margin: 0 auto;
+  width: 100%;
+  min-height: 100vh;
 
   box-sizing: border-box;
 `;
 
-const BottomArea = styled.div`
-  width: 85%;
+const HeroArea = styled.section`
+  width: 100%;
 
+  margin: 0;
+  padding: 0;
+
+  box-sizing: border-box;
+`;
+
+// =========================================================
+// 하단 레이아웃
+//
+// 왼쪽 안내 카드 + 오른쪽 보험 상품 목록
+// 오른쪽 영역은 무한정 늘어나지 않도록 최대 너비 제한
+// =========================================================
+const BottomLayout = styled.main`
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-  gap: 20px;
 
-  margin: 0 auto;
+  grid-template-columns:
+    400px
+    minmax(0, 1fr);
 
   align-items: start;
+
+  gap: 70px;
+
+  width: min(1600px, calc(100% - 48px));
+
+  margin: 38px auto 100px;
+
+  box-sizing: border-box;
+
+  @media (max-width: 1100px) {
+    grid-template-columns:
+      220px
+      minmax(0, 1fr);
+
+    width: calc(100% - 32px);
+  }
+
+  @media (max-width: 760px) {
+    grid-template-columns:
+      minmax(210px, 220px)
+      minmax(0, 1fr);
+
+    gap: 8px;
+
+    width: calc(100% - 24px);
+
+    margin: 22px auto 46px;
+  }
+`;
+// =========================================================
+// 왼쪽 보험 이용 안내 카드
+// =========================================================
+const EstimateArea = styled.aside`
+  position: sticky;
+  top: 24px;
+
+  width: 100%;
+
+  box-sizing: border-box;
+`;
+
+// =========================================================
+// 오른쪽 보험 상품 목록
+// =========================================================
+const InsuranceArea = styled.section`
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  max-width: 1330px;
+  min-width: 0;
 
   box-sizing: border-box;
 `;

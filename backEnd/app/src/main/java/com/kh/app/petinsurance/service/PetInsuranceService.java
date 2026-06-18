@@ -716,23 +716,7 @@ public class PetInsuranceService {
         petInsurancePaymentRepository.save(
                 payment
         );
-
-        // 관리자 승인 처리 후 회원에게 자동 쪽지 발송
-        systemMessageService.sendByAdmin(
-                adminUsername,
-                receiverMember,
-                MessageReasonType.INSURANCE,
-                "펫보험 승인 안내",
-                pet.getName()
-                        + "의 펫보험 가입 신청이 승인되었습니다."
-        );
-
-        log.info(
-                "펫 보험 가입 승인 및 최초 보험료 결제 완료 applicationId = {}, tid = {}, amount = {}",
-                applicationId,
-                response.getTid(),
-                monthlyPrice
-        );
+        
     }
     // =========================================================
 // 관리자 보험 가입 반려

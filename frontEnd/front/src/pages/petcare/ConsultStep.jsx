@@ -1,32 +1,21 @@
 import styled from "styled-components";
 
-function ConsultStep({
-  question,
-  value,
-  onChange,
-}) {
+function ConsultStep({ question, value, onChange }) {
   if (!question) {
-    return (
-      <Empty>
-        상담 내용 문항이 등록되어 있지 않습니다.
-      </Empty>
-    );
+    return <Empty>상담 내용 문항이 등록되어 있지 않습니다.</Empty>;
   }
 
   return (
     <Section>
-      <Category>기타 특이사항</Category>
+      <Category>수의사 상담 내용</Category>
 
-      <Title>
-        추가로 상담하고 싶은 내용을 입력해 주세요.
-      </Title>
+      <Title>반려동물의 상태와 궁금한 점을 적어 주세요.</Title>
 
       <TextArea
+        maxLength={1000}
         value={value}
-        placeholder="수의사에게 전달하고 싶은 내용을 입력해 주세요."
-        onChange={(e) =>
-          onChange(question.questionId, e.target.value)
-        }
+        placeholder="최대 1000자까지 입력할 수 있어요.."
+        onChange={(e) => onChange(question.questionId, e.target.value)}
       />
     </Section>
   );
