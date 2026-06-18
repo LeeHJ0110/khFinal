@@ -80,22 +80,27 @@ import AdminCommunityHistoryPage from "./pages/admin/community/AdminCommunityHis
 function App() {
   return (
     <>
+      {" "}
       <Routes>
-        {/* 회원 */}
+        {/* 회원 */}{" "}
         <Route path="/member">
           <Route path="login" element={<MemberLoginPage />} />
           <Route path="join" element={<MemberJoinTermsPage />} />
           <Route path="join/info" element={<MemberJoinPage />} />
           <Route path="join/complete" element={<MemberJoinCompletePage />} />
           <Route path="kakao/join" element={<MemberKakaoJoinPage />} />
-          <Route path="kakao/callback" element={<MemberKakaoCallbackPage />} />
+          <Route
+            path="kakao/callback"
+            element={<MemberKakaoCallbackPage />}
+          />{" "}
         </Route>
-
+        ```
         {/* 기본 레이아웃 */}
         <Route path="/*" element={<DefaultLayout />}>
           {/* 홈페이지 */}
           <Route index element={<HomePage />} />
           <Route path="home" element={<HomePage />} />
+
           {/* 헬스케어 */}
           <Route
             path="healthcare"
@@ -106,6 +111,7 @@ function App() {
             }
           >
             <Route index element={<HealthCareHome />} />
+
             {/* 스케줄 */}
             <Route path="schedule" element={<ScheduleMainPage />} />
 
@@ -211,6 +217,7 @@ function App() {
               path="cat/toilet"
               element={<PetStoreCatToiletProductListPage />}
             />
+
             {/* 상품 상세보기 */}
             <Route
               path="product/:productId"
@@ -236,6 +243,7 @@ function App() {
             <Route path="orders" element={<OrderHistoryPage />} />
             <Route path="points" element={<PointHistoryPage />} />
           </Route>
+
           <Route path="admin">
             <Route
               path="member"
@@ -291,7 +299,9 @@ function App() {
             />
           </Route>
 
-          {/* 공용페이지 (route path 수정해야함)*/}
+          {/* 공용페이지 */}
+          <Route path="error" element={<ErrorPage />} />
+
           <Route path="common">
             <Route path="home" element={<HomePage />} />
             <Route path="error" element={<ErrorPage />} />
@@ -304,6 +314,9 @@ function App() {
             <Route path="detail/:id" element={<BoardDetailPage />} />
             <Route path="search" element={<BoardSearchPage />} />
           </Route>
+
+          {/* 없는 URL 전체 처리 */}
+          <Route path="*" element={<Navigate to="/error" replace />} />
         </Route>
       </Routes>
     </>
