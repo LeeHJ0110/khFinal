@@ -1,5 +1,7 @@
 package com.kh.app.admin.dto.response;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kh.app.petinsurance.entity.PetInsuranceApplicationEntity;
 import lombok.Builder;
 import lombok.Getter;
@@ -54,7 +56,9 @@ public class AdminInsuranceDetailResDto {
                 .breedName(application.getPet().getBreed().getName())
 
                 .productName(application.getProduct().getProductName())
-                .productContent(application.getProduct().getProductContent())
+                .productContent(
+                        extractSummary(application.getProduct().getProductContent())
+                )
 
                 .monthlyPrice(application.getMonthlyPrice())
 
@@ -65,5 +69,16 @@ public class AdminInsuranceDetailResDto {
                 .approveStatus(application.getApproveStatus().name())
                 .createdAt(application.getCreatedAt())
                 .build();
+    }
+
+    private static String extractSummary(String content) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode node = objectMapper.readTree(content);
+
+            return node.path("summary").asText(content);
+        } catch (Exception e) {
+            return content;
+        }
     }
 }
