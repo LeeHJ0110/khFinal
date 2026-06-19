@@ -77,9 +77,9 @@ function TopSection({ selectedPet }) {
           </HeroTitle>
 
           <HeroDesc>
-            병원 내원 없이 집에서 편리하게, 전문 수의사가 직접 문진과 이미지
-            데이터를 분석하여 내 아이만을 위한 일대일 맞춤형 진단결과를
-            제공합니다.
+      병원 방문이 부담될 때, 집에서 먼저 건강 상태를 확인해 보세요.
+  작성한 문진과 사진을 바탕으로 수의사가 확인하고,
+  우리 아이에게 필요한 결과를 안내해 드립니다.
           </HeroDesc>
 
           <ApplyButton
@@ -197,17 +197,22 @@ const loadingPulse = keyframes`
 
 const pawFloat = keyframes`
   0% {
-    transform: translateY(0);
     opacity: 0.14;
   }
 
-  50% {
-    transform: translateY(-6px);
-    opacity: 0.28;
+  8% {
+    opacity: 0.75;
+  }
+
+  22% {
+    opacity: 0.75;
+  }
+
+  42% {
+    opacity: 0.14;
   }
 
   100% {
-    transform: translateY(0);
     opacity: 0.14;
   }
 `;
@@ -511,8 +516,11 @@ const PawItem = styled.div`
   left: ${({ $left }) => $left};
   top: ${({ $top }) => $top};
 
-  animation: ${pawFloat} 3.8s ease-in-out infinite;
+  opacity: 0.14;
+
+  animation: ${pawFloat} 6s ease-in-out infinite;
   animation-delay: ${({ $delay }) => $delay};
+  animation-fill-mode: both;
 `;
 
 const PawImage = styled.img`

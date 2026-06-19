@@ -3,7 +3,7 @@ import styled from "styled-components";
 import basicInfoImg from "../../img/기본정보.png";
 import selfCheckImg from "../../img/자가진단.png";
 import imageAnalysisImg from "../../img/이미지 분석.png";
-import vetReviewImg from "../../img/수의사검토png.png";
+import vetReviewImg from "../../img/수의사검토.png";
 import resultImg from "../../img/결과확인.png";
 
 import eyeImg from "../../img/눈.png";

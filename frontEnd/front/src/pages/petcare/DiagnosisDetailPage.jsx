@@ -11,58 +11,57 @@ import {
 } from "../../features/petcare/api/petCareApi";
 
 // =========================================================
-// 카테고리 정보
+// 문진 카테고리 정보
 // =========================================================
-
 const CATEGORY_META = {
   VACCINE: {
     label: "예방접종",
-    description: "최근 예방접종 이력",
+    description: "예방접종 여부와 관련 이력을 확인합니다.",
   },
 
   DISEASE: {
     label: "질병 이력",
-    description: "과거 진단 및 치료 이력",
+    description: "기존 진단 또는 치료 이력을 확인합니다.",
   },
 
   STRESS: {
     label: "스트레스",
-    description: "행동 변화 및 스트레스 반응",
+    description: "행동 변화와 스트레스 반응을 확인합니다.",
   },
 
   SLEEP: {
     label: "수면",
-    description: "수면 패턴 및 휴식 상태",
+    description: "수면 시간과 휴식 상태를 확인합니다.",
   },
 
   EXERCISE: {
     label: "운동",
-    description: "활동량 및 운동 상태",
+    description: "활동량과 운동 상태를 확인합니다.",
   },
 
   MEAL: {
     label: "식사",
-    description: "식욕 및 식습관 상태",
+    description: "식욕과 식습관 변화를 확인합니다.",
   },
 
   SKIN: {
     label: "피부",
-    description: "피부 및 피모 상태",
+    description: "피부와 피모 상태를 확인합니다.",
   },
 
   EYE: {
     label: "눈",
-    description: "안구 및 눈 주변 상태",
+    description: "눈과 눈 주변 상태를 확인합니다.",
   },
 
   TEETH: {
     label: "치아",
-    description: "구강 및 치아 상태",
+    description: "구강과 치아 상태를 확인합니다.",
   },
 
   CONSULT: {
-    label: "기타 특이사항",
-    description: "보호자가 추가로 작성한 상담 요청 내용",
+    label: "보호자 상담 내용",
+    description: "보호자가 추가로 작성한 내용을 확인합니다.",
   },
 };
 
@@ -118,7 +117,7 @@ function formatBirthDate(birthDate) {
 }
 
 // =========================================================
-// 생년월일 기준 만 나이 계산
+// 만 나이 계산
 // =========================================================
 function calculateAge(birthDate) {
   if (!birthDate) {
@@ -197,11 +196,11 @@ function formatGender(gender) {
 // =========================================================
 function formatStatus(status) {
   if (status === "Y") {
-    return "진단 진행 중";
+    return "평가 대기";
   }
 
   if (status === "N") {
-    return "진단 완료";
+    return "평가 완료";
   }
 
   return "상태 확인 필요";
@@ -266,7 +265,6 @@ function DiagnosisDetailPage() {
 
   const [imageModal, setImageModal] = useState(null);
 
-  // 평가 저장 성공 후 완료 API 중복 호출 방지
   const completeRequestRef = useRef(false);
 
   // =========================================================
@@ -277,6 +275,7 @@ function DiagnosisDetailPage() {
       asyncFetchPetCareDetail(id);
     }
   }, [id]);
+
   useEffect(() => {
     console.log("상세조회 응답:", petCareVo);
     console.log("이미지 목록:", petCareVo?.fileList);
@@ -382,7 +381,6 @@ function DiagnosisDetailPage() {
     if (value === "") {
       setCategoryScores((previous) => ({
         ...previous,
-
         [category]: "",
       }));
 
@@ -399,7 +397,6 @@ function DiagnosisDetailPage() {
 
     setCategoryScores((previous) => ({
       ...previous,
-
       [category]: normalizedValue,
     }));
   }
@@ -433,9 +430,6 @@ function DiagnosisDetailPage() {
 
   // =========================================================
   // 건강진단 신청 반려 처리
-  //
-  // 평가 점수 또는 의견을 입력하지 않아도 처리 가능
-  // 반려 후 사용자는 동일한 펫으로 다시 신청 가능
   // =========================================================
   async function handleRejectDiagnosis() {
     const isConfirmed = window.confirm(
@@ -470,18 +464,12 @@ function DiagnosisDetailPage() {
 
   // =========================================================
   // 수의사 평가 저장
-  //
-  // 모든 카테고리 점수, 종합 의견, 진단 요약을
-  // 입력한 경우에만 평가 저장 가능
   // =========================================================
   function handleSaveEvaluation() {
-    // 기타 특이사항(CONSULT)은 보호자가 작성한 상담 내용이므로
-    // 수의사가 점수를 입력하지 않음
     const scoreRequiredCategories = visibleCategories.filter(
       (category) => category !== "CONSULT",
     );
 
-    // 입력하지 않은 점수 항목 찾기
     const missingScoreCategory = scoreRequiredCategories.find(
       (category) =>
         categoryScores[category] === undefined ||
@@ -518,23 +506,18 @@ function DiagnosisDetailPage() {
 
     const scores = scoreRequiredCategories.map((category) => ({
       category,
-
       score: Number(categoryScores[category]),
     }));
 
     scores.push({
       category: "TOTAL",
-
       score: averageScore,
     });
 
     const formData = {
       diaReqId: petCareVo?.diagnosisReqId,
-
       scores,
-
       opinion: opinion.trim(),
-
       summary: summary.trim(),
     };
 
@@ -542,6 +525,7 @@ function DiagnosisDetailPage() {
 
     asyncFetchKarteWrite(formData);
   }
+
   // =========================================================
   // 로딩 화면
   // =========================================================
@@ -573,6 +557,7 @@ function DiagnosisDetailPage() {
       </Wrapper>
     );
   }
+
   const modalFiles = imageModal
     ? (groupedFiles[imageModal.category] ?? [])
     : [];
@@ -614,28 +599,26 @@ function DiagnosisDetailPage() {
   return (
     <Wrapper>
       <PageHeader>
-        <div>
-          <Eyebrow>VETERINARY ASSESSMENT</Eyebrow>
+        <HeaderTextArea>
+          <PageLabel>수의사 검토</PageLabel>
 
-          <PageTitle>건강진단 상세 평가</PageTitle>
+          <PageTitle>건강진단 평가</PageTitle>
 
           <PageDescription>
-            보호자가 작성한 문진 결과와 업로드 이미지를 확인한 후 항목별 평가
-            점수를 입력해 주세요.
+            보호자가 제출한 문진표와 첨부 이미지를 확인하고 진단 결과를 작성해
+            주세요.
           </PageDescription>
-        </div>
+        </HeaderTextArea>
 
         <BackButton type="button" onClick={() => navigate(-1)}>
           목록으로
         </BackButton>
       </PageHeader>
-      {/* =====================================================
-          반려동물 및 보호자 정보
-      ===================================================== */}
+
       <ProfileCard>
         <ProfileHeader>
           <ProfileTitleArea>
-            <ProfileLabel>PATIENT INFORMATION</ProfileLabel>
+            <SectionLabel>반려동물 정보</SectionLabel>
 
             <PetName>{petCareVo.petName ?? "이름 미등록"}</PetName>
 
@@ -654,71 +637,61 @@ function DiagnosisDetailPage() {
         <ProfileGrid>
           <ProfileInfoItem $highlight>
             <InfoLabel>보호자 닉네임</InfoLabel>
-
             <InfoValue>{petCareVo.memberNickname ?? "-"}</InfoValue>
           </ProfileInfoItem>
 
           <ProfileInfoItem>
             <InfoLabel>진단 신청 번호</InfoLabel>
-
             <InfoValue>#{petCareVo.diagnosisReqId ?? "-"}</InfoValue>
           </ProfileInfoItem>
 
           <ProfileInfoItem>
             <InfoLabel>품종</InfoLabel>
-
             <InfoValue>{petCareVo.breedName ?? "품종 미등록"}</InfoValue>
           </ProfileInfoItem>
 
           <ProfileInfoItem>
             <InfoLabel>신청일</InfoLabel>
-
             <InfoValue>{formatDate(petCareVo.createdAt)}</InfoValue>
           </ProfileInfoItem>
 
           <ProfileInfoItem>
             <InfoLabel>성별</InfoLabel>
-
             <InfoValue>{formatGender(petCareVo.gender)}</InfoValue>
           </ProfileInfoItem>
 
           <ProfileInfoItem>
             <InfoLabel>나이</InfoLabel>
-
             <InfoValue>{age !== null ? `${age}살` : "-"}</InfoValue>
           </ProfileInfoItem>
 
           <ProfileInfoItem>
             <InfoLabel>생년월일</InfoLabel>
-
             <InfoValue>{formatBirthDate(petCareVo.birthDate)}</InfoValue>
           </ProfileInfoItem>
 
           <ProfileInfoItem>
             <InfoLabel>체중</InfoLabel>
-
             <InfoValue>
               {petCareVo.weight != null ? `${petCareVo.weight}kg` : "-"}
             </InfoValue>
           </ProfileInfoItem>
         </ProfileGrid>
       </ProfileCard>
-      {/* =====================================================
-          평균 평가 점수
-      ===================================================== */}
+
       <EvaluationSummary>
         <SummaryTitleArea>
-          <SummaryEyebrow>ASSESSMENT SUMMARY</SummaryEyebrow>
+          <SectionLabel>평가 현황</SectionLabel>
 
-          <SummaryTitle>수의사 평가 현황</SummaryTitle>
+          <SummaryTitle>평균 평가 점수</SummaryTitle>
 
           <SummaryDescription>
-            카테고리별 평가 점수를 입력하면 평균 점수가 자동으로 계산됩니다.
+            항목별 점수를 입력하면 평균 점수가 자동으로 계산됩니다.
           </SummaryDescription>
         </SummaryTitleArea>
 
         <AverageScoreBox>
-          <AverageScoreLabel>평균 평가 점수</AverageScoreLabel>
+          <AverageScoreLabel>평균 점수</AverageScoreLabel>
 
           <AverageScoreValue>
             {averageScore !== null ? averageScore : "-"}
@@ -727,18 +700,16 @@ function DiagnosisDetailPage() {
           <AverageScoreUnit>/ 100</AverageScoreUnit>
         </AverageScoreBox>
       </EvaluationSummary>
-      {/* =====================================================
-          카테고리별 문진 평가
-      ===================================================== */}
+
       <Section>
         <SectionHeader>
           <div>
-            <SectionEyebrow>QUESTIONNAIRE REVIEW</SectionEyebrow>
+            <SectionLabel>문진표 검토</SectionLabel>
 
-            <SectionTitle>카테고리별 문진 평가</SectionTitle>
+            <SectionTitle>항목별 평가</SectionTitle>
 
             <SectionDescription>
-              문진 답변을 검토한 후 각 항목의 평가 점수를 입력해 주세요.
+              보호자가 작성한 답변을 확인하고 점수를 입력해 주세요.
             </SectionDescription>
           </div>
 
@@ -752,8 +723,7 @@ function DiagnosisDetailPage() {
             {visibleCategories.map((category, categoryIndex) => {
               const meta = CATEGORY_META[category] ?? {
                 label: category,
-
-                description: "추가 문진 항목",
+                description: "추가 문진 항목입니다.",
               };
 
               const categoryAnswers = groupedAnswers[category];
@@ -824,11 +794,7 @@ function DiagnosisDetailPage() {
                           value={categoryScores[category] ?? ""}
                           placeholder="0"
                           onChange={(event) =>
-                            handleScoreChange(
-                              category,
-
-                              event.target.value,
-                            )
+                            handleScoreChange(category, event.target.value)
                           }
                         />
 
@@ -861,18 +827,16 @@ function DiagnosisDetailPage() {
           </CategoryList>
         )}
       </Section>
-      {/* =====================================================
-          업로드 이미지
-      ===================================================== */}
+
       <Section>
         <SectionHeader>
           <div>
-            <SectionEyebrow>IMAGE REVIEW</SectionEyebrow>
+            <SectionLabel>이미지 검토</SectionLabel>
 
-            <SectionTitle>진단 이미지 확인</SectionTitle>
+            <SectionTitle>첨부 이미지 확인</SectionTitle>
 
             <SectionDescription>
-              눈, 피부, 치아 관련 이미지를 확인해 주세요.
+              눈, 피부, 치아 이미지를 확인해 주세요.
             </SectionDescription>
           </div>
 
@@ -924,13 +888,11 @@ function DiagnosisDetailPage() {
           </ImageCategoryList>
         )}
       </Section>
-      {/* =====================================================
-          수의사 종합 의견
-      ===================================================== */}
+
       <Section>
         <SectionHeader>
           <div>
-            <SectionEyebrow>OPINION</SectionEyebrow>
+            <SectionLabel>진단 의견</SectionLabel>
 
             <SectionTitle>수의사 종합 의견</SectionTitle>
 
@@ -942,42 +904,38 @@ function DiagnosisDetailPage() {
 
         <CommentBox
           value={opinion}
-          placeholder="반려동물의 상태에 대한 종합 의견을 입력해 주세요."
+          placeholder="예) 전반적인 상태, 주의가 필요한 부분, 추가 확인이 필요한 증상을 작성해 주세요."
           onChange={(event) => setOpinion(event.target.value)}
         />
       </Section>
-      {/* =====================================================
-          진단 요약
-      ===================================================== */}
+
       <Section>
         <SectionHeader>
           <div>
-            <SectionEyebrow>SUMMARY</SectionEyebrow>
+            <SectionLabel>결과 요약</SectionLabel>
 
             <SectionTitle>진단 요약</SectionTitle>
 
             <SectionDescription>
-              진단 내용의 요약을 입력해 주세요.
+              핵심 내용을 짧게 정리해 주세요.
             </SectionDescription>
           </div>
         </SectionHeader>
 
         <CommentBox
           value={summary}
-          placeholder="간단하게 반려동물의 상태를 설명해 주세요."
+          placeholder="예) 피부 상태 관찰 필요, 눈물 증가 확인, 치아 관리 권장"
           onChange={(event) => setSummary(event.target.value)}
         />
       </Section>
-      {/* =====================================================
-          하단 버튼
-      ===================================================== */}
+
       <ActionArea>
         <RejectButton
           type="button"
           onClick={handleRejectDiagnosis}
           disabled={isRejecting}
         >
-          {isRejecting ? "반려 처리 중..." : "반려시키기"}
+          {isRejecting ? "반려 처리 중..." : "신청 반려"}
         </RejectButton>
 
         <PrimaryButton
@@ -988,7 +946,7 @@ function DiagnosisDetailPage() {
           평가 저장
         </PrimaryButton>
       </ActionArea>
-      {/* 이미지 크게 보기 모달 */}
+
       {imageModal && currentModalImageUrl && (
         <ImageModalOverlay onClick={() => setImageModal(null)}>
           <ImageModalContent onClick={(event) => event.stopPropagation()}>
@@ -1044,7 +1002,7 @@ export default DiagnosisDetailPage;
 const fadeUp = keyframes`
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(8px);
   }
 
   to {
@@ -1063,11 +1021,11 @@ const spin = keyframes`
 // styled-components
 // =========================================================
 const Wrapper = styled.main`
-  width: min(1180px, calc(100% - 48px));
+  width: min(1120px, calc(100% - 48px));
 
   margin: 0 auto;
 
-  padding: 52px 0 90px;
+  padding: 44px 0 90px;
 
   box-sizing: border-box;
 `;
@@ -1078,46 +1036,51 @@ const PageHeader = styled.header`
   justify-content: space-between;
   gap: 20px;
 
-  margin-bottom: 24px;
+  margin-bottom: 22px;
 `;
 
-const Eyebrow = styled.p`
+const HeaderTextArea = styled.div`
+  min-width: 0;
+`;
+
+const PageLabel = styled.p`
   margin: 0 0 8px;
 
-  color: #00a97b;
+  color: #00976f;
 
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
-  letter-spacing: 1.5px;
 `;
 
 const PageTitle = styled.h1`
   margin: 0;
 
-  color: #202927;
+  color: #222222;
 
-  font-size: 32px;
+  font-size: 30px;
   font-weight: 800;
-  letter-spacing: -1px;
+  letter-spacing: -0.8px;
 `;
 
 const PageDescription = styled.p`
   margin: 10px 0 0;
 
-  color: #7b8884;
+  color: #6f7f7a;
 
   font-size: 14px;
   font-weight: 500;
+  line-height: 1.6;
+
+  word-break: keep-all;
 `;
 
 const BackButton = styled.button`
   flex-shrink: 0;
 
-  padding: 10px 15px;
+  padding: 9px 15px;
 
-  border: 1px solid rgba(0, 169, 123, 0.22);
-
-  border-radius: 9px;
+  border: 1px solid #cfe5dd;
+  border-radius: 8px;
 
   background: #ffffff;
   color: #008f69;
@@ -1127,28 +1090,27 @@ const BackButton = styled.button`
 
   cursor: pointer;
 
-  transition: 0.18s ease;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease;
 
   &:hover {
     background: #00a97b;
     color: #ffffff;
-
-    transform: translateY(-2px);
   }
 `;
 
 const ProfileCard = styled.section`
-  padding: 23px 25px;
+  padding: 22px 24px;
 
-  border: 1px solid rgba(0, 169, 123, 0.18);
-
-  border-radius: 16px;
+  border: 1px solid #dfece7;
+  border-radius: 14px;
 
   background: #ffffff;
 
-  box-shadow: 0 7px 22px rgba(20, 72, 58, 0.05);
+  box-shadow: 0 4px 14px rgba(20, 72, 58, 0.035);
 
-  animation: ${fadeUp} 0.4s ease-out both;
+  animation: ${fadeUp} 0.3s ease-out both;
 `;
 
 const ProfileHeader = styled.header`
@@ -1157,7 +1119,7 @@ const ProfileHeader = styled.header`
   justify-content: space-between;
   gap: 18px;
 
-  padding-bottom: 17px;
+  padding-bottom: 16px;
 
   border-bottom: 1px solid #e8efed;
 `;
@@ -1166,22 +1128,21 @@ const ProfileTitleArea = styled.div`
   min-width: 0;
 `;
 
-const ProfileLabel = styled.p`
+const SectionLabel = styled.p`
   margin: 0 0 7px;
 
-  color: #00a97b;
+  color: #00976f;
 
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 800;
-  letter-spacing: 1.2px;
 `;
 
 const PetName = styled.h2`
   margin: 0;
 
-  color: #202927;
+  color: #222222;
 
-  font-size: 28px;
+  font-size: 27px;
   font-weight: 800;
 `;
 
@@ -1197,13 +1158,12 @@ const PetMetaChip = styled.span`
   display: inline-flex;
   align-items: center;
 
-  padding: 5px 9px;
+  padding: 5px 10px;
 
-  border: 1px solid rgba(0, 169, 123, 0.16);
-
+  border: 1px solid #cfe5dd;
   border-radius: 999px;
 
-  background: rgba(0, 169, 123, 0.06);
+  background: #f7fcfa;
 
   color: #008f69;
 
@@ -1211,15 +1171,40 @@ const PetMetaChip = styled.span`
   font-weight: 800;
 `;
 
+const StatusBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 6px 10px;
+
+  border: 1px solid ${({ $active }) => ($active ? "#cfe5dd" : "#dddddd")};
+  border-radius: 999px;
+
+  background: ${({ $active }) => ($active ? "#f7fcfa" : "#f6f6f6")};
+
+  color: ${({ $active }) => ($active ? "#008f69" : "#777777")};
+
+  font-size: 12px;
+  font-weight: 800;
+`;
+
+const StatusDot = styled.span`
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: ${({ $active }) => ($active ? "#00a97b" : "#aeb8b5")};
+`;
+
 const ProfileGrid = styled.div`
   display: grid;
-
   grid-template-columns: repeat(4, minmax(0, 1fr));
 
   margin-top: 18px;
 
   border: 1px solid #e4ece9;
-
   border-radius: 12px;
 
   overflow: hidden;
@@ -1234,16 +1219,14 @@ const ProfileGrid = styled.div`
 `;
 
 const ProfileInfoItem = styled.div`
-  min-height: 66px;
+  min-height: 64px;
 
   padding: 13px 15px;
 
   border-right: 1px solid #e4ece9;
-
   border-bottom: 1px solid #e4ece9;
 
-  background: ${({ $highlight }) =>
-    $highlight ? "rgba(0, 169, 123, 0.055)" : "#fbfdfc"};
+  background: ${({ $highlight }) => ($highlight ? "#f7fcfa" : "#ffffff")};
 
   &:nth-child(4n) {
     border-right: none;
@@ -1307,72 +1290,29 @@ const InfoValue = styled.strong`
   font-weight: 800;
 `;
 
-const StatusBadge = styled.span`
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-
-  padding: 6px 10px;
-
-  border: 1px solid
-    ${({ $active }) =>
-      $active ? "rgba(0, 169, 123, 0.22)" : "rgba(108, 123, 118, 0.17)"};
-
-  border-radius: 999px;
-
-  background: ${({ $active }) =>
-    $active ? "rgba(0, 169, 123, 0.08)" : "#f4f6f5"};
-
-  color: ${({ $active }) => ($active ? "#008f69" : "#7c8985")};
-
-  font-size: 12px;
-  font-weight: 800;
-`;
-
-const StatusDot = styled.span`
-  width: 7px;
-  height: 7px;
-
-  border-radius: 50%;
-
-  background: ${({ $active }) => ($active ? "#00a97b" : "#aeb8b5")};
-`;
-
 const EvaluationSummary = styled.section`
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 22px;
 
-  margin-top: 22px;
+  margin-top: 20px;
+  padding: 18px 20px;
 
-  padding: 18px 22px;
-
-  border: 1px solid rgba(0, 169, 123, 0.2);
-
+  border: 1px solid #dfece7;
   border-radius: 14px;
 
-  background: #f8fcfa;
+  background: #fbfdfc;
 `;
 
 const SummaryTitleArea = styled.div`
   min-width: 0;
 `;
 
-const SummaryEyebrow = styled.p`
-  margin: 0 0 5px;
-
-  color: #00a97b;
-
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 1.2px;
-`;
-
 const SummaryTitle = styled.h2`
   margin: 0;
 
-  color: #293632;
+  color: #26332f;
 
   font-size: 20px;
   font-weight: 800;
@@ -1381,9 +1321,12 @@ const SummaryTitle = styled.h2`
 const SummaryDescription = styled.p`
   margin: 7px 0 0;
 
-  color: #85918d;
+  color: #7f8d89;
 
   font-size: 13px;
+  line-height: 1.55;
+
+  word-break: keep-all;
 `;
 
 const AverageScoreBox = styled.div`
@@ -1419,7 +1362,7 @@ const AverageScoreUnit = styled.span`
 `;
 
 const Section = styled.section`
-  margin-top: 42px;
+  margin-top: 36px;
 `;
 
 const SectionHeader = styled.header`
@@ -1428,17 +1371,7 @@ const SectionHeader = styled.header`
   justify-content: space-between;
   gap: 16px;
 
-  margin-bottom: 16px;
-`;
-
-const SectionEyebrow = styled.p`
-  margin: 0 0 6px;
-
-  color: #00a97b;
-
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 1.2px;
+  margin-bottom: 14px;
 `;
 
 const SectionTitle = styled.h2`
@@ -1446,28 +1379,31 @@ const SectionTitle = styled.h2`
 
   color: #26332f;
 
-  font-size: 23px;
+  font-size: 22px;
   font-weight: 800;
 `;
 
 const SectionDescription = styled.p`
-  margin: 8px 0 0;
+  margin: 7px 0 0;
 
-  color: #85918d;
+  color: #7f8d89;
 
   font-size: 13px;
+  font-weight: 500;
+  line-height: 1.55;
+
+  word-break: keep-all;
 `;
 
 const CountBadge = styled.span`
   flex-shrink: 0;
 
-  padding: 7px 11px;
+  padding: 6px 11px;
 
-  border: 1px solid rgba(0, 169, 123, 0.15);
-
+  border: 1px solid #cfe5dd;
   border-radius: 999px;
 
-  background: rgba(0, 169, 123, 0.05);
+  background: #ffffff;
 
   color: #008f69;
 
@@ -1485,14 +1421,13 @@ const CategoryCard = styled.article`
   overflow: hidden;
 
   border: 1px solid #e2ebe8;
-
-  border-radius: 13px;
+  border-radius: 12px;
 
   background: #ffffff;
 
-  box-shadow: 0 4px 15px rgba(25, 76, 63, 0.035);
+  box-shadow: 0 3px 10px rgba(25, 76, 63, 0.025);
 
-  animation: ${fadeUp} 0.38s ease-out ${({ $index }) => $index * 0.05}s both;
+  animation: ${fadeUp} 0.3s ease-out ${({ $index }) => $index * 0.035}s both;
 `;
 
 const CategoryHeader = styled.header`
@@ -1505,7 +1440,7 @@ const CategoryHeader = styled.header`
 
   border-bottom: 1px solid #e8efed;
 
-  background: #f8fcfa;
+  background: #fbfdfc;
 `;
 
 const CategoryTitleArea = styled.div`
@@ -1519,12 +1454,12 @@ const CategoryNumber = styled.span`
   align-items: center;
   justify-content: center;
 
-  width: 35px;
-  height: 35px;
+  width: 32px;
+  height: 32px;
 
   border-radius: 9px;
 
-  background: rgba(0, 169, 123, 0.1);
+  background: #f0f8f5;
 
   color: #008f69;
 
@@ -1572,14 +1507,13 @@ const ScoreInputRow = styled.div`
 `;
 
 const ScoreInput = styled.input`
-  width: 68px;
-  height: 35px;
+  width: 66px;
+  height: 34px;
 
   padding: 0 8px;
 
   border: 1px solid #cfded9;
-
-  border-radius: 7px;
+  border-radius: 8px;
 
   background: #ffffff;
   color: #26332f;
@@ -1592,8 +1526,7 @@ const ScoreInput = styled.input`
 
   &:focus {
     border-color: #00a97b;
-
-    box-shadow: 0 0 0 3px rgba(0, 169, 123, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 169, 123, 0.09);
   }
 `;
 
@@ -1610,7 +1543,6 @@ const AnswerList = styled.div`
 
 const AnswerItem = styled.div`
   display: grid;
-
   grid-template-columns:
     minmax(0, 1fr)
     auto;
@@ -1638,7 +1570,7 @@ const QuestionText = styled.p`
 `;
 
 const AnswerValue = styled.span`
-  min-width: 70px;
+  min-width: 68px;
 
   padding: 6px 9px;
 
@@ -1646,14 +1578,14 @@ const AnswerValue = styled.span`
 
   background: ${({ $positive, $negative }) => {
     if ($positive) {
-      return "rgba(0, 169, 123, 0.09)";
+      return "#f0f8f5";
     }
 
     if ($negative) {
-      return "#f3f5f4";
+      return "#f4f5f5";
     }
 
-    return "rgba(0, 169, 123, 0.055)";
+    return "#f7faf9";
   }};
 
   color: ${({ $positive, $negative }) => {
@@ -1676,15 +1608,14 @@ const AnswerValue = styled.span`
 const ConsultCard = styled.article`
   overflow: hidden;
 
-  border: 1px solid #dce8e4;
-
-  border-radius: 13px;
+  border: 1px solid #e2ebe8;
+  border-radius: 12px;
 
   background: #ffffff;
 
-  box-shadow: 0 4px 15px rgba(25, 76, 63, 0.035);
+  box-shadow: 0 3px 10px rgba(25, 76, 63, 0.025);
 
-  animation: ${fadeUp} 0.38s ease-out ${({ $index }) => $index * 0.05}s both;
+  animation: ${fadeUp} 0.3s ease-out ${({ $index }) => $index * 0.035}s both;
 `;
 
 const ConsultHeader = styled.header`
@@ -1697,7 +1628,7 @@ const ConsultHeader = styled.header`
 
   border-bottom: 1px solid #e8efed;
 
-  background: #f4faf8;
+  background: #fbfdfc;
 `;
 
 const ConsultBadge = styled.span`
@@ -1705,11 +1636,10 @@ const ConsultBadge = styled.span`
 
   padding: 6px 10px;
 
-  border: 1px solid rgba(0, 169, 123, 0.17);
-
+  border: 1px solid #cfe5dd;
   border-radius: 999px;
 
-  background: rgba(0, 169, 123, 0.07);
+  background: #ffffff;
 
   color: #008f69;
 
@@ -1744,7 +1674,6 @@ const ConsultContent = styled.p`
   padding: 14px 15px;
 
   border: 1px solid #e3ebe8;
-
   border-radius: 9px;
 
   background: #fbfdfc;
@@ -1768,10 +1697,11 @@ const ImageCategorySection = styled.div`
   padding: 15px;
 
   border: 1px solid #e4ece9;
-
-  border-radius: 13px;
+  border-radius: 12px;
 
   background: #ffffff;
+
+  box-shadow: 0 3px 10px rgba(25, 76, 63, 0.025);
 `;
 
 const ImageCategoryHeader = styled.div`
@@ -1796,7 +1726,7 @@ const ImageCount = styled.span`
 
   border-radius: 999px;
 
-  background: rgba(0, 169, 123, 0.08);
+  background: #f0f8f5;
 
   color: #008f69;
 
@@ -1806,7 +1736,6 @@ const ImageCount = styled.span`
 
 const ImageGrid = styled.div`
   display: grid;
-
   grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
 
   gap: 12px;
@@ -1816,7 +1745,6 @@ const ImageCard = styled.article`
   overflow: hidden;
 
   border: 1px solid #e6ecea;
-
   border-radius: 10px;
 
   background: #ffffff;
@@ -1837,7 +1765,7 @@ const UploadedImage = styled.img`
 
   &:hover {
     transform: scale(1.04);
-    filter: brightness(0.92);
+    filter: brightness(0.93);
   }
 `;
 
@@ -1860,29 +1788,33 @@ const ImagePlaceholder = styled.div`
 
 const CommentBox = styled.textarea`
   width: 100%;
-  min-height: 165px;
+  height: 150px;
 
   padding: 15px;
 
   border: 1px solid #d7e3df;
-
   border-radius: 11px;
 
   box-sizing: border-box;
 
+  background: #ffffff;
   color: #34413d;
 
   font-size: 14px;
+  font-weight: 500;
   line-height: 1.65;
 
-  resize: vertical;
-
+  resize: none;
   outline: none;
+
+  &::placeholder {
+    color: #9aa8a3;
+    font-weight: 400;
+  }
 
   &:focus {
     border-color: #00a97b;
-
-    box-shadow: 0 0 0 3px rgba(0, 169, 123, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 169, 123, 0.09);
   }
 `;
 
@@ -1891,14 +1823,13 @@ const ActionArea = styled.div`
   justify-content: flex-end;
   gap: 10px;
 
-  margin-top: 25px;
+  margin-top: 26px;
 `;
 
 const RejectButton = styled.button`
   padding: 11px 18px;
 
   border: 1px solid #e5aaa3;
-
   border-radius: 8px;
 
   background: #ffffff;
@@ -1911,23 +1842,16 @@ const RejectButton = styled.button`
 
   transition:
     background 0.18s ease,
-    border-color 0.18s ease,
-    transform 0.18s ease;
+    border-color 0.18s ease;
 
   &:hover {
     border-color: #d45a4d;
-
     background: #fff5f4;
-
-    transform: translateY(-1px);
   }
 
   &:disabled {
     opacity: 0.55;
-
     cursor: not-allowed;
-
-    transform: none;
   }
 `;
 
@@ -1935,7 +1859,6 @@ const PrimaryButton = styled.button`
   padding: 11px 20px;
 
   border: 1px solid #00a97b;
-
   border-radius: 8px;
 
   background: #00a97b;
@@ -1952,7 +1875,6 @@ const PrimaryButton = styled.button`
 
   &:disabled {
     opacity: 0.55;
-
     cursor: not-allowed;
   }
 `;
@@ -1961,7 +1883,6 @@ const EmptyCard = styled.div`
   padding: 40px 20px;
 
   border: 1px dashed #d9e5e1;
-
   border-radius: 13px;
 
   background: #fbfdfc;
@@ -1987,9 +1908,7 @@ const LoadingSpinner = styled.div`
   height: 29px;
 
   border: 3px solid rgba(0, 169, 123, 0.15);
-
   border-top-color: #00a97b;
-
   border-radius: 50%;
 
   animation: ${spin} 0.8s linear infinite;
@@ -2078,6 +1997,7 @@ const ImageModalCount = styled.div`
   z-index: 2;
 
   min-width: 58px;
+
   padding: 7px 12px;
 
   border-radius: 999px;

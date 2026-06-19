@@ -387,14 +387,7 @@ public class PetInsuranceService {
                         application
                 );
 
-        log.info(
-                "펫 보험 가입 신청 완료 - username={}, petId={}, productId={}, applicationId={}, monthlyPrice={}",
-                username,
-                dto.getPetId(),
-                dto.getProductId(),
-                savedApplication.getApplicationId(),
-                monthlyPrice
-        );
+
 
         return PetInsuranceApplicationResDto.builder()
                 .applicationId(
