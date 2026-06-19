@@ -59,8 +59,9 @@ public class PetInsuranceController {
     }
 
     // =========================================================
-    // 저장된 생년월일과 선택 상품 기준 예상 보험료 계산
+    // 저장된 생년월일과 선택 상품 기준 예상 보험료 계산 로직
     // 화면 표시용이며 DB에는 저장하지 않음
+    // 실제 결제는 x
     // =========================================================
     @PostMapping("/calculate")
     public ResponseEntity<PetInsuranceCalculateResDto>

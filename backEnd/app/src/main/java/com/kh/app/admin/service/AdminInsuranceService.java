@@ -165,5 +165,6 @@ public class AdminInsuranceService {
         for (Long applicationId : applicationIds) {
             reject(applicationId, adminUsername);
         }
+
     }
 }
