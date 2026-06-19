@@ -107,11 +107,9 @@ export default function Header({ activeMenu = "" }) {
             "",
         });
       } catch (error) {
-        console.error("헤더 내 정보 조회 실패:", error);
-        localStorage.removeItem("accessToken");
-        alert("세션이 만료되었습니다.");
-        window.location.replace("/member/login");
-        setLoginMember(tokenMember);
+        console.error(error);
+
+        setLoginMember(null);
       }
     }
 

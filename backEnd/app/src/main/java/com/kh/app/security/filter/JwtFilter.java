@@ -35,11 +35,18 @@ public class JwtFilter extends OncePerRequestFilter {
         
         try{
             if( jwtUtil.isExpired(token) ){
-                filterChain.doFilter(request, response);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("""
+                {
+                    "code":"M002",
+                    "message":"토큰이 만료되었습니다."
+                }
+            """);
                 return;
             }
         }catch (Exception e){
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write("""
                 {
