@@ -47,6 +47,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     "message":"유효하지 않은 토큰입니다."
                 }
             """);
+            return;
         }
 
         String username = jwtUtil.getUsername(token);
