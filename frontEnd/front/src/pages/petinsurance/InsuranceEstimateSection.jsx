@@ -184,7 +184,8 @@ function InsuranceEstimateSection() {
               <GuideItemTitle>반려동물을 선택해 주세요</GuideItemTitle>
 
               <GuideItemDescription>
-                등록된 반려동물의 정보를 기준으로 월 보험료가 자동 계산됩니다.
+                등록된 나이 정보를 기준으로 월 보험료가 계산됩니다. 나이에 따라
+                보험료가 달라질 수 있으며, 만 10세 이상은 가입이 어렵습니다.
               </GuideItemDescription>
             </GuideContent>
           </GuideItem>
@@ -193,10 +194,12 @@ function InsuranceEstimateSection() {
             <GuideNumber>2</GuideNumber>
 
             <GuideContent>
-              <GuideItemTitle>가입 신청을 진행해 주세요</GuideItemTitle>
+              <GuideItemTitle>진료확인서를 첨부해 주세요</GuideItemTitle>
 
               <GuideItemDescription>
-                진료확인서를 첨부하고 카카오페이 결제 수단을 등록해 주세요.
+                최근 6개월 이내 건강에 이상이 없다는 의사 소견이 확인되어야
+                합니다. 진료확인서가 없거나 확인이 어려운 경우 가입이 제한될 수
+                있습니다.
               </GuideItemDescription>
             </GuideContent>
           </GuideItem>
@@ -205,10 +208,14 @@ function InsuranceEstimateSection() {
             <GuideNumber>3</GuideNumber>
 
             <GuideContent>
-              <GuideItemTitle>승인 후 가입이 완료됩니다</GuideItemTitle>
+              <GuideItemTitle>
+                결제 수단 등록 후 승인을 기다려 주세요
+              </GuideItemTitle>
 
               <GuideItemDescription>
-                관리자 승인 이후 등록한 결제 수단으로 최초 보험료가 결제됩니다.
+                카카오페이 결제 수단 등록 후 신청이 접수됩니다. 관리자 승인 시
+                최초 보험료가 결제되며, 해지 신청 후에도 당월까지는 보험 혜택이
+                유지됩니다.
               </GuideItemDescription>
             </GuideContent>
           </GuideItem>

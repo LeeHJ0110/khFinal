@@ -3,6 +3,7 @@ package com.kh.app.petcare.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kh.app.aws.service.S3Service;
 import com.kh.app.common.entity.DelYn;
+import com.kh.app.common.exception.CustomException;
 import com.kh.app.member.entity.MemberEntity;
 import com.kh.app.member.repository.MemberRepository;
 import com.kh.app.message.entity.MessageReasonType;
@@ -35,6 +36,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import com.kh.app.petcare.exception.PetCareErrorCode;
+
 
 import java.io.IOException;
 import java.util.List;
@@ -83,10 +86,9 @@ public class PetCareService {
         // 선택한 반려동물 조회
         PetEntity pet = petRepository.findById(reqDto.getPetId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "반려동물을 찾을 수 없습니다."
-                        )
+                        new CustomException(PetCareErrorCode.PET_NOT_FOUND)
                 );
+
 
         // 로그인 회원의 반려동물인지 확인
         if (pet.getMember() == null || !pet.getMember().getId().equals(member.getId())) {
@@ -104,8 +106,8 @@ public class PetCareService {
                         );
 
         if (hasActiveDiagnosis) {
-            throw new IllegalStateException(
-                    "이미 진행 중인 건강진단 신청이 있습니다."
+            throw new CustomException(
+                    PetCareErrorCode.DIAGNOSIS_ALREADY_IN_PROGRESS
             );
         }
 
@@ -116,6 +118,7 @@ public class PetCareService {
          * 이후 진단 신청 저장/이미지 저장은 진행되지 않음
          */
         pointService.useHealthcarePoint(member, "건강진단");
+
 
         /*
          * 새로운 진단 신청 생성
@@ -168,6 +171,7 @@ public class PetCareService {
                 diagnosisReq,
                 ImgCategory.TEETH
         );
+
 
         log.info(
                 "건강진단 신청 완료 - petId={}, diagnosisReqId={}",
