@@ -56,7 +56,6 @@ public class JwtFilter extends OncePerRequestFilter {
             """);
             return;
         }
-
         
         String username = jwtUtil.getUsername(token);
         String role = jwtUtil.getRole(token);
