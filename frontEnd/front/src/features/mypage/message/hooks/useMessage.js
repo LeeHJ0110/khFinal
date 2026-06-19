@@ -13,9 +13,11 @@ export default function useMessage() {
 
       const response = await getMyMessages();
 
-      setMessageList(response.data || []);
+      const data = Array.isArray(response.data) ? response.data : [];
 
-      return response.data || [];
+      setMessageList(data);
+
+      return data;
     } catch (err) {
       console.error(err);
       setError("쪽지 목록을 불러오지 못했습니다.");
