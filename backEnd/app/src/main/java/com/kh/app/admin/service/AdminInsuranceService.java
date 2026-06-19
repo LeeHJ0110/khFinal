@@ -160,15 +160,10 @@ public class AdminInsuranceService {
             AdminInsuranceBulkReqDto reqDto,
             String adminUsername
     ) {
-        List<PetInsuranceApplicationEntity> applications =
-                applicationRepository.findAllByApplicationIdIn(reqDto.getApplicationIds());
+        List<Long> applicationIds = reqDto.getApplicationIds();
 
-        for (PetInsuranceApplicationEntity application : applications) {
-            if (application.getApproveStatus() == PetInsuranceApproveStatus.WAITING) {
-                application.reject();
-
-
-            }
+        for (Long applicationId : applicationIds) {
+            reject(applicationId, adminUsername);
         }
     }
 }
