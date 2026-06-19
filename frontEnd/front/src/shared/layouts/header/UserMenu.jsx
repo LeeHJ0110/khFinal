@@ -87,8 +87,11 @@ export default function UserMenu({ loginMember }) {
   }
 
   function messageCounter(msgList) {
-    console.log(msgList);
-    console.log(Array.isArray(msgList));
+    if (!Array.isArray(msgList)) {
+      console.log(msgList);
+      return 0;
+    }
+
     return msgList.filter((msg) => msg.readYn === "N").length;
   }
 
