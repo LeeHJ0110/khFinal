@@ -167,14 +167,7 @@ public class AdminInsuranceService {
             if (application.getApproveStatus() == PetInsuranceApproveStatus.WAITING) {
                 application.reject();
 
-                systemMessageService.sendByAdmin(
-                        adminUsername,
-                        application.getPet().getMember(),
-                        MessageReasonType.INSURANCE,
-                        "펫보험 반려 안내",
-                        application.getPet().getName()
-                                + "의 펫보험 가입 신청이 반려되었습니다."
-                );
+
             }
         }
     }
