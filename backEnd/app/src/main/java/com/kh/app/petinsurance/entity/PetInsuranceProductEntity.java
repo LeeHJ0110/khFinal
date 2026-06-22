@@ -27,7 +27,7 @@ public class PetInsuranceProductEntity extends BaseEntity {
     private Long productMonthly;
 
     //보장내용
-    @Column(name = "PRODUCT_CONTENT", length = 500)
+    @Column(name = "PRODUCT_CONTENT", length = 2000)
     private String productContent;
 }
 
