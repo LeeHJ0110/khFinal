@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import styled from "styled-components";
 import { useLocation } from "react-router-dom";
 import useBoardForm from "../../features/board/hooks/useBoardForm";
 import BoardSubNavbar from "./components/BoardSubNavbar";
+import { uploadBoardImageApi } from "../../features/board/api/boardApi";
 
 const getLoginMember = () => {
   const saved = localStorage.getItem("loginMember");
@@ -44,6 +45,7 @@ const getLoginMember = () => {
 };
 
 export default function BoardWritePage() {
+  const quillRef = useRef(null);
   const {
     navigate,
     isEdit,
@@ -97,8 +99,33 @@ export default function BoardWritePage() {
     }
   }, [navigate, boardCategory, location.state]);
 
+  const imageHandler = () => {
+    const input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.setAttribute("accept", "image/*");
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files[0];
+      if (!file) return;
+
+      try {
+        const response = await uploadBoardImageApi(file);
+        const imageUrl = response.data;
+
+        const quill = quillRef.current.getEditor();
+        const range = quill.getSelection(true);
+        quill.insertEmbed(range.index, "image", imageUrl);
+        quill.setSelection(range.index + 1);
+      } catch (error) {
+        console.error("에디터 이미지 업로드 실패:", error);
+        alert("이미지 업로드에 실패했습니다.");
+      }
+    };
+  };
+
   // React Quill 툴바 및 모듈 구성 (시안 디자인에 맞게 최적화)
-  const modules = {
+  const modules = useMemo(() => ({
     toolbar: {
       container: [
         [{ size: ["small", false, "large", "huge"] }], // 글씨 크기
@@ -107,8 +134,11 @@ export default function BoardWritePage() {
         ["image"], // 이미지 아이콘
         [{ align: [] }], // 정렬 아이콘
       ],
+      handlers: {
+        image: imageHandler,
+      },
     },
-  };
+  }), []);
 
   const formats = [
     "size",
@@ -208,6 +238,7 @@ export default function BoardWritePage() {
           {/* 에디터 (React Quill) */}
           <EditorContainer>
             <ReactQuill
+              ref={quillRef}
               value={content}
               onChange={handleEditorChange}
               modules={modules}

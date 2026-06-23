@@ -717,4 +717,14 @@ public class BoardService {
                 .productList(productList)
                 .build();
     }
+
+    @Transactional
+    public String uploadEditorImage(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("업로드할 이미지 파일이 없습니다.");
+        }
+        String savedFilename = s3Service.upload(file, "board");
+        String s3KeyPath = savedFilename.startsWith("board/") ? savedFilename : "board/" + savedFilename;
+        return "https://" + bucketName.trim() + ".s3.ap-northeast-2.amazonaws.com/" + s3KeyPath;
+    }
 }
