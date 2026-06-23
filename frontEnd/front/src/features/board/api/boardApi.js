@@ -91,3 +91,13 @@ export async function processReplyReportApi(reportId, status) {
     params: { status },
   });
 }
+
+export async function uploadBoardImageApi(file) {
+  const formData = new FormData();
+  formData.append("image", file);
+  return await api.post("/board/image", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+}
