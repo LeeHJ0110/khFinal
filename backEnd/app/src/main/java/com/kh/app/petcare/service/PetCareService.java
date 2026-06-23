@@ -37,6 +37,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
+import com.kh.app.point.service.PointService;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -49,6 +51,7 @@ public class PetCareService {
     private final PetRepository petRepository;
     private final MemberRepository memberRepository;
     private final S3Service s3Service;
+    private final PointService pointService;
 
     // =========================================================
     // 건강진단 신청
@@ -67,6 +70,13 @@ public class PetCareService {
         PetCareReqDto reqDto =
                 objectMapper.readValue(data, PetCareReqDto.class);
 
+        // 로그인 회원 조회
+        MemberEntity member = memberRepository.findByUsername(username)
+                .or(() -> memberRepository.findBySocialId(username))
+                .orElseThrow(() ->
+                        new IllegalArgumentException("회원 정보가 존재하지 않습니다.")
+                );
+
         // 선택한 반려동물 조회
         PetEntity pet = petRepository.findById(reqDto.getPetId())
                 .orElseThrow(() ->
@@ -75,11 +85,13 @@ public class PetCareService {
                         )
                 );
 
+        // 로그인 회원의 반려동물인지 확인
+        if (pet.getMember() == null || !pet.getMember().getId().equals(member.getId())) {
+            throw new IllegalArgumentException("본인의 반려동물만 건강진단을 신청할 수 있습니다.");
+        }
+
         /*
          * 해당 펫에 진행 중인 건강진단 신청이 이미 있는지 확인
-         *
-         * Y = 신청 중
-         * N = 신청 가능
          */
         boolean hasActiveDiagnosis =
                 diagnosisReqRepository
@@ -95,11 +107,15 @@ public class PetCareService {
         }
 
         /*
-         * 새로운 진단 신청 생성
+         * 건강진단 서비스 이용 포인트 차감
          *
-         * DiagnosisReqEntity에서
-         * diagnosisReqStatus 기본값이 DelYn.Y로 설정되어 있으므로
-         * 새 신청을 저장하면 자동으로 신청 중 상태가 됨
+         * 포인트 부족 시 여기서 CustomException 발생
+         * 이후 진단 신청 저장/이미지 저장은 진행되지 않음
+         */
+        pointService.useHealthcarePoint(member, "건강진단");
+
+        /*
+         * 새로운 진단 신청 생성
          */
         DiagnosisReqEntity diagnosisReq =
                 DiagnosisReqEntity.builder()
